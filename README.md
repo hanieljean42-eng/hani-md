@@ -178,7 +178,7 @@ npm start
    NUMERO_OWNER = 22501XXXXXXXX
    MODE = public
    SESSION_ID = HANI-MD~xxxxxxx  (voir ci-dessous)
-   MONGODB_URI = mongodb+srv://...  (optionnel, voir ci-dessous)
+   MYSQL_URL = mysql://user:pass@host:3306/db  (optionnel, voir ci-dessous)
    ```
 7. Cliquez sur **Create Web Service**
 
@@ -193,21 +193,28 @@ node session-generator.js
 # Copiez le SESSION_ID affiché et ajoutez-le dans Render
 ```
 
-### 🗄️ Base de Données MongoDB (Recommandé)
+### 🗄️ Base de Données MySQL (Recommandé)
 
 Pour que vos données (contacts, messages supprimés, stats) persistent entre les redémarrages :
 
-1. Créez un compte gratuit sur [MongoDB Atlas](https://www.mongodb.com/atlas/database)
-2. Créez un cluster gratuit (M0 Free Tier)
-3. Dans **Database Access** : Créez un utilisateur avec mot de passe
-4. Dans **Network Access** : Ajoutez `0.0.0.0/0` (accès global)
-5. Cliquez **Connect** → **Connect your application**
-6. Copiez l'URI et remplacez `<password>` par votre mot de passe
-7. Ajoutez `MONGODB_URI` dans les variables d'environnement Render
+**Hébergeurs MySQL gratuits :**
+| Service | Gratuit | Lien |
+|---------|---------|------|
+| PlanetScale | 5GB | https://planetscale.com |
+| Railway | 500MB | https://railway.app |
+| Clever Cloud | 256MB | https://clever-cloud.com |
+| FreeSQLDatabase | 5MB | https://freesqldatabase.com |
+| db4free.net | 200MB | https://db4free.net |
 
-**Format de l'URI** :
+**Configuration :**
+1. Créez un compte sur l'un des services ci-dessus
+2. Créez une base de données MySQL
+3. Récupérez les identifiants de connexion
+4. Ajoutez `MYSQL_URL` dans les variables Render
+
+**Format de l'URL** :
 ```
-mongodb+srv://username:password@cluster.xxxxx.mongodb.net/hani_db
+mysql://username:password@host:3306/database_name
 ```
 
 ---
@@ -221,13 +228,14 @@ mongodb+srv://username:password@cluster.xxxxx.mongodb.net/hani_db
 | `NUMERO_OWNER` | Votre numéro WhatsApp (sans +) | `2250150252467` |
 | `MODE` | `public` (tous) ou `private` (vous seul) | `public` |
 | `SESSION_ID` | Session encodée pour déploiement | `HANI-MD~xxx...` |
-| `MONGODB_URI` | URI MongoDB Atlas (optionnel) | `mongodb+srv://...` |
+| `MYSQL_URL` | URL MySQL (optionnel) | `mysql://user:pass@host/db` |
 
 ---
 
 ## 🔒 Sécurité
 
 ⚠️ **Important** :
+
 - Ne partagez jamais votre fichier `.env`
 - Ne partagez jamais le dossier `DataBase/session/`
 - Ne partagez jamais votre `SESSION_ID`

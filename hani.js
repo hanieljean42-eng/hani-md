@@ -13,7 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
-const mongoDB = require("./DataBase/mongodb"); // MongoDB pour persistance externe
+const mysqlDB = require("./DataBase/mysql"); // MySQL pour persistance externe
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -26,49 +26,55 @@ const {
 } = require("@whiskeysockets/baileys");
 
 // ═══════════════════════════════════════════════════════════
-// 📦 BASE DE DONNÉES HYBRIDE (Local + MongoDB)
+// 📦 BASE DE DONNÉES HYBRIDE (Local + MySQL)
 // ═══════════════════════════════════════════════════════════
 
 class HaniDatabase {
   constructor(dbPath = "./DataBase/hani.json") {
     this.dbPath = dbPath;
     this.data = this.load();
-    this.mongoConnected = false;
+    this.mysqlConnected = false;
     this.syncQueue = [];
     
-    // Connexion MongoDB en arrière-plan
-    this.initMongoDB();
+    // Connexion MySQL en arrière-plan
+    this.initMySQL();
   }
 
-  async initMongoDB() {
+  async initMySQL() {
     try {
-      if (process.env.MONGODB_URI) {
-        await mongoDB.connect();
-        this.mongoConnected = true;
-        console.log("✅ MongoDB connecté - Les données seront synchronisées");
-        
-        // Charger les données depuis MongoDB si disponible
-        await this.loadFromMongo();
-        
-        // Nettoyage automatique des anciennes données (30 jours)
-        mongoDB.cleanOldData(30).catch(() => {});
+      if (process.env.MYSQL_URL || process.env.MYSQL_HOST) {
+        const connected = await mysqlDB.connect();
+        if (connected) {
+          this.mysqlConnected = true;
+          console.log("✅ MySQL connecté - Les données seront synchronisées");
+          
+          // Charger les données depuis MySQL si disponible
+          await this.loadFromMySQL();
+          
+          // Nettoyage automatique des anciennes données (30 jours)
+          mysqlDB.cleanOldData(30).catch(() => {});
+        }
       } else {
-        console.log("⚠️ MONGODB_URI non défini - Mode local uniquement");
+        console.log("⚠️ MySQL non configuré - Mode local uniquement");
       }
     } catch (e) {
-      console.log("⚠️ MongoDB non disponible:", e.message);
-      this.mongoConnected = false;
+      console.log("⚠️ MySQL non disponible:", e.message);
+      this.mysqlConnected = false;
     }
   }
 
-  async loadFromMongo() {
+  async loadFromMySQL() {
     try {
-      // Charger les stats depuis MongoDB
-      const stats = await mongoDB.getStats();
+      // Charger les stats depuis MySQL
+      const stats = await mysqlDB.getStats();
       if (stats) {
-        this.data.stats = { ...this.data.stats, ...stats };
+        this.data.stats = { 
+          ...this.data.stats, 
+          commands: stats.commands || 0,
+          messages: stats.messages || 0
+        };
       }
-      console.log("📊 Données MongoDB chargées");
+      console.log("📊 Données MySQL chargées");
     } catch (e) {
       // Ignorer si pas de données
     }
@@ -98,28 +104,28 @@ class HaniDatabase {
       // Sauvegarder localement
       fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2));
       
-      // Synchroniser avec MongoDB en arrière-plan
-      if (this.mongoConnected) {
-        this.syncToMongo().catch(() => {});
+      // Synchroniser avec MySQL en arrière-plan
+      if (this.mysqlConnected) {
+        this.syncToMySQL().catch(() => {});
       }
     } catch (e) {
       console.log("⚠️ Erreur sauvegarde DB:", e.message);
     }
   }
 
-  async syncToMongo() {
+  async syncToMySQL() {
     try {
       // Sync stats
-      await mongoDB.updateStats(this.data.stats);
+      await mysqlDB.updateStats(this.data.stats);
       
       // Sync users (batch pour performance)
       for (const [jid, userData] of Object.entries(this.data.users)) {
-        await mongoDB.updateUser(jid, userData);
+        await mysqlDB.updateUser(jid, userData);
       }
       
       // Sync groups
       for (const [jid, groupData] of Object.entries(this.data.groups)) {
-        await mongoDB.updateGroup(jid, groupData);
+        await mysqlDB.updateGroup(jid, groupData);
       }
     } catch (e) {
       // Ignorer les erreurs de sync
@@ -231,25 +237,33 @@ class HaniDatabase {
   // Stats
   incrementStats(key) {
     this.data.stats[key] = (this.data.stats[key] || 0) + 1;
+    // Sync avec MySQL
+    if (this.mysqlConnected) {
+      mysqlDB.incrementStats(key).catch(() => {});
+    }
   }
 
-  // === NOUVELLES FONCTIONS MONGODB ===
+  // === FONCTIONS MySQL ===
 
   // Sauvegarder un message supprimé
-  async saveDeletedMessage(message, from, sender, groupName = null) {
-    if (this.mongoConnected) {
+  async saveDeletedMessage(message, from, sender, senderName = '', groupName = null) {
+    if (this.mysqlConnected) {
       try {
-        await mongoDB.saveDeletedMessage({
+        let mediaType = null;
+        if (message.message?.imageMessage) mediaType = "image";
+        else if (message.message?.videoMessage) mediaType = "video";
+        else if (message.message?.audioMessage) mediaType = "audio";
+        else if (message.message?.documentMessage) mediaType = "document";
+        
+        await mysqlDB.saveDeletedMessage({
           messageId: message.key?.id,
           from,
           sender,
+          senderName,
           groupName,
           text: message.message?.conversation || 
                 message.message?.extendedTextMessage?.text || "",
-          mediaType: message.message?.imageMessage ? "image" : 
-                     message.message?.videoMessage ? "video" : 
-                     message.message?.audioMessage ? "audio" : 
-                     message.message?.documentMessage ? "document" : null
+          mediaType
         });
       } catch (e) {}
     }
@@ -257,9 +271,9 @@ class HaniDatabase {
 
   // Récupérer les messages supprimés
   async getDeletedMessages(jid = null, limit = 20) {
-    if (this.mongoConnected) {
+    if (this.mysqlConnected) {
       try {
-        return await mongoDB.getDeletedMessages(jid, limit);
+        return await mysqlDB.getDeletedMessages(jid, limit);
       } catch (e) {}
     }
     return [];
@@ -267,38 +281,91 @@ class HaniDatabase {
 
   // Sauvegarder un statut supprimé
   async saveDeletedStatus(statusData) {
-    if (this.mongoConnected) {
+    if (this.mysqlConnected) {
       try {
-        await mongoDB.saveDeletedStatus(statusData);
+        await mysqlDB.saveDeletedStatus(statusData);
       } catch (e) {}
     }
   }
 
   // Récupérer les statuts supprimés
   async getDeletedStatuses(sender = null, limit = 20) {
-    if (this.mongoConnected) {
+    if (this.mysqlConnected) {
       try {
-        return await mongoDB.getDeletedStatuses(sender, limit);
+        return await mysqlDB.getDeletedStatuses(sender, limit);
       } catch (e) {}
     }
     return [];
   }
 
   // Sauvegarder un contact
-  async saveContact(jid, name, phone) {
-    if (this.mongoConnected) {
+  async saveContact(jid, name, phone, pushName = '') {
+    if (this.mysqlConnected) {
       try {
-        await mongoDB.saveContact(jid, name, phone);
+        await mysqlDB.saveContact(jid, name, phone, pushName);
       } catch (e) {}
     }
   }
 
   // Chercher un contact
   async searchContacts(query) {
-    if (this.mongoConnected) {
+    if (this.mysqlConnected) {
       try {
-        return await mongoDB.searchContacts(query);
+        return await mysqlDB.searchContacts(query);
       } catch (e) {}
+    }
+    return [];
+  }
+
+  // Tous les contacts
+  async getAllContacts() {
+    if (this.mysqlConnected) {
+      try {
+        return await mysqlDB.getAllContacts();
+      } catch (e) {}
+    }
+    return [];
+  }
+
+  // === SURVEILLANCE ===
+  
+  async addToSurveillance(jid) {
+    if (this.mysqlConnected) {
+      return await mysqlDB.addToSurveillance(jid);
+    }
+    return false;
+  }
+
+  async removeFromSurveillance(jid) {
+    if (this.mysqlConnected) {
+      return await mysqlDB.removeFromSurveillance(jid);
+    }
+    return false;
+  }
+
+  async getSurveillanceList() {
+    if (this.mysqlConnected) {
+      return await mysqlDB.getSurveillanceList();
+    }
+    return [];
+  }
+
+  async isUnderSurveillance(jid) {
+    if (this.mysqlConnected) {
+      return await mysqlDB.isUnderSurveillance(jid);
+    }
+    return false;
+  }
+
+  async logActivity(jid, actionType, details) {
+    if (this.mysqlConnected) {
+      await mysqlDB.logActivity(jid, actionType, details);
+    }
+  }
+
+  async getActivity(jid, limit = 50) {
+    if (this.mysqlConnected) {
+      return await mysqlDB.getActivity(jid, limit);
     }
     return [];
   }
