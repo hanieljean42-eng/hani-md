@@ -5,12 +5,15 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/Ainz-devs/OVL-MD-V2.git /ovl_bot
+# Copier le code source local
+WORKDIR /app
 
-WORKDIR /ovl_bot
+COPY package*.json ./
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 
-EXPOSE 8000
+COPY . .
+
+EXPOSE 3000
 
 CMD ["npm", "start"]
