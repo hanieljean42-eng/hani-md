@@ -846,26 +846,185 @@ function getCachedContactName(jid) {
 // 🎨 MENUS ET TEXTES
 // ═══════════════════════════════════════════════════════════
 
-function getMainMenu(prefix) {
+function getMainMenu(prefix, userRole = "user") {
+  // Menu pour les USERS (accès basique)
+  if (userRole === "user") {
+    return `
+╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃    🌟 *HANI-MD V1.0* 🌟   
+┃━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📌 Préfixe : *${prefix}*
+┃ 🤖 Mode    : *${config.MODE}*
+┃ 👤 Ton rôle : *User*
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ 👤 *MENU UTILISATEUR* ━━━╮
+┃
+┃ 📌 *GÉNÉRAL*
+┃ ${prefix}menu - Ce menu
+┃ ${prefix}ping - Tester le bot
+┃ ${prefix}info - Infos du bot
+┃ ${prefix}stats - Statistiques
+┃ ${prefix}runtime - Temps en ligne
+┃ ${prefix}whoami - Qui suis-je?
+┃ ${prefix}permissions - Voir ton niveau
+┃
+┃ 👤 *TON PROFIL*
+┃ ${prefix}profil - Voir ton profil
+┃ ${prefix}level - Ton niveau XP
+┃ ${prefix}daily - Bonus quotidien
+┃
+┃ 🎲 *FUN BASIQUE*
+┃ ${prefix}dice - Lancer un dé
+┃ ${prefix}flip - Pile ou face
+┃ ${prefix}quote - Citation random
+┃
+┃ 🔧 *OUTILS*
+┃ ${prefix}calc [expression] - Calculer
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ 🔒 *ACCÈS LIMITÉ* ━━━╮
+┃
+┃ ❌ Stickers, IA, Downloads
+┃ ❌ Commandes de groupe
+┃ ❌ Fonctions avancées
+┃
+┃ 💡 *Pour plus d'accès:*
+┃ Demande à l'owner de t'approuver!
+┃ Commande: ${prefix}approve @toi
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+📊 *Hiérarchie des rôles:*
+👑 Owner > ⚡ Sudo > ✅ Approved > 👤 User
+`;
+  }
+  
+  // Menu pour les APPROVED (accès intermédiaire)
+  if (userRole === "approved") {
+    return `
+╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃    🌟 *HANI-MD V1.0* 🌟   
+┃━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📌 Préfixe : *${prefix}*
+┃ 🤖 Mode    : *${config.MODE}*
+┃ ✅ Ton rôle : *Approved*
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ ✅ *MENU APPROUVÉ* ━━━╮
+┃
+┃ 📌 *GÉNÉRAL*
+┃ ${prefix}menu - Ce menu
+┃ ${prefix}ping - Tester le bot
+┃ ${prefix}info - Infos du bot
+┃ ${prefix}stats - Statistiques
+┃ ${prefix}runtime - Temps en ligne
+┃ ${prefix}whoami - Qui suis-je?
+┃ ${prefix}permissions - Voir ton niveau
+┃
+┃ 👤 *TON PROFIL*
+┃ ${prefix}profil - Voir ton profil
+┃ ${prefix}level - Ton niveau XP
+┃ ${prefix}daily - Bonus quotidien
+┃
+┃ 🎮 *FUN*
+┃ ${prefix}sticker - Créer sticker
+┃ ${prefix}emoji [😀] - Agrandir emoji
+┃ ${prefix}dice - Lancer un dé
+┃ ${prefix}flip - Pile ou face
+┃ ${prefix}quote - Citation random
+┃
+┃ 🔧 *OUTILS*
+┃ ${prefix}calc [expression] - Calculer
+┃ ${prefix}tts [texte] - Text to Speech
+┃ ${prefix}tr [lang] [texte] - Traduire
+┃
+┃ 🤖 *INTELLIGENCE ARTIFICIELLE*
+┃ ${prefix}gpt [question] - ChatGPT
+┃ ${prefix}dalle [description] - Image IA
+┃
+┃ 📥 *TÉLÉCHARGEMENTS*
+┃ ${prefix}play [titre] - Musique YouTube
+┃ ${prefix}video [titre] - Vidéo YouTube
+┃ ${prefix}tiktok [lien] - TikTok
+┃ ${prefix}insta [lien] - Instagram
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ 🔒 *NON DISPONIBLE* ━━━╮
+┃ ❌ Commandes de groupe (admin)
+┃ ❌ Protections du bot
+┃ ❌ Gestion utilisateurs
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+`;
+  }
+  
+  // Menu pour les SUDO (accès étendu)
+  if (userRole === "sudo") {
+    return `
+╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃    🌟 *HANI-MD V1.0* 🌟   
+┃━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ 📌 Préfixe : *${prefix}*
+┃ 🤖 Mode    : *${config.MODE}*
+┃ ⚡ Ton rôle : *Sudo*
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ ⚡ *MENU SUDO* ━━━╮
+┃
+┃ 📌 *GÉNÉRAL*
+┃ ${prefix}ping, ${prefix}info, ${prefix}stats
+┃ ${prefix}runtime, ${prefix}whoami
+┃
+┃ 👤 *PROFIL*
+┃ ${prefix}profil, ${prefix}level, ${prefix}daily
+┃
+┃ 🎮 *FUN & OUTILS*
+┃ ${prefix}sticker, ${prefix}emoji, ${prefix}dice
+┃ ${prefix}flip, ${prefix}quote, ${prefix}calc
+┃ ${prefix}tts, ${prefix}tr
+┃
+┃ 🤖 *IA & DOWNLOADS*
+┃ ${prefix}gpt, ${prefix}dalle
+┃ ${prefix}play, ${prefix}video, ${prefix}tiktok
+┃
+┃ 👥 *GROUPE* (Tu peux!)
+┃ ${prefix}kick @user - Exclure
+┃ ${prefix}add [n°] - Ajouter
+┃ ${prefix}promote/@demote - Gérer admins
+┃ ${prefix}link - Lien du groupe
+┃ ${prefix}tagall - Mentionner tous
+┃ ${prefix}hidetag [msg] - Tag caché
+┃ ${prefix}warn/@unwarn - Avertissements
+┃
+┃ 👑 *GESTION USERS*
+┃ ${prefix}approve/@unapprove - Approuver
+┃ ${prefix}approved - Liste approuvés
+┃ ${prefix}ban/@unban - Bannir
+┃ ${prefix}banlist - Liste bannis
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━━ 🔒 *RÉSERVÉ OWNER* ━━━╮
+┃ ❌ ${prefix}sudo, ${prefix}delsudo
+┃ ❌ Protections avancées
+┃ ❌ ${prefix}broadcast, ${prefix}restart
+╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+`;
+  }
+  
+  // Menu COMPLET pour OWNER
   return `
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
 ┃    🌟 *HANI-MD V1.0* 🌟   
 ┃━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ 📌 Préfixe : *${prefix}*
 ┃ 🤖 Mode    : *${config.MODE}*
-┃ 👑 Owner   : *${config.NOM_OWNER}*
+┃ 👑 Ton rôle : *OWNER*
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-╭━━━ 🔐 *NIVEAUX D'ACCÈS* ━━━╮
-┃ 👑 Owner → Accès total
-┃ 🛡️ Sudo → Admin du bot
-┃ ✅ Approuvé → IA, downloads
-┃ 👤 Public → Commandes basiques
-┃ 
-┃ ${prefix}permissions - Voir ton niveau
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━ 📋 *MENU PRINCIPAL* ━━━╮
+╭━━━ 👑 *MENU OWNER COMPLET* ━━━╮
 ┃
 ┃ 📌 *GÉNÉRAL* (Tous)
 ┃ ${prefix}ping - Tester le bot
@@ -955,8 +1114,7 @@ function getMainMenu(prefix) {
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-💡 *Tape ${prefix}permissions pour*
-*voir tes commandes disponibles!*
+💡 *Tu as accès à TOUTES les commandes!*
 `;
 }
 
@@ -1018,6 +1176,15 @@ async function handleCommand(hani, msg, db) {
   
   const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
+  
+  // Déterminer le rôle de l'utilisateur pour le menu
+  const getUserRole = () => {
+    if (isOwner || isBotSelf) return "owner";
+    if (db.isSudo(sender)) return "sudo";
+    if (db.isApproved(sender)) return "approved";
+    return "user";
+  };
+  const userRole = getUserRole();
   
   // Vérifier si banni
   if (db.isBanned(sender)) {
@@ -1189,7 +1356,7 @@ Ou utilise: .setowner ${senderNum}` : "✅ Tu es bien reconnu comme owner!"}
     case "menu":
     case "help":
     case "aide": {
-      return send(getMainMenu(config.PREFIXE));
+      return send(getMainMenu(config.PREFIXE, userRole));
     }
 
     case "info": {
