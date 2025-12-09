@@ -4348,7 +4348,7 @@ app.get("/api/qr-status", (req, res) => {
   });
 });
 
-// 📱 PAGE QR CODE PRINCIPALE
+// 📱 PAGE QR CODE PRINCIPALE - AVEC REFRESH AUTOMATIQUE 60s
 app.get("/qr", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -4373,7 +4373,7 @@ app.get("/qr", (req, res) => {
       backdrop-filter: blur(10px);
       border-radius: 24px;
       padding: 40px;
-      max-width: 450px;
+      max-width: 500px;
       width: 100%;
       text-align: center;
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -4381,75 +4381,142 @@ app.get("/qr", (req, res) => {
     }
     .logo { font-size: 3em; margin-bottom: 10px; }
     h1 { color: #fff; font-size: 2em; margin-bottom: 5px; }
-    .subtitle { color: #aaa; font-size: 0.9em; margin-bottom: 30px; }
+    .subtitle { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
     
     .qr-container {
       background: white;
       border-radius: 16px;
       padding: 20px;
-      margin: 20px 0;
-      min-height: 300px;
+      margin: 15px 0;
+      min-height: 280px;
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
     }
     .qr-container img { max-width: 100%; border-radius: 8px; }
+    
+    .countdown-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      border-radius: 3px;
+      margin: 10px 0;
+      transition: width 1s linear;
+    }
+    .countdown-bar.warning { background: linear-gradient(90deg, #ff9800, #ffc107); }
+    .countdown-bar.danger { background: linear-gradient(90deg, #f44336, #ff5722); }
+    
+    .countdown-text {
+      color: #fff;
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .countdown-text.warning { color: #ffc107; }
+    .countdown-text.danger { color: #f44336; animation: pulse 0.5s infinite; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
     
     .status {
       padding: 12px 24px;
       border-radius: 50px;
       font-weight: bold;
-      margin: 20px 0;
+      margin: 15px 0;
       display: inline-block;
     }
     .status.waiting { background: #ff9800; color: #000; }
-    .status.connecting { background: #2196F3; color: #fff; }
+    .status.waiting_qr { background: #2196F3; color: #fff; }
+    .status.connecting { background: #9c27b0; color: #fff; }
     .status.connected { background: #4CAF50; color: #fff; }
     .status.disconnected { background: #f44336; color: #fff; }
+    
+    .refresh-btn {
+      background: linear-gradient(135deg, #9c27b0, #673ab7);
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-size: 1em;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .refresh-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(156, 39, 176, 0.4);
+    }
+    .refresh-btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
     
     .instructions {
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
+      padding: 15px;
+      margin-top: 15px;
       text-align: left;
     }
-    .instructions h3 { color: #fff; margin-bottom: 15px; font-size: 1.1em; }
-    .instructions ol { color: #ccc; padding-left: 20px; }
-    .instructions li { margin: 10px 0; line-height: 1.5; }
+    .instructions h3 { color: #fff; margin-bottom: 10px; font-size: 1em; }
+    .instructions ol { color: #ccc; padding-left: 20px; font-size: 0.9em; }
+    .instructions li { margin: 8px 0; line-height: 1.4; }
     
     .bot-info {
       background: rgba(76, 175, 80, 0.2);
-      border: 1px solid #4CAF50;
-      border-radius: 12px;
-      padding: 20px;
+      border: 2px solid #4CAF50;
+      border-radius: 16px;
+      padding: 25px;
       margin-top: 20px;
     }
-    .bot-info h3 { color: #4CAF50; margin-bottom: 10px; }
-    .bot-info p { color: #fff; margin: 5px 0; }
+    .bot-info h3 { color: #4CAF50; margin-bottom: 15px; font-size: 1.5em; }
+    .bot-info p { color: #fff; margin: 8px 0; font-size: 1.1em; }
     
     .loader {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: #fff;
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(0,0,0,0.1);
+      border-left-color: #2196F3;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .refresh-timer {
-      color: #888;
-      font-size: 0.8em;
-      margin-top: 10px;
+    .error-box {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid #f44336;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+      color: #fff;
     }
     
+    .qr-expired {
+      text-align: center;
+      padding: 30px;
+    }
+    .qr-expired .icon { font-size: 4em; margin-bottom: 10px; }
+    .qr-expired p { color: #ff9800; font-size: 1.1em; margin: 10px 0; }
+    
     .footer {
-      margin-top: 30px;
+      margin-top: 20px;
       color: #666;
       font-size: 0.8em;
     }
     .footer a { color: #9c27b0; text-decoration: none; }
+    
+    .debug-info {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 15px;
+      font-size: 0.75em;
+      color: #888;
+      text-align: left;
+    }
     
     @media (max-width: 500px) {
       .container { padding: 20px; }
@@ -4462,102 +4529,205 @@ app.get("/qr", (req, res) => {
   <div class="container">
     <div class="logo">🌟</div>
     <h1>HANI-MD</h1>
-    <p class="subtitle">Bot WhatsApp Intelligent</p>
+    <p class="subtitle">Bot WhatsApp Intelligent par H2025</p>
     
     <div id="status-container">
-      <div class="status disconnected" id="status-badge">Chargement...</div>
+      <div class="status disconnected" id="status-badge">⏳ Chargement...</div>
+    </div>
+    
+    <div id="countdown-container" style="display:none;">
+      <div class="countdown-text" id="countdown-text">⏱️ 60 secondes restantes</div>
+      <div class="countdown-bar" id="countdown-bar" style="width: 100%"></div>
     </div>
     
     <div class="qr-container" id="qr-container">
       <div class="loader"></div>
     </div>
     
+    <div id="buttons-container">
+      <button class="refresh-btn" id="refresh-btn" onclick="forceRefresh()">🔄 Nouveau QR Code</button>
+    </div>
+    
     <div id="instructions" class="instructions">
-      <h3>📱 Comment connecter ton WhatsApp :</h3>
+      <h3>📱 Comment scanner :</h3>
       <ol>
         <li>Ouvre <strong>WhatsApp</strong> sur ton téléphone</li>
-        <li>Va dans <strong>Paramètres → Appareils connectés</strong></li>
-        <li>Appuie sur <strong>"Connecter un appareil"</strong></li>
-        <li>Scanne le <strong>QR code</strong> ci-dessus</li>
+        <li>Menu <strong>⋮</strong> → <strong>Appareils connectés</strong></li>
+        <li>Clique <strong>"Connecter un appareil"</strong></li>
+        <li><strong>Scanne rapidement</strong> le QR code (60s max)</li>
       </ol>
     </div>
     
     <div id="bot-info" class="bot-info" style="display:none;">
-      <h3>✅ Bot Connecté!</h3>
-      <p id="bot-name"></p>
-      <p id="bot-number"></p>
+      <h3>🎉 Connecté avec succès!</h3>
+      <p id="bot-name">🤖 Chargement...</p>
+      <p id="bot-number">📱 Chargement...</p>
+      <p style="margin-top:15px;font-size:0.9em;color:#8BC34A;">Le bot est maintenant actif!</p>
     </div>
     
-    <p class="refresh-timer" id="timer">Actualisation automatique...</p>
+    <div class="debug-info" id="debug-info">
+      <strong>Debug:</strong> <span id="debug-status">Initialisation...</span><br>
+      <strong>QR Count:</strong> <span id="debug-qr-count">0</span> | 
+      <strong>Last Update:</strong> <span id="debug-last-update">-</span>
+    </div>
     
     <div class="footer">
       <p>Créé avec ❤️ par <a href="#">H2025</a></p>
-      <p><a href="/">← Retour à l'accueil</a></p>
+      <p><a href="/">← Retour</a> | <a href="/admin?code=200700">🔐 Admin</a></p>
     </div>
   </div>
 
   <script>
     let lastQrCount = 0;
+    let qrStartTime = null;
+    let countdownInterval = null;
+    const QR_TIMEOUT = 60; // 60 secondes
+    
+    function startCountdown() {
+      qrStartTime = Date.now();
+      document.getElementById('countdown-container').style.display = 'block';
+      
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      countdownInterval = setInterval(() => {
+        if (!qrStartTime) return;
+        
+        const elapsed = Math.floor((Date.now() - qrStartTime) / 1000);
+        const remaining = Math.max(0, QR_TIMEOUT - elapsed);
+        const percent = (remaining / QR_TIMEOUT) * 100;
+        
+        const bar = document.getElementById('countdown-bar');
+        const text = document.getElementById('countdown-text');
+        
+        bar.style.width = percent + '%';
+        
+        if (remaining <= 10) {
+          bar.className = 'countdown-bar danger';
+          text.className = 'countdown-text danger';
+          text.textContent = '⚠️ ' + remaining + 's - SCANNE VITE!';
+        } else if (remaining <= 20) {
+          bar.className = 'countdown-bar warning';
+          text.className = 'countdown-text warning';
+          text.textContent = '⏱️ ' + remaining + ' secondes restantes';
+        } else {
+          bar.className = 'countdown-bar';
+          text.className = 'countdown-text';
+          text.textContent = '⏱️ ' + remaining + ' secondes restantes';
+        }
+        
+        if (remaining <= 0) {
+          showExpired();
+        }
+      }, 1000);
+    }
+    
+    function stopCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+      qrStartTime = null;
+      document.getElementById('countdown-container').style.display = 'none';
+    }
+    
+    function showExpired() {
+      stopCountdown();
+      document.getElementById('qr-container').innerHTML = \`
+        <div class="qr-expired">
+          <div class="icon">⏰</div>
+          <p><strong>QR Code expiré!</strong></p>
+          <p>Clique sur le bouton pour en générer un nouveau</p>
+        </div>
+      \`;
+      document.getElementById('status-badge').textContent = '⏰ QR Expiré';
+      document.getElementById('status-badge').className = 'status disconnected';
+    }
+    
+    async function forceRefresh() {
+      const btn = document.getElementById('refresh-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Chargement...';
+      
+      // Recharger la page pour forcer un nouveau QR
+      window.location.reload();
+    }
     
     async function updateQR() {
       try {
         const response = await fetch('/api/qr-status');
         const data = await response.json();
         
+        // Debug info
+        document.getElementById('debug-status').textContent = data.status;
+        document.getElementById('debug-qr-count').textContent = data.qrCount || 0;
+        document.getElementById('debug-last-update').textContent = data.lastUpdate ? new Date(data.lastUpdate).toLocaleTimeString() : '-';
+        
         const statusBadge = document.getElementById('status-badge');
         const qrContainer = document.getElementById('qr-container');
         const instructions = document.getElementById('instructions');
         const botInfo = document.getElementById('bot-info');
+        const refreshBtn = document.getElementById('refresh-btn');
         
-        // Mise à jour du statut
-        statusBadge.className = 'status ' + data.status.replace('_', '-');
-        
-        if (data.status === 'connected') {
+        if (data.status === 'connected' || data.isConnected) {
+          // CONNECTÉ !
+          stopCountdown();
           statusBadge.textContent = '✅ Connecté';
-          qrContainer.innerHTML = '<div style="text-align:center;color:#4CAF50;font-size:4em;">✓</div>';
+          statusBadge.className = 'status connected';
+          qrContainer.innerHTML = '<div style="text-align:center;color:#4CAF50;font-size:5em;">✓</div>';
           instructions.style.display = 'none';
           botInfo.style.display = 'block';
-          if (data.botInfo) {
-            document.getElementById('bot-name').textContent = '🤖 ' + data.botInfo.name;
-            document.getElementById('bot-number').textContent = '📱 ' + data.botInfo.number;
-          }
-        } else if (data.status === 'waiting_qr' && data.qrDataURL) {
-          statusBadge.textContent = '📱 Scanne le QR Code';
-          qrContainer.innerHTML = '<img src="' + data.qrDataURL + '" alt="QR Code" />';
-          instructions.style.display = 'block';
-          botInfo.style.display = 'none';
+          refreshBtn.style.display = 'none';
           
-          // Notification si nouveau QR
+          if (data.botInfo) {
+            document.getElementById('bot-name').textContent = '🤖 ' + (data.botInfo.name || 'HANI-MD');
+            document.getElementById('bot-number').textContent = '📱 ' + (data.botInfo.number || 'Connecté');
+          }
+          
+        } else if (data.hasQR && data.qrDataURL) {
+          // QR CODE DISPONIBLE
+          statusBadge.textContent = '📱 Scanne le QR Code!';
+          statusBadge.className = 'status waiting_qr';
+          
+          // Nouveau QR code?
           if (data.qrCount !== lastQrCount) {
             lastQrCount = data.qrCount;
-            document.getElementById('timer').textContent = '🔄 Nouveau QR code généré!';
+            qrContainer.innerHTML = '<img src="' + data.qrDataURL + '" alt="QR Code" />';
+            startCountdown();
           }
+          
+          instructions.style.display = 'block';
+          botInfo.style.display = 'none';
+          refreshBtn.style.display = 'inline-block';
+          refreshBtn.disabled = false;
+          refreshBtn.textContent = '🔄 Nouveau QR Code';
+          
         } else if (data.status === 'connecting') {
+          // CONNEXION EN COURS
+          stopCountdown();
           statusBadge.textContent = '🔄 Connexion en cours...';
-          qrContainer.innerHTML = '<div class="loader"></div>';
+          statusBadge.className = 'status connecting';
+          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">Vérification...</p>';
+          refreshBtn.disabled = true;
+          
         } else {
-          statusBadge.textContent = '⏳ En attente...';
-          qrContainer.innerHTML = '<div class="loader"></div>';
+          // EN ATTENTE
+          statusBadge.textContent = '⏳ En attente du QR...';
+          statusBadge.className = 'status waiting';
+          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">Génération du QR code...</p>';
+          refreshBtn.disabled = false;
         }
         
       } catch (error) {
         console.error('Erreur:', error);
+        document.getElementById('debug-status').textContent = 'Erreur: ' + error.message;
       }
     }
     
-    // Première mise à jour
+    // Première mise à jour immédiate
     updateQR();
     
     // Actualisation toutes les 2 secondes
     setInterval(updateQR, 2000);
-    
-    // Afficher le compteur
-    let countdown = 2;
-    setInterval(() => {
-      countdown--;
-      if (countdown <= 0) countdown = 2;
-      document.getElementById('timer').textContent = 'Actualisation dans ' + countdown + 's...';
-    }, 1000);
   </script>
 </body>
 </html>
