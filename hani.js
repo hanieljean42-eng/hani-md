@@ -2485,10 +2485,19 @@ async function startBot() {
 
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
+  // Compteur pour éviter les reconnexions infinies
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  let isConnected = false;
+
   // Sauvegarder les credentials immédiatement et régulièrement
   const saveCredsWrapper = async () => {
-    await saveCreds();
-    console.log("💾 Session sauvegardée");
+    try {
+      await saveCreds();
+      console.log("💾 Session sauvegardée");
+    } catch (e) {
+      console.log("⚠️ Erreur sauvegarde session:", e.message);
+    }
   };
 
   hani = makeWASocket({
@@ -2497,16 +2506,17 @@ async function startBot() {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
     },
     logger: pino({ level: "silent" }),
-    browser: Browsers.ubuntu("Chrome"),
-    keepAliveIntervalMs: 30000,
+    browser: ["HANI-MD", "Chrome", "1.0.0"],
+    keepAliveIntervalMs: 25000,
     markOnlineOnConnect: true,
     generateHighQualityLinkPreview: true,
     syncFullHistory: false,
-    retryRequestDelayMs: 3000,
-    connectTimeoutMs: 120000,
-    defaultQueryTimeoutMs: 120000,
+    retryRequestDelayMs: 2000,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
     emitOwnEvents: true,
     fireInitQueries: true,
+    qrTimeout: 60000,
     getMessage: async (key) => {
       return { conversation: "" };
     },
@@ -2517,8 +2527,10 @@ async function startBot() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
+      reconnectAttempts = 0; // Reset quand on affiche le QR
       console.log("\n📱 SCANNE CE QR CODE AVEC WHATSAPP:\n");
       qrcode.generate(qr, { small: true });
+      console.log("\n⏳ Tu as 60 secondes pour scanner...\n");
     }
 
     if (connection === "connecting") {
@@ -2526,8 +2538,23 @@ async function startBot() {
     }
 
     if (connection === "open") {
+      isConnected = true;
+      reconnectAttempts = 0;
+      
       // Sauvegarder immédiatement après connexion réussie
       await saveCredsWrapper();
+      
+      // Sauvegarder encore après 2 secondes pour être sûr
+      setTimeout(async () => {
+        await saveCredsWrapper();
+      }, 2000);
+      
+      // Sauvegarder périodiquement toutes les 5 minutes
+      setInterval(async () => {
+        if (isConnected) {
+          await saveCredsWrapper();
+        }
+      }, 5 * 60 * 1000);
       
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -2546,34 +2573,53 @@ async function startBot() {
     }
 
     if (connection === "close") {
+      isConnected = false;
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const reason = lastDisconnect?.error?.message || "Inconnue";
 
       console.log(`\n⚠️ Déconnexion (code: ${statusCode}, raison: ${reason})`);
 
-      if (statusCode === DisconnectReason.loggedOut) {
-        console.log("❌ Session expirée. Suppression et nouveau QR...");
+      // Session déconnectée manuellement ou expirée
+      if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+        console.log("❌ Session expirée ou déconnectée. Nouveau QR nécessaire...");
         if (fs.existsSync(SESSION_FOLDER)) {
           fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
         }
+        reconnectAttempts = 0;
         await delay(3000);
         startBot();
-      } else if (statusCode === 440) {
-        // Conflit de session - autre WhatsApp Web ouvert
-        console.log("⚠️ Conflit de session détecté (WhatsApp Web ouvert ailleurs)");
-        console.log("💡 Ferme les autres sessions WhatsApp Web et relance le bot.");
-        console.log("🔄 Tentative de reconnexion dans 10 secondes...");
-        await delay(10000);
-        startBot();
-      } else if (statusCode === 515) {
-        // Redémarrage requis
-        console.log("🔄 Redémarrage requis, reconnexion dans 3 secondes...");
+      } 
+      // Conflit de session
+      else if (statusCode === 440) {
+        console.log("⚠️ Conflit de session (WhatsApp Web ouvert ailleurs)");
+        console.log("💡 Ferme les autres sessions WhatsApp Web.");
+        reconnectAttempts++;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          console.log(`🔄 Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans 10 secondes...`);
+          await delay(10000);
+          startBot();
+        } else {
+          console.log("❌ Trop de tentatives. Arrêt du bot.");
+        }
+      } 
+      // Redémarrage requis par WhatsApp
+      else if (statusCode === 515 || statusCode === 408) {
+        console.log("🔄 Redémarrage requis...");
         await delay(3000);
         startBot();
-      } else {
-        console.log("🔄 Reconnexion dans 5 secondes...");
-        await delay(5000);
-        startBot();
+      }
+      // Autres erreurs - reconnexion normale
+      else {
+        reconnectAttempts++;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          const waitTime = Math.min(5000 * reconnectAttempts, 30000);
+          console.log(`🔄 Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${waitTime/1000}s...`);
+          await delay(waitTime);
+          startBot();
+        } else {
+          console.log("❌ Trop de tentatives. Arrêt du bot.");
+          console.log("💡 Relance manuellement avec: node hani.js");
+        }
       }
     }
   });
@@ -2591,6 +2637,28 @@ async function startBot() {
       const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
       const senderName = msg.pushName || "Inconnu";
       
+      // 🔍 DÉBOGAGE COMPLET: Afficher TOUS les types de messages
+      const msgType = getContentType(msg.message);
+      const msgKeys = Object.keys(msg.message || {});
+      
+      // Log pour TOUS les messages non-texte ou vides
+      if (!msg.key.fromMe) {
+        // Vérifier si c'est un viewOnce
+        const hasViewOnce = msg.message?.viewOnceMessage || msg.message?.viewOnceMessageV2 || msg.message?.viewOnceMessageV2Extension;
+        const hasAudioViewOnce = msg.message?.audioMessage?.viewOnce;
+        
+        if (hasViewOnce || hasAudioViewOnce || (msgType !== "extendedTextMessage" && msgType !== "conversation")) {
+          console.log(`📨 [MSG REÇU] Type: ${msgType}`);
+          console.log(`   Keys: ${msgKeys.join(", ")}`);
+          console.log(`   De: ${sender?.split("@")[0]}`);
+          console.log(`   ViewOnce: ${!!hasViewOnce} | AudioViewOnce: ${!!hasAudioViewOnce}`);
+          if (hasViewOnce) {
+            const voContent = hasViewOnce;
+            console.log(`   ViewOnce Content Keys: ${Object.keys(voContent).join(", ")}`);
+          }
+        }
+      }
+      
       // 📇 ENREGISTRER LE CONTACT DANS LA BASE
       if (!msg.key.fromMe && sender && !sender.endsWith("@g.us")) {
         updateContact(sender, senderName, {
@@ -2599,11 +2667,17 @@ async function startBot() {
         });
       }
       
-      // Intercepter les vues uniques et les sauvegarder automatiquement
-      const viewOnceContent = msg.message.viewOnceMessage || msg.message.viewOnceMessageV2 || msg.message.viewOnceMessageV2Extension;
+      // ═══════════════════════════════════════════════════════════
+      // 👁️ INTERCEPTION AUTOMATIQUE DES VUES UNIQUES (Photos/Vidéos/Vocaux)
+      // ═══════════════════════════════════════════════════════════
+      
+      // 1. Vues uniques classiques (photos/vidéos)
+      const viewOnceContent = msg.message?.viewOnceMessage || msg.message?.viewOnceMessageV2 || msg.message?.viewOnceMessageV2Extension;
       if (viewOnceContent && !msg.key.fromMe) {
         const mediaMsg = viewOnceContent.message;
         const mediaType = Object.keys(mediaMsg || {})[0] || "inconnu";
+        
+        console.log(`👁️ Vue unique DÉTECTÉE de ${sender.split("@")[0]} (${mediaType})`);
         
         // Stocker le message complet
         viewOnceMessages.set(msg.key.id, {
@@ -2619,7 +2693,74 @@ async function startBot() {
           viewOnceMessages.delete(viewOnceMessages.keys().next().value);
         }
         
-        console.log(`👁️ Vue unique interceptée de ${sender.split("@")[0]} (${mediaType})`);
+        // AUTOMATIQUEMENT télécharger et envoyer en privé
+        try {
+          // Créer un message formaté pour le téléchargement
+          const downloadMsg = {
+            key: msg.key,
+            message: mediaMsg // Utiliser le message interne, pas viewOnceContent
+          };
+          
+          const stream = await downloadMediaMessage(
+            downloadMsg,
+            "buffer",
+            {},
+            { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
+          );
+          
+          if (stream && stream.length > 0) {
+            const media = mediaMsg[mediaType];
+            const caption = `👁️ *VUE UNIQUE INTERCEPTÉE!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *De:* ${msg.pushName || sender.split("@")[0]}\n📱 *Numéro:* ${formatPhoneNumber(sender.split("@")[0])}\n💬 *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "Privé"}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}\n${media?.caption ? `\n📝 *Légende:* ${media.caption}` : ""}`;
+            
+            if (mediaType === "imageMessage") {
+              await hani.sendMessage(botNumber, { image: stream, caption });
+              console.log(`✅ Image vue unique envoyée à Moi-même`);
+            } else if (mediaType === "videoMessage") {
+              await hani.sendMessage(botNumber, { video: stream, caption });
+              console.log(`✅ Vidéo vue unique envoyée à Moi-même`);
+            } else if (mediaType === "audioMessage") {
+              await hani.sendMessage(botNumber, { audio: stream, mimetype: media?.mimetype || "audio/mp4", ptt: media?.ptt || false });
+              await hani.sendMessage(botNumber, { text: caption });
+              console.log(`✅ Audio vue unique envoyé à Moi-même`);
+            }
+          } else {
+            console.log(`⚠️ Échec téléchargement vue unique: buffer vide`);
+          }
+        } catch (e) {
+          console.log(`⚠️ Erreur sauvegarde auto vue unique: ${e.message}`);
+          // Fallback: essayer avec le message original
+          try {
+            const stream2 = await downloadMediaMessage(
+              msg,
+              "buffer",
+              {},
+              { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
+            );
+            if (stream2 && stream2.length > 0) {
+              const media = mediaMsg[mediaType];
+              const caption = `👁️ *VUE UNIQUE INTERCEPTÉE!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *De:* ${msg.pushName || sender.split("@")[0]}\n📱 *Numéro:* ${formatPhoneNumber(sender.split("@")[0])}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}`;
+              
+              if (mediaType === "imageMessage") {
+                await hani.sendMessage(botNumber, { image: stream2, caption });
+              } else if (mediaType === "videoMessage") {
+                await hani.sendMessage(botNumber, { video: stream2, caption });
+              }
+              console.log(`✅ Vue unique envoyée (fallback)`);
+            }
+          } catch (e2) {
+            console.log(`⚠️ Fallback aussi échoué: ${e2.message}`);
+          }
+        }
+      }
+      
+      // 2. Vocaux "écoute unique" (ptt viewOnce / audio avec viewOnce)
+      const audioMsg = msg.message?.audioMessage;
+      const pttMsg = msg.message?.pttMessage; // Format alternatif pour les vocaux
+      
+      // Vérifier les deux formats possibles de vocal écoute unique
+      if ((audioMsg?.viewOnce || pttMsg?.viewOnce) && !msg.key.fromMe) {
+        const voiceMsg = audioMsg || pttMsg;
+        console.log(`🎤 VOCAL ÉCOUTE UNIQUE DÉTECTÉ de ${sender.split("@")[0]}`);
         
         // AUTOMATIQUEMENT télécharger et envoyer en privé
         try {
@@ -2630,21 +2771,23 @@ async function startBot() {
             { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
           );
           
-          const media = mediaMsg[mediaType];
-          const caption = `👁️ *Vue unique interceptée!*\n\n👤 De: ${msg.pushName || sender.split("@")[0]}\n💬 Chat: ${from.split("@")[0]}\n🕐 ${new Date().toLocaleString("fr-FR")}\n\n${media?.caption || ""}`;
-          
-          if (mediaType === "imageMessage") {
-            await hani.sendMessage(botNumber, { image: stream, caption });
-          } else if (mediaType === "videoMessage") {
-            await hani.sendMessage(botNumber, { video: stream, caption });
-          } else if (mediaType === "audioMessage") {
-            await hani.sendMessage(botNumber, { audio: stream, mimetype: "audio/mp4" });
+          if (stream && stream.length > 0) {
+            const caption = `🎤 *VOCAL ÉCOUTE UNIQUE INTERCEPTÉ!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *De:* ${msg.pushName || sender.split("@")[0]}\n📱 *Numéro:* ${formatPhoneNumber(sender.split("@")[0])}\n💬 *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "Privé"}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}`;
+            
+            // Envoyer le vocal comme PTT (message vocal)
+            await hani.sendMessage(botNumber, { 
+              audio: stream, 
+              mimetype: voiceMsg?.mimetype || "audio/ogg; codecs=opus",
+              ptt: true // Toujours en format vocal
+            });
+            
+            // Puis envoyer le caption
             await hani.sendMessage(botNumber, { text: caption });
+            
+            console.log(`✅ Vocal écoute unique envoyé à Moi-même`);
           }
-          
-          console.log(`✅ Vue unique sauvegardée automatiquement`);
         } catch (e) {
-          console.log(`⚠️ Erreur sauvegarde auto vue unique: ${e.message}`);
+          console.log(`⚠️ Erreur sauvegarde vocal écoute unique: ${e.message}`);
         }
       }
 
@@ -2929,8 +3072,8 @@ async function startBot() {
           }
           
           try {
-            const myJid = hani.user?.id;
-            if (myJid) {
+            const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+            if (botNumber) {
               const chatJid = storedMsg.sender || storedMsg.key?.remoteJid;
               const isGroupChat = chatJid?.endsWith("@g.us");
               
@@ -2952,7 +3095,7 @@ async function startBot() {
                 text += `\n📄 *Contenu:*\n"${storedMsg.text}"`;
               }
               
-              await hani.sendMessage(myJid, { text });
+              await hani.sendMessage(botNumber, { text });
               
               // Renvoyer le média si applicable
               if (["imageMessage", "videoMessage", "audioMessage"].includes(storedMsg.type)) {
@@ -2967,11 +3110,11 @@ async function startBot() {
                   const mediaCaption = `🗑️ *Média supprimé*\n👤 ${senderName}\n📱 ${formattedNumber}`;
                   
                   if (storedMsg.type === "imageMessage") {
-                    await hani.sendMessage(myJid, { image: stream, caption: mediaCaption });
+                    await hani.sendMessage(botNumber, { image: stream, caption: mediaCaption });
                   } else if (storedMsg.type === "videoMessage") {
-                    await hani.sendMessage(myJid, { video: stream, caption: mediaCaption });
+                    await hani.sendMessage(botNumber, { video: stream, caption: mediaCaption });
                   } else if (storedMsg.type === "audioMessage") {
-                    await hani.sendMessage(myJid, { audio: stream, mimetype: "audio/mp4" });
+                    await hani.sendMessage(botNumber, { audio: stream, mimetype: "audio/mp4" });
                   }
                 } catch (e) {}
               }
@@ -2998,8 +3141,8 @@ async function startBot() {
           
           // Envoyer le statut supprimé à soi-même
           try {
-            const myJid = hani.user?.id;
-            if (myJid) {
+            const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+            if (botNumber) {
               const formattedStatusNumber = formatPhoneNumber(storedStatus.sender);
               
               let caption = `📸 *Statut supprimé!*\n\n`;
@@ -3011,24 +3154,24 @@ async function startBot() {
               
               if (storedStatus.mediaBuffer) {
                 if (storedStatus.type === "image") {
-                  await hani.sendMessage(myJid, { 
+                  await hani.sendMessage(botNumber, { 
                     image: storedStatus.mediaBuffer, 
                     caption: caption + (storedStatus.caption ? `\n\n💬 "${storedStatus.caption}"` : "")
                   });
                 } else if (storedStatus.type === "video") {
-                  await hani.sendMessage(myJid, { 
+                  await hani.sendMessage(botNumber, { 
                     video: storedStatus.mediaBuffer, 
                     caption: caption + (storedStatus.caption ? `\n\n💬 "${storedStatus.caption}"` : "")
                   });
                 } else if (storedStatus.type === "audio") {
-                  await hani.sendMessage(myJid, { text: caption });
-                  await hani.sendMessage(myJid, { audio: storedStatus.mediaBuffer, mimetype: "audio/mp4" });
+                  await hani.sendMessage(botNumber, { text: caption });
+                  await hani.sendMessage(botNumber, { audio: storedStatus.mediaBuffer, mimetype: "audio/mp4" });
                 }
               } else if (storedStatus.text) {
                 caption += `\n\n💬 Contenu:\n"${storedStatus.text}"`;
-                await hani.sendMessage(myJid, { text: caption });
+                await hani.sendMessage(botNumber, { text: caption });
               } else {
-                await hani.sendMessage(myJid, { text: caption });
+                await hani.sendMessage(botNumber, { text: caption });
               }
               
               console.log(`✅ Statut supprimé envoyé à toi-même`);
