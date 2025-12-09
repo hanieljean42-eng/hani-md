@@ -990,19 +990,33 @@ async function handleCommand(hani, msg, db) {
   // Debug pour TOUTES les commandes owner
   console.log(`[CMD: ${command}] Sender: ${senderNumber} | Owner: ${ownerNumber} | Bot: ${botNumberClean}`);
   
-  // Vérification flexible: 
-  // 1. Match exact
-  // 2. L'un finit par l'autre (préfixes pays)
-  // 3. Le sender est le bot lui-même (messages dans son propre chat)
-  // 4. Le fromMe flag est true
+  // 🔐 ENREGISTREMENT AUTOMATIQUE DES NOUVEAUX UTILISATEURS
+  // Tout nouvel utilisateur est enregistré comme "user" par défaut
+  if (!db.data.users[sender]) {
+    db.data.users[sender] = {
+      name: pushName,
+      role: "user", // TOUJOURS "user" par défaut
+      messageCount: 0,
+      firstSeen: new Date().toISOString(),
+      lastSeen: new Date().toISOString()
+    };
+    db.save();
+    console.log(`[DB] 👤 Nouvel utilisateur enregistré: ${pushName} (${senderNumber}) - Role: user`);
+  }
+  
+  // Vérification STRICTE pour owner:
+  // SEUL le NUMERO_OWNER dans .env est owner
+  // Le numéro du bot LUI-MÊME peut aussi exécuter des commandes owner (pour le chat "Moi-même")
   const isOwner = senderNumber === ownerNumber || 
                   senderNumber.endsWith(ownerNumber) || 
                   ownerNumber.endsWith(senderNumber) ||
-                  senderNumber === botNumberClean ||
-                  sender === formatNumber(ownerNumber) ||
-                  msg.key.fromMe === true;
+                  sender === formatNumber(ownerNumber);
   
-  const isSudo = db.isSudo(sender) || isOwner;
+  // Le bot peut s'envoyer des commandes à lui-même (chat "Moi-même") 
+  // SEULEMENT si fromMe ET que c'est dans le chat du bot
+  const isBotSelf = msg.key.fromMe === true && from === botNumber;
+  
+  const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
   
   // Vérifier si banni
