@@ -3287,31 +3287,27 @@ async function startBot() {
         connectedAt: new Date().toISOString()
       };
       
-      // 🔐 ENREGISTRER LE OWNER (celui qui a scanné le QR)
+      // 🤖 ENREGISTRER LE BOT (celui qui a scanné le QR)
+      // ATTENTION: Le bot n'est PAS l'owner ! L'owner est défini dans .env (NUMERO_OWNER)
       if (botNumber) {
-        // Définir comme NUMERO_OWNER si pas déjà défini
-        if (!config.NUMERO_OWNER || config.NUMERO_OWNER === "") {
-          config.NUMERO_OWNER = botNumber;
-          console.log(`[OWNER] 👑 Owner auto-défini: ${botNumber}`);
-        }
-        
-        // Enregistrer dans la base de données comme owner
+        // Enregistrer le bot dans la base de données comme "bot" (pas owner!)
         if (!db.data.users[botJid]) {
           db.data.users[botJid] = {
             name: botName,
-            role: "owner",
+            role: "bot", // Le bot n'est PAS owner, c'est juste le bot
             messageCount: 0,
             firstSeen: new Date().toISOString(),
             lastSeen: new Date().toISOString(),
             isBot: true
           };
         } else {
-          db.data.users[botJid].role = "owner";
           db.data.users[botJid].name = botName;
           db.data.users[botJid].isBot = true;
+          // Ne pas changer le role si déjà défini
         }
         db.save();
-        console.log(`[DB] 👑 Owner enregistré: ${botName} (${botNumber})`);
+        console.log(`[DB] 🤖 Bot enregistré: ${botName} (${botNumber})`);
+        console.log(`[DB] 👑 Owner défini dans .env: ${config.NUMERO_OWNER}`);
       }
       
       reconnectAttempts = 0;
