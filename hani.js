@@ -3957,32 +3957,108 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware pour JSON
+// Middleware pour JSON et formulaires
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 🔐 PAGE ADMIN avec emojis et MySQL
+// 🔐 SYSTÈME D'AUTHENTIFICATION ADMIN SÉCURISÉ
 const ADMIN_CODE = "200700";
-app.get("/admin", async (req, res) => {
-  const isLoggedIn = req.query.code === ADMIN_CODE;
+const adminSessions = new Map(); // Sessions actives
+
+// Générer un token de session
+function generateSessionToken() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+// Vérifier si une session est valide
+function isValidSession(token) {
+  if (!token || !adminSessions.has(token)) return false;
+  const session = adminSessions.get(token);
+  // Session expire après 1 heure
+  if (Date.now() - session.createdAt > 3600000) {
+    adminSessions.delete(token);
+    return false;
+  }
+  return true;
+}
+
+// Route de login admin
+app.post("/admin/login", (req, res) => {
+  const { code } = req.body;
+  if (code === ADMIN_CODE) {
+    const token = generateSessionToken();
+    adminSessions.set(token, { createdAt: Date.now(), ip: req.ip });
+    console.log(`[ADMIN] 🔓 Connexion admin réussie depuis ${req.ip}`);
+    res.json({ success: true, token });
+  } else {
+    console.log(`[ADMIN] ❌ Tentative de connexion échouée depuis ${req.ip}`);
+    res.json({ success: false, message: "Code incorrect" });
+  }
+});
+
+// Route de logout
+app.post("/admin/logout", (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (token) adminSessions.delete(token);
+  res.json({ success: true });
+});
+
+// API pour vérifier l'état admin
+app.get("/api/admin/check", (req, res) => {
+  const token = req.headers['x-admin-token'];
+  res.json({ valid: isValidSession(token) });
+});
+
+// API pour les stats admin (protégée)
+app.get("/api/admin/stats", async (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!isValidSession(token)) {
+    return res.status(401).json({ error: "Non autorisé" });
+  }
   
-  // Stats utilisateurs (local)
-  const users = db.data.users || {};
-  const userList = Object.entries(users);
-  const totalUsers = userList.length;
-  const owners = userList.filter(([_, u]) => u.role === "owner").length;
-  const sudos = userList.filter(([_, u]) => u.role === "sudo").length;
-  const approved = userList.filter(([_, u]) => u.role === "approved").length;
-  
-  // Stats MySQL
-  let mysqlStatus = { connected: false, version: null, stats: null };
   try {
+    const users = db.data.users || {};
+    const userList = Object.entries(users);
+    
+    let mysqlStats = null;
     if (mysqlDB.isConnected()) {
-      mysqlStatus.connected = true;
-      const stats = await mysqlDB.getDashboardStats();
-      if (stats) mysqlStatus.stats = stats;
+      mysqlStats = await mysqlDB.getDashboardStats();
     }
-  } catch (e) {}
-  
+    
+    res.json({
+      success: true,
+      local: {
+        totalUsers: userList.length,
+        owners: userList.filter(([_, u]) => u.role === "owner").length,
+        sudos: userList.filter(([_, u]) => u.role === "sudo").length,
+        approved: userList.filter(([_, u]) => u.role === "approved").length,
+        messages: db.data.stats?.messages || 0,
+        commands: db.data.stats?.commands || 0,
+        users: userList.slice(0, 50).map(([jid, user]) => ({
+          jid: jid.split("@")[0],
+          name: user.name || "Inconnu",
+          role: user.role || "user",
+          messages: user.messageCount || 0
+        }))
+      },
+      mysql: {
+        connected: mysqlDB.isConnected(),
+        stats: mysqlStats
+      },
+      bot: {
+        connected: qrState.isConnected,
+        status: qrState.connectionStatus,
+        info: qrState.botInfo
+      },
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+// 🔐 PAGE ADMIN SÉCURISÉE - Code d'accès: 200700
+app.get("/admin", async (req, res) => {
   res.send(`
 <!DOCTYPE html>
 <html lang="fr">
@@ -4007,6 +4083,15 @@ app.get("/admin", async (req, res) => {
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
     .header h1 span { color: #00d4ff; }
+    .header .status-indicator {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      margin-top: 10px;
+    }
+    .status-online { background: #6bcb77; }
+    .status-offline { background: #ff6b6b; }
     .login-box {
       background: rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
@@ -4017,7 +4102,8 @@ app.get("/admin", async (req, res) => {
       text-align: center;
       border: 1px solid rgba(255,255,255,0.2);
     }
-    .login-box h2 { margin-bottom: 30px; font-size: 1.8em; }
+    .login-box h2 { margin-bottom: 20px; font-size: 1.8em; }
+    .login-box p { margin-bottom: 20px; color: rgba(255,255,255,0.7); font-size: 0.9em; }
     .login-box input {
       width: 100%;
       padding: 15px;
@@ -4028,6 +4114,7 @@ app.get("/admin", async (req, res) => {
       margin-bottom: 20px;
       background: rgba(255,255,255,0.9);
       color: #333;
+      letter-spacing: 5px;
     }
     .login-box button {
       width: 100%;
@@ -4038,9 +4125,20 @@ app.get("/admin", async (req, res) => {
       background: linear-gradient(135deg, #00d4ff, #0099cc);
       color: #fff;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: all 0.3s;
     }
-    .login-box button:hover { transform: scale(1.02); }
+    .login-box button:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(0,212,255,0.4); }
+    .login-box button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg { color: #ff6b6b; margin-top: 15px; display: none; }
+    .dashboard { display: none; }
+    .refresh-info {
+      text-align: center;
+      padding: 10px;
+      background: rgba(0,212,255,0.2);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
     .db-status {
       background: rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
@@ -4061,7 +4159,7 @@ app.get("/admin", async (req, res) => {
     .status-disconnected { background: #ff6b6b; color: #fff; }
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 15px;
       margin-bottom: 30px;
     }
@@ -4072,7 +4170,9 @@ app.get("/admin", async (req, res) => {
       padding: 20px;
       text-align: center;
       border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.2s;
     }
+    .stat-card:hover { transform: translateY(-3px); }
     .stat-card .emoji { font-size: 2em; margin-bottom: 8px; }
     .stat-card .number { font-size: 1.8em; font-weight: bold; color: #00d4ff; }
     .stat-card .label { color: rgba(255,255,255,0.7); font-size: 0.9em; }
@@ -4111,7 +4211,7 @@ app.get("/admin", async (req, res) => {
       cursor: pointer;
       font-size: 0.95em;
       text-decoration: none;
-      transition: transform 0.2s;
+      transition: all 0.2s;
       margin: 5px;
     }
     .btn-action:hover { transform: scale(1.05); }
@@ -4120,17 +4220,24 @@ app.get("/admin", async (req, res) => {
     .btn-warning { background: #ffd93d; color: #333; }
     .btn-danger { background: #ff6b6b; color: #fff; }
     .actions { margin: 20px 0; text-align: center; }
-    .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .two-columns { grid-template-columns: 1fr; } }
     .config-box {
       background: rgba(0,0,0,0.3);
       border-radius: 10px;
       padding: 15px;
       font-family: monospace;
       font-size: 0.85em;
-      overflow-x: auto;
     }
     .config-box code { color: #00d4ff; }
+    .bot-info {
+      background: rgba(0,212,255,0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .users-table { overflow-x: auto; }
+    }
   </style>
 </head>
 <body>
@@ -4138,112 +4245,306 @@ app.get("/admin", async (req, res) => {
     <div class="header">
       <h1>🔐 <span>HANI-MD</span> Admin</h1>
       <p>Panneau de gestion du bot WhatsApp</p>
+      <div id="botStatus" class="status-indicator status-offline">⏳ Chargement...</div>
     </div>
     
-    ${!isLoggedIn ? `
-    <div class="login-box">
-      <h2>🔑 Connexion Admin</h2>
-      <form method="GET">
-        <input type="password" name="code" placeholder="Code secret..." required>
-        <button type="submit">🚀 Accéder</button>
-      </form>
-    </div>
-    ` : `
-    <div class="actions">
-      <a href="/qr" class="btn-action btn-primary">📱 QR Code</a>
-      <a href="/health" class="btn-action btn-success">💚 Health</a>
-      <a href="/api/mysql-status" class="btn-action btn-warning">🗄️ Test MySQL</a>
-      <a href="/admin" class="btn-action btn-danger">🚪 Déconnexion</a>
+    <!-- Page de connexion -->
+    <div id="loginPage" class="login-box">
+      <h2>🔑 Accès Owner</h2>
+      <p>⚠️ Zone réservée au propriétaire du bot</p>
+      <input type="password" id="codeInput" placeholder="••••••" maxlength="6" autocomplete="off">
+      <button id="loginBtn" onclick="login()">🚀 Accéder</button>
+      <p id="errorMsg" class="error-msg">❌ Code incorrect</p>
     </div>
     
-    <!-- État MySQL -->
-    <div class="db-status">
-      <h3>🗄️ Base de données MySQL</h3>
-      <p>
-        <span class="status-badge ${mysqlStatus.connected ? 'status-connected' : 'status-disconnected'}">
-          ${mysqlStatus.connected ? '✅ Connecté' : '❌ Non connecté'}
-        </span>
-        ${!mysqlStatus.connected ? '<span style="color:#ffd93d">⚠️ Mode local actif (données en JSON)</span>' : ''}
-      </p>
-      ${!mysqlStatus.connected ? `
-      <div style="margin-top:15px">
-        <p style="margin-bottom:10px">📝 <strong>Pour activer MySQL, configurez .env :</strong></p>
-        <div class="config-box">
-          <code>MYSQL_HOST</code>=votre-host.com<br>
-          <code>MYSQL_USER</code>=votre-user<br>
-          <code>MYSQL_PASSWORD</code>=votre-password<br>
-          <code>MYSQL_DATABASE</code>=hani_db<br>
-          <code>MYSQL_PORT</code>=3306
+    <!-- Dashboard (caché par défaut) -->
+    <div id="dashboard" class="dashboard">
+      <div class="refresh-info">
+        🔄 Auto-refresh: <span id="countdown">10</span>s | Dernière mise à jour: <span id="lastUpdate">-</span>
+        <button onclick="refreshStats()" style="margin-left:15px;padding:5px 15px;border:none;border-radius:5px;background:#00d4ff;color:#fff;cursor:pointer">⟳ Actualiser</button>
+      </div>
+      
+      <div class="actions">
+        <a href="/qr" class="btn-action btn-primary">📱 QR Code</a>
+        <a href="/health" class="btn-action btn-success">💚 Health</a>
+        <button onclick="logout()" class="btn-action btn-danger">🚪 Déconnexion</button>
+      </div>
+      
+      <!-- Info Bot -->
+      <div id="botInfo" class="bot-info" style="display:none">
+        <strong>🤖 Bot:</strong> <span id="botName">-</span> | 
+        <strong>📱</strong> <span id="botNumber">-</span>
+      </div>
+      
+      <!-- État MySQL -->
+      <div class="db-status">
+        <h3>🗄️ Base de données</h3>
+        <p>
+          <span id="mysqlStatus" class="status-badge status-disconnected">⏳ Vérification...</span>
+          <span id="mysqlInfo"></span>
+        </p>
+        <div id="mysqlStats" style="margin-top:10px"></div>
+      </div>
+      
+      <!-- Statistiques -->
+      <h3 class="section-title">📊 Statistiques en temps réel</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="emoji">👥</div>
+          <div class="number" id="statUsers">0</div>
+          <div class="label">Utilisateurs</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">👑</div>
+          <div class="number" id="statOwners">0</div>
+          <div class="label">Owners</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">⚡</div>
+          <div class="number" id="statSudos">0</div>
+          <div class="label">Sudos</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">✅</div>
+          <div class="number" id="statApproved">0</div>
+          <div class="label">Approuvés</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">📨</div>
+          <div class="number" id="statMessages">0</div>
+          <div class="label">Messages</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">⚙️</div>
+          <div class="number" id="statCommands">0</div>
+          <div class="label">Commandes</div>
+        </div>
+        <div class="stat-card">
+          <div class="emoji">⏱️</div>
+          <div class="number" id="statUptime">0</div>
+          <div class="label">Uptime (min)</div>
         </div>
       </div>
-      ` : `
-      <div style="margin-top:10px">
-        <p>📊 Stats MySQL: ${mysqlStatus.stats ? `${mysqlStatus.stats.users} users, ${mysqlStatus.stats.groups} groupes, ${mysqlStatus.stats.messages} messages` : 'Chargement...'}</p>
-      </div>
-      `}
-    </div>
-    
-    <!-- Statistiques -->
-    <h3 class="section-title">📊 Statistiques</h3>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="emoji">👥</div>
-        <div class="number">${totalUsers}</div>
-        <div class="label">Utilisateurs</div>
-      </div>
-      <div class="stat-card">
-        <div class="emoji">👑</div>
-        <div class="number">${owners}</div>
-        <div class="label">Owners</div>
-      </div>
-      <div class="stat-card">
-        <div class="emoji">⚡</div>
-        <div class="number">${sudos}</div>
-        <div class="label">Sudos</div>
-      </div>
-      <div class="stat-card">
-        <div class="emoji">✅</div>
-        <div class="number">${approved}</div>
-        <div class="label">Approuvés</div>
-      </div>
-      <div class="stat-card">
-        <div class="emoji">📨</div>
-        <div class="number">${db.data.stats?.messages || 0}</div>
-        <div class="label">Messages</div>
-      </div>
-      <div class="stat-card">
-        <div class="emoji">⚙️</div>
-        <div class="number">${db.data.stats?.commands || 0}</div>
-        <div class="label">Commandes</div>
+      
+      <!-- Liste des utilisateurs -->
+      <h3 class="section-title">👥 Utilisateurs récents</h3>
+      <div class="users-table">
+        <table>
+          <thead>
+            <tr>
+              <th>📱 Numéro</th>
+              <th>👤 Nom</th>
+              <th>🎭 Rôle</th>
+              <th>📊 Messages</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="4" style="text-align:center;padding:30px">Chargement...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-    
-    <!-- Liste des utilisateurs -->
-    <h3 class="section-title">👥 Utilisateurs récents</h3>
-    <div class="users-table">
-      <table>
-        <thead>
-          <tr>
-            <th>📱 Numéro</th>
-            <th>👤 Nom</th>
-            <th>🎭 Rôle</th>
-            <th>📊 Messages</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${userList.slice(0, 50).map(([jid, user]) => `
-          <tr>
-            <td>${jid.split("@")[0]}</td>
-            <td>${user.name || "Inconnu"}</td>
-            <td><span class="role-badge role-${user.role || 'user'}">${user.role || "user"}</span></td>
-            <td>${user.messageCount || 0}</td>
-          </tr>
-          `).join("") || '<tr><td colspan="4" style="text-align:center;padding:30px">Aucun utilisateur</td></tr>'}
-        </tbody>
-      </table>
-    </div>
-    `}
   </div>
+
+  <script>
+    let adminToken = localStorage.getItem('hani_admin_token');
+    let refreshInterval;
+    let countdown = 10;
+    
+    // Vérifier la session au chargement
+    window.onload = function() {
+      if (adminToken) {
+        checkSession();
+      }
+      // Enter pour login
+      document.getElementById('codeInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') login();
+      });
+    };
+    
+    // Login
+    async function login() {
+      const code = document.getElementById('codeInput').value;
+      const btn = document.getElementById('loginBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      
+      btn.disabled = true;
+      btn.textContent = '⏳ Vérification...';
+      errorMsg.style.display = 'none';
+      
+      try {
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          adminToken = data.token;
+          localStorage.setItem('hani_admin_token', adminToken);
+          showDashboard();
+        } else {
+          errorMsg.textContent = '❌ ' + (data.message || 'Code incorrect');
+          errorMsg.style.display = 'block';
+          document.getElementById('codeInput').value = '';
+        }
+      } catch (e) {
+        errorMsg.textContent = '❌ Erreur de connexion';
+        errorMsg.style.display = 'block';
+      }
+      
+      btn.disabled = false;
+      btn.textContent = '🚀 Accéder';
+    }
+    
+    // Vérifier session existante
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/admin/check', {
+          headers: { 'X-Admin-Token': adminToken }
+        });
+        const data = await res.json();
+        if (data.valid) {
+          showDashboard();
+        } else {
+          localStorage.removeItem('hani_admin_token');
+          adminToken = null;
+        }
+      } catch (e) {
+        localStorage.removeItem('hani_admin_token');
+        adminToken = null;
+      }
+    }
+    
+    // Afficher le dashboard
+    function showDashboard() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      refreshStats();
+      startAutoRefresh();
+    }
+    
+    // Logout
+    async function logout() {
+      try {
+        await fetch('/admin/logout', {
+          method: 'POST',
+          headers: { 'X-Admin-Token': adminToken }
+        });
+      } catch (e) {}
+      
+      localStorage.removeItem('hani_admin_token');
+      adminToken = null;
+      stopAutoRefresh();
+      document.getElementById('loginPage').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('codeInput').value = '';
+    }
+    
+    // Rafraîchir les stats
+    async function refreshStats() {
+      try {
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'X-Admin-Token': adminToken }
+        });
+        
+        if (res.status === 401) {
+          logout();
+          return;
+        }
+        
+        const data = await res.json();
+        if (!data.success) return;
+        
+        // Bot status
+        const botStatus = document.getElementById('botStatus');
+        if (data.bot.connected) {
+          botStatus.className = 'status-indicator status-online';
+          botStatus.textContent = '🟢 Bot Connecté';
+        } else {
+          botStatus.className = 'status-indicator status-offline';
+          botStatus.textContent = '🔴 ' + (data.bot.status || 'Déconnecté');
+        }
+        
+        // Bot info
+        if (data.bot.info) {
+          document.getElementById('botInfo').style.display = 'block';
+          document.getElementById('botName').textContent = data.bot.info.name || '-';
+          document.getElementById('botNumber').textContent = data.bot.info.id?.split(':')[0] || '-';
+        }
+        
+        // MySQL status
+        const mysqlBadge = document.getElementById('mysqlStatus');
+        const mysqlInfo = document.getElementById('mysqlInfo');
+        const mysqlStats = document.getElementById('mysqlStats');
+        
+        if (data.mysql.connected) {
+          mysqlBadge.className = 'status-badge status-connected';
+          mysqlBadge.textContent = '✅ MySQL Connecté';
+          mysqlInfo.textContent = '';
+          if (data.mysql.stats) {
+            mysqlStats.innerHTML = '📊 MySQL: ' + data.mysql.stats.users + ' users, ' + 
+              data.mysql.stats.groups + ' groupes, ' + data.mysql.stats.messages + ' messages';
+          }
+        } else {
+          mysqlBadge.className = 'status-badge status-disconnected';
+          mysqlBadge.textContent = '❌ MySQL Non connecté';
+          mysqlInfo.innerHTML = '<span style="color:#ffd93d">⚠️ Mode local (JSON)</span>';
+          mysqlStats.innerHTML = '';
+        }
+        
+        // Stats
+        document.getElementById('statUsers').textContent = data.local.totalUsers;
+        document.getElementById('statOwners').textContent = data.local.owners;
+        document.getElementById('statSudos').textContent = data.local.sudos;
+        document.getElementById('statApproved').textContent = data.local.approved;
+        document.getElementById('statMessages').textContent = data.local.messages;
+        document.getElementById('statCommands').textContent = data.local.commands;
+        document.getElementById('statUptime').textContent = Math.floor(data.uptime / 60);
+        
+        // Users table
+        const tbody = document.getElementById('usersTableBody');
+        if (data.local.users && data.local.users.length > 0) {
+          tbody.innerHTML = data.local.users.map(u => 
+            '<tr>' +
+            '<td>' + u.jid + '</td>' +
+            '<td>' + u.name + '</td>' +
+            '<td><span class="role-badge role-' + u.role + '">' + u.role + '</span></td>' +
+            '<td>' + u.messages + '</td>' +
+            '</tr>'
+          ).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px">Aucun utilisateur</td></tr>';
+        }
+        
+        // Update time
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        countdown = 10;
+        
+      } catch (e) {
+        console.error('Erreur refresh:', e);
+      }
+    }
+    
+    // Auto-refresh
+    function startAutoRefresh() {
+      refreshInterval = setInterval(() => {
+        countdown--;
+        document.getElementById('countdown').textContent = countdown;
+        if (countdown <= 0) {
+          refreshStats();
+        }
+      }, 1000);
+    }
+    
+    function stopAutoRefresh() {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+      }
+    }
+  </script>
 </body>
 </html>
   `);
@@ -4573,7 +4874,7 @@ app.get("/qr", (req, res) => {
     
     <div class="footer">
       <p>Créé avec ❤️ par <a href="#">H2025</a></p>
-      <p><a href="/">← Retour</a> | <a href="/admin?code=200700">🔐 Admin</a></p>
+      <p><a href="/">← Retour</a> | <a href="/admin">🔐 Admin</a></p>
     </div>
   </div>
 
