@@ -4907,7 +4907,7 @@ app.get("/admin", async (req, res) => {
   </script>
 </body>
 </html>
-  \`);
+  `);
 });
 
 // Health check pour Render
@@ -5293,13 +5293,7 @@ app.get("/qr", (req, res) => {
     
     function showExpired() {
       stopCountdown();
-      document.getElementById('qr-container').innerHTML = \`
-        <div class="qr-expired">
-          <div class="icon">⏰</div>
-          <p><strong>QR Code expiré!</strong></p>
-          <p>Clique sur le bouton pour en générer un nouveau</p>
-        </div>
-      \`;
+      document.getElementById('qr-container').innerHTML = '<div class="qr-expired"><div class="icon">⏰</div><p><strong>QR Code expiré!</strong></p><p>Clique sur le bouton pour en générer un nouveau</p></div>';
       document.getElementById('status-badge').textContent = '⏰ QR Expiré';
       document.getElementById('status-badge').className = 'status disconnected';
     }
