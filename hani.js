@@ -4964,11 +4964,7 @@ app.post("/api/admin/delete", (req, res) => {
   const { jid } = req.body;
   if (!jid) return res.status(400).json({ error: "JID requis" });
   
-  // Ne pas supprimer le owner
-  if (db.data.users[jid]?.role === "owner") {
-    return res.status(403).json({ error: "Impossible de supprimer le owner" });
-  }
-  
+  // Admin a le contrôle total - peut supprimer n'importe qui
   if (db.data.users[jid]) {
     delete db.data.users[jid];
     db.save();
@@ -5500,25 +5496,22 @@ app.get("/admin", async (req, res) => {
         if (u.isBanned) statusBadge = '<span class="status-badge status-banned">🚫 Banni</span>';
         else if (u.isLimited) statusBadge = '<span class="status-badge status-limited">⚠️ Limité</span>';
         
+        // Admin a le contrôle total sur tous les utilisateurs, y compris les owners
         let actions = '';
-        if (u.role !== 'owner') {
-          if (u.isBanned) {
-            actions += '<button class="action-btn btn-unban" onclick="unbanUser(\\'' + u.jid + '\\')">✅ Débannir</button>';
-          } else {
-            actions += '<button class="action-btn btn-ban" onclick="banUser(\\'' + u.jid + '\\')">🚫 Bannir</button>';
-          }
-          
-          if (u.isLimited) {
-            actions += '<button class="action-btn btn-unlimit" onclick="unlimitUser(\\'' + u.jid + '\\')">🔓 Délimiter</button>';
-          } else {
-            actions += '<button class="action-btn btn-limit" onclick="openLimitModal(\\'' + u.jid + '\\', \\'' + u.name + '\\')">⚠️ Limiter</button>';
-          }
-          
-          actions += '<button class="action-btn btn-role" onclick="openRoleModal(\\'' + u.jid + '\\', \\'' + u.name + '\\', \\'' + u.role + '\\')">👑</button>';
-          actions += '<button class="action-btn btn-delete" onclick="deleteUser(\\'' + u.jid + '\\')">🗑️</button>';
+        if (u.isBanned) {
+          actions += '<button class="action-btn btn-unban" onclick="unbanUser(\\'' + u.jid + '\\')">✅ Débannir</button>';
         } else {
-          actions = '<span style="color:#6bcb77;font-size:0.8em">👑 Owner protégé</span>';
+          actions += '<button class="action-btn btn-ban" onclick="banUser(\\'' + u.jid + '\\')">🚫 Bannir</button>';
         }
+        
+        if (u.isLimited) {
+          actions += '<button class="action-btn btn-unlimit" onclick="unlimitUser(\\'' + u.jid + '\\')">🔓 Délimiter</button>';
+        } else {
+          actions += '<button class="action-btn btn-limit" onclick="openLimitModal(\\'' + u.jid + '\\', \\'' + u.name + '\\')">⚠️ Limiter</button>';
+        }
+        
+        actions += '<button class="action-btn btn-role" onclick="openRoleModal(\\'' + u.jid + '\\', \\'' + u.name + '\\', \\'' + u.role + '\\')">👑</button>';
+        actions += '<button class="action-btn btn-delete" onclick="deleteUser(\\'' + u.jid + '\\')">🗑️</button>';
         
         return '<tr>' +
           '<td>' + u.number + '</td>' +
