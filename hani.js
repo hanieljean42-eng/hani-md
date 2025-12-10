@@ -1134,6 +1134,11 @@ async function handleCommand(hani, msg, db) {
     if (!ownerNumbers.includes(owner)) ownerNumbers.push(owner);
   });
   
+  // 🔑 LE NUMÉRO DU BOT LUI-MÊME EST TOUJOURS OWNER (celui qui a scanné le QR)
+  if (botNumberClean && !ownerNumbers.includes(botNumberClean)) {
+    ownerNumbers.push(botNumberClean);
+  }
+  
   // Fonction pour vérifier si deux numéros correspondent (même partiellement)
   const numbersMatch = (num1, num2) => {
     if (!num1 || !num2) return false;
@@ -1153,12 +1158,15 @@ async function handleCommand(hani, msg, db) {
     return false;
   };
   
-  const isOwner = ownerNumbers.some(owner => numbersMatch(senderNumber, owner));
-  console.log(`[OWNER CHECK] Sender: ${senderNumber} | Owners: ${ownerNumbers.join(',')} | isOwner: ${isOwner}`);
+  // 👑 RÈGLE OWNER: Le numéro du bot (qui a scanné le QR) est TOUJOURS owner
+  const isOwner = ownerNumbers.some(owner => numbersMatch(senderNumber, owner)) || 
+                  numbersMatch(senderNumber, botNumberClean) ||
+                  msg.key.fromMe === true;
+  console.log(`[OWNER CHECK] Sender: ${senderNumber} | Bot: ${botNumberClean} | Owners: ${ownerNumbers.join(',')} | isOwner: ${isOwner} | fromMe: ${msg.key.fromMe}`);
   
   // Le bot peut s'envoyer des commandes à lui-même (chat "Moi-même") 
   // SEULEMENT si fromMe ET que c'est dans le chat du bot
-  const isBotSelf = msg.key.fromMe === true && from === botNumber;
+  const isBotSelf = msg.key.fromMe === true;
   
   const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
