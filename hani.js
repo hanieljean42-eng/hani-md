@@ -7287,6 +7287,74 @@ app.get("/api/qr-status", (req, res) => {
   });
 });
 
+// 📸 PAGE QR SIMPLE - Affiche juste l'image QR (plus fiable)
+app.get("/qr-simple", (req, res) => {
+  if (qrState.isConnected) {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>✅ HANI-MD Connecté</title>
+  <style>
+    body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
+    h1 { color: #4CAF50; font-size: 3em; }
+    p { color: #aaa; }
+  </style>
+</head>
+<body>
+  <h1>✅ Connecté!</h1>
+  <p>Le bot HANI-MD est maintenant actif.</p>
+  <p style="margin-top: 20px;"><a href="/" style="color: #9c27b0;">← Retour</a></p>
+</body>
+</html>`);
+  } else if (qrState.qrDataURL) {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="5">
+  <title>📱 HANI-MD - Scanne le QR</title>
+  <style>
+    body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
+    img { border-radius: 15px; box-shadow: 0 0 30px rgba(156,39,176,0.5); }
+    h2 { color: #9c27b0; margin-bottom: 20px; }
+    p { color: #aaa; font-size: 0.9em; margin-top: 15px; }
+    .refresh { color: #ff9800; }
+  </style>
+</head>
+<body>
+  <h2>📱 Scanne avec WhatsApp</h2>
+  <img src="${qrState.qrDataURL}" alt="QR Code" width="300">
+  <p>⏱️ Page auto-refresh toutes les 5 secondes</p>
+  <p class="refresh">Si expiré, attendez le nouveau QR...</p>
+</body>
+</html>`);
+  } else {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="3">
+  <title>⏳ HANI-MD - En attente</title>
+  <style>
+    body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
+    .loader { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #9c27b0; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    p { margin-top: 20px; color: #aaa; }
+  </style>
+</head>
+<body>
+  <div class="loader"></div>
+  <p>Génération du QR code en cours...</p>
+  <p style="font-size: 0.8em;">Page auto-refresh toutes les 3 secondes</p>
+</body>
+</html>`);
+  }
+});
+
 // 📱 PAGE QR CODE - SÉCURISÉE (Owner uniquement)
 app.get("/qr", (req, res) => {
   res.send(`
