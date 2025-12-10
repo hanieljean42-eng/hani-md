@@ -549,6 +549,60 @@ const spyConfig = {
   }
 };
 
+// 📅 MESSAGES PROGRAMMÉS (Scheduled Messages)
+const scheduledMessages = [];
+// Structure: { id, targetJid, targetName, message, scheduledTime, repeat, repeatInterval, active, createdAt }
+// repeat: 'once' | 'daily' | 'weekly' | 'monthly'
+// repeatInterval: pour personnalisé (en ms)
+
+let schedulerInterval = null;
+
+// Fonction pour vérifier et envoyer les messages programmés
+function startScheduler(hani) {
+  if (schedulerInterval) return; // Déjà démarré
+  
+  schedulerInterval = setInterval(async () => {
+    const now = Date.now();
+    const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+    
+    for (const msg of scheduledMessages) {
+      if (!msg.active) continue;
+      
+      // Vérifier si c'est l'heure
+      if (now >= msg.scheduledTime) {
+        try {
+          // Envoyer le message
+          await hani.sendMessage(msg.targetJid, { text: msg.message });
+          
+          console.log(`📅 [SCHEDULED] Message envoyé à ${msg.targetName}: "${msg.message.slice(0, 50)}..."`);
+          
+          // Notifier l'owner
+          await hani.sendMessage(botNumber, { 
+            text: `📅 *Message programmé envoyé*\n\n👤 À: ${msg.targetName}\n📱 ${msg.targetJid.split("@")[0]}\n💬 "${msg.message.slice(0, 100)}..."\n🕐 ${new Date().toLocaleString("fr-FR")}`
+          });
+          
+          // Gérer la répétition
+          if (msg.repeat === 'once') {
+            msg.active = false;
+          } else if (msg.repeat === 'daily') {
+            msg.scheduledTime += 24 * 60 * 60 * 1000; // +24h
+          } else if (msg.repeat === 'weekly') {
+            msg.scheduledTime += 7 * 24 * 60 * 60 * 1000; // +7 jours
+          } else if (msg.repeat === 'monthly') {
+            msg.scheduledTime += 30 * 24 * 60 * 60 * 1000; // +30 jours
+          } else if (msg.repeat === 'custom' && msg.repeatInterval) {
+            msg.scheduledTime += msg.repeatInterval;
+          }
+        } catch (e) {
+          console.log(`[!] Erreur envoi message programmé: ${e.message}`);
+        }
+      }
+    }
+  }, 30000); // Vérifier toutes les 30 secondes
+  
+  console.log("📅 [SCHEDULER] Système de messages programmés démarré");
+}
+
 // 📇 FONCTION pour détecter si c'est un LID (Linked ID) et pas un vrai numéro
 const isLID = (number) => {
   if (!number) return true;
@@ -681,6 +735,13 @@ const ownerOnlyCommands = [
   "spyexport", "exportspy", "exporterespion",
   "spystats", "statsespion", "statistiques",
   "trackconfig", "spyconfig", "configespion",
+  // Messages programmés
+  "schedule", "programmer", "planifier",
+  "schedulerepeat", "programmerrepeat", "messagerecurrent",
+  "schedulelist", "programmelist", "listeprogrammes",
+  "scheduledel", "schedulecancel", "supprimerprogramme",
+  "scheduleclear", "clearschedule",
+  "schedulepause", "pauseprogramme",
 ];
 
 // Liste des utilisateurs approuvés
@@ -1128,6 +1189,14 @@ function getMainMenu(prefix, userRole = "user") {
 ┃ ${prefix}stalk @user - Profil complet
 ┃ ${prefix}communs @user - Contacts mutuels
 ┃ ${prefix}quiamon - Qui a mon numéro?
+┃
+┃ 📅 *MESSAGES PROGRAMMÉS*
+┃ ${prefix}schedule [n°] [heure] [msg]
+┃ ${prefix}schedulerepeat [n°] [h] [freq] [msg]
+┃ ${prefix}schedulelist - Voir programmés
+┃ ${prefix}scheduledel [id] - Supprimer
+┃ ${prefix}schedulepause [id] - Pause
+┃ ${prefix}scheduleclear - Tout supprimer
 ┃
 ┃ ⚙️ *SYSTÈME*
 ┃ ${prefix}broadcast [msg]
@@ -2045,6 +2114,241 @@ async function handleCommand(hani, msg, db) {
       config += `Options: lastseen, photo, bio, name, calls, groups`;
       
       return send(config);
+    }
+
+    // ────────── 📅 MESSAGES PROGRAMMÉS ──────────
+
+    case "schedule":
+    case "programmer":
+    case "planifier": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      // Format: .schedule 22550252467 14:30 Message à envoyer
+      // Ou: .schedule @mention 14:30 Message à envoyer
+      const parts = args?.split(" ") || [];
+      
+      if (parts.length < 3) {
+        return send(`📅 *PROGRAMMER UN MESSAGE*\n\n📋 *Usage:*\n\`.schedule [numéro] [heure] [message]\`\n\n📝 *Exemples:*\n• \`.schedule 22550252467 14:30 Salut, ça va?\`\n• \`.schedule 22550252467 08:00 Bonjour!\`\n• \`.schedule 33612345678 20:00 Bonne soirée\`\n\n⏰ *Format heure:* HH:MM (24h)\n\n💡 *Autres commandes:*\n• \`.schedulelist\` → Voir les messages programmés\n• \`.scheduledel [id]\` → Supprimer un message\n• \`.schedulerepeat\` → Message récurrent`);
+      }
+      
+      let targetNumber = parts[0].replace(/[^0-9]/g, '');
+      const timeStr = parts[1];
+      const message = parts.slice(2).join(" ");
+      
+      // Vérifier le format de l'heure
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) {
+        return send(`❌ Format d'heure invalide.\n\n⏰ Utilise le format HH:MM (ex: 14:30, 08:00)`);
+      }
+      
+      const hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        return send(`❌ Heure invalide.\n\n⏰ L'heure doit être entre 00:00 et 23:59`);
+      }
+      
+      // Calculer l'heure d'envoi
+      const now = new Date();
+      let scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+      
+      // Si l'heure est déjà passée aujourd'hui, programmer pour demain
+      if (scheduledDate.getTime() < now.getTime()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+      
+      // Créer le JID
+      const targetJid = targetNumber + "@s.whatsapp.net";
+      
+      // Récupérer le nom du contact
+      let targetName = targetNumber;
+      try {
+        const contact = await hani.onWhatsApp(targetJid);
+        if (contact && contact[0]) {
+          targetName = contact[0].notify || contact[0].name || targetNumber;
+        }
+      } catch (e) {}
+      
+      // Créer le message programmé
+      const scheduledMsg = {
+        id: Date.now(),
+        targetJid,
+        targetName,
+        message,
+        scheduledTime: scheduledDate.getTime(),
+        repeat: 'once',
+        repeatInterval: null,
+        active: true,
+        createdAt: Date.now()
+      };
+      
+      scheduledMessages.push(scheduledMsg);
+      
+      // Démarrer le scheduler si pas encore fait
+      startScheduler(hani);
+      
+      const timeDisplay = scheduledDate.toLocaleString("fr-FR");
+      const isToday = scheduledDate.getDate() === now.getDate();
+      
+      return send(`📅 *Message programmé!*\n\n👤 *À:* ${targetName}\n📱 *Numéro:* +${targetNumber}\n💬 *Message:* "${message.slice(0, 100)}${message.length > 100 ? '...' : ''}"\n⏰ *Envoi:* ${timeDisplay}\n📆 ${isToday ? "Aujourd'hui" : "Demain"}\n\n🆔 ID: ${scheduledMsg.id}\n\n💡 \`.schedulelist\` pour voir tous les messages`);
+    }
+
+    case "schedulerepeat":
+    case "programmerrepeat":
+    case "messagerecurrent": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      // Format: .schedulerepeat 22550252467 08:00 daily Bonjour!
+      const parts = args?.split(" ") || [];
+      
+      if (parts.length < 4) {
+        return send(`📅 *MESSAGE RÉCURRENT*\n\n📋 *Usage:*\n\`.schedulerepeat [numéro] [heure] [fréquence] [message]\`\n\n📝 *Fréquences:*\n• \`daily\` → Tous les jours\n• \`weekly\` → Chaque semaine\n• \`monthly\` → Chaque mois\n\n📝 *Exemple:*\n\`.schedulerepeat 22550252467 08:00 daily Bonjour! Bonne journée\`\n\n_Envoie "Bonjour! Bonne journée" tous les jours à 8h_`);
+      }
+      
+      let targetNumber = parts[0].replace(/[^0-9]/g, '');
+      const timeStr = parts[1];
+      const repeat = parts[2].toLowerCase();
+      const message = parts.slice(3).join(" ");
+      
+      // Vérifier la fréquence
+      if (!['daily', 'weekly', 'monthly'].includes(repeat)) {
+        return send(`❌ Fréquence invalide.\n\nUtilise: daily, weekly, ou monthly`);
+      }
+      
+      // Vérifier le format de l'heure
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) {
+        return send(`❌ Format d'heure invalide.\n\n⏰ Utilise le format HH:MM (ex: 14:30)`);
+      }
+      
+      const hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      
+      // Calculer l'heure d'envoi
+      const now = new Date();
+      let scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+      
+      if (scheduledDate.getTime() < now.getTime()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+      
+      const targetJid = targetNumber + "@s.whatsapp.net";
+      
+      let targetName = targetNumber;
+      try {
+        const contact = await hani.onWhatsApp(targetJid);
+        if (contact && contact[0]) {
+          targetName = contact[0].notify || contact[0].name || targetNumber;
+        }
+      } catch (e) {}
+      
+      const scheduledMsg = {
+        id: Date.now(),
+        targetJid,
+        targetName,
+        message,
+        scheduledTime: scheduledDate.getTime(),
+        repeat,
+        repeatInterval: null,
+        active: true,
+        createdAt: Date.now()
+      };
+      
+      scheduledMessages.push(scheduledMsg);
+      startScheduler(hani);
+      
+      const freqLabels = { daily: "Tous les jours", weekly: "Chaque semaine", monthly: "Chaque mois" };
+      
+      return send(`📅 *Message récurrent programmé!*\n\n👤 *À:* ${targetName}\n📱 *Numéro:* +${targetNumber}\n💬 *Message:* "${message.slice(0, 80)}..."\n⏰ *Heure:* ${timeStr}\n🔄 *Fréquence:* ${freqLabels[repeat]}\n📆 *Prochain envoi:* ${scheduledDate.toLocaleString("fr-FR")}\n\n🆔 ID: ${scheduledMsg.id}`);
+    }
+
+    case "schedulelist":
+    case "programmelist":
+    case "listeprogrammes": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const activeMessages = scheduledMessages.filter(m => m.active);
+      
+      if (activeMessages.length === 0) {
+        return send(`📅 *Aucun message programmé*\n\n💡 Utilise \`.schedule\` pour programmer un message.\n\n📝 *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
+      }
+      
+      let list = `📅 ═══════════════════════════\n   *MESSAGES PROGRAMMÉS*\n═══════════════════════════\n\n`;
+      
+      for (const msg of activeMessages) {
+        const nextSend = new Date(msg.scheduledTime).toLocaleString("fr-FR");
+        const repeatLabel = msg.repeat === 'once' ? '⏱️ Une fois' : 
+                           msg.repeat === 'daily' ? '🔄 Quotidien' : 
+                           msg.repeat === 'weekly' ? '🔄 Hebdo' : 
+                           msg.repeat === 'monthly' ? '🔄 Mensuel' : '⏱️';
+        
+        list += `🆔 *${msg.id}*\n`;
+        list += `👤 ${msg.targetName}\n`;
+        list += `📱 +${msg.targetJid.split("@")[0]}\n`;
+        list += `💬 "${msg.message.slice(0, 40)}..."\n`;
+        list += `⏰ ${nextSend}\n`;
+        list += `${repeatLabel}\n\n`;
+      }
+      
+      list += `═══════════════════════════\n`;
+      list += `📊 *Total:* ${activeMessages.length} message(s)\n\n`;
+      list += `💡 \`.scheduledel [id]\` pour supprimer`;
+      
+      return send(list);
+    }
+
+    case "scheduledel":
+    case "schedulecancel":
+    case "supprimerprogramme": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const msgId = parseInt(args);
+      
+      if (!msgId) {
+        return send(`❌ *Usage:* \`.scheduledel [id]\`\n\n💡 Utilise \`.schedulelist\` pour voir les IDs`);
+      }
+      
+      const index = scheduledMessages.findIndex(m => m.id === msgId);
+      
+      if (index === -1) {
+        return send(`❌ Message programmé #${msgId} non trouvé.`);
+      }
+      
+      const deleted = scheduledMessages[index];
+      scheduledMessages.splice(index, 1);
+      
+      return send(`🗑️ *Message programmé supprimé*\n\n🆔 ID: ${deleted.id}\n👤 À: ${deleted.targetName}\n💬 "${deleted.message.slice(0, 50)}..."`);
+    }
+
+    case "scheduleclear":
+    case "clearschedule": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const count = scheduledMessages.length;
+      scheduledMessages.length = 0;
+      
+      return send(`🗑️ *Tous les messages programmés supprimés*\n\n📊 ${count} message(s) effacé(s)`);
+    }
+
+    case "schedulepause":
+    case "pauseprogramme": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const msgId = parseInt(args);
+      
+      if (!msgId) {
+        return send(`❌ *Usage:* \`.schedulepause [id]\`\n\n💡 Utilise \`.schedulelist\` pour voir les IDs`);
+      }
+      
+      const msg = scheduledMessages.find(m => m.id === msgId);
+      
+      if (!msg) {
+        return send(`❌ Message programmé #${msgId} non trouvé.`);
+      }
+      
+      msg.active = !msg.active;
+      
+      return send(`${msg.active ? "▶️ *Message réactivé*" : "⏸️ *Message mis en pause*"}\n\n🆔 ID: ${msg.id}\n👤 À: ${msg.targetName}`);
     }
 
     case "whoami": {
