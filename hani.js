@@ -1172,19 +1172,10 @@ async function handleCommand(hani, msg, db) {
   // Debug pour TOUTES les commandes owner
   console.log(`[CMD: ${command}] Sender: ${senderNumber} | Owners: ${ownerNumberRaw} | Bot: ${botNumberClean}`);
   
-  // 🔐 ENREGISTREMENT AUTOMATIQUE DES NOUVEAUX UTILISATEURS
-  // Tout nouvel utilisateur est enregistré comme "user" par défaut
-  if (!db.data.users[sender]) {
-    db.data.users[sender] = {
-      name: pushName,
-      role: "user", // TOUJOURS "user" par défaut
-      messageCount: 0,
-      firstSeen: new Date().toISOString(),
-      lastSeen: new Date().toISOString()
-    };
-    db.save();
-    console.log(`[DB] 👤 Nouvel utilisateur enregistré: ${pushName} (${senderNumber}) - Role: user`);
-  }
+  // 🔐 PAS D'ENREGISTREMENT AUTOMATIQUE
+  // Seul le propriétaire (celui qui a scanné le QR) peut utiliser le bot
+  // Les amis/contacts ne sont PAS enregistrés automatiquement
+  // Pour avoir leur propre bot, ils doivent scanner leur propre QR code
   
   // Vérification TRÈS SOUPLE pour owner:
   // Les NUMERO_OWNER dans .env sont owners (peut être plusieurs séparés par virgule)
@@ -1230,6 +1221,15 @@ async function handleCommand(hani, msg, db) {
   // Le bot peut s'envoyer des commandes à lui-même (chat "Moi-même") 
   // SEULEMENT si fromMe ET que c'est dans le chat du bot
   const isBotSelf = msg.key.fromMe === true;
+  
+  // 🔒 RESTRICTION: SEUL LE PROPRIÉTAIRE PEUT UTILISER LE BOT
+  // Les amis/contacts ne peuvent pas utiliser ce bot
+  // Ils doivent scanner leur propre QR code pour avoir leur propre bot
+  if (!isOwner && !isBotSelf) {
+    // Ignorer silencieusement les commandes des autres personnes
+    console.log(`[BLOCKED] Commande ignorée de ${pushName} (${senderNumber}) - Pas owner`);
+    return;
+  }
   
   const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
