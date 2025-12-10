@@ -1065,11 +1065,19 @@ function getMainMenu(prefix, userRole = "user") {
 ┃ ${prefix}ban/@unban
 ┃ ${prefix}mode public/private
 ┃
+┃ 🕵️ *ESPIONNAGE*
+┃ ${prefix}spy @user - Surveiller
+┃ ${prefix}unspy @user - Arrêter
+┃ ${prefix}spylist - Liste surveillés
+┃ ${prefix}activity - Activité users
+┃ ${prefix}stalk @user - Profil complet
+┃ ${prefix}communs @user - Contacts mutuels
+┃ ${prefix}quiamon - Qui a mon numéro?
+┃
 ┃ ⚙️ *SYSTÈME*
 ┃ ${prefix}broadcast [msg]
 ┃ ${prefix}restart - Redémarrer
 ┃ ${prefix}invisible off/on - Visibilité
-┃ ${prefix}spy - Qui voit/lit mes msgs
 ┃ ${prefix}protection - État protections
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
@@ -3218,6 +3226,343 @@ C'est ton identifiant WhatsApp.
       
       list += `📊 *Total:* ${watchList.size} surveillance(s) active(s)`;
       return send(list);
+    }
+
+    // ────────── 🔗 CONTACTS EN COMMUN ──────────
+    case "communs":
+    case "common":
+    case "commoncontacts":
+    case "mutual":
+    case "quiconnait": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      let targetNumber = args?.replace(/[^0-9]/g, "");
+      if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
+      if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
+      
+      await send("🔍 *Analyse des contacts en commun en cours...*\nScanning de tous vos groupes...");
+      
+      try {
+        // Récupérer tous les groupes
+        const groups = await hani.groupFetchAllParticipating();
+        const groupIds = Object.keys(groups);
+        
+        if (groupIds.length === 0) {
+          return send("❌ Aucun groupe trouvé.");
+        }
+        
+        // Map: numéro → { name, groups: [groupNames], inGroupsWith: Set(numéros) }
+        const contactMap = new Map();
+        const botNumber = hani.user?.id?.split(":")[0]?.split("@")[0];
+        
+        // Analyser chaque groupe
+        for (const groupId of groupIds) {
+          const group = groups[groupId];
+          const groupName = group.subject || "Groupe sans nom";
+          const participants = group.participants || [];
+          
+          // Ajouter chaque participant
+          for (const p of participants) {
+            const num = p.id?.split("@")[0]?.split(":")[0];
+            if (!num || isLID(num)) continue;
+            
+            if (!contactMap.has(num)) {
+              contactMap.set(num, {
+                name: p.notify || p.name || "Inconnu",
+                groups: [],
+                inGroupsWith: new Set(),
+                isAdmin: false
+              });
+            }
+            
+            const contact = contactMap.get(num);
+            contact.groups.push(groupName);
+            if (p.admin) contact.isAdmin = true;
+            
+            // Ajouter les autres participants comme "contacts en commun"
+            for (const other of participants) {
+              const otherNum = other.id?.split("@")[0]?.split(":")[0];
+              if (otherNum && otherNum !== num && !isLID(otherNum)) {
+                contact.inGroupsWith.add(otherNum);
+              }
+            }
+          }
+        }
+        
+        // Si un numéro cible est spécifié
+        if (targetNumber) {
+          const targetContact = contactMap.get(targetNumber);
+          
+          if (!targetContact) {
+            return send(`❌ *${formatPhoneNumber(targetNumber)}* n'est dans aucun de vos groupes.`);
+          }
+          
+          // Trouver les contacts en commun avec toi
+          const myContacts = contactMap.get(botNumber)?.inGroupsWith || new Set();
+          const targetContacts = targetContact.inGroupsWith;
+          
+          // Contacts en commun entre toi et la cible
+          const commonWithTarget = [...targetContacts].filter(n => myContacts.has(n) && n !== botNumber);
+          
+          let text = `🔗 *CONTACTS EN COMMUN*\n`;
+          text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          text += `🎯 *Cible:* ${targetContact.name}\n`;
+          text += `📱 *Numéro:* ${formatPhoneNumber(targetNumber)}\n`;
+          text += `👑 *Admin:* ${targetContact.isAdmin ? "Oui" : "Non"}\n\n`;
+          
+          text += `🏘️ *Groupes en commun avec toi:*\n`;
+          const commonGroups = targetContact.groups.filter(g => {
+            // Vérifier si toi aussi tu es dans ce groupe
+            for (const [num, c] of contactMap) {
+              if (num === botNumber && c.groups.includes(g)) return true;
+            }
+            return false;
+          });
+          
+          if (commonGroups.length > 0) {
+            commonGroups.slice(0, 10).forEach((g, i) => {
+              text += `   ${i + 1}. ${g}\n`;
+            });
+            if (commonGroups.length > 10) text += `   ... et ${commonGroups.length - 10} autres\n`;
+          } else {
+            text += `   Aucun groupe en commun\n`;
+          }
+          
+          text += `\n👥 *Contacts mutuels (${commonWithTarget.length}):*\n`;
+          if (commonWithTarget.length > 0) {
+            commonWithTarget.slice(0, 15).forEach((num, i) => {
+              const c = contactMap.get(num);
+              text += `   ${i + 1}. ${c?.name || "Inconnu"} (${formatPhoneNumber(num)})\n`;
+            });
+            if (commonWithTarget.length > 15) text += `   ... et ${commonWithTarget.length - 15} autres\n`;
+          } else {
+            text += `   Aucun contact mutuel trouvé\n`;
+          }
+          
+          text += `\n📊 *Stats:*\n`;
+          text += `   • Dans ${targetContact.groups.length} groupe(s)\n`;
+          text += `   • Connaît ${targetContact.inGroupsWith.size} personne(s)\n`;
+          
+          return send(text);
+        }
+        
+        // Sans cible: afficher les personnes les plus "connectées"
+        const sorted = [...contactMap.entries()]
+          .filter(([num]) => num !== botNumber && !isLID(num))
+          .sort((a, b) => b[1].inGroupsWith.size - a[1].inGroupsWith.size)
+          .slice(0, 20);
+        
+        let text = `🔗 *TOP CONTACTS LES PLUS CONNECTÉS*\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        text += `📊 *${groupIds.length} groupes analysés*\n`;
+        text += `👥 *${contactMap.size} contacts trouvés*\n\n`;
+        
+        sorted.forEach(([num, contact], i) => {
+          const emoji = i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`;
+          text += `${emoji} *${contact.name}*\n`;
+          text += `   📱 ${formatPhoneNumber(num)}\n`;
+          text += `   🔗 Connaît ${contact.inGroupsWith.size} personnes\n`;
+          text += `   🏘️ Dans ${contact.groups.length} groupe(s)\n\n`;
+        });
+        
+        text += `💡 *Utilise* \`.communs @user\` *pour voir les détails d'un contact*`;
+        
+        return send(text);
+        
+      } catch (error) {
+        console.error("[COMMUNS] Erreur:", error);
+        return send(`❌ Erreur: ${error.message}`);
+      }
+    }
+
+    // ────────── 🔍 QUI A MON NUMÉRO ──────────
+    case "quiamon":
+    case "whohasme":
+    case "whosaveme": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      await send("🔍 *Recherche de qui a ton numéro...*");
+      
+      try {
+        const groups = await hani.groupFetchAllParticipating();
+        const groupIds = Object.keys(groups);
+        const botNumber = hani.user?.id?.split(":")[0]?.split("@")[0];
+        
+        // Personnes qui sont dans les mêmes groupes que toi
+        const peopleWhoKnowMe = new Map();
+        
+        for (const groupId of groupIds) {
+          const group = groups[groupId];
+          const groupName = group.subject || "Groupe sans nom";
+          const participants = group.participants || [];
+          
+          // Vérifier si le bot est dans ce groupe
+          const botInGroup = participants.some(p => {
+            const num = p.id?.split("@")[0]?.split(":")[0];
+            return num === botNumber;
+          });
+          
+          if (!botInGroup) continue;
+          
+          // Toutes les personnes de ce groupe ont potentiellement ton numéro
+          for (const p of participants) {
+            const num = p.id?.split("@")[0]?.split(":")[0];
+            if (!num || num === botNumber || isLID(num)) continue;
+            
+            if (!peopleWhoKnowMe.has(num)) {
+              peopleWhoKnowMe.set(num, {
+                name: p.notify || p.name || "Inconnu",
+                groups: [],
+                isAdmin: false
+              });
+            }
+            
+            const person = peopleWhoKnowMe.get(num);
+            person.groups.push(groupName);
+            if (p.admin) person.isAdmin = true;
+          }
+        }
+        
+        // Trier par nombre de groupes en commun
+        const sorted = [...peopleWhoKnowMe.entries()]
+          .sort((a, b) => b[1].groups.length - a[1].groups.length);
+        
+        let text = `👁️ *QUI A TON NUMÉRO?*\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        text += `📊 *${peopleWhoKnowMe.size} personnes* sont dans tes groupes\n`;
+        text += `🏘️ Elles peuvent avoir ton numéro!\n\n`;
+        
+        text += `🔝 *Top 20 (par groupes en commun):*\n\n`;
+        
+        sorted.slice(0, 20).forEach(([num, person], i) => {
+          text += `${i + 1}. *${person.name}* ${person.isAdmin ? "👑" : ""}\n`;
+          text += `   📱 ${formatPhoneNumber(num)}\n`;
+          text += `   🏘️ ${person.groups.length} groupe(s) en commun\n\n`;
+        });
+        
+        if (sorted.length > 20) {
+          text += `... et ${sorted.length - 20} autres personnes\n\n`;
+        }
+        
+        text += `💡 *Note:* Ces personnes peuvent voir ton numéro dans les groupes.`;
+        
+        return send(text);
+        
+      } catch (error) {
+        console.error("[QUIAMON] Erreur:", error);
+        return send(`❌ Erreur: ${error.message}`);
+      }
+    }
+
+    // ────────── 🕵️ PROFIL STALKER ──────────
+    case "stalk":
+    case "stalker":
+    case "profil":
+    case "whois": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      let targetNumber = args?.replace(/[^0-9]/g, "");
+      if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
+      if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
+      
+      if (!targetNumber) {
+        return send(`🕵️ *PROFIL STALKER*\n\nUtilisation:\n• \`.stalk @user\`\n• \`.stalk 225XXXXXXXXXX\`\n\nObtiens toutes les infos d'un contact!`);
+      }
+      
+      const targetJid = targetNumber + "@s.whatsapp.net";
+      
+      await send(`🔍 *Récupération du profil de ${formatPhoneNumber(targetNumber)}...*`);
+      
+      try {
+        let text = `🕵️ *PROFIL STALKER*\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        text += `📱 *Numéro:* ${formatPhoneNumber(targetNumber)}\n`;
+        
+        // Récupérer le statut/bio
+        try {
+          const status = await hani.fetchStatus(targetJid);
+          text += `📝 *Bio:* ${status?.status || "Pas de bio"}\n`;
+          if (status?.setAt) {
+            text += `📅 *Bio mise à jour:* ${new Date(status.setAt * 1000).toLocaleString("fr-FR")}\n`;
+          }
+        } catch (e) {
+          text += `📝 *Bio:* Non disponible\n`;
+        }
+        
+        // Vérifier présence dans groupes
+        const groups = await hani.groupFetchAllParticipating();
+        let groupCount = 0;
+        let groupNames = [];
+        let isAdminSomewhere = false;
+        
+        for (const groupId of Object.keys(groups)) {
+          const group = groups[groupId];
+          const participant = group.participants?.find(p => 
+            p.id?.split("@")[0]?.split(":")[0] === targetNumber
+          );
+          if (participant) {
+            groupCount++;
+            groupNames.push(group.subject || "Sans nom");
+            if (participant.admin) isAdminSomewhere = true;
+          }
+        }
+        
+        text += `\n🏘️ *Groupes en commun:* ${groupCount}\n`;
+        if (groupNames.length > 0) {
+          groupNames.slice(0, 5).forEach((g, i) => {
+            text += `   ${i + 1}. ${g}\n`;
+          });
+          if (groupNames.length > 5) text += `   ... et ${groupNames.length - 5} autres\n`;
+        }
+        
+        text += `\n👑 *Admin quelque part:* ${isAdminSomewhere ? "Oui" : "Non"}\n`;
+        
+        // Activité enregistrée
+        const tracker = activityTracker.get(targetNumber);
+        if (tracker) {
+          text += `\n📊 *Activité enregistrée:*\n`;
+          text += `   💬 ${tracker.messageCount} messages\n`;
+          text += `   📅 Première vue: ${tracker.firstSeen}\n`;
+          text += `   🕐 Dernière vue: ${tracker.lastSeen}\n`;
+        }
+        
+        // Médias stockés
+        const medias = mediaStore.get(targetNumber);
+        if (medias) {
+          text += `\n📁 *Médias reçus:* ${medias.length}\n`;
+        }
+        
+        // Sous surveillance?
+        if (watchList.has(targetNumber)) {
+          text += `\n🔴 *Sous surveillance!*\n`;
+        }
+        
+        // Banni?
+        if (db.isBanned(targetJid)) {
+          text += `\n🚫 *BANNI du bot*\n`;
+        }
+        
+        // Récupérer la photo de profil
+        try {
+          const ppUrl = await hani.profilePictureUrl(targetJid, "image");
+          if (ppUrl) {
+            const response = await fetch(ppUrl);
+            const buffer = Buffer.from(await response.arrayBuffer());
+            return hani.sendMessage(from, { 
+              image: buffer, 
+              caption: text 
+            }, { quoted: msg });
+          }
+        } catch (e) {
+          // Pas de photo de profil
+        }
+        
+        return send(text);
+        
+      } catch (error) {
+        console.error("[STALK] Erreur:", error);
+        return send(`❌ Erreur: ${error.message}`);
+      }
     }
 
     // ────────── 📁 EXTRACTION DE MÉDIAS ──────────
