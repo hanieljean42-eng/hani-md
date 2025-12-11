@@ -555,6 +555,11 @@ const scheduledMessages = [];
 // repeat: 'once' | 'daily' | 'weekly' | 'monthly'
 // repeatInterval: pour personnalisé (en ms)
 
+// 📸 STATUTS PROGRAMMÉS (Scheduled Status/Stories)
+const scheduledStatus = [];
+// Structure: { id, type: 'text'|'image'|'video', content, caption, scheduledTime, repeat, active, createdAt }
+// content: texte pour type 'text', URL/buffer pour 'image'/'video'
+
 let schedulerInterval = null;
 let ghostModeInterval = null; // Intervalle pour maintenir le mode ghost
 
@@ -607,6 +612,7 @@ function startScheduler(hani) {
     const now = Date.now();
     const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
     
+    // ═══════════ MESSAGES PROGRAMMÉS ═══════════
     for (const msg of scheduledMessages) {
       if (!msg.active) continue;
       
@@ -640,9 +646,67 @@ function startScheduler(hani) {
         }
       }
     }
+    
+    // ═══════════ STATUTS PROGRAMMÉS ═══════════
+    for (const status of scheduledStatus) {
+      if (!status.active) continue;
+      
+      if (now >= status.scheduledTime) {
+        try {
+          const statusJid = "status@broadcast";
+          
+          if (status.type === 'text') {
+            // Statut texte
+            await hani.sendMessage(statusJid, { 
+              text: status.content,
+              backgroundColor: status.backgroundColor || "#1e1e2e",
+              font: status.font || 0
+            }, { statusJidList: status.audience || [] });
+            
+          } else if (status.type === 'image') {
+            // Statut image
+            const imageBuffer = status.mediaBuffer || (await fetch(status.content).then(r => r.buffer()));
+            await hani.sendMessage(statusJid, {
+              image: imageBuffer,
+              caption: status.caption || ""
+            }, { statusJidList: status.audience || [] });
+            
+          } else if (status.type === 'video') {
+            // Statut vidéo
+            const videoBuffer = status.mediaBuffer || (await fetch(status.content).then(r => r.buffer()));
+            await hani.sendMessage(statusJid, {
+              video: videoBuffer,
+              caption: status.caption || ""
+            }, { statusJidList: status.audience || [] });
+          }
+          
+          console.log(`📸 [STATUS] Statut ${status.type} publié: "${(status.caption || status.content).slice(0, 30)}..."`);
+          
+          // Notifier l'owner
+          await hani.sendMessage(botNumber, { 
+            text: `📸 *Statut programmé publié!*\n\n📝 Type: ${status.type}\n💬 ${status.type === 'text' ? status.content.slice(0, 100) : status.caption || 'Sans légende'}\n🕐 ${new Date().toLocaleString("fr-FR")}`
+          });
+          
+          // Gérer la répétition
+          if (status.repeat === 'once') {
+            status.active = false;
+          } else if (status.repeat === 'daily') {
+            status.scheduledTime += 24 * 60 * 60 * 1000;
+          } else if (status.repeat === 'weekly') {
+            status.scheduledTime += 7 * 24 * 60 * 60 * 1000;
+          }
+        } catch (e) {
+          console.log(`[!] Erreur publication statut: ${e.message}`);
+          await hani.sendMessage(botNumber, { 
+            text: `❌ *Erreur statut programmé*\n\n${e.message}`
+          });
+        }
+      }
+    }
+    
   }, 30000); // Vérifier toutes les 30 secondes
   
-  console.log("📅 [SCHEDULER] Système de messages programmés démarré");
+  console.log("📅 [SCHEDULER] Système de messages/statuts programmés démarré");
 }
 
 // 📇 FONCTION pour détecter si c'est un LID (Linked ID) et pas un vrai numéro
@@ -762,7 +826,7 @@ const ownerOnlyCommands = [
   // Debug
   "test", "debug", "clearsession",
   // Surveillance (tes fonctionnalités privées)
-  "deleted", "delmsg", "deletedstatus", "delstatus", "statusdel",
+  "deleted", "delmsg", "deletedstatus", "delstatus",
   "vv", "viewonce", "getstatus", "spy", "track", "activity", "invisible",
   // Commandes espion séparées (basiques)
   "spyread", "quilit", "spyreply", "quirepond", "spypresence", "quiouvre", "quiecrit",
@@ -784,6 +848,15 @@ const ownerOnlyCommands = [
   "scheduledel", "schedulecancel", "supprimerprogramme",
   "scheduleclear", "clearschedule",
   "schedulepause", "pauseprogramme",
+  // Statuts programmés
+  "statusschedule", "schedulestatus", "programstatus", "statutprogramme",
+  "statusrepeat", "repeatstatus", "statutrecurrent",
+  "statuslist", "liststatus", "statutslist",
+  "statusdel", "supprimerstatus",
+  "statusclear", "clearstatus",
+  // Spotify
+  "spotify", "spotifydl", "spdl",
+  "spsearch", "spotifysearch", "searchspotify",
 ];
 
 // Liste des utilisateurs approuvés
@@ -1237,13 +1310,24 @@ function getMainMenu(prefix, userRole = "user") {
 ┃ ${prefix}schedulerepeat [n°] [h] [freq] [msg]
 ┃ ${prefix}schedulelist - Voir programmés
 ┃ ${prefix}scheduledel [id] - Supprimer
-┃ ${prefix}schedulepause [id] - Pause
-┃ ${prefix}scheduleclear - Tout supprimer
+┃
+┃ 📸 *STATUTS PROGRAMMÉS*
+┃ ${prefix}statusschedule [heure] [texte]
+┃ ${prefix}statusrepeat [h] [freq] [texte]
+┃ ${prefix}statuslist - Voir statuts prog.
+┃ ${prefix}statusdel [id] - Supprimer
+┃ 💡 _Réponds à image/vidéo pour statut média_
+┃
+┃ 🎵 *SPOTIFY*
+┃ ${prefix}spotify [titre] - Chercher musique
+┃ ${prefix}spotify [lien] - Télécharger
+┃ ${prefix}spsearch [titre] - Recherche
 ┃
 ┃ ⚙️ *SYSTÈME*
 ┃ ${prefix}broadcast [msg]
 ┃ ${prefix}restart - Redémarrer
 ┃ ${prefix}invisible off/on - Visibilité
+┃ ${prefix}ghost on/off - Mode fantôme
 ┃ ${prefix}protection - État protections
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
@@ -2440,6 +2524,378 @@ async function handleCommand(hani, msg, db) {
       msg.active = !msg.active;
       
       return send(`${msg.active ? "▶️ *Message réactivé*" : "⏸️ *Message mis en pause*"}\n\n🆔 ID: ${msg.id}\n👤 À: ${msg.targetName}`);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 📸 STATUTS PROGRAMMÉS (Stories WhatsApp)
+    // ═══════════════════════════════════════════════════════════
+    
+    case "statusschedule":
+    case "schedulestatus":
+    case "programstatus":
+    case "statutprogramme": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      // Format: .statusschedule 14:30 [texte du statut]
+      // Ou répondre à une image/vidéo avec: .statusschedule 14:30 [légende]
+      const parts = args?.split(" ") || [];
+      
+      if (parts.length < 1) {
+        return send(`📸 *PROGRAMMER UN STATUT*\n\n📋 *Usage:*\n\n*Statut texte:*\n\`.statusschedule [heure] [texte]\`\nEx: \`.statusschedule 14:30 Bonne journée à tous!\`\n\n*Statut image/vidéo:*\nRéponds à une image ou vidéo avec:\n\`.statusschedule [heure] [légende]\`\nEx: \`.statusschedule 20:00 Mon nouveau look\`\n\n⏰ *Formats:* 14:30, 14h30, 8:00\n\n💡 *Autres commandes:*\n• \`.statuslist\` → Voir statuts programmés\n• \`.statusdel [id]\` → Supprimer\n• \`.statusrepeat\` → Statut récurrent`);
+      }
+      
+      let timeStr = parts[0];
+      let content = parts.slice(1).join(" ");
+      
+      // Normaliser le format de l'heure
+      timeStr = timeStr.toLowerCase().replace(/h/g, ':').replace(/\s/g, '');
+      if (/^\d{3,4}$/.test(timeStr)) {
+        const padded = timeStr.padStart(4, '0');
+        timeStr = padded.slice(0, 2) + ':' + padded.slice(2);
+      }
+      if (/^\d:\d{2}$/.test(timeStr)) timeStr = '0' + timeStr;
+      if (/^\d{1,2}$/.test(timeStr)) timeStr = timeStr.padStart(2, '0') + ':00';
+      
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) {
+        return send(`❌ Format d'heure non reconnu: "${parts[0]}"\n\n⏰ Formats: 14:30, 14h30, 8:00`);
+      }
+      
+      const hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        return send(`❌ Heure invalide. Doit être entre 00:00 et 23:59`);
+      }
+      
+      // Calculer l'heure d'envoi
+      const now = new Date();
+      let scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+      if (scheduledDate.getTime() < now.getTime()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+      
+      // Vérifier si c'est une réponse à un média
+      const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+      let statusType = 'text';
+      let mediaBuffer = null;
+      let caption = content;
+      
+      if (quotedMsg?.imageMessage) {
+        statusType = 'image';
+        try {
+          mediaBuffer = await downloadMediaMessage({ message: quotedMsg }, 'buffer');
+          console.log("📸 [STATUS] Image téléchargée pour statut programmé");
+        } catch (e) {
+          return send(`❌ Erreur téléchargement image: ${e.message}`);
+        }
+      } else if (quotedMsg?.videoMessage) {
+        statusType = 'video';
+        try {
+          mediaBuffer = await downloadMediaMessage({ message: quotedMsg }, 'buffer');
+          console.log("🎥 [STATUS] Vidéo téléchargée pour statut programmé");
+        } catch (e) {
+          return send(`❌ Erreur téléchargement vidéo: ${e.message}`);
+        }
+      } else if (!content) {
+        return send(`❌ Tu dois fournir un texte ou répondre à une image/vidéo.\n\n📝 Ex: \`.statusschedule 14:30 Mon message\``);
+      }
+      
+      // Créer le statut programmé
+      const statusEntry = {
+        id: Date.now(),
+        type: statusType,
+        content: statusType === 'text' ? content : null,
+        mediaBuffer: mediaBuffer,
+        caption: caption || "",
+        scheduledTime: scheduledDate.getTime(),
+        repeat: 'once',
+        active: true,
+        createdAt: Date.now(),
+        backgroundColor: "#128C7E", // Vert WhatsApp
+        font: 0
+      };
+      
+      scheduledStatus.push(statusEntry);
+      startScheduler(hani);
+      
+      const typeEmoji = statusType === 'text' ? '📝' : statusType === 'image' ? '🖼️' : '🎥';
+      const isToday = scheduledDate.getDate() === now.getDate();
+      
+      return send(`📸 *Statut programmé!*\n\n${typeEmoji} *Type:* ${statusType}\n💬 *Contenu:* "${(content || caption || '[Média]').slice(0, 80)}"\n⏰ *Publication:* ${scheduledDate.toLocaleString("fr-FR")}\n📆 ${isToday ? "Aujourd'hui" : "Demain"}\n\n🆔 ID: ${statusEntry.id}\n\n💡 \`.statuslist\` pour voir tous les statuts`);
+    }
+
+    case "statusrepeat":
+    case "repeatstatus":
+    case "statutrecurrent": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      // Format: .statusrepeat 08:00 daily Bonjour tout le monde!
+      const parts = args?.split(" ") || [];
+      
+      if (parts.length < 3) {
+        return send(`📸 *STATUT RÉCURRENT*\n\n📋 *Usage:*\n\`.statusrepeat [heure] [fréquence] [texte]\`\n\n📝 *Fréquences:*\n• \`daily\` → Tous les jours\n• \`weekly\` → Chaque semaine\n\n📝 *Exemple:*\n\`.statusrepeat 08:00 daily Bonjour! 🌞\`\n\n_Publie un statut tous les jours à 8h_`);
+      }
+      
+      let timeStr = parts[0];
+      const repeat = parts[1].toLowerCase();
+      const content = parts.slice(2).join(" ");
+      
+      if (!['daily', 'weekly'].includes(repeat)) {
+        return send(`❌ Fréquence invalide.\n\nUtilise: daily ou weekly`);
+      }
+      
+      // Normaliser l'heure
+      timeStr = timeStr.toLowerCase().replace(/h/g, ':').replace(/\s/g, '');
+      if (/^\d{3,4}$/.test(timeStr)) {
+        const padded = timeStr.padStart(4, '0');
+        timeStr = padded.slice(0, 2) + ':' + padded.slice(2);
+      }
+      if (/^\d:\d{2}$/.test(timeStr)) timeStr = '0' + timeStr;
+      if (/^\d{1,2}$/.test(timeStr)) timeStr = timeStr.padStart(2, '0') + ':00';
+      
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) {
+        return send(`❌ Format d'heure invalide: "${parts[0]}"`);
+      }
+      
+      const hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+      
+      const now = new Date();
+      let scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+      if (scheduledDate.getTime() < now.getTime()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+      
+      const statusEntry = {
+        id: Date.now(),
+        type: 'text',
+        content: content,
+        mediaBuffer: null,
+        caption: "",
+        scheduledTime: scheduledDate.getTime(),
+        repeat: repeat,
+        active: true,
+        createdAt: Date.now(),
+        backgroundColor: "#128C7E",
+        font: 0
+      };
+      
+      scheduledStatus.push(statusEntry);
+      startScheduler(hani);
+      
+      const freqLabels = { daily: "Tous les jours", weekly: "Chaque semaine" };
+      
+      return send(`📸 *Statut récurrent programmé!*\n\n📝 *Texte:* "${content.slice(0, 80)}"\n⏰ *Heure:* ${parts[0]}\n🔄 *Fréquence:* ${freqLabels[repeat]}\n📆 *Prochain:* ${scheduledDate.toLocaleString("fr-FR")}\n\n🆔 ID: ${statusEntry.id}`);
+    }
+
+    case "statuslist":
+    case "liststatus":
+    case "statutslist": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      if (scheduledStatus.length === 0) {
+        return send(`📸 *Aucun statut programmé*\n\n💡 Utilise \`.statusschedule [heure] [texte]\` pour en créer`);
+      }
+      
+      let list = `📸 *STATUTS PROGRAMMÉS (${scheduledStatus.length})*\n\n`;
+      
+      for (const status of scheduledStatus) {
+        const nextSend = new Date(status.scheduledTime).toLocaleString("fr-FR");
+        const typeEmoji = status.type === 'text' ? '📝' : status.type === 'image' ? '🖼️' : '🎥';
+        const statusIcon = status.active ? "✅" : "⏸️";
+        const repeatIcon = status.repeat === 'once' ? "1️⃣" : "🔄";
+        
+        list += `${statusIcon} *#${status.id}*\n`;
+        list += `${typeEmoji} ${status.type} ${repeatIcon}\n`;
+        list += `💬 "${(status.content || status.caption || '[Média]').slice(0, 40)}..."\n`;
+        list += `⏰ ${nextSend}\n\n`;
+      }
+      
+      list += `💡 \`.statusdel [id]\` pour supprimer`;
+      return send(list);
+    }
+
+    case "statusdel":
+    case "delstatus":
+    case "supprimerstatus": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const statusId = parseInt(args);
+      
+      if (!statusId) {
+        return send(`❌ *Usage:* \`.statusdel [id]\`\n\n💡 Utilise \`.statuslist\` pour voir les IDs`);
+      }
+      
+      const index = scheduledStatus.findIndex(s => s.id === statusId);
+      
+      if (index === -1) {
+        return send(`❌ Statut programmé #${statusId} non trouvé.`);
+      }
+      
+      const deleted = scheduledStatus[index];
+      scheduledStatus.splice(index, 1);
+      
+      return send(`🗑️ *Statut programmé supprimé*\n\n🆔 ID: ${deleted.id}\n📝 "${(deleted.content || deleted.caption || '[Média]').slice(0, 50)}..."`);
+    }
+
+    case "statusclear":
+    case "clearstatus": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const count = scheduledStatus.length;
+      scheduledStatus.length = 0;
+      
+      return send(`🗑️ *Tous les statuts programmés supprimés*\n\n📊 ${count} statut(s) effacé(s)`);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🎵 SPOTIFY - Recherche et téléchargement
+    // ═══════════════════════════════════════════════════════════
+
+    case "spotify":
+    case "spotifydl":
+    case "spdl": {
+      if (!args) {
+        return send(`🎵 *SPOTIFY*\n\n📋 *Usage:*\n• \`.spotify [titre]\` → Chercher une musique\n• \`.spotify [lien spotify]\` → Télécharger\n\n📝 *Exemples:*\n• \`.spotify Rema Calm Down\`\n• \`.spotify https://open.spotify.com/track/...\`\n\n💡 *Autres commandes:*\n• \`.spsearch [titre]\` → Recherche détaillée\n• \`.spalbum [lien]\` → Info album`);
+      }
+      
+      await send("🎵 *Recherche en cours...*");
+      
+      try {
+        // Vérifier si c'est un lien Spotify
+        const isSpotifyLink = args.includes("spotify.com") || args.includes("spotify:");
+        
+        if (isSpotifyLink) {
+          // Télécharger via API
+          const apiUrl = `https://api.agatz.xyz/api/spotifydl?url=${encodeURIComponent(args)}`;
+          
+          try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (data.status === 200 && data.data) {
+              const track = data.data;
+              
+              // Envoyer les infos
+              await send(`🎵 *${track.title || 'Titre inconnu'}*\n👤 ${track.artist || 'Artiste inconnu'}\n💿 ${track.album || ''}\n⏱️ ${track.duration || ''}`);
+              
+              // Télécharger et envoyer l'audio
+              if (track.download || track.url) {
+                const audioUrl = track.download || track.url;
+                const audioResponse = await fetch(audioUrl);
+                const audioBuffer = await audioResponse.buffer();
+                
+                await hani.sendMessage(from, {
+                  audio: audioBuffer,
+                  mimetype: "audio/mpeg",
+                  fileName: `${track.title || 'spotify'}.mp3`
+                }, { quoted: msg });
+                
+                return;
+              }
+            }
+          } catch (e) {
+            console.log("Erreur API Spotify 1:", e.message);
+          }
+          
+          // API alternative
+          try {
+            const altApiUrl = `https://api.nyxs.pw/dl/spotify?url=${encodeURIComponent(args)}`;
+            const response = await fetch(altApiUrl);
+            const data = await response.json();
+            
+            if (data.result) {
+              await send(`🎵 *${data.result.title || 'Musique'}*\n👤 ${data.result.artist || ''}`);
+              
+              if (data.result.url) {
+                const audioResponse = await fetch(data.result.url);
+                const audioBuffer = await audioResponse.buffer();
+                
+                await hani.sendMessage(from, {
+                  audio: audioBuffer,
+                  mimetype: "audio/mpeg"
+                }, { quoted: msg });
+                
+                return;
+              }
+            }
+          } catch (e) {
+            console.log("Erreur API Spotify 2:", e.message);
+          }
+          
+          return send(`❌ Impossible de télécharger cette musique.\n\n💡 Essaie avec le titre: \`.spotify ${args.split('/').pop()}\``);
+          
+        } else {
+          // Recherche par titre
+          const searchUrl = `https://api.agatz.xyz/api/spotifysearch?query=${encodeURIComponent(args)}`;
+          
+          try {
+            const response = await fetch(searchUrl);
+            const data = await response.json();
+            
+            if (data.status === 200 && data.data && data.data.length > 0) {
+              let results = `🎵 *Résultats Spotify pour "${args}"*\n\n`;
+              
+              const tracks = data.data.slice(0, 5);
+              for (let i = 0; i < tracks.length; i++) {
+                const t = tracks[i];
+                results += `${i + 1}. *${t.title || t.name}*\n`;
+                results += `   👤 ${t.artist || t.artists?.join(', ') || ''}\n`;
+                results += `   🔗 ${t.url || t.link || ''}\n\n`;
+              }
+              
+              results += `💡 Copie le lien et fais \`.spotify [lien]\` pour télécharger`;
+              return send(results);
+            }
+          } catch (e) {
+            console.log("Erreur recherche Spotify:", e.message);
+          }
+          
+          // Recherche alternative via YouTube
+          return send(`🔍 *Aucun résultat Spotify*\n\n💡 Essaie:\n• \`.play ${args}\` pour chercher sur YouTube\n• \`.yts ${args}\` pour une recherche YouTube`);
+        }
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "spsearch":
+    case "spotifysearch":
+    case "searchspotify": {
+      if (!args) {
+        return send(`🔍 *RECHERCHE SPOTIFY*\n\n📋 *Usage:*\n\`.spsearch [titre ou artiste]\`\n\n📝 *Exemple:*\n\`.spsearch Burna Boy\``);
+      }
+      
+      await send("🔍 *Recherche Spotify...*");
+      
+      try {
+        const searchUrl = `https://api.agatz.xyz/api/spotifysearch?query=${encodeURIComponent(args)}`;
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        
+        if (data.status === 200 && data.data && data.data.length > 0) {
+          let results = `🎵 *Spotify: "${args}"*\n\n`;
+          
+          const tracks = data.data.slice(0, 8);
+          for (let i = 0; i < tracks.length; i++) {
+            const t = tracks[i];
+            results += `${i + 1}. *${t.title || t.name}*\n`;
+            results += `   👤 ${t.artist || ''}\n`;
+            if (t.duration) results += `   ⏱️ ${t.duration}\n`;
+            results += `   🔗 \`${t.url || ''}\`\n\n`;
+          }
+          
+          return send(results);
+        }
+        
+        return send(`❌ Aucun résultat pour "${args}"`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
     }
 
     case "whoami": {
