@@ -854,9 +854,10 @@ const ownerOnlyCommands = [
   "statuslist", "liststatus", "statutslist",
   "statusdel", "supprimerstatus",
   "statusclear", "clearstatus",
-  // Spotify
-  "spotify", "spotifydl", "spdl",
+  // Spotify / Musique
+  "spotify", "spotifydl", "spdl", "sp",
   "spsearch", "spotifysearch", "searchspotify",
+  "song", "music", "chanson",
 ];
 
 // Liste des utilisateurs approuvés
@@ -2751,114 +2752,180 @@ async function handleCommand(hani, msg, db) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🎵 SPOTIFY - Recherche et téléchargement
+    // 🎵 SPOTIFY - Recherche et téléchargement (Multi-API)
     // ═══════════════════════════════════════════════════════════
 
     case "spotify":
     case "spotifydl":
-    case "spdl": {
+    case "spdl":
+    case "sp": {
       if (!args) {
-        return send(`🎵 *SPOTIFY*\n\n📋 *Usage:*\n• \`.spotify [titre]\` → Chercher une musique\n• \`.spotify [lien spotify]\` → Télécharger\n\n📝 *Exemples:*\n• \`.spotify Rema Calm Down\`\n• \`.spotify https://open.spotify.com/track/...\`\n\n💡 *Autres commandes:*\n• \`.spsearch [titre]\` → Recherche détaillée\n• \`.spalbum [lien]\` → Info album`);
+        return send(`🎵 *SPOTIFY*\n\n📋 *Usage:*\n• \`.spotify [titre]\` → Télécharger directement\n• \`.spotify [lien spotify]\` → Télécharger depuis lien\n\n📝 *Exemples:*\n• \`.spotify Rema Calm Down\`\n• \`.spotify Burna Boy City Boys\`\n• \`.spotify https://open.spotify.com/track/...\`\n\n💡 La musique sera téléchargée et envoyée en MP3!`);
       }
       
-      await send("🎵 *Recherche en cours...*");
+      await send("🎵 *Recherche et téléchargement en cours...*\n⏳ _Cela peut prendre quelques secondes..._");
       
       try {
-        // Vérifier si c'est un lien Spotify
         const isSpotifyLink = args.includes("spotify.com") || args.includes("spotify:");
+        let trackTitle = args;
+        let trackArtist = "";
+        let audioBuffer = null;
+        let success = false;
         
-        if (isSpotifyLink) {
-          // Télécharger via API
-          const apiUrl = `https://api.agatz.xyz/api/spotifydl?url=${encodeURIComponent(args)}`;
-          
+        // ═══════ API 1: Vreden Spotify ═══════
+        if (!success) {
           try {
-            const response = await fetch(apiUrl);
+            const searchQuery = isSpotifyLink ? args : encodeURIComponent(args);
+            const apiUrl = isSpotifyLink 
+              ? `https://api.vrfrnd.xyz/api/spotify?url=${searchQuery}`
+              : `https://api.vrfrnd.xyz/api/spotify?query=${searchQuery}`;
+            
+            const response = await fetch(apiUrl, { timeout: 15000 });
+            const data = await response.json();
+            
+            if (data.status && data.data) {
+              trackTitle = data.data.title || data.data.name || args;
+              trackArtist = data.data.artist || data.data.artists || "";
+              
+              if (data.data.download || data.data.audio) {
+                const audioUrl = data.data.download || data.data.audio;
+                const audioResp = await fetch(audioUrl);
+                audioBuffer = await audioResp.buffer();
+                success = true;
+                console.log("🎵 [SPOTIFY] API 1 (Vreden) - Succès");
+              }
+            }
+          } catch (e) {
+            console.log("🎵 [SPOTIFY] API 1 échouée:", e.message);
+          }
+        }
+        
+        // ═══════ API 2: Agatz Spotify ═══════
+        if (!success) {
+          try {
+            const apiUrl = isSpotifyLink 
+              ? `https://api.agatz.xyz/api/spotifydl?url=${encodeURIComponent(args)}`
+              : `https://api.agatz.xyz/api/spotifydl?query=${encodeURIComponent(args)}`;
+            
+            const response = await fetch(apiUrl, { timeout: 15000 });
             const data = await response.json();
             
             if (data.status === 200 && data.data) {
-              const track = data.data;
+              trackTitle = data.data.title || args;
+              trackArtist = data.data.artist || "";
               
-              // Envoyer les infos
-              await send(`🎵 *${track.title || 'Titre inconnu'}*\n👤 ${track.artist || 'Artiste inconnu'}\n💿 ${track.album || ''}\n⏱️ ${track.duration || ''}`);
-              
-              // Télécharger et envoyer l'audio
-              if (track.download || track.url) {
-                const audioUrl = track.download || track.url;
-                const audioResponse = await fetch(audioUrl);
-                const audioBuffer = await audioResponse.buffer();
-                
-                await hani.sendMessage(from, {
-                  audio: audioBuffer,
-                  mimetype: "audio/mpeg",
-                  fileName: `${track.title || 'spotify'}.mp3`
-                }, { quoted: msg });
-                
-                return;
+              if (data.data.download || data.data.url) {
+                const audioUrl = data.data.download || data.data.url;
+                const audioResp = await fetch(audioUrl);
+                audioBuffer = await audioResp.buffer();
+                success = true;
+                console.log("🎵 [SPOTIFY] API 2 (Agatz) - Succès");
               }
             }
           } catch (e) {
-            console.log("Erreur API Spotify 1:", e.message);
+            console.log("🎵 [SPOTIFY] API 2 échouée:", e.message);
           }
-          
-          // API alternative
+        }
+        
+        // ═══════ API 3: Neoxr Spotify ═══════
+        if (!success) {
           try {
-            const altApiUrl = `https://api.nyxs.pw/dl/spotify?url=${encodeURIComponent(args)}`;
-            const response = await fetch(altApiUrl);
+            const apiUrl = `https://api.neoxr.eu/api/spotify?url=${encodeURIComponent(args)}&apikey=free`;
+            const response = await fetch(apiUrl, { timeout: 15000 });
+            const data = await response.json();
+            
+            if (data.status && data.data) {
+              trackTitle = data.data.title || args;
+              trackArtist = data.data.artists || "";
+              
+              if (data.data.url) {
+                const audioResp = await fetch(data.data.url);
+                audioBuffer = await audioResp.buffer();
+                success = true;
+                console.log("🎵 [SPOTIFY] API 3 (Neoxr) - Succès");
+              }
+            }
+          } catch (e) {
+            console.log("🎵 [SPOTIFY] API 3 échouée:", e.message);
+          }
+        }
+        
+        // ═══════ API 4: Nyxs Spotify ═══════
+        if (!success) {
+          try {
+            const apiUrl = `https://api.nyxs.pw/dl/spotify?url=${encodeURIComponent(args)}`;
+            const response = await fetch(apiUrl, { timeout: 15000 });
             const data = await response.json();
             
             if (data.result) {
-              await send(`🎵 *${data.result.title || 'Musique'}*\n👤 ${data.result.artist || ''}`);
+              trackTitle = data.result.title || args;
+              trackArtist = data.result.artist || "";
               
               if (data.result.url) {
-                const audioResponse = await fetch(data.result.url);
-                const audioBuffer = await audioResponse.buffer();
-                
-                await hani.sendMessage(from, {
-                  audio: audioBuffer,
-                  mimetype: "audio/mpeg"
-                }, { quoted: msg });
-                
-                return;
+                const audioResp = await fetch(data.result.url);
+                audioBuffer = await audioResp.buffer();
+                success = true;
+                console.log("🎵 [SPOTIFY] API 4 (Nyxs) - Succès");
               }
             }
           } catch (e) {
-            console.log("Erreur API Spotify 2:", e.message);
+            console.log("🎵 [SPOTIFY] API 4 échouée:", e.message);
           }
-          
-          return send(`❌ Impossible de télécharger cette musique.\n\n💡 Essaie avec le titre: \`.spotify ${args.split('/').pop()}\``);
-          
-        } else {
-          // Recherche par titre
-          const searchUrl = `https://api.agatz.xyz/api/spotifysearch?query=${encodeURIComponent(args)}`;
-          
-          try {
-            const response = await fetch(searchUrl);
-            const data = await response.json();
-            
-            if (data.status === 200 && data.data && data.data.length > 0) {
-              let results = `🎵 *Résultats Spotify pour "${args}"*\n\n`;
-              
-              const tracks = data.data.slice(0, 5);
-              for (let i = 0; i < tracks.length; i++) {
-                const t = tracks[i];
-                results += `${i + 1}. *${t.title || t.name}*\n`;
-                results += `   👤 ${t.artist || t.artists?.join(', ') || ''}\n`;
-                results += `   🔗 ${t.url || t.link || ''}\n\n`;
-              }
-              
-              results += `💡 Copie le lien et fais \`.spotify [lien]\` pour télécharger`;
-              return send(results);
-            }
-          } catch (e) {
-            console.log("Erreur recherche Spotify:", e.message);
-          }
-          
-          // Recherche alternative via YouTube
-          return send(`🔍 *Aucun résultat Spotify*\n\n💡 Essaie:\n• \`.play ${args}\` pour chercher sur YouTube\n• \`.yts ${args}\` pour une recherche YouTube`);
         }
         
+        // ═══════ FALLBACK: YouTube Search + Download ═══════
+        if (!success && !isSpotifyLink) {
+          try {
+            await send("🔄 *Recherche via YouTube...*");
+            
+            // Recherche YouTube
+            const ytSearchUrl = `https://api.agatz.xyz/api/ytsearch?query=${encodeURIComponent(args)}`;
+            const searchResp = await fetch(ytSearchUrl, { timeout: 10000 });
+            const searchData = await searchResp.json();
+            
+            if (searchData.status === 200 && searchData.data && searchData.data.length > 0) {
+              const firstResult = searchData.data[0];
+              trackTitle = firstResult.title || args;
+              
+              // Télécharger depuis YouTube
+              const ytDlUrl = `https://api.agatz.xyz/api/ytdl?url=${encodeURIComponent(firstResult.url)}&type=audio`;
+              const dlResp = await fetch(ytDlUrl, { timeout: 30000 });
+              const dlData = await dlResp.json();
+              
+              if (dlData.status === 200 && dlData.data && dlData.data.url) {
+                const audioResp = await fetch(dlData.data.url);
+                audioBuffer = await audioResp.buffer();
+                success = true;
+                console.log("🎵 [SPOTIFY] Fallback YouTube - Succès");
+              }
+            }
+          } catch (e) {
+            console.log("🎵 [SPOTIFY] Fallback YouTube échoué:", e.message);
+          }
+        }
+        
+        // ═══════ ENVOYER L'AUDIO ═══════
+        if (success && audioBuffer) {
+          // Envoyer les infos
+          const infoMsg = `🎵 *${trackTitle}*${trackArtist ? `\n👤 ${trackArtist}` : ''}`;
+          await send(infoMsg);
+          
+          // Envoyer l'audio
+          await hani.sendMessage(from, {
+            audio: audioBuffer,
+            mimetype: "audio/mpeg",
+            fileName: `${trackTitle.replace(/[^a-zA-Z0-9 ]/g, '')}.mp3`
+          }, { quoted: msg });
+          
+          return;
+        }
+        
+        // Si rien n'a fonctionné
+        return send(`❌ *Impossible de télécharger cette musique*\n\n💡 *Essaie:*\n• Vérifie le titre/lien\n• \`.play ${args}\` (via YouTube)\n• \`.song ${args}\` (alternative)`);
+        
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        console.log("🎵 [SPOTIFY] Erreur globale:", e.message);
+        return send(`❌ Erreur: ${e.message}\n\n💡 Essaie \`.play ${args}\` en alternative`);
       }
     }
 
@@ -2866,36 +2933,87 @@ async function handleCommand(hani, msg, db) {
     case "spotifysearch":
     case "searchspotify": {
       if (!args) {
-        return send(`🔍 *RECHERCHE SPOTIFY*\n\n📋 *Usage:*\n\`.spsearch [titre ou artiste]\`\n\n📝 *Exemple:*\n\`.spsearch Burna Boy\``);
+        return send(`🔍 *RECHERCHE SPOTIFY*\n\n📋 *Usage:*\n\`.spsearch [titre ou artiste]\`\n\n📝 *Exemple:*\n\`.spsearch Burna Boy\`\n\`.spsearch Rema\``);
       }
       
-      await send("🔍 *Recherche Spotify...*");
+      await send("🔍 *Recherche Spotify en cours...*");
       
       try {
-        const searchUrl = `https://api.agatz.xyz/api/spotifysearch?query=${encodeURIComponent(args)}`;
-        const response = await fetch(searchUrl);
-        const data = await response.json();
+        let results = "";
+        let found = false;
         
-        if (data.status === 200 && data.data && data.data.length > 0) {
-          let results = `🎵 *Spotify: "${args}"*\n\n`;
+        // API 1: Agatz
+        try {
+          const searchUrl = `https://api.agatz.xyz/api/spotifysearch?query=${encodeURIComponent(args)}`;
+          const response = await fetch(searchUrl, { timeout: 10000 });
+          const data = await response.json();
           
-          const tracks = data.data.slice(0, 8);
-          for (let i = 0; i < tracks.length; i++) {
-            const t = tracks[i];
-            results += `${i + 1}. *${t.title || t.name}*\n`;
-            results += `   👤 ${t.artist || ''}\n`;
-            if (t.duration) results += `   ⏱️ ${t.duration}\n`;
-            results += `   🔗 \`${t.url || ''}\`\n\n`;
+          if (data.status === 200 && data.data && data.data.length > 0) {
+            results = `🎵 *Résultats Spotify: "${args}"*\n\n`;
+            
+            const tracks = data.data.slice(0, 6);
+            for (let i = 0; i < tracks.length; i++) {
+              const t = tracks[i];
+              results += `${i + 1}. *${t.title || t.name || 'Sans titre'}*\n`;
+              results += `   👤 ${t.artist || t.artists || 'Inconnu'}\n`;
+              if (t.duration) results += `   ⏱️ ${t.duration}\n`;
+              results += `\n`;
+            }
+            
+            results += `💡 *Pour télécharger:*\n\`.spotify [titre exact]\``;
+            found = true;
           }
-          
+        } catch (e) {
+          console.log("Recherche API 1 échouée:", e.message);
+        }
+        
+        // Fallback: YouTube Search
+        if (!found) {
+          try {
+            const ytSearchUrl = `https://api.agatz.xyz/api/ytsearch?query=${encodeURIComponent(args + " official audio")}`;
+            const response = await fetch(ytSearchUrl, { timeout: 10000 });
+            const data = await response.json();
+            
+            if (data.status === 200 && data.data && data.data.length > 0) {
+              results = `🎵 *Résultats pour "${args}"*\n_(via YouTube)_\n\n`;
+              
+              const tracks = data.data.slice(0, 5);
+              for (let i = 0; i < tracks.length; i++) {
+                const t = tracks[i];
+                results += `${i + 1}. *${t.title}*\n`;
+                if (t.duration) results += `   ⏱️ ${t.duration}\n`;
+                results += `\n`;
+              }
+              
+              results += `💡 *Pour télécharger:*\n\`.spotify [titre]\` ou \`.play [titre]\``;
+              found = true;
+            }
+          } catch (e) {
+            console.log("Recherche YouTube échouée:", e.message);
+          }
+        }
+        
+        if (found) {
           return send(results);
         }
         
-        return send(`❌ Aucun résultat pour "${args}"`);
+        return send(`❌ Aucun résultat pour "${args}"\n\n💡 Essaie avec d'autres mots-clés`);
         
       } catch (e) {
         return send(`❌ Erreur: ${e.message}`);
       }
+    }
+
+    case "song":
+    case "music":
+    case "chanson": {
+      // Alias pour spotify
+      if (!args) {
+        return send(`🎵 *MUSIQUE*\n\n📋 *Usage:*\n\`.song [titre]\`\n\n📝 *Exemple:*\n\`.song Rema Calm Down\``);
+      }
+      
+      // Rediriger vers la commande spotify
+      return handleCommand("spotify", args, msg, from, sender, isOwner, isSudo, hani);
     }
 
     case "whoami": {
