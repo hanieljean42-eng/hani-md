@@ -544,7 +544,7 @@ const spyConfig = {
   alertBioChange: true,     // Alerter si bio change
   alertNameChange: true,    // Alerter si nom change
   trackCalls: true,         // Historique des appels
-  trackGroups: true,        // Surveillance des groupes
+  trackGroups: false,       // Surveillance des groupes (DÉSACTIVÉ)
   ghostMode: false,         // Mode fantôme (invisible total)
   ghostModeAdvanced: {
     hideOnline: true,       // Ne pas montrer "en ligne"
@@ -6972,8 +6972,7 @@ _Ce message a été envoyé automatiquement._`;
         spyData.groupActivity.unshift(activity);
         if (spyData.groupActivity.length > 200) spyData.groupActivity.pop();
         
-        // Notification pour l'owner
-        const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+        // Log uniquement (pas de notification dans Moi-même)
         let emoji, actionText;
         switch (action) {
           case 'add': emoji = '➕'; actionText = 'a rejoint'; break;
@@ -6982,9 +6981,6 @@ _Ce message a été envoyé automatiquement._`;
           case 'demote': emoji = '👤'; actionText = 'rétrogradé'; break;
           default: emoji = '📋'; actionText = action;
         }
-        
-        const notif = `${emoji} *Activité Groupe*\n\n👥 *${groupName}*\n👤 ${participantName}\n🔄 ${actionText}\n🕐 ${new Date().toLocaleString("fr-FR")}`;
-        await hani.sendMessage(botNumber, { text: notif });
         
         console.log(`👥 [GROUP SPY] ${participantName} ${actionText} dans ${groupName}`);
       }
