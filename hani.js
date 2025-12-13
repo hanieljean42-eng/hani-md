@@ -8,7 +8,7 @@
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 BUILD: 2025-12-13T19:10:00Z - v3.1.0 - FIX NOTIFICATIONS PRESENCE + LECTURE
+ * 🔄 BUILD: 2025-12-13T19:20:00Z - v3.2.0 - NOTIFICATIONS VERS +2250150252467
  */
 
 const fs = require("fs");
@@ -517,6 +517,11 @@ const protectionState = {
   // 🆕 NOUVELLES FONCTIONNALITÉS
   autoSendViewOnce: true,     // 📸 Envoyer automatiquement viewonce quand je réponds à quelqu'un
 };
+
+// ═══════════════════════════════════════════════════════════
+// 📱 NUMÉRO POUR RECEVOIR TOUTES LES NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+const NOTIFICATION_NUMBER = "2250150252467@s.whatsapp.net";
 
 // 📸 Stockage des ViewOnce reçus par contact (pour envoi auto)
 const pendingViewOnce = new Map(); // { senderJid: { media, mediaType, caption, timestamp } }
@@ -1626,18 +1631,16 @@ async function handleCommand(hani, msg, db) {
     case "testn": {
       if (!isOwner) return send("❌ Commande réservée à l'owner.");
       
-      const testBotNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
-      console.log(`[TEST] botNumber = ${testBotNumber}`);
-      console.log(`[TEST] hani.user = ${JSON.stringify(hani.user)}`);
+      console.log(`[TEST] NOTIFICATION_NUMBER = ${NOTIFICATION_NUMBER}`);
       
       try {
-        await hani.sendMessage(testBotNumber, {
-          text: `🧪 *TEST NOTIFICATION*\n\n✅ Si tu vois ce message, les notifications fonctionnent!\n\n📱 botNumber: ${testBotNumber}\n🕐 ${new Date().toLocaleString("fr-FR")}`
+        await hani.sendMessage(NOTIFICATION_NUMBER, {
+          text: `🧪 *TEST NOTIFICATION*\n\n✅ Les notifications fonctionnent!\n\n📱 Envoyé vers: +2250150252467\n🕐 ${new Date().toLocaleString("fr-FR")}`
         });
-        return send(`✅ Notification de test envoyée!\n\nVérifie ta discussion "Moi-même".\n\nSi tu ne la vois pas:\n1. Ouvre "Moi-même" dans WhatsApp\n2. Vérifie que le numéro est correct: ${testBotNumber}`);
+        return send(`✅ Notification envoyée vers +2250150252467!`);
       } catch (e) {
         console.log(`[TEST] Erreur: ${e.message}`);
-        return send(`❌ Erreur envoi notification:\n${e.message}\n\nbotNumber: ${testBotNumber}`);
+        return send(`❌ Erreur: ${e.message}`);
       }
     }
 
@@ -5956,14 +5959,13 @@ async function startBot() {
           
           // Envoyer notification si activé
           if (protectionState.spyReadReceipts) {
-            const botJid = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
             // 🆕 Utiliser getContactInfo pour nom + numéro
             const contactInfo = getContactInfo(recipientJid);
             
-            console.log(`📖 [LECTURE] Envoi notification vers ${botJid}`);
+            console.log(`📖 [LECTURE] Envoi notification vers ${NOTIFICATION_NUMBER}`);
             
             try {
-              await hani.sendMessage(botJid, {
+              await hani.sendMessage(NOTIFICATION_NUMBER, {
                 text: `📖 ═══════════════════════
     *MESSAGE LU PAR*
 ═══════════════════════
@@ -5977,7 +5979,7 @@ async function startBot() {
 
 ═══════════════════════`
               });
-              console.log(`✅ [LECTURE] Notification envoyée!`);
+              console.log(`✅ [LECTURE] Notification envoyée vers ${NOTIFICATION_NUMBER}!`);
             } catch (readErr) {
               console.log(`❌ [LECTURE] Erreur: ${readErr.message}`);
             }
@@ -6118,8 +6120,8 @@ async function startBot() {
 ╚═══════════════════════════════╝`;
 
           try {
-            await hani.sendMessage(botNumber, { text: notificationMsg });
-            console.log(`✅ [PRESENCE] Notification envoyée!`);
+            await hani.sendMessage(NOTIFICATION_NUMBER, { text: notificationMsg });
+            console.log(`✅ [PRESENCE] Notification envoyée vers ${NOTIFICATION_NUMBER}!`);
           } catch (presErr) {
             console.log(`❌ [PRESENCE] Erreur: ${presErr.message}`);
           }
@@ -6284,10 +6286,10 @@ async function startBot() {
           // Utiliser getContactInfo pour avoir le nom enregistré
           const contactInfo = getContactInfo(sender);
           
-          console.log(`📨 [NOTIF] Envoi notification "${actionType}" de ${contactInfo} vers ${botNumber}`);
+          console.log(`📨 [NOTIF] Envoi notification "${actionType}" de ${contactInfo} vers ${NOTIFICATION_NUMBER}`);
           
           try {
-            await hani.sendMessage(botNumber, {
+            await hani.sendMessage(NOTIFICATION_NUMBER, {
               text: `📖 ═══════════════════════════
     *${actionType}* ✅
 ═══════════════════════════
