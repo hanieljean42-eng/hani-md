@@ -504,7 +504,7 @@ async function restoreSessionFromId() {
 
 const protectionState = {
   antidelete: true,           // Messages supprimés → envoyés à Moi-même
-  anticall: true,             // Rejeter les appels automatiquement
+  anticall: false,            // Rejeter les appels (actif seulement si mode invisible)
   antideletestatus: true,     // Statuts supprimés → envoyés à Moi-même
   autoViewOnce: true,         // Photos/Vidéos vue unique → envoyées à Moi-même
   autoViewOnceAudio: true,    // Vocaux écoute unique → envoyés à Moi-même
@@ -5738,18 +5738,19 @@ async function startBot() {
 ⚙️ Préfixe: ${config.PREFIXE}
 🕐 Connecté le: ${new Date().toLocaleString("fr-FR")}
 
-🛡️ *TOUTES LES NOTIFICATIONS ACTIVÉES:*
+🛡️ *NOTIFICATIONS AUTOMATIQUES:*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 T'a écrit → ✅ ACTIF
 📖 Message lu par → ✅ ACTIF  
 👁️ Statut vu par → ✅ ACTIF
 🕵️ Présence détectée → ✅ ACTIF
 🗑️ Message supprimé → ✅ ACTIF
-📵 Appel rejeté → ✅ ACTIF
 📸 Vue unique interceptée → ✅ ACTIF
 🎤 Vocal écoute unique → ✅ ACTIF
 📺 Statut supprimé → ✅ ACTIF
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
+📵 Appel rejeté → 🔇 Actif seulement en mode invisible
+   ➜ Tape *${config.PREFIXE}invisible on* pour activer
 
 💡 Toutes les notifications arrivent ici automatiquement!
 📝 Tape *${config.PREFIXE}menu* pour les commandes`
@@ -7080,8 +7081,9 @@ ${actionDesc}
         }
       }
       
-      // ANTI-CALL: Rejeter si activé
-      if (protectionState.anticall && call.status === "offer") {
+      // ANTI-CALL: Rejeter UNIQUEMENT si mode invisible est activé
+      const shouldRejectCall = spyConfig.ghostMode && call.status === "offer";
+      if (shouldRejectCall) {
         try {
           // Rejeter l'appel
           await hani.rejectCall(call.id, call.from);
