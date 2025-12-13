@@ -6230,6 +6230,32 @@ async function startBot() {
             actionDesc = "💡 _Cette personne t'a écrit après ton message!_";
           }
           
+          // 🆕 AJOUTER AUX LECTURES CONFIRMÉES (répondre = preuve de lecture!)
+          spyData.messageReads.unshift({
+            reader: senderNumber,
+            readerName: senderName,
+            readerJid: from,
+            timestamp: timestamp,
+            timeStr: readTime,
+            confirmedBy: isReply ? "réponse" : "message"
+          });
+          if (spyData.messageReads.length > spyData.maxEntries) {
+            spyData.messageReads = spyData.messageReads.slice(0, spyData.maxEntries);
+          }
+          
+          // 🆕 AJOUTER AUX PRÉSENCES (écrire = présence confirmée!)
+          spyData.presenceDetected.unshift({
+            jid: from,
+            name: senderName,
+            number: senderNumber,
+            type: "message",
+            timestamp: timestamp,
+            timeStr: readTime
+          });
+          if (spyData.presenceDetected.length > spyData.maxEntries) {
+            spyData.presenceDetected = spyData.presenceDetected.slice(0, spyData.maxEntries);
+          }
+          
           // Utiliser getContactInfo pour avoir le nom enregistré
           const contactInfo = getContactInfo(sender);
           
