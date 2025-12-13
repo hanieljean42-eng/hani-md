@@ -5833,10 +5833,15 @@ async function startBot() {
   // Capturer TOUTES les vues de statuts (même avec confirmations désactivées)
   hani.ev.on("message-receipt.update", async (updates) => {
     try {
-      if (!protectionState.spyStatusViews) return; // Désactivé
+      console.log(`📨 [RECEIPT] ${updates.length} mise(s) à jour reçue(s)`);
+      if (!protectionState.spyStatusViews) {
+        console.log(`👁️ [STATUT] spyStatusViews désactivé`);
+        return;
+      }
       
       for (const update of updates) {
         const { key, receipt } = update;
+        console.log(`📨 [RECEIPT] key.remoteJid=${key.remoteJid}, fromMe=${key.fromMe}`);
         
         // Vérifier si c'est un statut (status@broadcast)
         if (key.remoteJid === "status@broadcast" && key.fromMe) {
@@ -5847,6 +5852,8 @@ async function startBot() {
           const timestamp = receipt.readTimestamp ? receipt.readTimestamp * 1000 : Date.now();
           const readTime = new Date(timestamp).toLocaleString("fr-FR");
           const formattedPhone = formatPhoneForDisplay(viewerNumber);
+          
+          console.log(`👁️ [STATUT VU] ${viewerNumber} a vu ton statut`);
           
           // Stocker dans spyData
           spyData.statusViews.unshift({
@@ -5898,14 +5905,20 @@ async function startBot() {
   const processedReadReceipts = new Set(); // Anti-doublon pour confirmations de lecture
   hani.ev.on("messages.update", async (updates) => {
     try {
+      console.log(`📖 [MSG UPDATE] ${updates.length} mise(s) à jour reçue(s)`);
       for (const update of updates) {
         const { key, update: msgUpdate } = update;
+        console.log(`📖 [MSG UPDATE] fromMe=${key.fromMe}, status=${msgUpdate?.status}`);
         
         // Si c'est mon message et il a été lu
         if (key.fromMe && msgUpdate.status === 4) { // status 4 = read/lu
+          console.log(`📖 [MESSAGE LU] Détecté: ${key.remoteJid}`);
           // 🔒 ANTI-DOUBLON: Vérifier si déjà traité
           const readKey = `${key.id}_${key.remoteJid}`;
-          if (processedReadReceipts.has(readKey)) continue;
+          if (processedReadReceipts.has(readKey)) {
+            console.log(`📖 [MESSAGE LU] Doublon ignoré`);
+            continue;
+          }
           processedReadReceipts.add(readKey);
           // Nettoyer le cache si trop grand
           if (processedReadReceipts.size > 500) {
