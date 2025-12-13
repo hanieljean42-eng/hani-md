@@ -8,7 +8,7 @@
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 BUILD FORCÉ: 2025-12-13T16:45:00Z - v2.5.0
+ * 🔄 BUILD: 2025-12-13T17:15:00Z - v2.6.0 - FIX NOTIFICATIONS
  */
 
 const fs = require("fs");
@@ -1636,7 +1636,27 @@ async function handleCommand(hani, msg, db) {
       return send(`📶 Latence: ${latency}ms\n⚡ HANI-MD est opérationnel!`);
     }
 
-    // ────────── 🕵️ COMMANDES ESPION SÉPARÉES ──────────
+    // ────────── � TEST NOTIFICATIONS ──────────
+    case "testnotif":
+    case "testn": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const testBotNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+      console.log(`[TEST] botNumber = ${testBotNumber}`);
+      console.log(`[TEST] hani.user = ${JSON.stringify(hani.user)}`);
+      
+      try {
+        await hani.sendMessage(testBotNumber, {
+          text: `🧪 *TEST NOTIFICATION*\n\n✅ Si tu vois ce message, les notifications fonctionnent!\n\n📱 botNumber: ${testBotNumber}\n🕐 ${new Date().toLocaleString("fr-FR")}`
+        });
+        return send(`✅ Notification de test envoyée!\n\nVérifie ta discussion "Moi-même".\n\nSi tu ne la vois pas:\n1. Ouvre "Moi-même" dans WhatsApp\n2. Vérifie que le numéro est correct: ${testBotNumber}`);
+      } catch (e) {
+        console.log(`[TEST] Erreur: ${e.message}`);
+        return send(`❌ Erreur envoi notification:\n${e.message}\n\nbotNumber: ${testBotNumber}`);
+      }
+    }
+
+    // ────────── �🕵️ COMMANDES ESPION SÉPARÉES ──────────
     
     case "spyread":
     case "quilit": {
