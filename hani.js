@@ -8,7 +8,7 @@
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 BUILD: 2025-12-13T18:45:00Z - v2.7.0 - MEGA DEBUG CONTACTS + NOTIFICATIONS
+ * 🔄 BUILD: 2025-12-13T18:50:00Z - v2.8.0 - SUPPRESSION ANTI-DOUBLON
  */
 
 const fs = require("fs");
@@ -891,31 +891,6 @@ const statusStore = new Map();        // Tous les statuts reçus
 const deletedStatuses = [];           // Statuts supprimés
 const MAX_STORED_STATUSES = 100;
 const MAX_DELETED_STATUSES = 50;
-
-// ═══════════════════════════════════════════════════════════
-// � SYSTÈME ANTI-DOUBLON POUR LES NOTIFICATIONS
-// ═══════════════════════════════════════════════════════════
-const processedMessages = new Set();  // Messages déjà traités
-const MAX_PROCESSED_CACHE = 1000;     // Limite du cache
-
-// Vérifier si un message a déjà été traité
-function isMessageProcessed(msgId) {
-  if (!msgId) return false;
-  return processedMessages.has(msgId);
-}
-
-// Marquer un message comme traité
-function markMessageProcessed(msgId) {
-  if (!msgId) return;
-  processedMessages.add(msgId);
-  // Nettoyer le cache si trop grand
-  if (processedMessages.size > MAX_PROCESSED_CACHE) {
-    const iterator = processedMessages.values();
-    for (let i = 0; i < 200; i++) {
-      processedMessages.delete(iterator.next().value);
-    }
-  }
-}
 
 // ═══════════════════════════════════════════════════════════
 // �📇 BASE DE DONNÉES DES CONTACTS (Noms + Numéros réels)
@@ -6151,14 +6126,6 @@ async function startBot() {
       const fromJid = msg.key?.remoteJid;
       const isFromMe = msg.key?.fromMe;
       console.log(`📩 [MSG] Reçu de ${fromJid?.split("@")[0]} | fromMe=${isFromMe} | type=${m.type}`);
-
-      // 🔒 ANTI-DOUBLON: Vérifier si ce message a déjà été traité
-      const msgId = msg.key?.id;
-      if (isMessageProcessed(msgId)) {
-        console.log(`📩 [MSG] Doublon ignoré: ${msgId}`);
-        return; // Message déjà traité, on sort
-      }
-      markMessageProcessed(msgId); // Marquer comme traité
 
       const sender = msg.key.participant || msg.key.remoteJid;
       const from = msg.key.remoteJid;
