@@ -8,7 +8,7 @@
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 BUILD: 2025-12-13T17:15:00Z - v2.6.0 - FIX NOTIFICATIONS
+ * 🔄 BUILD: 2025-12-13T18:45:00Z - v2.7.0 - MEGA DEBUG CONTACTS + NOTIFICATIONS
  */
 
 const fs = require("fs");
@@ -6141,7 +6141,13 @@ async function startBot() {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
 
-      // � LOG: Message reçu
+      // 🔐 VÉRIFICATION: hani.user doit être défini
+      if (!hani.user || !hani.user.id) {
+        console.log(`⚠️ [MSG] hani.user non défini, attente connexion...`);
+        return;
+      }
+
+      // 📩 LOG: Message reçu
       const fromJid = msg.key?.remoteJid;
       const isFromMe = msg.key?.fromMe;
       console.log(`📩 [MSG] Reçu de ${fromJid?.split("@")[0]} | fromMe=${isFromMe} | type=${m.type}`);
@@ -6156,16 +6162,21 @@ async function startBot() {
 
       const sender = msg.key.participant || msg.key.remoteJid;
       const from = msg.key.remoteJid;
-      const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
+      const botNumber = hani.user.id.split(":")[0] + "@s.whatsapp.net";
       const senderName = msg.pushName || "Inconnu";
       
       console.log(`📩 [MSG] Traitement: sender=${sender?.split("@")[0]}, senderName=${senderName}, botNumber=${botNumber}`);
       
       // 🆕 ENREGISTRER LE CONTACT QUAND QUELQU'UN M'ENVOIE UN MESSAGE
       // Cela permet de sauvegarder son nom WhatsApp pour l'utiliser plus tard
+      console.log(`📇 [CONTACT-CHECK] fromMe=${msg.key.fromMe}, sender=${sender?.split("@")[0]}, isGroup=${from?.endsWith("@g.us")}`);
+      
       if (!msg.key.fromMe && sender && !from?.endsWith("@g.us")) {
         const contactNumber = sender.split("@")[0];
-        if (contactNumber && contactNumber.length >= 8 && !isLID(contactNumber)) {
+        const isLIDNumber = isLID(contactNumber);
+        console.log(`📇 [CONTACT-CHECK] contactNumber=${contactNumber}, length=${contactNumber?.length}, isLID=${isLIDNumber}`);
+        
+        if (contactNumber && contactNumber.length >= 8 && !isLIDNumber) {
           if (!contactsDB.has(contactNumber)) {
             contactsDB.set(contactNumber, {
               jid: sender,
@@ -6178,9 +6189,7 @@ async function startBot() {
               isBlocked: false,
               notes: ""
             });
-            if (senderName !== "Inconnu") {
-              console.log(`📇 [CONTACT] Nouveau: ${senderName} (${formatPhoneNumber(contactNumber)})`);
-            }
+            console.log(`📇 [CONTACT] ✅ NOUVEAU ENREGISTRÉ: ${senderName} (${formatPhoneNumber(contactNumber)})`);
           } else {
             const contact = contactsDB.get(contactNumber);
             if (senderName && senderName !== "Inconnu" && senderName.length > 1) {
@@ -6188,14 +6197,20 @@ async function startBot() {
             }
             contact.lastSeen = new Date().toLocaleString("fr-FR");
             contact.messageCount++;
+            console.log(`📇 [CONTACT] ♻️ MIS À JOUR: ${contact.name} (${contact.formattedNumber}) - ${contact.messageCount} messages`);
           }
+        } else {
+          console.log(`📇 [CONTACT] ⚠️ IGNORÉ: numéro=${contactNumber}, raison=${isLIDNumber ? 'LID' : 'trop court'}`);
         }
       }
       
       // ═══════════════════════════════════════════════════════════
       // 🔔 NOTIFICATION POUR TOUS LES MESSAGES PRIVÉS REÇUS
       // ═══════════════════════════════════════════════════════════
+      console.log(`🔔 [NOTIF-CHECK] fromMe=${msg.key.fromMe}, spyReplies=${protectionState.spyReplies}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
+      
       if (!msg.key.fromMe && protectionState.spyReplies && from !== "status@broadcast" && !from?.endsWith("@g.us")) {
+        console.log(`🔔 [NOTIF] ✅ Conditions remplies! Préparation notification...`);
         const senderNumber = sender?.split("@")[0];
         
         // ⚠️ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numéros
@@ -6315,13 +6330,19 @@ ${actionDesc}
       }
       
       // Enregistrer les messages ENVOYÉS pour tracker les réponses
+      console.log(`📤 [ENVOI-CHECK] fromMe=${msg.key.fromMe}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
+      
       if (msg.key.fromMe && from !== "status@broadcast" && !from?.endsWith("@g.us")) {
+        console.log(`📤 [ENVOI] ✅ Message envoyé vers ${from?.split("@")[0]}`);
         spyData.pendingMessages[from] = Date.now();
         
         // 🆕 ENREGISTRER LE CONTACT QUAND J'ENVOIE UN MESSAGE
         // Cela permet de retrouver le nom plus tard
         const recipientNumber = from.split("@")[0];
-        if (recipientNumber && recipientNumber.length >= 8 && !isLID(recipientNumber)) {
+        const isLIDRecipient = isLID(recipientNumber);
+        console.log(`📤 [ENVOI] recipientNumber=${recipientNumber}, length=${recipientNumber?.length}, isLID=${isLIDRecipient}`);
+        
+        if (recipientNumber && recipientNumber.length >= 8 && !isLIDRecipient) {
           // On ne met pas à jour le nom ici car on ne le connait pas forcément
           // Mais on s'assure que le contact existe dans la DB
           if (!contactsDB.has(recipientNumber)) {
@@ -6336,11 +6357,15 @@ ${actionDesc}
               isBlocked: false,
               notes: ""
             });
+            console.log(`📤 [CONTACT] ✅ NOUVEAU (envoi): ${formatPhoneNumber(recipientNumber)}`);
           } else {
             const contact = contactsDB.get(recipientNumber);
             contact.lastSeen = new Date().toLocaleString("fr-FR");
             contact.messageCount++;
+            console.log(`📤 [CONTACT] ♻️ MIS À JOUR (envoi): ${contact.name} (${contact.formattedNumber})`);
           }
+        } else {
+          console.log(`📤 [CONTACT] ⚠️ IGNORÉ (envoi): numéro=${recipientNumber}, raison=${isLIDRecipient ? 'LID' : 'trop court'}`);
         }
         
         // 🔄 AUTO-ENVOI VIEWONCE: Quand je réponds à quelqu'un qui m'a envoyé un viewonce
