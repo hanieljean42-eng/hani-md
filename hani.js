@@ -8,7 +8,7 @@
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 SESSION RESET: 2025-12-13T16:00:00 - NOUVELLE CONNEXION
+ * 🔄 BUILD FORCÉ: 2025-12-13T16:45:00Z - v2.5.0
  */
 
 const fs = require("fs");
