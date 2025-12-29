@@ -98,7 +98,16 @@ async function connect() {
     
     return true;
   } catch (error) {
-    console.log("[X] Erreur connexion MySQL:", error.message);
+    const errMsg = error.message || error.code || 'Connexion impossible';
+    if (errMsg.includes('ENOTFOUND') || errMsg.includes('ECONNREFUSED')) {
+      console.log("[!] MySQL: Serveur inaccessible - Vérifiez MYSQL_HOST/MYSQL_URL");
+    } else if (errMsg.includes('Access denied')) {
+      console.log("[!] MySQL: Accès refusé - Vérifiez user/password");
+    } else if (errMsg.includes('Unknown database')) {
+      console.log("[!] MySQL: Base de données inexistante - Vérifiez MYSQL_DATABASE");
+    } else {
+      console.log("[!] MySQL non disponible:", errMsg);
+    }
     isConnected = false;
     return false;
   }

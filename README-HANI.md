@@ -64,11 +64,38 @@ Bot WhatsApp multi-fonctions développé par **H2025**
 - `.flip` - Pile ou face
 - `.quote` - Citation aléatoire
 
+### �️ Espionnage (Owner uniquement)
+- `.spyon / .spyoff` - Activer/Désactiver le mode espion
+- `.spyread` - Qui a lu mes messages
+- `.spyreply` - Qui a répondu à mes messages  
+- `.spypresence` - Qui ouvre mon chat (écrit/tape)
+- `.spystatus` - Qui voit mes statuts
+- `.spyhistory` - Historique complet espion
+- `.spyclear` - Effacer les données espion
+- `.lastseen` - Dernières connexions trackées
+- `.callhistory` - Historique des appels
+- `.profilechanges` - Changements de profil détectés
+- `.ghost on/off` - Mode fantôme (invisible total)
+
+### 📅 Messages Programmés (Owner)
+- `.schedule [n°] [heure] [msg]` - Programmer un message
+- `.schedulerepeat [n°] [heure] [freq] [msg]` - Message récurrent
+- `.schedulelist` - Liste des messages programmés
+- `.scheduledel [id]` - Supprimer un message programmé
+
+### 📸 Statuts Programmés (Owner)
+- `.statusschedule [heure] [texte]` - Statut programmé
+- `.statusrepeat [heure] [freq] [texte]` - Statut récurrent
+- `.statuslist` - Liste des statuts programmés
+
 ### 👑 Owner
 - `.ban / .unban` - Bannir du bot
 - `.sudo / .delsudo` - Gérer sudos
+- `.approve / .unapprove` - Approuver utilisateurs
 - `.broadcast [msg]` - Diffuser
 - `.restart` - Redémarrer
+- `.protection` - État des protections
+- `.invisible on/off` - Mode invisible (rejette appels)
 
 ## 🚀 Déploiement sur Render
 

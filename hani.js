@@ -827,6 +827,8 @@ const ownerOnlyCommands = [
   "eval", "exec", "shell", "restart", "shutdown",
   // Mode du bot
   "mode",
+  // Diagnostic système
+  "diagnostic", "diag", "health", "sante",
   // Gestion utilisateurs
   "ban", "unban", "sudo", "delsudo", "addsudo", "removesudo", "sudolist",
   "approve", "unapprove", "approved", "addapprove", "removeapprove", "delapprove", "approvelist", "approvedlist",
@@ -905,6 +907,38 @@ const MAX_DELETED_STATUSES = 50;
 
 // Structure pour stocker TOUS les contacts rencontrés
 const contactsDB = new Map();  // numéro -> { name, jid, firstSeen, lastSeen, ... }
+const CONTACTS_FILE = "./DataBase/contacts.json";
+
+// Charger les contacts depuis le fichier au démarrage
+function loadContactsFromFile() {
+  try {
+    if (fs.existsSync(CONTACTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CONTACTS_FILE, "utf-8"));
+      for (const [number, contact] of Object.entries(data)) {
+        contactsDB.set(number, contact);
+      }
+      console.log(`[CONTACTS] ${contactsDB.size} contacts chargés depuis le cache`);
+    }
+  } catch (e) {
+    console.log(`[CONTACTS] Erreur chargement: ${e.message}`);
+  }
+}
+
+// Sauvegarder les contacts dans le fichier
+function saveContactsToFile() {
+  try {
+    const data = Object.fromEntries(contactsDB);
+    fs.writeFileSync(CONTACTS_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    // Silencieux en cas d'erreur
+  }
+}
+
+// Charger les contacts au démarrage
+loadContactsFromFile();
+
+// Sauvegarde automatique toutes les 5 minutes
+setInterval(() => saveContactsToFile(), 5 * 60 * 1000);
 
 // Ajouter ou mettre à jour un contact
 function updateContact(jid, pushName, additionalData = {}) {
@@ -3245,6 +3279,74 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
 🏘️ Groupes: ${Object.keys(db.data.groups).length}
 🚫 Bannis: ${db.data.banned.length}
 👑 Sudos: ${db.data.sudo.length}`);
+    }
+
+    case "diagnostic":
+    case "diag":
+    case "health":
+    case "sante": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const uptime = formatUptime(Date.now() - db.data.stats.startTime);
+      const memUsage = process.memoryUsage();
+      const memMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+      const memTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+      
+      // État des protections
+      const protections = Object.entries(protectionState)
+        .map(([k, v]) => `${v ? '✅' : '❌'} ${k}`)
+        .join('\n');
+      
+      // État des données espion
+      const spyStats = {
+        statusViews: spyData.statusViews?.length || 0,
+        messageReads: spyData.messageReads?.length || 0,
+        replies: spyData.replies?.length || 0,
+        presences: spyData.presenceDetected?.length || 0,
+        contacts: contactsDB.size || 0
+      };
+      
+      // État MySQL
+      const mysqlStatus = db.mysqlConnected ? '✅ Connecté' : '❌ Non connecté (mode local)';
+      
+      const diagText = `🔧 ═══════════════════════════
+   *DIAGNOSTIC SYSTÈME HANI-MD*
+═══════════════════════════
+
+📊 *SYSTÈME:*
+• ⏱️ Uptime: ${uptime}
+• 💾 RAM: ${memMB}MB / ${memTotalMB}MB
+• 📦 Node.js: ${process.version}
+• 🖥️ Plateforme: ${process.platform}
+
+🗄️ *BASE DE DONNÉES:*
+• MySQL: ${mysqlStatus}
+• 👥 Utilisateurs: ${Object.keys(db.data.users).length}
+• 🏘️ Groupes: ${Object.keys(db.data.groups).length}
+• 📇 Contacts enregistrés: ${spyStats.contacts}
+
+🕵️ *DONNÉES ESPION:*
+• 👁️ Vues statuts: ${spyStats.statusViews}
+• 📖 Messages lus: ${spyStats.messageReads}
+• ↩️ Réponses: ${spyStats.replies}
+• ✍️ Présences: ${spyStats.presences}
+
+💾 *STOCKAGE MESSAGES:*
+• 📨 Messages stockés: ${messageStore.size}
+• 🗑️ Messages supprimés: ${deletedMessages.length}
+• 👁️ ViewOnce interceptés: ${viewOnceMessages.size}
+• 📸 Statuts sauvegardés: ${statusStore.size}
+
+🛡️ *PROTECTIONS:*
+${protections}
+
+═══════════════════════════
+💡 *Commandes utiles:*
+• _.spyclear_ - Vider données espion
+• _.protection_ - Gérer protections
+• _.restart_ - Redémarrer le bot`;
+      
+      return send(diagText);
     }
 
     case "runtime":
@@ -5891,7 +5993,7 @@ async function startBot() {
 💡 _.spy_ pour voir tout le monde`
           });
           
-          console.log(`👁️ [STATUT VU] ${displayName} (${formattedPhone}) a vu ton statut`);
+          console.log(`👁️ [STATUT VU] ${viewerName || viewerNumber} (${formattedPhone}) a vu ton statut`);
         }
       }
     } catch (e) {
