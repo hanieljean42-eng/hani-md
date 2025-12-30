@@ -1,14 +1,15 @@
 /**
  * ╔═══════════════════════════════════════════════════════════╗
- * ║                    🌟 HANI-MD V1.0 🌟                     ║
+ * ║                    🌟 HANI-MD V2.6.0 🌟                   ║
  * ║          Bot WhatsApp Intelligent & Performant            ║
  * ║                   Créé par H2025                          ║
+ * ║           🔒 SÉCURITÉ RENFORCÉE v2.0                      ║
  * ╚═══════════════════════════════════════════════════════════╝
  * 
  * Lancer avec: node hani.js
  * Scanne le QR code avec WhatsApp → Appareils connectés
  * 
- * 🔄 BUILD: 2025-12-13T19:20:00Z - v3.2.0 - NOTIFICATIONS VERS +2250150252467
+ * 🔄 BUILD: 2025-12-29T00:00:00Z - v2.6.0 - SÉCURITÉ RENFORCÉE
  */
 
 const fs = require("fs");
@@ -17,6 +18,18 @@ const pino = require("pino");
 const qrcode = require("qrcode-terminal");
 const qrcodeWeb = require("qrcode"); // Pour générer QR en image web
 const mysqlDB = require("./DataBase/mysql"); // MySQL pour persistance externe
+
+// 🔒 MODULES DE SÉCURITÉ
+let SecurityManager, SecureSessionManager;
+try {
+  const security = require("./lib/security");
+  SecurityManager = security.SecurityManager;
+  SecureSessionManager = security.SecureSessionManager;
+  console.log("[SECURITY] ✅ Modules de sécurité chargés");
+} catch (e) {
+  console.log("[SECURITY] ⚠️ Modules de sécurité non disponibles:", e.message);
+}
+
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -458,23 +471,55 @@ const config = {
 const SESSION_FOLDER = "./DataBase/session/principale";
 const db = new HaniDatabase();
 
+// 🔒 Initialiser le gestionnaire de sécurité
+let securityManager = null;
+if (SecurityManager) {
+  securityManager = new SecurityManager({
+    sessionPath: SESSION_FOLDER,
+    enableAuth: true,
+    enableSecureSession: true
+  });
+  securityManager.initialize().catch(e => 
+    console.log("[SECURITY] ⚠️ Erreur init:", e.message)
+  );
+}
+
 // ═══════════════════════════════════════════════════════════
-// 🔐 RESTAURATION DE SESSION DEPUIS SESSION_ID
+// 🔐 RESTAURATION DE SESSION DEPUIS SESSION_ID (SÉCURISÉ)
 // ═══════════════════════════════════════════════════════════
 
 async function restoreSessionFromId() {
   const sessionId = config.SESSION_ID;
   
-  if (!sessionId || !sessionId.startsWith("HANI-MD~")) {
+  if (!sessionId) {
     console.log("[QR] Pas de SESSION_ID, scan QR requis...");
     return false;
   }
   
+  // Vérifier le format (V1 ou V2)
+  const isV2 = sessionId.startsWith("HANI-MD-V2~");
+  const isV1 = sessionId.startsWith("HANI-MD~");
+  
+  if (!isV1 && !isV2) {
+    console.log("[SESSION] ⚠️ Format SESSION_ID non reconnu");
+    return false;
+  }
+  
   try {
-    console.log("🔐 Restauration de session depuis SESSION_ID...");
+    console.log(`🔐 Restauration de session (format ${isV2 ? 'V2 sécurisé' : 'V1 legacy'})...`);
     
-    // Décoder la session
-    const base64Data = sessionId.replace("HANI-MD~", "");
+    // Utiliser le gestionnaire de sécurité si disponible pour V2
+    if (isV2 && securityManager && securityManager.sessionManager) {
+      const result = await securityManager.restoreSession(sessionId);
+      if (result.success) {
+        console.log(`[OK] Session V2 restaurée ! Bot: ${result.botNumber || 'inconnu'}`);
+        return true;
+      }
+      console.log("[SESSION] ⚠️ Fallback vers méthode legacy...");
+    }
+    
+    // Méthode legacy (V1) ou fallback
+    const base64Data = sessionId.replace("HANI-MD-V2~", "").replace("HANI-MD~", "");
     const jsonString = Buffer.from(base64Data, "base64").toString("utf-8");
     const sessionBundle = JSON.parse(jsonString);
     
@@ -521,7 +566,10 @@ const protectionState = {
 // ═══════════════════════════════════════════════════════════
 // 📱 NUMÉRO POUR RECEVOIR TOUTES LES NOTIFICATIONS
 // ═══════════════════════════════════════════════════════════
-const NOTIFICATION_NUMBER = "2250150252467@s.whatsapp.net";
+// Utilise la variable d'environnement, sinon le numéro du bot sera utilisé
+const NOTIFICATION_NUMBER = process.env.NOTIFICATION_NUMBER 
+  ? `${process.env.NOTIFICATION_NUMBER.replace(/[^0-9]/g, '')}@s.whatsapp.net`
+  : null; // null = sera défini dynamiquement avec le numéro du bot
 
 // 📸 Stockage des ViewOnce reçus par contact (pour envoi auto)
 const pendingViewOnce = new Map(); // { senderJid: { media, mediaType, caption, timestamp } }
@@ -1191,232 +1239,202 @@ function getCachedContactName(jid) {
 // ═══════════════════════════════════════════════════════════
 
 function getMainMenu(prefix, userRole = "user") {
+  const time = new Date();
+  const hours = time.getHours();
+  const greeting = hours < 12 ? "🌅 Bonjour" : hours < 18 ? "☀️ Bon après-midi" : "🌙 Bonsoir";
+  
   // Menu pour les USERS (accès basique)
   if (userRole === "user") {
     return `
-╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃    🌟 *HANI-MD V1.0* 🌟   
-┃━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📌 Préfixe : *${prefix}*
-┃ 🤖 Mode    : *${config.MODE}*
-┃ 👤 Ton rôle : *User*
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  ╔═══════════════════╗  ┃
+┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
+┃  ╚═══════════════════╝  ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ ${greeting}!                 ┃
+┃ 📌 Préfixe: *${prefix}*            ┃
+┃ 👤 Rôle: *Utilisateur*       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-╭━━━ 👤 *MENU UTILISATEUR* ━━━╮
-┃
-┃ 📌 *GÉNÉRAL*
-┃ ${prefix}menu - Ce menu
-┃ ${prefix}ping - Tester le bot
-┃ ${prefix}info - Infos du bot
-┃ ${prefix}whoami - Qui suis-je?
-┃
-┃ 🔧 *OUTILS*
-┃ ${prefix}sticker - Créer sticker
-┃ ${prefix}calc [expression] - Calculer
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌──────「 📌 GÉNÉRAL 」──────┐
+│ ${prefix}menu   ➜ Ce menu
+│ ${prefix}ping   ➜ Test connexion
+│ ${prefix}info   ➜ Infos bot
+│ ${prefix}whoami ➜ Ton profil
+└────────────────────────────┘
 
-╭━━━ 🔒 *ACCÈS LIMITÉ* ━━━╮
-┃
-┃ ❌ Commandes de groupe
-┃ ❌ Protections du bot
-┃ ❌ Vue unique / Anti-delete
-┃
-┃ 💡 *Pour plus d'accès:*
-┃ Demande à l'owner de t'approuver!
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌──────「 🔧 OUTILS 」──────┐
+│ ${prefix}sticker ➜ Créer sticker
+│ ${prefix}calc    ➜ Calculatrice
+└────────────────────────────┘
+
+┌──────「 🔒 LIMITÉ 」──────┐
+│ ❌ Commandes groupe
+│ ❌ Protections bot
+│ ❌ Fonctions avancées
+│
+│ 💡 Demande l'accès au owner!
+└────────────────────────────┘
 `;
   }
   
   // Menu pour les APPROVED (accès intermédiaire)
   if (userRole === "approved") {
     return `
-╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃    🌟 *HANI-MD V1.0* 🌟   
-┃━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📌 Préfixe : *${prefix}*
-┃ 🤖 Mode    : *${config.MODE}*
-┃ ✅ Ton rôle : *Approved*
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  ╔═══════════════════╗  ┃
+┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
+┃  ╚═══════════════════╝  ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ ${greeting}!                 ┃
+┃ 📌 Préfixe: *${prefix}*            ┃
+┃ ✅ Rôle: *Approuvé*          ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-╭━━━ ✅ *MENU APPROUVÉ* ━━━╮
-┃
-┃ 📌 *GÉNÉRAL*
-┃ ${prefix}menu - Ce menu
-┃ ${prefix}ping - Tester le bot
-┃ ${prefix}info - Infos du bot
-┃ ${prefix}whoami - Qui suis-je?
-┃
-┃ 🔧 *OUTILS*
-┃ ${prefix}sticker - Créer sticker
-┃ ${prefix}calc [expression] - Calculer
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌───「 📌 GÉNÉRAL 」───┐
+│ ${prefix}menu • ${prefix}ping • ${prefix}info
+└──────────────────────┘
 
-╭━━━ 🔒 *NON DISPONIBLE* ━━━╮
-┃ ❌ Commandes de groupe (admin)
-┃ ❌ Protections du bot
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌───「 🔧 OUTILS 」───┐
+│ ${prefix}sticker • ${prefix}calc
+└──────────────────────┘
+
+┌───「 🔒 NON DISPONIBLE 」───┐
+│ ❌ Admin groupe
+│ ❌ Protections
+└─────────────────────────────┘
 `;
   }
   
   // Menu pour les SUDO (accès étendu)
   if (userRole === "sudo") {
     return `
-╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃    🌟 *HANI-MD V1.0* 🌟   
-┃━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📌 Préfixe : *${prefix}*
-┃ 🤖 Mode    : *${config.MODE}*
-┃ ⚡ Ton rôle : *Sudo*
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  ╔═══════════════════╗  ┃
+┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
+┃  ╚═══════════════════╝  ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ ${greeting}!                 ┃
+┃ 📌 Préfixe: *${prefix}*            ┃
+┃ ⚡ Rôle: *Sudo*              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-╭━━━ ⚡ *MENU SUDO* ━━━╮
-┃
-┃ 📌 *GÉNÉRAL*
-┃ ${prefix}ping, ${prefix}info, ${prefix}whoami
-┃
-┃ 🔧 *OUTILS*
-┃ ${prefix}sticker, ${prefix}calc
-┃
-┃ 👥 *GROUPE*
-┃ ${prefix}kick @user - Exclure
-┃ ${prefix}add [n°] - Ajouter
-┃ ${prefix}promote/@demote - Gérer admins
-┃ ${prefix}link - Lien du groupe
-┃ ${prefix}tagall - Mentionner tous
-┃ ${prefix}hidetag [msg] - Tag caché
-┃ ${prefix}warn/@unwarn - Avertissements
-┃
-┃ 👑 *GESTION USERS*
-┃ ${prefix}approve/@unapprove - Approuver
-┃ ${prefix}ban/@unban - Bannir
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌───「 📌 BASIQUES 」───┐
+│ ${prefix}menu • ${prefix}ping • ${prefix}info
+└───────────────────────┘
 
-╭━━━ 🔒 *RÉSERVÉ OWNER* ━━━╮
-┃ ❌ ${prefix}sudo, ${prefix}delsudo
-┃ ❌ Protections avancées
-┃ ❌ Vue unique / Anti-delete
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┌───「 👥 GROUPE 」───┐
+│ ${prefix}kick    ➜ Exclure
+│ ${prefix}add     ➜ Ajouter
+│ ${prefix}promote ➜ Promouvoir
+│ ${prefix}demote  ➜ Rétrograder
+│ ${prefix}link    ➜ Lien groupe
+│ ${prefix}tagall  ➜ Tag tous
+└──────────────────────┘
+
+┌───「 👑 GESTION 」───┐
+│ ${prefix}approve • ${prefix}ban
+└──────────────────────┘
+
+┌───「 🔒 RÉSERVÉ OWNER 」───┐
+│ ❌ sudo/delsudo
+│ ❌ Protections avancées
+└────────────────────────────┘
 `;
   }
   
-  // Menu COMPLET pour OWNER
+  // Menu COMPLET pour OWNER - Format moderne et aéré
   return `
-╭━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃    🌟 *HANI-MD V1.0* 🌟   
-┃━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ 📌 Préfixe : *${prefix}*
-┃ 🤖 Mode    : *${config.MODE}*
-┃ 👑 Ton rôle : *OWNER*
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃      ╔═════════════════════════╗      ┃
+┃      ║   🤖 *HANI-MD V2.6.0*   ║      ┃
+┃      ║     _by H2025 SECURE_   ║      ┃
+┃      ╚═════════════════════════╝      ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃  ${greeting}! 👑                         ┃
+┃  📌 Préfixe: *${prefix}*  │  🤖 Mode: *${config.MODE}*     ┃
+┃  👑 Rôle: *OWNER* - Accès Total        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-╭━━━ 👑 *MENU OWNER COMPLET* ━━━╮
-┃
-┃ 📌 *GÉNÉRAL*
-┃ ${prefix}ping - Tester le bot
-┃ ${prefix}info - Infos du bot
-┃ ${prefix}stats - Statistiques
-┃ ${prefix}whoami - Qui suis-je?
-┃
-┃ 🔧 *OUTILS*
-┃ ${prefix}sticker - Créer sticker
-┃ ${prefix}calc [expression] - Calculer
-┃
-┃ 👥 *GROUPE*
-┃ ${prefix}kick @user - Exclure
-┃ ${prefix}add [n°] - Ajouter
-┃ ${prefix}promote/@demote - Gérer admins
-┃ ${prefix}link - Lien du groupe
-┃ ${prefix}tagall - Mentionner tous
-┃ ${prefix}hidetag [msg] - Tag caché
-┃
-┃ 🛡️ *PROTECTIONS*
-┃ ${prefix}antilink on/off
-┃ ${prefix}antispam on/off
-┃ ${prefix}antibot on/off
-┃ ${prefix}warn @user - Avertir
-┃ ${prefix}warnlist - Liste warns
-┃
-┃ 👁️ *VUE UNIQUE*
-┃ ${prefix}vv - Récupérer (répondre)
-┃ ${prefix}listvv - Liste interceptées
-┃ ${prefix}viewonce on/off
-┃
-┃ 🗑️ *ANTI-DELETE*
-┃ ${prefix}antidelete on/off
-┃ ${prefix}deleted - Voir supprimés
-┃
-┃ 📸 *STATUTS*
-┃ ${prefix}savestatus on/off
-┃ ${prefix}liststatus - Liste statuts
-┃ ${prefix}getstatus [n°] - Récupérer
-┃
-┃ 👑 *GESTION USERS*
-┃ ${prefix}approve/@unapprove
-┃ ${prefix}sudo/@delsudo
-┃ ${prefix}ban/@unban
-┃ ${prefix}mode public/private
-┃
-┃ 🕵️ *ESPIONNAGE BASIQUE*
-┃ ${prefix}spyon/spyoff - Mode espion
-┃ ${prefix}spyread - Qui lit mes msg
-┃ ${prefix}spyreply - Qui répond
-┃ ${prefix}spypresence - Qui ouvre chat
-┃ ${prefix}spystatus - Qui voit statuts
-┃ ${prefix}spyhistory - Historique complet
-┃ ${prefix}spyclear - Effacer données
-┃
-┃ 🔍 *ESPIONNAGE AVANCÉ*
-┃ ${prefix}lastseen - Connexions trackées
-┃ ${prefix}callhistory - Historique appels
-┃ ${prefix}groupspy - Activité groupes
-┃ ${prefix}profilechanges - Changements profil
-┃ ${prefix}spystats [jour/semaine/mois]
-┃ ${prefix}spyexport - Exporter données
-┃ ${prefix}spyconfig - Configuration
-┃ ${prefix}ghost on/off - Mode fantôme
-┃ ${prefix}autoviewonce on/off - Auto vues uniques
-┃
-┃ 🎯 *SURVEILLANCE CIBLÉE*
-┃ ${prefix}spy @user - Surveiller
-┃ ${prefix}unspy @user - Arrêter
-┃ ${prefix}spylist - Liste surveillés
-┃ ${prefix}activity - Activité users
-┃ ${prefix}stalk @user - Profil complet
-┃ ${prefix}communs @user - Contacts mutuels
-┃ ${prefix}quiamon - Qui a mon numéro?
-┃
-┃ 📅 *MESSAGES PROGRAMMÉS*
-┃ ${prefix}schedule [n°] [heure] [msg]
-┃ ${prefix}schedulerepeat [n°] [h] [freq] [msg]
-┃ ${prefix}schedulelist - Voir programmés
-┃ ${prefix}scheduledel [id] - Supprimer
-┃
-┃ 📸 *STATUTS PROGRAMMÉS*
-┃ ${prefix}statusschedule [heure] [texte]
-┃ ${prefix}statusrepeat [h] [freq] [texte]
-┃ ${prefix}statuslist - Voir statuts prog.
-┃ ${prefix}statusdel [id] - Supprimer
-┃ 💡 _Réponds à image/vidéo pour statut média_
-┃
-┃ 🎵 *SPOTIFY*
-┃ ${prefix}spotify [titre] - Chercher musique
-┃ ${prefix}spotify [lien] - Télécharger
-┃ ${prefix}spsearch [titre] - Recherche
-┃
-┃ ⚙️ *SYSTÈME*
-┃ ${prefix}broadcast [msg]
-┃ ${prefix}restart - Redémarrer
-┃ ${prefix}invisible off/on - Visibilité
-┃ ${prefix}ghost on/off - Mode fantôme
-┃ ${prefix}protection - État protections
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
+╔══════════════════════════════════════╗
+║           📋 *CATÉGORIES*            ║
+╠══════════════════════════════════════╣
 
-💡 *Tu as accès à TOUTES les commandes!*
+┌─────────「 📌 GÉNÉRAL 」─────────┐
+│ ${prefix}ping     │ ${prefix}info     │ ${prefix}stats
+│ ${prefix}whoami   │ ${prefix}menu     │ ${prefix}uptime
+└──────────────────────────────────────┘
+
+┌─────────「 🔧 OUTILS 」─────────┐
+│ ${prefix}sticker  ➜ Image/Vidéo → Sticker
+│ ${prefix}calc     ➜ Calculatrice
+│ ${prefix}tts      ➜ Texte → Audio
+└──────────────────────────────────────┘
+
+┌─────────「 👥 GROUPE 」─────────┐
+│ ${prefix}kick @   │ ${prefix}add n°   │ ${prefix}link
+│ ${prefix}promote  │ ${prefix}demote   │ ${prefix}tagall
+│ ${prefix}hidetag  │ ${prefix}warn     │ ${prefix}warnlist
+└──────────────────────────────────────┘
+
+┌─────────「 🛡️ PROTECTIONS 」─────────┐
+│ ${prefix}antilink  │ ${prefix}antispam  │ ${prefix}antibot
+│ ${prefix}protection ➜ Voir état global
+└──────────────────────────────────────────┘
+
+┌─────────「 👁️ VUE UNIQUE 」─────────┐
+│ ${prefix}vv       ➜ Récupérer (répondre)
+│ ${prefix}listvv   ➜ Liste interceptées
+│ ${prefix}viewonce ➜ on/off
+└──────────────────────────────────────────┘
+
+┌─────────「 🗑️ ANTI-DELETE 」─────────┐
+│ ${prefix}antidelete ➜ on/off
+│ ${prefix}deleted    ➜ Voir supprimés
+└──────────────────────────────────────────┘
+
+┌─────────「 📸 STATUTS 」─────────┐
+│ ${prefix}savestatus  ➜ on/off
+│ ${prefix}liststatus  ➜ Liste sauvés
+│ ${prefix}getstatus   ➜ Récupérer [n°]
+└──────────────────────────────────────┘
+
+┌─────────「 👑 GESTION USERS 」─────────┐
+│ ${prefix}approve  │ ${prefix}unapprove │ ${prefix}ban
+│ ${prefix}unban    │ ${prefix}sudo      │ ${prefix}delsudo
+│ ${prefix}mode     ➜ public/private
+└───────────────────────────────────────────┘
+
+┌─────────「 🕵️ ESPIONNAGE 」─────────┐
+│ ${prefix}spyon     │ ${prefix}spyoff    │ ${prefix}spyread
+│ ${prefix}spyreply  │ ${prefix}spystatus │ ${prefix}spyhistory
+│ ${prefix}spy @user ➜ Surveiller quelqu'un
+│ ${prefix}ghost     ➜ Mode fantôme on/off
+└────────────────────────────────────────┘
+
+┌─────────「 📅 PROGRAMMATION 」─────────┐
+│ ${prefix}schedule [n°] [heure] [msg]
+│ ${prefix}schedulelist    │ ${prefix}scheduledel
+│ ${prefix}statusschedule  ➜ Statuts programmés
+└─────────────────────────────────────────┘
+
+┌─────────「 🎵 TÉLÉCHARGEMENT 」─────────┐
+│ ${prefix}spotify [titre/lien] ➜ Musique
+│ ${prefix}spsearch [titre]     ➜ Recherche
+└─────────────────────────────────────────┘
+
+┌─────────「 ⚙️ SYSTÈME 」─────────┐
+│ ${prefix}broadcast [msg] ➜ Diffuser
+│ ${prefix}restart        ➜ Redémarrer
+│ ${prefix}invisible      ➜ on/off
+│ ${prefix}ghost          ➜ Mode fantôme
+└──────────────────────────────────────┘
+
+╔══════════════════════════════════════╗
+║  💡 *Tu as accès à TOUTES les        ║
+║     commandes en tant qu'OWNER!*     ║
+║  📖 Tape ${prefix}help [cmd] pour détails   ║
+╚══════════════════════════════════════╝
 `;
 }
 
@@ -5650,12 +5668,59 @@ C'est ton identifiant WhatsApp.
 
 let hani = null;
 
+// 🔒 Paramètres de reconnexion ULTRA STABLE
+const RECONNECT_CONFIG = {
+  maxAttempts: 50,           // 50 tentatives max
+  baseDelay: 1500,           // Délai initial 1.5s (plus rapide)
+  maxDelay: 120000,          // Max 2 minutes (pas 5)
+  multiplier: 1.3,           // Exponential backoff plus doux
+  jitter: 0.2                // 20% de variation
+};
+
+// 🔄 Ping keep-alive pour maintenir la connexion active
+let keepAliveInterval = null;
+let connectionHealthCheck = null;
+
+function calculateReconnectDelay(attempt) {
+  const baseDelay = Math.min(
+    RECONNECT_CONFIG.baseDelay * Math.pow(RECONNECT_CONFIG.multiplier, attempt),
+    RECONNECT_CONFIG.maxDelay
+  );
+  const jitter = baseDelay * RECONNECT_CONFIG.jitter * (Math.random() * 2 - 1);
+  return Math.floor(baseDelay + jitter);
+}
+
+// 🔒 Verrou anti-reconnexion multiple
+let isReconnecting = false;
+
 async function startBot() {
+  // Éviter les reconnexions multiples simultanées
+  if (isReconnecting) {
+    console.log('[!] Reconnexion déjà en cours, ignoré...');
+    return;
+  }
+  isReconnecting = true;
+
+  // 🛑 Fermer proprement l'ancienne connexion si elle existe
+  if (hani) {
+    try {
+      console.log('[...] Fermeture de l\'ancienne connexion...');
+      hani.ev.removeAllListeners();
+      if (hani.ws) {
+        hani.ws.close();
+      }
+      await delay(1000);
+    } catch (e) {
+      // Ignorer les erreurs de fermeture
+    }
+  }
+
   console.log(`
 +-----------------------------------------------------------+
 |                                                           |
-|              * HANI-MD V1.0 *                           |
+|              * HANI-MD V2.6.0 SECURE *                    |
 |         Bot WhatsApp Intelligent par H2025                |
+|            🔒 Sécurité Renforcée Activée                  |
 |                                                           |
 +-----------------------------------------------------------+
 |  [QR] Scanne le QR code avec WhatsApp                       |
@@ -5681,20 +5746,34 @@ async function startBot() {
 
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
-  // Compteur pour éviter les reconnexions infinies
+  // 🔒 Compteur de reconnexion amélioré
   let reconnectAttempts = 0;
-  const MAX_RECONNECT_ATTEMPTS = 5;
+  const MAX_RECONNECT_ATTEMPTS = RECONNECT_CONFIG.maxAttempts;
   let isConnected = false;
+  let lastBackupTime = Date.now();
 
   // Sauvegarder les credentials immédiatement et régulièrement
   const saveCredsWrapper = async () => {
     try {
       await saveCreds();
       console.log("[SAVE] Session sauvegardée");
+      
+      // 🔒 Créer un backup sécurisé toutes les heures
+      if (securityManager && Date.now() - lastBackupTime > 60 * 60 * 1000) {
+        try {
+          await securityManager.createBackup();
+          lastBackupTime = Date.now();
+          console.log("[BACKUP] ✅ Backup automatique créé");
+        } catch (e) {}
+      }
     } catch (e) {
       console.log("⚠️ Erreur sauvegarde session:", e.message);
     }
   };
+
+  // 🛑 Nettoyer les anciens intervals si existants
+  if (keepAliveInterval) clearInterval(keepAliveInterval);
+  if (connectionHealthCheck) clearInterval(connectionHealthCheck);
 
   hani = makeWASocket({
     auth: {
@@ -5702,21 +5781,29 @@ async function startBot() {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
     },
     logger: pino({ level: "silent" }),
-    browser: ["HANI-MD", "Chrome", "1.0.0"],
-    keepAliveIntervalMs: 25000,
-    markOnlineOnConnect: false,
-    generateHighQualityLinkPreview: true,
+    browser: ["HANI-MD", "Chrome", "2.6.0"],
+    keepAliveIntervalMs: 30000,          // 30s - intervalle standard
+    markOnlineOnConnect: false,          // Ne pas marquer en ligne automatiquement
+    generateHighQualityLinkPreview: false,
     syncFullHistory: false,
-    retryRequestDelayMs: 2000,
-    connectTimeoutMs: 60000,
-    defaultQueryTimeoutMs: 60000,
+    retryRequestDelayMs: 2000,            // 2s entre les retry
+    connectTimeoutMs: 60000,              // 1min timeout
+    defaultQueryTimeoutMs: 60000,         // 1min query timeout
     emitOwnEvents: true,
     fireInitQueries: true,
-    qrTimeout: 60000,
+    qrTimeout: 60000,                     // 1min pour scanner QR
+    printQRInTerminal: false,
+    // ⚠️ NE PAS ignorer status@broadcast pour intercepter les statuts
     getMessage: async (key) => {
       return { conversation: "" };
     },
   });
+
+  // 🔓 Libérer le verrou après création du socket
+  isReconnecting = false;
+
+  // 🚫 SUPPRIMÉ: keepAlive qui causait des conflits de session
+  // Le keepAliveIntervalMs de Baileys gère déjà le ping automatiquement
 
   // ────────── ÉVÉNEMENTS DE CONNEXION ──────────
   hani.ev.on("connection.update", async (update) => {
@@ -5882,47 +5969,83 @@ async function startBot() {
 
       console.log(`\n[!] Déconnexion (code: ${statusCode}, raison: ${reason})`);
 
-      // Session déconnectée manuellement, expirée, ou rejetée par WhatsApp (428)
-      if (statusCode === DisconnectReason.loggedOut || statusCode === 401 || statusCode === 428) {
-        console.log("[X] Session expirée/rejetée. Suppression et nouveau QR...");
+      // 🔒 Détecter si c'est un VRAI conflit de session (mot "conflict" explicite)
+      // "Stream Errored" seul n'est PAS un conflit, c'est souvent un restart normal
+      const isConflict = (reason.toLowerCase().includes("conflict") && !reason.toLowerCase().includes("restart")) ||
+                         statusCode === 440;
+      
+      // Conflit de session RÉEL - NE PAS reconnecter automatiquement
+      if (isConflict) {
+        console.log("[⚠️] CONFLIT DE SESSION DÉTECTÉ!");
+        console.log("[!] Une autre instance du bot tourne probablement ailleurs.");
+        console.log("[TIP] Vérifications à faire:");
+        console.log("     1. Ferme WhatsApp Web dans tous les navigateurs");
+        console.log("     2. Vérifie si le bot tourne sur un serveur (Heroku, Railway, etc.)");
+        console.log("     3. Vérifie les appareils connectés sur WhatsApp mobile");
+        console.log("[STOP] Le bot va s'arrêter pour éviter les conflits.");
+        console.log("[CMD] Redémarre manuellement avec: pm2 restart hani");
+        isReconnecting = false;
+        return;
+      }
+      
+      // Redémarrage requis par WhatsApp (515, 408, ou "restart required")
+      if (statusCode === 515 || statusCode === 408 || reason.toLowerCase().includes("restart")) {
+        console.log("[🔄] Redémarrage requis par WhatsApp...");
+        isReconnecting = false;
+        await delay(2000);
+        startBot();
+        return;
+      }
+      
+      // Session vraiment expirée (401) - nouveau QR requis
+      if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+        console.log("[X] Session expirée. Suppression et nouveau QR...");
         if (fs.existsSync(SESSION_FOLDER)) {
           fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
           console.log("[OK] Session supprimée.");
         }
         reconnectAttempts = 0;
+        isReconnecting = false;
         await delay(3000);
         startBot();
       } 
-      // Conflit de session
-      else if (statusCode === 440) {
-        console.log("[!] Conflit de session (WhatsApp Web ouvert ailleurs)");
-        console.log("[TIP] Ferme les autres sessions WhatsApp Web.");
+      // 428 = Connection Closed - Reconnecter SANS supprimer la session
+      else if (statusCode === 428) {
+        console.log("[🔄] Connection fermée temporairement (428)");
         reconnectAttempts++;
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          console.log(`[...] Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans 10 secondes...`);
-          await delay(10000);
-          startBot();
-        } else {
-          console.log("[X] Trop de tentatives. Arrêt du bot.");
-        }
-      } 
-      // Redémarrage requis par WhatsApp
-      else if (statusCode === 515 || statusCode === 408) {
-        console.log("[...] Redémarrage requis...");
-        await delay(3000);
-        startBot();
-      }
-      // Autres erreurs - reconnexion normale
-      else {
-        reconnectAttempts++;
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          const waitTime = Math.min(5000 * reconnectAttempts, 30000);
-          console.log(`[...] Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${waitTime/1000}s...`);
+          const waitTime = Math.min(3000 * reconnectAttempts, 20000); // Max 20s
+          console.log(`[...] Reconnexion dans ${(waitTime/1000).toFixed(1)}s (tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+          isReconnecting = false;
           await delay(waitTime);
           startBot();
         } else {
-          console.log("[X] Trop de tentatives. Arrêt du bot.");
-          console.log("[TIP] Relance manuellement avec: node hani.js");
+          // Après plusieurs échecs, supprimer et demander nouveau QR
+          console.log("[X] Échecs répétés. Nouveau QR code requis...");
+          if (fs.existsSync(SESSION_FOLDER)) {
+            fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+          }
+          reconnectAttempts = 0;
+          isReconnecting = false;
+          await delay(3000);
+          startBot();
+        }
+      }
+      // 🔒 Autres erreurs - reconnexion avec exponential backoff
+      else {
+        reconnectAttempts++;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          const waitTime = calculateReconnectDelay(reconnectAttempts);
+          console.log(`[🔄] Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${(waitTime/1000).toFixed(1)}s...`);
+          isReconnecting = false;
+          await delay(waitTime);
+          startBot();
+        } else {
+          console.log("[X] Maximum de tentatives atteint. Pause de 2 minutes...");
+          reconnectAttempts = 0;
+          isReconnecting = false;
+          await delay(2 * 60 * 1000);
+          startBot();
         }
       }
     }
