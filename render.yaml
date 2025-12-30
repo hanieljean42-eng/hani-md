@@ -25,7 +25,15 @@ services:
         value: "HANI-MD"
       - key: STICKER_AUTHOR_NAME
         value: "H2025"
-      - key: SESSION_ID
-        sync: false  # Tu dois ajouter cette valeur manuellement dans Render
+      - key: MYSQL_HOST
+        value: "mainline.proxy.rlwy.net"
+      - key: MYSQL_PORT
+        value: "14579"
+      - key: MYSQL_USER
+        value: "root"
+      - key: MYSQL_PASSWORD
+        value: "HjaFazWgJyqNlLQyWaAsazQpMnjdEdga"
+      - key: MYSQL_DATABASE
+        value: "railway"
       - key: MYSQL_URL
-        sync: false  # URL MySQL: mysql://user:pass@host:3306/database
+        value: "mysql://root:HjaFazWgJyqNlLQyWaAsazQpMnjdEdga@mainline.proxy.rlwy.net:14579/railway"
