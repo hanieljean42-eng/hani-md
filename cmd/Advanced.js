@@ -766,4 +766,373 @@ ovlcmd({
   await repondre(list);
 });
 
+// ═══════════════════════════════════════════════════════════
+// 👤 GESTION DU PROFIL BOT
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd({
+  nom_cmd: "setname",
+  classe: "👤 Profil",
+  react: "✏️",
+  desc: "Change le nom WhatsApp du bot. Usage: .setname Nouveau Nom",
+  alias: ["changename", "botname", "nom"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  if (!arg[0]) return repondre("❌ Usage: .setname Nouveau Nom");
+  
+  const newName = arg.join(' ');
+  
+  if (newName.length > 25) {
+    return repondre("❌ Le nom ne peut pas dépasser 25 caractères.");
+  }
+  
+  try {
+    await hani.updateProfileName(newName);
+    await repondre(`✅ Nom WhatsApp changé en: *${newName}*`);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "setbio",
+  classe: "👤 Profil",
+  react: "📝",
+  desc: "Change la bio/statut WhatsApp du bot. Usage: .setbio Nouvelle bio",
+  alias: ["bio", "setstatus", "about"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  if (!arg[0]) return repondre("❌ Usage: .setbio Nouvelle bio");
+  
+  const newBio = arg.join(' ');
+  
+  if (newBio.length > 139) {
+    return repondre("❌ La bio ne peut pas dépasser 139 caractères.");
+  }
+  
+  try {
+    await hani.updateProfileStatus(newBio);
+    await repondre(`✅ Bio WhatsApp changée en:\n\n_${newBio}_`);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "setpp",
+  classe: "👤 Profil",
+  react: "🖼️",
+  desc: "Change la photo de profil du bot. Réponds à une image.",
+  alias: ["setpic", "setphoto", "pp"]
+}, async (hani, ms, { repondre, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const quotedMsg = ms.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+  
+  if (!quotedMsg?.imageMessage) {
+    return repondre("❌ Réponds à une image pour la définir comme photo de profil.");
+  }
+  
+  try {
+    const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+    const buffer = await downloadMediaMessage(
+      { message: quotedMsg },
+      'buffer',
+      {}
+    );
+    
+    await hani.updateProfilePicture(hani.user.id, buffer);
+    await repondre("✅ Photo de profil mise à jour!");
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🔒 CONFIDENTIALITÉ & VIE PRIVÉE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd({
+  nom_cmd: "privacy",
+  classe: "🔒 Confidentialité",
+  react: "🔐",
+  desc: "Affiche les paramètres de confidentialité actuels",
+  alias: ["confidentialite", "vieprivee"]
+}, async (hani, ms, { repondre, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  try {
+    const settings = await hani.fetchPrivacySettings();
+    
+    const statusMap = {
+      'all': '👁️ Tout le monde',
+      'contacts': '📱 Contacts',
+      'contact_blacklist': '🚫 Contacts sauf...',
+      'none': '🔒 Personne',
+      'match_last_seen': '🔄 Comme Vu à'
+    };
+    
+    const privacy = `
+╔══════════════════════════════╗
+║     🔒 CONFIDENTIALITÉ       ║
+╠══════════════════════════════╣
+║
+║ 👤 Photo de profil:
+║    ${statusMap[settings.profile] || settings.profile}
+║
+║ 🕐 Vu à (dernière connexion):
+║    ${statusMap[settings.last] || settings.last}
+║
+║ ✅ Confirmations de lecture:
+║    ${settings.readreceipts === 'all' ? '✅ Activées' : '❌ Désactivées'}
+║
+║ 📊 Statuts:
+║    ${statusMap[settings.status] || settings.status}
+║
+║ 🔵 En ligne:
+║    ${statusMap[settings.online] || settings.online || '👁️ Visible'}
+║
+║ 📋 Infos groupes:
+║    ${statusMap[settings.groupadd] || settings.groupadd}
+║
+╚══════════════════════════════╝
+
+💡 Commandes disponibles:
+• .hidenum - Masquer numéro
+• .hideonline - Masquer "en ligne"
+• .hidevu - Masquer "vu à"
+• .hidepp - Masquer photo profil`;
+    
+    await repondre(privacy);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "hidepp",
+  classe: "🔒 Confidentialité",
+  react: "🖼️",
+  desc: "Masque ta photo de profil. Usage: .hidepp all/contacts/none",
+  alias: ["hidephoto", "hidepic"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const option = arg[0]?.toLowerCase() || 'none';
+  const validOptions = ['all', 'contacts', 'contact_blacklist', 'none'];
+  
+  if (!validOptions.includes(option)) {
+    return repondre(`❌ Options valides: all, contacts, none\n\n• all = Tout le monde peut voir\n• contacts = Seulement les contacts\n• none = Personne ne peut voir`);
+  }
+  
+  try {
+    await hani.updateProfilePicturePrivacy(option);
+    
+    const messages = {
+      'all': '👁️ Photo visible par tout le monde',
+      'contacts': '📱 Photo visible par les contacts uniquement',
+      'none': '🔒 Photo masquée à tout le monde'
+    };
+    
+    await repondre(`✅ ${messages[option] || 'Paramètre mis à jour'}`);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}\n\n💡 Cette fonction nécessite WhatsApp récent.`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "hidevu",
+  classe: "🔒 Confidentialité",
+  react: "🕐",
+  desc: "Masque 'Vu à'. Usage: .hidevu all/contacts/none",
+  alias: ["hidelastseen", "vumasque"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const option = arg[0]?.toLowerCase() || 'none';
+  const validOptions = ['all', 'contacts', 'contact_blacklist', 'none'];
+  
+  if (!validOptions.includes(option)) {
+    return repondre(`❌ Options valides: all, contacts, none\n\n• all = Tout le monde peut voir\n• contacts = Seulement les contacts\n• none = Personne ne peut voir`);
+  }
+  
+  try {
+    await hani.updateLastSeenPrivacy(option);
+    
+    const messages = {
+      'all': '👁️ "Vu à" visible par tout le monde',
+      'contacts': '📱 "Vu à" visible par les contacts uniquement', 
+      'none': '🔒 "Vu à" masqué à tout le monde'
+    };
+    
+    await repondre(`✅ ${messages[option] || 'Paramètre mis à jour'}\n\n⚠️ Note: Si tu masques ton "Vu à", tu ne verras plus celui des autres.`);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "hideonline",
+  classe: "🔒 Confidentialité",
+  react: "🟢",
+  desc: "Masque ton statut 'en ligne'. Usage: .hideonline on/off",
+  alias: ["hideenligne", "invisible"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const option = arg[0]?.toLowerCase();
+  
+  if (option !== 'on' && option !== 'off') {
+    return repondre(`❌ Usage: .hideonline on/off\n\n• on = Masquer "en ligne"\n• off = Afficher "en ligne"`);
+  }
+  
+  try {
+    // match_last_seen = visible seulement pour ceux qui partagent aussi
+    // all = visible par tout le monde
+    await hani.updateOnlinePrivacy(option === 'on' ? 'match_last_seen' : 'all');
+    
+    if (option === 'on') {
+      await repondre(`✅ Statut "en ligne" masqué!\n\n🔒 Tu apparaîtras hors ligne pour tout le monde.\n⚠️ Tu ne verras pas non plus qui est en ligne.`);
+    } else {
+      await repondre(`✅ Statut "en ligne" visible!\n\n👁️ Tout le monde peut voir quand tu es en ligne.`);
+    }
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}\n\n💡 Cette fonction nécessite WhatsApp récent.`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "hideread",
+  classe: "🔒 Confidentialité",
+  react: "✅",
+  desc: "Masque les confirmations de lecture (coches bleues). Usage: .hideread on/off",
+  alias: ["hideblue", "cochesbleues"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const option = arg[0]?.toLowerCase();
+  
+  if (option !== 'on' && option !== 'off') {
+    return repondre(`❌ Usage: .hideread on/off\n\n• on = Masquer coches bleues\n• off = Afficher coches bleues`);
+  }
+  
+  try {
+    await hani.updateReadReceiptsPrivacy(option === 'on' ? 'none' : 'all');
+    
+    if (option === 'on') {
+      await repondre(`✅ Coches bleues désactivées!\n\n🔒 Les autres ne verront pas quand tu lis.\n⚠️ Tu ne verras pas non plus leurs coches bleues.`);
+    } else {
+      await repondre(`✅ Coches bleues activées!\n\n👁️ Confirmations de lecture visibles.`);
+    }
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "hidegroups",
+  classe: "🔒 Confidentialité",
+  react: "👥",
+  desc: "Qui peut t'ajouter aux groupes. Usage: .hidegroups all/contacts/none",
+  alias: ["groupinvite", "groupadd"]
+}, async (hani, ms, { repondre, arg, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  const option = arg[0]?.toLowerCase() || 'contacts';
+  const validOptions = ['all', 'contacts', 'contact_blacklist', 'none'];
+  
+  if (!validOptions.includes(option)) {
+    return repondre(`❌ Options valides: all, contacts, none\n\n• all = Tout le monde peut t'ajouter\n• contacts = Seulement les contacts\n• none = Personne (invitations seulement)`);
+  }
+  
+  try {
+    await hani.updateGroupsAddPrivacy(option);
+    
+    const messages = {
+      'all': '👥 Tout le monde peut t\'ajouter aux groupes',
+      'contacts': '📱 Seuls les contacts peuvent t\'ajouter',
+      'none': '🔒 Personne ne peut t\'ajouter (invitations seulement)'
+    };
+    
+    await repondre(`✅ ${messages[option] || 'Paramètre mis à jour'}`);
+  } catch (e) {
+    await repondre(`❌ Erreur: ${e.message}`);
+  }
+});
+
+ovlcmd({
+  nom_cmd: "fullprivacy",
+  classe: "🔒 Confidentialité",
+  react: "🛡️",
+  desc: "Active la confidentialité maximale (tout masqué)",
+  alias: ["maxprivacy", "ghostmode"]
+}, async (hani, ms, { repondre, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+  
+  await repondre("🔄 Activation de la confidentialité maximale...");
+  
+  const results = [];
+  
+  try {
+    // Masquer photo de profil
+    try {
+      await hani.updateProfilePicturePrivacy('none');
+      results.push("✅ Photo de profil masquée");
+    } catch (e) {
+      results.push("❌ Photo de profil: " + e.message);
+    }
+    
+    // Masquer "Vu à"
+    try {
+      await hani.updateLastSeenPrivacy('none');
+      results.push("✅ 'Vu à' masqué");
+    } catch (e) {
+      results.push("❌ Vu à: " + e.message);
+    }
+    
+    // Masquer "En ligne"
+    try {
+      await hani.updateOnlinePrivacy('match_last_seen');
+      results.push("✅ Statut 'en ligne' masqué");
+    } catch (e) {
+      results.push("❌ En ligne: " + e.message);
+    }
+    
+    // Désactiver coches bleues
+    try {
+      await hani.updateReadReceiptsPrivacy('none');
+      results.push("✅ Coches bleues désactivées");
+    } catch (e) {
+      results.push("❌ Coches bleues: " + e.message);
+    }
+    
+    // Groupes - contacts seulement
+    try {
+      await hani.updateGroupsAddPrivacy('contacts');
+      results.push("✅ Ajout groupes: contacts seulement");
+    } catch (e) {
+      results.push("❌ Groupes: " + e.message);
+    }
+    
+    const report = `
+╔══════════════════════════════╗
+║   🛡️ MODE FANTÔME ACTIVÉ     ║
+╠══════════════════════════════╣
+
+${results.join('\n')}
+
+╠══════════════════════════════╣
+║ 🔒 Tu es maintenant invisible║
+║ pour la plupart des gens!   ║
+╚══════════════════════════════╝
+
+⚠️ Note: En mode fantôme, tu ne verras
+pas non plus les infos des autres.`;
+    
+    await repondre(report);
+  } catch (e) {
+    await repondre(`❌ Erreur générale: ${e.message}`);
+  }
+});
+
 console.log("✅ Advanced Commands loaded - HANI-MD V3.0");
