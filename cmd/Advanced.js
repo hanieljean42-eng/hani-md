@@ -10,6 +10,7 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const config = require('../set');
 const fs = require('fs');
 const path = require('path');
+const db = require('../DataBase/mysql');
 
 // ═══════════════════════════════════════════════════════════
 // 🔒 SÉCURITÉ AVANCÉE
@@ -21,36 +22,60 @@ ovlcmd({
   react: "🛡️",
   desc: "Active/désactive toutes les protections du groupe",
   alias: ["protection", "securite"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser }) => {
+}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, arg }) => {
   if (!verifGroupe) return repondre("❌ Cette commande est réservée aux groupes.");
   if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
   
-  const protections = {
-    antilink: true,
-    antibot: true,
-    antispam: true,
-    antimention: true,
-    antitag: true
-  };
-  
-  // Active toutes les protections
   const groupId = ms.key.remoteJid;
+  const action = arg[0]?.toLowerCase();
+  const activate = action !== 'off';
   
-  const message = `
+  try {
+    // Activer dans la vraie DB
+    if (db.isConnected && db.isConnected()) {
+      await db.query(`
+        INSERT INTO \`groups\` (jid, antilink, antibot, antispam, antitag)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE antilink=?, antibot=?, antispam=?, antitag=?
+      `, [groupId, activate, activate, activate, activate, activate, activate, activate, activate]);
+    }
+    
+    // Aussi sauvegarder en local
+    const protectFile = path.join(__dirname, '../DataBase/protected_groups.json');
+    let protected = {};
+    if (fs.existsSync(protectFile)) {
+      protected = JSON.parse(fs.readFileSync(protectFile));
+    }
+    protected[groupId] = {
+      antilink: activate,
+      antibot: activate,
+      antispam: activate,
+      antimention: activate,
+      antitag: activate,
+      updatedAt: Date.now()
+    };
+    fs.writeFileSync(protectFile, JSON.stringify(protected, null, 2));
+    
+    const status = activate ? 'ACTIVÉE' : 'DÉSACTIVÉE';
+    const emoji = activate ? '✅' : '❌';
+    
+    const message = `
 ╔══════════════════════════════╗
-║     🛡️ PROTECTION ACTIVÉE    ║
+║     🛡️ PROTECTION ${status}    ║
 ╠══════════════════════════════╣
-║ ✅ Anti-Link     : ACTIVÉ    ║
-║ ✅ Anti-Bot      : ACTIVÉ    ║
-║ ✅ Anti-Spam     : ACTIVÉ    ║
-║ ✅ Anti-Mention  : ACTIVÉ    ║
-║ ✅ Anti-Tag      : ACTIVÉ    ║
+║ ${emoji} Anti-Link     : ${activate ? 'ON' : 'OFF'}    ║
+║ ${emoji} Anti-Bot      : ${activate ? 'ON' : 'OFF'}    ║
+║ ${emoji} Anti-Spam     : ${activate ? 'ON' : 'OFF'}    ║
+║ ${emoji} Anti-Mention  : ${activate ? 'ON' : 'OFF'}    ║
+║ ${emoji} Anti-Tag      : ${activate ? 'ON' : 'OFF'}    ║
 ╠══════════════════════════════╣
-║ 🔒 Le groupe est maintenant  ║
-║    entièrement protégé !     ║
+║ 💾 Sauvegardé en base!       ║
 ╚══════════════════════════════╝`;
-  
-  await repondre(message);
+    
+    await repondre(message);
+  } catch (e) {
+    await repondre("❌ Erreur: " + e.message);
+  }
 });
 
 ovlcmd({
@@ -526,25 +551,67 @@ ovlcmd({
   nom_cmd: "gamble",
   classe: "💰 Économie",
   react: "🎲",
-  desc: "Parie tes points. Usage: .gamble montant",
+  desc: "Parie tes coins. Usage: .gamble montant",
   alias: ["pari", "bet"]
-}, async (hani, ms, { repondre, arg }) => {
+}, async (hani, ms, { repondre, arg, auteurMessage }) => {
   if (!arg[0]) return repondre("❌ Usage: .gamble 100");
   
   const amount = parseInt(arg[0]);
   
   if (isNaN(amount) || amount < 10) {
-    return repondre("❌ Mise minimum: 10 💎");
+    return repondre("❌ Mise minimum: 10 💰");
   }
   
-  const win = Math.random() > 0.5;
-  const multiplier = Math.random() * 2 + 0.5;
-  
-  if (win) {
-    const winAmount = Math.floor(amount * multiplier);
-    await repondre(`🎲 *VICTOIRE!*\n\n💰 Mise: ${amount} 💎\n✨ Multiplicateur: x${multiplier.toFixed(2)}\n🏆 Gain: +${winAmount} 💎`);
-  } else {
-    await repondre(`🎲 *PERDU!*\n\n💸 Tu as perdu ${amount} 💎\n\n💡 Retente ta chance!`);
+  try {
+    // Récupérer le solde réel
+    let currentCoins = 0;
+    let userId = auteurMessage;
+    
+    if (db.isConnected && db.isConnected()) {
+      const user = await db.query(`SELECT coins FROM users_economy WHERE jid = ?`, [userId]);
+      if (user && user[0]) {
+        currentCoins = user[0].coins || 0;
+      }
+    } else {
+      // Fallback JSON
+      const usersFile = path.join(__dirname, '../DataBase/users_pro.json');
+      if (fs.existsSync(usersFile)) {
+        const users = JSON.parse(fs.readFileSync(usersFile));
+        currentCoins = users[userId]?.coins || 0;
+      }
+    }
+    
+    if (currentCoins < amount) {
+      return repondre(`❌ Solde insuffisant! Tu as ${currentCoins} 💰`);
+    }
+    
+    const win = Math.random() > 0.55; // 45% de chance de gagner
+    const multiplier = win ? (Math.random() * 1.5 + 1) : 0;
+    const change = win ? Math.floor(amount * multiplier) - amount : -amount;
+    const newCoins = currentCoins + change;
+    
+    // Mettre à jour le solde réel
+    if (db.isConnected && db.isConnected()) {
+      await db.query(`UPDATE users_economy SET coins = ? WHERE jid = ?`, [newCoins, userId]);
+    }
+    // Aussi en JSON
+    const usersFile = path.join(__dirname, '../DataBase/users_pro.json');
+    let users = {};
+    if (fs.existsSync(usersFile)) {
+      users = JSON.parse(fs.readFileSync(usersFile));
+    }
+    if (!users[userId]) users[userId] = { coins: 0 };
+    users[userId].coins = newCoins;
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    
+    if (win) {
+      const winAmount = Math.floor(amount * multiplier);
+      await repondre(`🎲 *VICTOIRE!*\n\n💰 Mise: ${amount}\n✨ Multiplicateur: x${multiplier.toFixed(2)}\n🏆 Gain: +${winAmount - amount} coins\n\n💵 Nouveau solde: ${newCoins} 💰`);
+    } else {
+      await repondre(`🎲 *PERDU!*\n\n💸 Tu as perdu ${amount} coins\n\n💵 Nouveau solde: ${newCoins} 💰\n💡 Retente ta chance!`);
+    }
+  } catch (e) {
+    await repondre("❌ Erreur: " + e.message);
   }
 });
 

@@ -6726,6 +6726,31 @@ ${actionDesc}
         });
       }
       
+      // 🤖 AUTO-REPLY: Réponses automatiques configurées
+      if (!msg.key.fromMe) {
+        const texte = msg.message?.conversation || msg.message?.extendedTextMessage?.text || "";
+        if (texte) {
+          try {
+            const autoReplyFile = path.join(__dirname, "DataBase/autoreply.json");
+            if (fs.existsSync(autoReplyFile)) {
+              const autoReplies = JSON.parse(fs.readFileSync(autoReplyFile, "utf8"));
+              const triggers = Object.keys(autoReplies);
+              const lowerText = texte.toLowerCase();
+              
+              for (const trigger of triggers) {
+                if (lowerText.includes(trigger.toLowerCase())) {
+                  await hani.sendMessage(from, { text: autoReplies[trigger] }, { quoted: msg });
+                  console.log(`🤖 [AUTO-REPLY] Déclencheur: "${trigger}" → Réponse envoyée`);
+                  break; // Une seule réponse par message
+                }
+              }
+            }
+          } catch (arErr) {
+            console.log(`⚠️ [AUTO-REPLY] Erreur: ${arErr.message}`);
+          }
+        }
+      }
+      
       // 🤖 PROTECTION ANTI-BOT DÉSACTIVÉE
       
       // ═══════════════════════════════════════════════════════════
