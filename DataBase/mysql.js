@@ -499,6 +499,26 @@ async function isSudo(jid) {
   return user?.is_sudo || false;
 }
 
+async function getSudoList() {
+  if (!isConnected) return [];
+  try {
+    const [rows] = await pool.execute('SELECT jid FROM users WHERE is_sudo = 1');
+    return rows.map(r => r.jid);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function getBannedUsers() {
+  if (!isConnected) return [];
+  try {
+    const [rows] = await pool.execute('SELECT jid FROM users WHERE is_banned = 1');
+    return rows.map(r => r.jid);
+  } catch (error) {
+    return [];
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // 👥 GROUPES
 // ═══════════════════════════════════════════════════════════
@@ -1512,9 +1532,11 @@ module.exports = {
   banUser,
   unbanUser,
   isBanned,
+  getBannedUsers,
   addSudo,
   removeSudo,
   isSudo,
+  getSudoList,
   
   // Groupes
   getGroup,
