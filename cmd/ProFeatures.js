@@ -11,106 +11,60 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../DataBase/mysql');
 
-// Fichiers de données locaux (fallback si MySQL non dispo)
-const DATA_DIR = path.join(__dirname, '../DataBase');
-const USERS_FILE = path.join(DATA_DIR, 'users_pro.json');
-
 // ═══════════════════════════════════════════════════════════
-// 🗄️ FONCTIONS DATABASE (MySQL + JSON fallback)
+// 🗄️ FONCTIONS DATABASE (MySQL UNIQUEMENT)
 // ═══════════════════════════════════════════════════════════
 
-// Charger/Sauvegarder JSON
-function loadJSON(file, defaultValue = {}) {
-  try {
-    if (fs.existsSync(file)) {
-      return JSON.parse(fs.readFileSync(file));
-    }
-  } catch (e) {}
-  return defaultValue;
-}
-
-function saveJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
-// Obtenir un utilisateur depuis MySQL ou JSON
+// Obtenir un utilisateur depuis MySQL
 async function getUser(userId) {
   try {
-    // Essayer MySQL d'abord
-    if (db.isConnected && db.isConnected()) {
-      const user = await db.query(
-        `SELECT * FROM users_economy WHERE jid = ?`, [userId]
-      );
-      if (user && user[0]) {
-        return user[0];
-      }
-      // Créer l'utilisateur s'il n'existe pas
-      await db.query(`
-        INSERT INTO users_economy (jid, xp, level, coins, diamonds, streak, last_daily, badges, inventory, total_messages, created_at)
-        VALUES (?, 0, 1, 100, 0, 0, NULL, '[]', '[]', 0, NOW())
-        ON DUPLICATE KEY UPDATE jid = jid
-      `, [userId]);
-      return { jid: userId, xp: 0, level: 1, coins: 100, diamonds: 0, streak: 0, last_daily: null, badges: '[]', inventory: '[]', total_messages: 0 };
+    const user = await db.query(
+      `SELECT * FROM users_economy WHERE jid = ?`, [userId]
+    );
+    if (user && user[0]) {
+      return user[0];
     }
+    // Créer l'utilisateur s'il n'existe pas
+    await db.query(`
+      INSERT INTO users_economy (jid, xp, level, coins, diamonds, streak, last_daily, badges, inventory, total_messages, created_at)
+      VALUES (?, 0, 1, 100, 0, 0, NULL, '[]', '[]', 0, NOW())
+      ON DUPLICATE KEY UPDATE jid = jid
+    `, [userId]);
+    return { jid: userId, xp: 0, level: 1, coins: 100, diamonds: 0, streak: 0, last_daily: null, badges: '[]', inventory: '[]', total_messages: 0 };
   } catch (e) {
-    console.log('[ProFeatures] MySQL error, using JSON fallback:', e.message);
+    console.log('[ProFeatures] MySQL error:', e.message);
+    return { jid: userId, xp: 0, level: 1, coins: 100, diamonds: 0, streak: 0, last_daily: null, badges: '[]', inventory: '[]', total_messages: 0 };
   }
-  
-  // Fallback JSON
-  const users = loadJSON(USERS_FILE);
-  if (!users[userId]) {
-    users[userId] = {
-      xp: 0,
-      level: 1,
-      coins: 100,
-      diamonds: 0,
-      badges: [],
-      inventory: [],
-      streak: 0,
-      lastDaily: null,
-      totalMessages: 0,
-      joinDate: new Date().toISOString()
-    };
-    saveJSON(USERS_FILE, users);
-  }
-  return users[userId];
 }
 
-// Mettre à jour un utilisateur
+// Mettre à jour un utilisateur dans MySQL
 async function updateUser(userId, data) {
   try {
-    if (db.isConnected && db.isConnected()) {
-      const updates = [];
-      const values = [];
-      
-      Object.entries(data).forEach(([key, value]) => {
-        // Convertir les noms de champs
-        const dbKey = key === 'lastDaily' ? 'last_daily' : 
-                     key === 'totalMessages' ? 'total_messages' : key;
-        if (typeof value === 'object') {
-          updates.push(`${dbKey} = ?`);
-          values.push(JSON.stringify(value));
-        } else {
-          updates.push(`${dbKey} = ?`);
-          values.push(value);
-        }
-      });
-      
-      if (updates.length > 0) {
-        values.push(userId);
-        await db.query(`UPDATE users_economy SET ${updates.join(', ')} WHERE jid = ?`, values);
+    const updates = [];
+    const values = [];
+    
+    Object.entries(data).forEach(([key, value]) => {
+      // Convertir les noms de champs
+      const dbKey = key === 'lastDaily' ? 'last_daily' : 
+                   key === 'totalMessages' ? 'total_messages' : key;
+      if (typeof value === 'object') {
+        updates.push(`${dbKey} = ?`);
+        values.push(JSON.stringify(value));
+      } else {
+        updates.push(`${dbKey} = ?`);
+        values.push(value);
       }
-      return data;
+    });
+    
+    if (updates.length > 0) {
+      values.push(userId);
+      await db.query(`UPDATE users_economy SET ${updates.join(', ')} WHERE jid = ?`, values);
     }
+    return data;
   } catch (e) {
     console.log('[ProFeatures] MySQL update error:', e.message);
+    return data;
   }
-  
-  // Fallback JSON
-  const users = loadJSON(USERS_FILE);
-  users[userId] = { ...users[userId], ...data };
-  saveJSON(USERS_FILE, users);
-  return users[userId];
 }
 
 // Calculer le niveau basé sur l'XP
@@ -126,25 +80,23 @@ function xpForNextLevel(level) {
 // Créer la table économie si elle n'existe pas
 async function initEconomyTable() {
   try {
-    if (db.isConnected && db.isConnected()) {
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS users_economy (
-          jid VARCHAR(100) PRIMARY KEY,
-          xp INT DEFAULT 0,
-          level INT DEFAULT 1,
-          coins INT DEFAULT 100,
-          diamonds INT DEFAULT 0,
-          streak INT DEFAULT 0,
-          last_daily DATE NULL,
-          badges JSON DEFAULT '[]',
-          inventory JSON DEFAULT '[]',
-          total_messages INT DEFAULT 0,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('[ProFeatures] Table users_economy ready');
-    }
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users_economy (
+        jid VARCHAR(100) PRIMARY KEY,
+        xp INT DEFAULT 0,
+        level INT DEFAULT 1,
+        coins INT DEFAULT 100,
+        diamonds INT DEFAULT 0,
+        streak INT DEFAULT 0,
+        last_daily DATE NULL,
+        badges JSON DEFAULT '[]',
+        inventory JSON DEFAULT '[]',
+        total_messages INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('[ProFeatures] Table users_economy ready');
   } catch (e) {
     console.log('[ProFeatures] Could not create economy table:', e.message);
   }
@@ -212,21 +164,10 @@ ovlcmd({
   try {
     let sorted = [];
     
-    // Essayer MySQL d'abord
-    if (db.isConnected && db.isConnected()) {
-      const results = await db.query(`SELECT * FROM users_economy ORDER BY level DESC, xp DESC LIMIT 10`);
-      if (results && results.length > 0) {
-        sorted = results.map(u => ({ id: u.jid, level: u.level, xp: u.xp }));
-      }
-    }
-    
-    // Fallback JSON si pas de résultats MySQL
-    if (sorted.length === 0) {
-      const users = loadJSON(USERS_FILE);
-      sorted = Object.entries(users)
-        .map(([id, data]) => ({ id, level: data.level || 1, xp: data.xp || 0 }))
-        .sort((a, b) => b.level - a.level || b.xp - a.xp)
-        .slice(0, 10);
+    // Récupérer depuis MySQL
+    const results = await db.query(`SELECT * FROM users_economy ORDER BY level DESC, xp DESC LIMIT 10`);
+    if (results && results.length > 0) {
+      sorted = results.map(u => ({ id: u.jid, level: u.level, xp: u.xp }));
     }
     
     if (sorted.length === 0) {

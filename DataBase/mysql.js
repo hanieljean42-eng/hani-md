@@ -376,6 +376,42 @@ async function createTables() {
       file_path TEXT,
       status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+    
+    // 🆕 Table des notes utilisateurs
+    `CREATE TABLE IF NOT EXISTS notes (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_jid VARCHAR(100) NOT NULL,
+      name VARCHAR(100) NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY unique_note (user_jid, name),
+      INDEX idx_user (user_jid)
+    )`,
+    
+    // 🆕 Table des protections de groupe
+    `CREATE TABLE IF NOT EXISTS group_protections (
+      group_jid VARCHAR(100) PRIMARY KEY,
+      antilink BOOLEAN DEFAULT FALSE,
+      antibot BOOLEAN DEFAULT FALSE,
+      antispam BOOLEAN DEFAULT FALSE,
+      antitag BOOLEAN DEFAULT FALSE,
+      antimention BOOLEAN DEFAULT FALSE,
+      welcome BOOLEAN DEFAULT TRUE,
+      goodbye BOOLEAN DEFAULT TRUE,
+      welcome_message TEXT,
+      goodbye_message TEXT,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`,
+    
+    // 🆕 Table pour broadcast/diffusion
+    `CREATE TABLE IF NOT EXISTS broadcast_lists (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      jids JSON NOT NULL,
+      created_by VARCHAR(100),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`
   ];
 
@@ -1310,7 +1346,156 @@ async function getPool() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// 📤 EXPORTS
+// � NOTES UTILISATEURS
+// ═══════════════════════════════════════════════════════════
+
+async function saveNote(userJid, name, content) {
+  if (!isConnected) return false;
+  try {
+    await pool.execute(
+      `INSERT INTO notes (user_jid, name, content) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE content = ?, updated_at = NOW()`,
+      [userJid, name.toLowerCase(), content, content]
+    );
+    return true;
+  } catch (error) {
+    console.log("[!] saveNote error:", error.message);
+    return false;
+  }
+}
+
+async function getNote(userJid, name) {
+  if (!isConnected) return null;
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM notes WHERE user_jid = ? AND name = ?',
+      [userJid, name.toLowerCase()]
+    );
+    return rows[0] || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getAllNotes(userJid) {
+  if (!isConnected) return [];
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM notes WHERE user_jid = ? ORDER BY created_at DESC',
+      [userJid]
+    );
+    return rows;
+  } catch (error) {
+    return [];
+  }
+}
+
+async function deleteNote(userJid, name) {
+  if (!isConnected) return false;
+  try {
+    await pool.execute('DELETE FROM notes WHERE user_jid = ? AND name = ?', [userJid, name.toLowerCase()]);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🛡️ PROTECTIONS DE GROUPE
+// ═══════════════════════════════════════════════════════════
+
+async function getGroupProtection(groupJid) {
+  if (!isConnected) return null;
+  try {
+    const [rows] = await pool.execute('SELECT * FROM group_protections WHERE group_jid = ?', [groupJid]);
+    return rows[0] || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function setGroupProtection(groupJid, protections) {
+  if (!isConnected) return false;
+  try {
+    const fields = Object.keys(protections);
+    const values = Object.values(protections);
+    const updates = fields.map(f => `${f} = ?`).join(', ');
+    
+    await pool.execute(
+      `INSERT INTO group_protections (group_jid, ${fields.join(', ')}) 
+       VALUES (?, ${fields.map(() => '?').join(', ')})
+       ON DUPLICATE KEY UPDATE ${updates}`,
+      [groupJid, ...values, ...values]
+    );
+    return true;
+  } catch (error) {
+    console.log("[!] setGroupProtection error:", error.message);
+    return false;
+  }
+}
+
+async function isProtectionEnabled(groupJid, protectionType) {
+  if (!isConnected) return false;
+  try {
+    const protection = await getGroupProtection(groupJid);
+    return protection ? protection[protectionType] === 1 : false;
+  } catch (error) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📢 LISTES DE DIFFUSION (BROADCAST)
+// ═══════════════════════════════════════════════════════════
+
+async function createBroadcastList(name, jids, createdBy) {
+  if (!isConnected) return null;
+  try {
+    const [result] = await pool.execute(
+      'INSERT INTO broadcast_lists (name, jids, created_by) VALUES (?, ?, ?)',
+      [name, JSON.stringify(jids), createdBy]
+    );
+    return result.insertId;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getBroadcastList(name) {
+  if (!isConnected) return null;
+  try {
+    const [rows] = await pool.execute('SELECT * FROM broadcast_lists WHERE name = ?', [name]);
+    if (rows[0]) {
+      rows[0].jids = JSON.parse(rows[0].jids);
+    }
+    return rows[0] || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function getAllBroadcastLists() {
+  if (!isConnected) return [];
+  try {
+    const [rows] = await pool.execute('SELECT * FROM broadcast_lists ORDER BY created_at DESC');
+    return rows.map(r => ({ ...r, jids: JSON.parse(r.jids) }));
+  } catch (error) {
+    return [];
+  }
+}
+
+async function deleteBroadcastList(name) {
+  if (!isConnected) return false;
+  try {
+    await pool.execute('DELETE FROM broadcast_lists WHERE name = ?', [name]);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// �📤 EXPORTS
 // ═══════════════════════════════════════════════════════════
 
 module.exports = {
@@ -1405,6 +1590,23 @@ module.exports = {
   depositToBank,
   withdrawFromBank,
   getLeaderboard,
+  
+  // Notes
+  saveNote,
+  getNote,
+  getAllNotes,
+  deleteNote,
+  
+  // Protections de groupe
+  getGroupProtection,
+  setGroupProtection,
+  isProtectionEnabled,
+  
+  // Listes de diffusion
+  createBroadcastList,
+  getBroadcastList,
+  getAllBroadcastLists,
+  deleteBroadcastList,
   
   // Nettoyage
   cleanOldData

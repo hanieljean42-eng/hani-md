@@ -31,30 +31,14 @@ ovlcmd({
   const activate = action !== 'off';
   
   try {
-    // Activer dans la vraie DB
-    if (db.isConnected && db.isConnected()) {
-      await db.query(`
-        INSERT INTO \`groups\` (jid, antilink, antibot, antispam, antitag)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE antilink=?, antibot=?, antispam=?, antitag=?
-      `, [groupId, activate, activate, activate, activate, activate, activate, activate, activate]);
-    }
-    
-    // Aussi sauvegarder en local
-    const protectFile = path.join(__dirname, '../DataBase/protected_groups.json');
-    let protected = {};
-    if (fs.existsSync(protectFile)) {
-      protected = JSON.parse(fs.readFileSync(protectFile));
-    }
-    protected[groupId] = {
+    // Sauvegarder dans MySQL UNIQUEMENT
+    await db.setGroupProtection(groupId, {
       antilink: activate,
       antibot: activate,
       antispam: activate,
-      antimention: activate,
       antitag: activate,
-      updatedAt: Date.now()
-    };
-    fs.writeFileSync(protectFile, JSON.stringify(protected, null, 2));
+      antimention: activate
+    });
     
     const status = activate ? 'ACTIVÉE' : 'DÉSACTIVÉE';
     const emoji = activate ? '✅' : '❌';
@@ -207,18 +191,14 @@ ovlcmd({
     return repondre("❌ Usage: .autoreply mot | réponse");
   }
   
-  // Sauvegarder dans un fichier JSON
-  const autoReplyFile = path.join(__dirname, '../DataBase/autoreply.json');
-  let autoReplies = {};
+  // Sauvegarder dans MySQL UNIQUEMENT
+  const success = await db.createAutoReply(trigger.toLowerCase(), response, 'contains');
   
-  if (fs.existsSync(autoReplyFile)) {
-    autoReplies = JSON.parse(fs.readFileSync(autoReplyFile));
+  if (success) {
+    await repondre(`✅ Réponse auto configurée:\n\n📝 Déclencheur: "${trigger}"\n💬 Réponse: "${response}"\n💾 Sauvegardé en base de données!`);
+  } else {
+    await repondre(`❌ Erreur lors de la sauvegarde. Vérifiez la connexion MySQL.`);
   }
-  
-  autoReplies[trigger.toLowerCase()] = response;
-  fs.writeFileSync(autoReplyFile, JSON.stringify(autoReplies, null, 2));
-  
-  await repondre(`✅ Réponse auto configurée:\n\n📝 Déclencheur: "${trigger}"\n💬 Réponse: "${response}"`);
 });
 
 ovlcmd({
@@ -228,16 +208,10 @@ ovlcmd({
   desc: "Liste toutes les réponses automatiques",
   alias: ["listautoreply"]
 }, async (hani, ms, { repondre }) => {
-  const autoReplyFile = path.join(__dirname, '../DataBase/autoreply.json');
+  // Récupérer de MySQL UNIQUEMENT
+  const autoReplies = await db.getAutoReplies();
   
-  if (!fs.existsSync(autoReplyFile)) {
-    return repondre("📋 Aucune réponse automatique configurée.");
-  }
-  
-  const autoReplies = JSON.parse(fs.readFileSync(autoReplyFile));
-  const keys = Object.keys(autoReplies);
-  
-  if (keys.length === 0) {
+  if (autoReplies.length === 0) {
     return repondre("📋 Aucune réponse automatique configurée.");
   }
   
@@ -245,11 +219,12 @@ ovlcmd({
   list += "║   📋 RÉPONSES AUTOMATIQUES   ║\n";
   list += "╠══════════════════════════════╣\n";
   
-  keys.forEach((key, i) => {
-    list += `║ ${i+1}. "${key}" → "${autoReplies[key].substring(0, 20)}..."\n`;
+  autoReplies.forEach((ar, i) => {
+    list += `║ ${i+1}. [ID:${ar.id}] "${ar.trigger_word}" \u2192 "${ar.response.substring(0, 15)}..."\n`;
   });
   
   list += "╚══════════════════════════════╝";
+  list += "\n💾 Source: MySQL";
   
   await repondre(list);
 });
@@ -258,29 +233,25 @@ ovlcmd({
   nom_cmd: "delar",
   classe: "🎯 Automatisation", 
   react: "🗑️",
-  desc: "Supprime une réponse auto. Usage: .delar mot",
+  desc: "Supprime une réponse auto. Usage: .delar ID",
   alias: ["delautoreply"]
 }, async (hani, ms, { repondre, arg, superUser }) => {
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  if (!arg[0]) return repondre("❌ Usage: .delar mot");
+  if (!arg[0]) return repondre("❌ Usage: .delar ID (utilisez .listar pour voir les IDs)");
   
-  const trigger = arg.join(' ').toLowerCase();
-  const autoReplyFile = path.join(__dirname, '../DataBase/autoreply.json');
-  
-  if (!fs.existsSync(autoReplyFile)) {
-    return repondre("❌ Aucune réponse automatique configurée.");
+  const id = parseInt(arg[0]);
+  if (isNaN(id)) {
+    return repondre("❌ L'ID doit être un nombre. Utilisez .listar pour voir les IDs.");
   }
   
-  const autoReplies = JSON.parse(fs.readFileSync(autoReplyFile));
+  // Supprimer de MySQL UNIQUEMENT
+  const success = await db.deleteAutoReply(id);
   
-  if (!autoReplies[trigger]) {
-    return repondre(`❌ Pas de réponse auto pour "${trigger}".`);
+  if (success) {
+    await repondre(`✅ Réponse automatique ID:${id} supprimée.`);
+  } else {
+    await repondre(`❌ Erreur lors de la suppression. Vérifiez l'ID.`);
   }
-  
-  delete autoReplies[trigger];
-  fs.writeFileSync(autoReplyFile, JSON.stringify(autoReplies, null, 2));
-  
-  await repondre(`✅ Réponse auto "${trigger}" supprimée.`);
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -563,22 +534,21 @@ ovlcmd({
   }
   
   try {
-    // Récupérer le solde réel
+    // Récupérer le solde depuis MySQL uniquement
     let currentCoins = 0;
     let userId = auteurMessage;
     
-    if (db.isConnected && db.isConnected()) {
-      const user = await db.query(`SELECT coins FROM users_economy WHERE jid = ?`, [userId]);
-      if (user && user[0]) {
-        currentCoins = user[0].coins || 0;
-      }
+    const user = await db.query(`SELECT coins FROM users_economy WHERE jid = ?`, [userId]);
+    if (user && user[0]) {
+      currentCoins = user[0].coins || 0;
     } else {
-      // Fallback JSON
-      const usersFile = path.join(__dirname, '../DataBase/users_pro.json');
-      if (fs.existsSync(usersFile)) {
-        const users = JSON.parse(fs.readFileSync(usersFile));
-        currentCoins = users[userId]?.coins || 0;
-      }
+      // Créer l'utilisateur s'il n'existe pas
+      await db.query(`
+        INSERT INTO users_economy (jid, coins, level, xp) 
+        VALUES (?, 100, 1, 0)
+        ON DUPLICATE KEY UPDATE jid = jid
+      `, [userId]);
+      currentCoins = 100;
     }
     
     if (currentCoins < amount) {
@@ -590,19 +560,8 @@ ovlcmd({
     const change = win ? Math.floor(amount * multiplier) - amount : -amount;
     const newCoins = currentCoins + change;
     
-    // Mettre à jour le solde réel
-    if (db.isConnected && db.isConnected()) {
-      await db.query(`UPDATE users_economy SET coins = ? WHERE jid = ?`, [newCoins, userId]);
-    }
-    // Aussi en JSON
-    const usersFile = path.join(__dirname, '../DataBase/users_pro.json');
-    let users = {};
-    if (fs.existsSync(usersFile)) {
-      users = JSON.parse(fs.readFileSync(usersFile));
-    }
-    if (!users[userId]) users[userId] = { coins: 0 };
-    users[userId].coins = newCoins;
-    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    // Mettre à jour le solde dans MySQL
+    await db.query(`UPDATE users_economy SET coins = ? WHERE jid = ?`, [newCoins, userId]);
     
     if (win) {
       const winAmount = Math.floor(amount * multiplier);
@@ -680,24 +639,14 @@ ovlcmd({
     return repondre("❌ Usage: .note nom | contenu");
   }
   
-  const notesFile = path.join(__dirname, '../DataBase/notes.json');
-  let notes = {};
+  // Sauvegarder dans MySQL UNIQUEMENT
+  const success = await db.saveNote(auteurMessage, name, content);
   
-  if (fs.existsSync(notesFile)) {
-    notes = JSON.parse(fs.readFileSync(notesFile));
+  if (success) {
+    await repondre(`✅ Note "${name}" sauvegardée en base de données!`);
+  } else {
+    await repondre(`❌ Erreur lors de la sauvegarde.`);
   }
-  
-  const userId = auteurMessage;
-  if (!notes[userId]) notes[userId] = {};
-  
-  notes[userId][name.toLowerCase()] = {
-    content,
-    date: new Date().toISOString()
-  };
-  
-  fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2));
-  
-  await repondre(`✅ Note "${name}" sauvegardée!`);
 });
 
 ovlcmd({
@@ -710,22 +659,15 @@ ovlcmd({
   if (!arg[0]) return repondre("❌ Usage: .getnote nom");
   
   const name = arg.join(' ').toLowerCase();
-  const notesFile = path.join(__dirname, '../DataBase/notes.json');
   
-  if (!fs.existsSync(notesFile)) {
-    return repondre("❌ Aucune note trouvée.");
-  }
+  // Récupérer de MySQL UNIQUEMENT
+  const note = await db.getNote(auteurMessage, name);
   
-  const notes = JSON.parse(fs.readFileSync(notesFile));
-  const userId = auteurMessage;
-  
-  if (!notes[userId] || !notes[userId][name]) {
+  if (!note) {
     return repondre(`❌ Note "${name}" non trouvée.`);
   }
   
-  const note = notes[userId][name];
-  
-  await repondre(`📝 *Note: ${name}*\n\n${note.content}\n\n📅 Créée le: ${new Date(note.date).toLocaleDateString('fr-FR')}`);
+  await repondre(`📝 *Note: ${note.name}*\n\n${note.content}\n\n📅 Créée le: ${new Date(note.created_at).toLocaleDateString('fr-FR')}`);
 });
 
 ovlcmd({
@@ -735,33 +677,25 @@ ovlcmd({
   desc: "Liste toutes tes notes",
   alias: ["notes", "mesnotes"]
 }, async (hani, ms, { repondre, auteurMessage }) => {
-  const notesFile = path.join(__dirname, '../DataBase/notes.json');
+  // Récupérer de MySQL UNIQUEMENT
+  const notes = await db.getAllNotes(auteurMessage);
   
-  if (!fs.existsSync(notesFile)) {
+  if (notes.length === 0) {
     return repondre("📋 Tu n'as aucune note.");
   }
-  
-  const notes = JSON.parse(fs.readFileSync(notesFile));
-  const userId = auteurMessage;
-  
-  if (!notes[userId] || Object.keys(notes[userId]).length === 0) {
-    return repondre("📋 Tu n'as aucune note.");
-  }
-  
-  const userNotes = notes[userId];
-  const noteNames = Object.keys(userNotes);
   
   let list = "╔══════════════════════════════╗\n";
   list += "║       📋 TES NOTES           ║\n";
   list += "╠══════════════════════════════╣\n";
   
-  noteNames.forEach((name, i) => {
-    list += `║ ${i+1}. ${name}\n`;
+  notes.forEach((note, i) => {
+    list += `║ ${i+1}. ${note.name}\n`;
   });
   
   list += "╠══════════════════════════════╣\n";
   list += "║ 💡 .getnote nom pour lire    ║\n";
   list += "╚══════════════════════════════╝";
+  list += "\n💾 Source: MySQL";
   
   await repondre(list);
 });
@@ -1161,26 +1095,15 @@ ovlcmd({
   }
   
   try {
-    // Ajouter à la liste de surveillance dans MySQL
+    // Ajouter à la liste de surveillance dans MySQL UNIQUEMENT
     const added = await db.addToSurveillance(target);
     
-    // Aussi sauvegarder en local
-    const spyFile = path.join(__dirname, '../DataBase/surveillance.json');
-    let spyList = [];
-    if (fs.existsSync(spyFile)) {
-      spyList = JSON.parse(fs.readFileSync(spyFile));
-    }
-    
     const num = target.split('@')[0];
-    if (!spyList.includes(target)) {
-      spyList.push(target);
-      fs.writeFileSync(spyFile, JSON.stringify(spyList, null, 2));
-    }
     
     await repondre(`🕵️ *Surveillance Activée*
 
 👤 Cible: @${num}
-📊 Statut: ${added ? 'Ajouté à la base' : 'Déjà en surveillance'}
+📊 Statut: ${added ? 'Ajouté à MySQL' : 'Déjà en surveillance'}
 
 📋 Les messages de cette personne seront:
 • Loggés automatiquement
@@ -1190,7 +1113,9 @@ ovlcmd({
 ⚠️ Commandes associées:
 • .spylist - Voir toutes les cibles
 • .unspy @user - Arrêter la surveillance
-• .spyactivity @user - Voir l'activité`, { mentions: [target] });
+• .spyactivity @user - Voir l'activité
+
+💾 Source: MySQL`, { mentions: [target] });
   } catch (e) {
     await repondre(`❌ Erreur: ${e.message}`);
   }
@@ -1217,17 +1142,10 @@ ovlcmd({
   }
   
   try {
+    // Supprimer de MySQL UNIQUEMENT
     await db.removeFromSurveillance(target);
     
-    // Retirer du fichier local
-    const spyFile = path.join(__dirname, '../DataBase/surveillance.json');
-    if (fs.existsSync(spyFile)) {
-      let spyList = JSON.parse(fs.readFileSync(spyFile));
-      spyList = spyList.filter(jid => jid !== target);
-      fs.writeFileSync(spyFile, JSON.stringify(spyList, null, 2));
-    }
-    
-    await repondre(`✅ Surveillance arrêtée pour @${target.split('@')[0]}`, { mentions: [target] });
+    await repondre(`✅ Surveillance arrêtée pour @${target.split('@')[0]}\n💾 Supprimé de MySQL`, { mentions: [target] });
   } catch (e) {
     await repondre(`❌ Erreur: ${e.message}`);
   }
@@ -1243,39 +1161,33 @@ ovlcmd({
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
   
   try {
-    // Récupérer de MySQL
+    // Récupérer de MySQL UNIQUEMENT
     const dbList = await db.getSurveillanceList();
     
-    // Aussi du fichier local
-    const spyFile = path.join(__dirname, '../DataBase/surveillance.json');
-    let localList = [];
-    if (fs.existsSync(spyFile)) {
-      localList = JSON.parse(fs.readFileSync(spyFile));
-    }
-    
-    // Combiner les deux listes
-    const allJids = [...new Set([...dbList.map(r => r.jid), ...localList])];
-    
-    if (allJids.length === 0) {
+    if (dbList.length === 0) {
       return repondre("📋 Aucune personne sous surveillance.");
     }
+    
+    const allJids = dbList.map(r => r.jid);
     
     let message = `
 ╔══════════════════════════════╗
 ║   🕵️ LISTE DE SURVEILLANCE   ║
 ╠══════════════════════════════╣
-║ Total: ${allJids.length} cible(s)
+║ Total: ${dbList.length} cible(s)
 ╠══════════════════════════════╣\n`;
     
-    for (const jid of allJids) {
-      const num = jid.split('@')[0];
-      const stats = dbList.find(r => r.jid === jid);
-      const msgs = stats?.total_messages || 0;
+    for (const entry of dbList) {
+      const num = entry.jid.split('@')[0];
+      const msgs = entry.total_messages || 0;
+      const lastActive = entry.last_activity ? new Date(entry.last_activity).toLocaleString('fr-FR') : 'N/A';
       message += `║ 👤 @${num}\n`;
       message += `║    📊 Messages: ${msgs}\n`;
+      message += `║    🕐 Dernier: ${lastActive}\n`;
     }
     
     message += `╚══════════════════════════════╝`;
+    message += `\n💾 Source: MySQL`;
     
     await repondre(message, { mentions: allJids });
   } catch (e) {
@@ -1360,19 +1272,8 @@ ovlcmd({
       return repondre(`❌ @${target.split('@')[0]} est déjà banni!`, { mentions: [target] });
     }
     
-    // Bannir dans MySQL
+    // Bannir dans MySQL UNIQUEMENT
     await db.banUser(target);
-    
-    // Aussi en local pour backup
-    const banFile = path.join(__dirname, '../DataBase/banned.json');
-    let bannedList = [];
-    if (fs.existsSync(banFile)) {
-      bannedList = JSON.parse(fs.readFileSync(banFile));
-    }
-    if (!bannedList.includes(target)) {
-      bannedList.push(target);
-      fs.writeFileSync(banFile, JSON.stringify(bannedList, null, 2));
-    }
     
     await repondre(`
 ╔══════════════════════════════╗
@@ -1384,6 +1285,7 @@ ovlcmd({
 ║    commandes du bot
 ╠══════════════════════════════╣
 ║ ↩️ Pour débannir: .unban @user
+║ 💾 Sauvegardé dans MySQL
 ╚══════════════════════════════╝`, { mentions: [target] });
   } catch (e) {
     await repondre(`❌ Erreur: ${e.message}`);
@@ -1411,18 +1313,10 @@ ovlcmd({
   }
   
   try {
-    // Débannir dans MySQL
+    // Débannir dans MySQL UNIQUEMENT
     await db.unbanUser(target);
     
-    // Retirer du fichier local
-    const banFile = path.join(__dirname, '../DataBase/banned.json');
-    if (fs.existsSync(banFile)) {
-      let bannedList = JSON.parse(fs.readFileSync(banFile));
-      bannedList = bannedList.filter(jid => jid !== target);
-      fs.writeFileSync(banFile, JSON.stringify(bannedList, null, 2));
-    }
-    
-    await repondre(`✅ @${target.split('@')[0]} a été débanni et peut à nouveau utiliser le bot.`, { mentions: [target] });
+    await repondre(`✅ @${target.split('@')[0]} a été débanni et peut à nouveau utiliser le bot.\n💾 Supprimé de MySQL`, { mentions: [target] });
   } catch (e) {
     await repondre(`❌ Erreur: ${e.message}`);
   }
@@ -1438,22 +1332,15 @@ ovlcmd({
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
   
   try {
-    // Récupérer les bannis de MySQL
-    const dbBanned = await db.query ? 
-      (await db.query('SELECT jid FROM users WHERE is_banned = TRUE'))[0] : [];
+    // Récupérer les bannis de MySQL UNIQUEMENT
+    const result = await db.query('SELECT jid FROM users WHERE is_banned = TRUE');
+    const dbBanned = result ? result[0] || [] : [];
     
-    // Aussi du fichier local
-    const banFile = path.join(__dirname, '../DataBase/banned.json');
-    let localBanned = [];
-    if (fs.existsSync(banFile)) {
-      localBanned = JSON.parse(fs.readFileSync(banFile));
-    }
-    
-    const allBanned = [...new Set([...dbBanned.map(r => r.jid), ...localBanned])];
-    
-    if (allBanned.length === 0) {
+    if (dbBanned.length === 0) {
       return repondre("📋 Aucun utilisateur banni.");
     }
+    
+    const allBanned = dbBanned.map(r => r.jid);
     
     let message = `
 ╔══════════════════════════════╗
@@ -1467,6 +1354,7 @@ ovlcmd({
     }
     
     message += `╚══════════════════════════════╝`;
+    message += `\n💾 Source: MySQL`;
     
     await repondre(message, { mentions: allBanned });
   } catch (e) {

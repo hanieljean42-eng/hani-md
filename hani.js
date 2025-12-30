@@ -57,39 +57,43 @@ const qrState = {
 };
 
 // ═══════════════════════════════════════════════════════════
-// 📦 BASE DE DONNÉES HYBRIDE (Local + MySQL)
+// 📦 BASE DE DONNÉES MYSQL UNIQUEMENT
 // ═══════════════════════════════════════════════════════════
 
 class HaniDatabase {
-  constructor(dbPath = "./DataBase/hani.json") {
-    this.dbPath = dbPath;
-    this.data = this.load();
+  constructor() {
+    // Données en cache mémoire pour performance
+    this.data = {
+      users: {},
+      groups: {},
+      settings: {},
+      warns: {},
+      banned: [],
+      sudo: [],
+      approved: [],
+      limitedUsers: {},
+      stats: { commands: 0, messages: 0, startTime: Date.now() }
+    };
     this.mysqlConnected = false;
-    this.syncQueue = [];
     
-    // Connexion MySQL en arrière-plan
+    // Connexion MySQL obligatoire
     this.initMySQL();
   }
 
   async initMySQL() {
     try {
-      if (process.env.MYSQL_URL || process.env.MYSQL_HOST) {
-        const connected = await mysqlDB.connect();
-        if (connected) {
-          this.mysqlConnected = true;
-          console.log("[OK] MySQL connecté - Les données seront synchronisées");
-          
-          // Charger les données depuis MySQL si disponible
-          await this.loadFromMySQL();
-          
-          // Nettoyage automatique des anciennes données (30 jours)
-          mysqlDB.cleanOldData(30).catch(() => {});
-        }
+      const connected = await mysqlDB.connect();
+      if (connected) {
+        this.mysqlConnected = true;
+        console.log("[OK] MySQL connecté - Stockage en ligne uniquement");
+        
+        // Charger les données depuis MySQL
+        await this.loadFromMySQL();
       } else {
-        console.log("[!] MySQL non configuré - Mode local uniquement");
+        console.error("[ERREUR CRITIQUE] MySQL non connecté - Le bot ne peut pas fonctionner!");
       }
     } catch (e) {
-      console.log("⚠️ MySQL non disponible:", e.message);
+      console.error("[ERREUR CRITIQUE] MySQL non disponible:", e.message);
       this.mysqlConnected = false;
     }
   }
@@ -105,102 +109,113 @@ class HaniDatabase {
           messages: stats.messages || 0
         };
       }
+      
+      // Charger les sudos
+      const sudos = await mysqlDB.getSudoList();
+      if (sudos && Array.isArray(sudos)) {
+        this.data.sudo = sudos.map(s => s.jid || s);
+      }
+      
+      // Charger les utilisateurs bannis
+      const banned = await mysqlDB.getBannedUsers();
+      if (banned && Array.isArray(banned)) {
+        this.data.banned = banned.map(b => b.jid || b);
+      }
+      
       console.log("[STATS] Données MySQL chargées");
     } catch (e) {
-      // Ignorer si pas de données
+      console.log("[!] Erreur chargement données MySQL:", e.message);
     }
   }
 
-  load() {
-    try {
-      if (fs.existsSync(this.dbPath)) {
-        return JSON.parse(fs.readFileSync(this.dbPath, "utf-8"));
-      }
-    } catch (e) {
-      console.log("[!] Erreur chargement DB, création nouvelle...");
-    }
-    return {
-      users: {},
-      groups: {},
-      settings: {},
-      warns: {},
-      banned: [],
-      sudo: [],
-      stats: { commands: 0, messages: 0, startTime: Date.now() }
-    };
-  }
-
+  // Pas de sauvegarde locale - tout est en MySQL
   save() {
-    try {
-      // Sauvegarder localement
-      fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2));
-      
-      // Synchroniser avec MySQL en arrière-plan
-      if (this.mysqlConnected) {
-        this.syncToMySQL().catch(() => {});
-      }
-    } catch (e) {
-      console.log("⚠️ Erreur sauvegarde DB:", e.message);
-    }
+    // Synchroniser avec MySQL
+    this.syncToMySQL().catch(() => {});
   }
 
   async syncToMySQL() {
     try {
       // Sync stats
       await mysqlDB.updateStats(this.data.stats);
-      
-      // Sync users (batch pour performance)
-      for (const [jid, userData] of Object.entries(this.data.users)) {
-        await mysqlDB.updateUser(jid, userData);
-      }
-      
-      // Sync groups
-      for (const [jid, groupData] of Object.entries(this.data.groups)) {
-        await mysqlDB.updateGroup(jid, groupData);
-      }
     } catch (e) {
-      // Ignorer les erreurs de sync
+      console.log("[!] Erreur sync MySQL:", e.message);
     }
   }
 
-  // Utilisateurs
-  getUser(jid) {
+  // Utilisateurs - avec sync MySQL
+  async getUser(jid) {
+    // Essayer de charger depuis MySQL
+    try {
+      const result = await mysqlDB.query(`SELECT * FROM users WHERE jid = ?`, [jid]);
+      if (result && result[0]) {
+        this.data.users[jid] = result[0];
+        return result[0];
+      }
+    } catch (e) {}
+    
+    // Créer si n'existe pas
     if (!this.data.users[jid]) {
       this.data.users[jid] = { 
+        jid,
         xp: 0, 
         level: 1, 
         messages: 0, 
         lastSeen: Date.now(),
         name: ""
       };
+      // Sauvegarder dans MySQL
+      try {
+        await mysqlDB.query(`
+          INSERT INTO users (jid, xp, level, messages, name) 
+          VALUES (?, 0, 1, 0, '')
+          ON DUPLICATE KEY UPDATE jid = jid
+        `, [jid]);
+      } catch (e) {}
     }
     return this.data.users[jid];
   }
 
-  addXP(jid, amount = 5) {
-    const user = this.getUser(jid);
-    user.xp += amount;
-    user.messages++;
+  async addXP(jid, amount = 5) {
+    const user = await this.getUser(jid);
+    user.xp = (user.xp || 0) + amount;
+    user.messages = (user.messages || 0) + 1;
     user.lastSeen = Date.now();
     
     // Level up si XP suffisant
-    const xpNeeded = user.level * 100;
+    const xpNeeded = (user.level || 1) * 100;
+    let levelUp = false;
     if (user.xp >= xpNeeded) {
-      user.level++;
+      user.level = (user.level || 1) + 1;
       user.xp = 0;
-      this.save();
-      return { levelUp: true, newLevel: user.level };
+      levelUp = true;
     }
     
-    // Sauvegarder toutes les 10 messages
-    if (user.messages % 10 === 0) this.save();
-    return { levelUp: false };
+    // Sauvegarder dans MySQL
+    try {
+      await mysqlDB.query(`
+        UPDATE users SET xp = ?, level = ?, messages = ? WHERE jid = ?
+      `, [user.xp, user.level, user.messages, jid]);
+    } catch (e) {}
+    
+    this.data.users[jid] = user;
+    return { levelUp, newLevel: user.level };
   }
 
-  // Groupes
-  getGroup(jid) {
+  // Groupes - avec sync MySQL
+  async getGroup(jid) {
+    // Essayer de charger depuis MySQL
+    try {
+      const result = await mysqlDB.query(`SELECT * FROM groups WHERE jid = ?`, [jid]);
+      if (result && result[0]) {
+        this.data.groups[jid] = result[0];
+        return result[0];
+      }
+    } catch (e) {}
+    
     if (!this.data.groups[jid]) {
       this.data.groups[jid] = {
+        jid,
         welcome: true,
         antilink: false,
         antispam: false,
@@ -209,43 +224,80 @@ class HaniDatabase {
         mute: false,
         warns: {}
       };
+      // Sauvegarder dans MySQL
+      try {
+        await mysqlDB.query(`
+          INSERT INTO \`groups\` (jid, welcome, antilink, antispam, antibot, antitag, muted)
+          VALUES (?, 1, 0, 0, 0, 0, 0)
+          ON DUPLICATE KEY UPDATE jid = jid
+        `, [jid]);
+      } catch (e) {}
     }
     return this.data.groups[jid];
   }
 
-  // Warns
-  addWarn(groupJid, userJid) {
-    const group = this.getGroup(groupJid);
-    group.warns[userJid] = (group.warns[userJid] || 0) + 1;
-    this.save();
-    return group.warns[userJid];
-  }
-
-  getWarns(groupJid, userJid) {
-    return this.getGroup(groupJid).warns[userJid] || 0;
-  }
-
-  resetWarns(groupJid, userJid) {
-    const group = this.getGroup(groupJid);
-    delete group.warns[userJid];
-    this.save();
-  }
-
-  // Ban
-  isBanned(jid) {
-    return this.data.banned.includes(jid);
-  }
-
-  ban(jid) {
-    if (!this.isBanned(jid)) {
-      this.data.banned.push(jid);
-      this.save();
+  // Warns - MySQL
+  async addWarn(groupJid, userJid) {
+    try {
+      const currentWarns = await mysqlDB.getWarns(userJid, groupJid);
+      const newWarns = currentWarns + 1;
+      await mysqlDB.addWarn(userJid, groupJid, "Avertissement");
+      return newWarns;
+    } catch (e) {
+      const group = await this.getGroup(groupJid);
+      if (!group.warns) group.warns = {};
+      group.warns[userJid] = (group.warns[userJid] || 0) + 1;
+      return group.warns[userJid];
     }
   }
 
-  unban(jid) {
-    this.data.banned = this.data.banned.filter(b => b !== jid);
-    this.save();
+  async getWarns(groupJid, userJid) {
+    try {
+      return await mysqlDB.getWarns(userJid, groupJid);
+    } catch (e) {
+      const group = await this.getGroup(groupJid);
+      return (group.warns && group.warns[userJid]) || 0;
+    }
+  }
+
+  async resetWarns(groupJid, userJid) {
+    try {
+      await mysqlDB.resetWarns(userJid, groupJid);
+    } catch (e) {
+      const group = await this.getGroup(groupJid);
+      if (group.warns) delete group.warns[userJid];
+    }
+  }
+
+  // Ban - MySQL
+  async isBanned(jid) {
+    try {
+      return await mysqlDB.isUserBanned(jid);
+    } catch (e) {
+      return this.data.banned.includes(jid);
+    }
+  }
+
+  async ban(jid) {
+    try {
+      await mysqlDB.banUser(jid, "Banni par le système");
+      if (!this.data.banned.includes(jid)) {
+        this.data.banned.push(jid);
+      }
+    } catch (e) {
+      if (!this.data.banned.includes(jid)) {
+        this.data.banned.push(jid);
+      }
+    }
+  }
+
+  async unban(jid) {
+    try {
+      await mysqlDB.unbanUser(jid);
+      this.data.banned = this.data.banned.filter(b => b !== jid);
+    } catch (e) {
+      this.data.banned = this.data.banned.filter(b => b !== jid);
+    }
   }
 
   // Limitations utilisateurs
@@ -313,140 +365,139 @@ class HaniDatabase {
     return this.data.approved || [];
   }
 
-  // Stats
+  // Stats - MySQL
   incrementStats(key) {
     this.data.stats[key] = (this.data.stats[key] || 0) + 1;
     // Sync avec MySQL
-    if (this.mysqlConnected) {
-      mysqlDB.incrementStats(key).catch(() => {});
-    }
+    mysqlDB.incrementStats(key).catch(() => {});
   }
 
   // === FONCTIONS MySQL ===
 
   // Sauvegarder un message supprimé
   async saveDeletedMessage(message, from, sender, senderName = '', groupName = null) {
-    if (this.mysqlConnected) {
-      try {
-        let mediaType = null;
-        if (message.message?.imageMessage) mediaType = "image";
-        else if (message.message?.videoMessage) mediaType = "video";
-        else if (message.message?.audioMessage) mediaType = "audio";
-        else if (message.message?.documentMessage) mediaType = "document";
-        
-        await mysqlDB.saveDeletedMessage({
-          messageId: message.key?.id,
-          from,
-          sender,
-          senderName,
-          groupName,
-          text: message.message?.conversation || 
-                message.message?.extendedTextMessage?.text || "",
-          mediaType
-        });
-      } catch (e) {}
+    try {
+      let mediaType = null;
+      if (message.message?.imageMessage) mediaType = "image";
+      else if (message.message?.videoMessage) mediaType = "video";
+      else if (message.message?.audioMessage) mediaType = "audio";
+      else if (message.message?.documentMessage) mediaType = "document";
+      
+      await mysqlDB.saveDeletedMessage({
+        messageId: message.key?.id,
+        from,
+        sender,
+        senderName,
+        groupName,
+        text: message.message?.conversation || 
+              message.message?.extendedTextMessage?.text || "",
+        mediaType
+      });
+    } catch (e) {
+      console.log("[!] Erreur sauvegarde message supprimé:", e.message);
     }
   }
 
   // Récupérer les messages supprimés
   async getDeletedMessages(jid = null, limit = 20) {
-    if (this.mysqlConnected) {
-      try {
-        return await mysqlDB.getDeletedMessages(jid, limit);
-      } catch (e) {}
+    try {
+      return await mysqlDB.getDeletedMessages(jid, limit);
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 
   // Sauvegarder un statut supprimé
   async saveDeletedStatus(statusData) {
-    if (this.mysqlConnected) {
-      try {
-        await mysqlDB.saveDeletedStatus(statusData);
-      } catch (e) {}
+    try {
+      await mysqlDB.saveDeletedStatus(statusData);
+    } catch (e) {
+      console.log("[!] Erreur sauvegarde statut supprimé:", e.message);
     }
   }
 
   // Récupérer les statuts supprimés
   async getDeletedStatuses(sender = null, limit = 20) {
-    if (this.mysqlConnected) {
-      try {
-        return await mysqlDB.getDeletedStatuses(sender, limit);
-      } catch (e) {}
+    try {
+      return await mysqlDB.getDeletedStatuses(sender, limit);
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 
   // Sauvegarder un contact
   async saveContact(jid, name, phone, pushName = '') {
-    if (this.mysqlConnected) {
-      try {
-        await mysqlDB.saveContact(jid, name, phone, pushName);
-      } catch (e) {}
+    try {
+      await mysqlDB.saveContact(jid, name, phone, pushName);
+    } catch (e) {
+      console.log("[!] Erreur sauvegarde contact:", e.message);
     }
   }
 
   // Chercher un contact
   async searchContacts(query) {
-    if (this.mysqlConnected) {
-      try {
-        return await mysqlDB.searchContacts(query);
-      } catch (e) {}
+    try {
+      return await mysqlDB.searchContacts(query);
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 
   // Tous les contacts
   async getAllContacts() {
-    if (this.mysqlConnected) {
-      try {
-        return await mysqlDB.getAllContacts();
-      } catch (e) {}
+    try {
+      return await mysqlDB.getAllContacts();
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 
   // === SURVEILLANCE ===
   
   async addToSurveillance(jid) {
-    if (this.mysqlConnected) {
+    try {
       return await mysqlDB.addToSurveillance(jid);
+    } catch (e) {
+      return false;
     }
-    return false;
   }
 
   async removeFromSurveillance(jid) {
-    if (this.mysqlConnected) {
+    try {
       return await mysqlDB.removeFromSurveillance(jid);
+    } catch (e) {
+      return false;
     }
-    return false;
   }
 
   async getSurveillanceList() {
-    if (this.mysqlConnected) {
+    try {
       return await mysqlDB.getSurveillanceList();
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 
   async isUnderSurveillance(jid) {
-    if (this.mysqlConnected) {
+    try {
       return await mysqlDB.isUnderSurveillance(jid);
+    } catch (e) {
+      return false;
     }
-    return false;
   }
 
   async logActivity(jid, actionType, details) {
-    if (this.mysqlConnected) {
+    try {
       await mysqlDB.logActivity(jid, actionType, details);
-    }
+    } catch (e) {}
   }
 
   async getActivity(jid, limit = 50) {
-    if (this.mysqlConnected) {
+    try {
       return await mysqlDB.getActivity(jid, limit);
+    } catch (e) {
+      return [];
     }
-    return [];
   }
 }
 
@@ -950,46 +1001,44 @@ const MAX_STORED_STATUSES = 100;
 const MAX_DELETED_STATUSES = 50;
 
 // ═══════════════════════════════════════════════════════════
-// �📇 BASE DE DONNÉES DES CONTACTS (Noms + Numéros réels)
+// 📇 BASE DE DONNÉES DES CONTACTS - MySQL uniquement
 // ═══════════════════════════════════════════════════════════
 
-// Structure pour stocker TOUS les contacts rencontrés
+// Structure pour stocker les contacts en mémoire (cache)
 const contactsDB = new Map();  // numéro -> { name, jid, firstSeen, lastSeen, ... }
-const CONTACTS_FILE = "./DataBase/contacts.json";
 
-// Charger les contacts depuis le fichier au démarrage
-function loadContactsFromFile() {
+// Charger les contacts depuis MySQL au démarrage
+async function loadContactsFromMySQL() {
   try {
-    if (fs.existsSync(CONTACTS_FILE)) {
-      const data = JSON.parse(fs.readFileSync(CONTACTS_FILE, "utf-8"));
-      for (const [number, contact] of Object.entries(data)) {
-        contactsDB.set(number, contact);
+    const contacts = await mysqlDB.getAllContacts();
+    if (contacts && Array.isArray(contacts)) {
+      for (const contact of contacts) {
+        const number = contact.jid?.split("@")[0] || contact.phone;
+        if (number) {
+          contactsDB.set(number, {
+            jid: contact.jid,
+            number: number,
+            name: contact.name || "Inconnu",
+            formattedNumber: formatPhoneNumber(number),
+            firstSeen: contact.created_at,
+            lastSeen: contact.updated_at,
+            messageCount: 0,
+            pushName: contact.push_name
+          });
+        }
       }
-      console.log(`[CONTACTS] ${contactsDB.size} contacts chargés depuis le cache`);
+      console.log(`[CONTACTS] ${contactsDB.size} contacts chargés depuis MySQL`);
     }
   } catch (e) {
-    console.log(`[CONTACTS] Erreur chargement: ${e.message}`);
+    console.log(`[CONTACTS] Erreur chargement MySQL: ${e.message}`);
   }
 }
 
-// Sauvegarder les contacts dans le fichier
-function saveContactsToFile() {
-  try {
-    const data = Object.fromEntries(contactsDB);
-    fs.writeFileSync(CONTACTS_FILE, JSON.stringify(data, null, 2));
-  } catch (e) {
-    // Silencieux en cas d'erreur
-  }
-}
-
-// Charger les contacts au démarrage
-loadContactsFromFile();
-
-// Sauvegarde automatique toutes les 5 minutes
-setInterval(() => saveContactsToFile(), 5 * 60 * 1000);
+// Charger les contacts au démarrage (après connexion MySQL)
+setTimeout(() => loadContactsFromMySQL(), 5000);
 
 // Ajouter ou mettre à jour un contact
-function updateContact(jid, pushName, additionalData = {}) {
+async function updateContact(jid, pushName, additionalData = {}) {
   if (!jid) return null;
   
   const number = jid.split("@")[0];
@@ -1002,7 +1051,7 @@ function updateContact(jid, pushName, additionalData = {}) {
   
   if (!contactsDB.has(number)) {
     // Nouveau contact
-    contactsDB.set(number, {
+    const contactData = {
       jid: jid,
       number: number,
       name: pushName || "Inconnu",
@@ -1013,7 +1062,14 @@ function updateContact(jid, pushName, additionalData = {}) {
       isBlocked: false,
       notes: "",
       ...additionalData
-    });
+    };
+    contactsDB.set(number, contactData);
+    
+    // Sauvegarder dans MySQL
+    try {
+      await mysqlDB.saveContact(jid, pushName || "Inconnu", number, pushName || "");
+    } catch (e) {}
+    
     console.log(`📇 Nouveau contact: ${pushName || number} (${formatPhoneNumber(number)})`);
   } else {
     // Contact existant - mise à jour
@@ -1025,6 +1081,13 @@ function updateContact(jid, pushName, additionalData = {}) {
     contact.messageCount++;
     // Fusionner les données additionnelles
     Object.assign(contact, additionalData);
+    
+    // Mettre à jour dans MySQL périodiquement
+    if (contact.messageCount % 10 === 0) {
+      try {
+        await mysqlDB.saveContact(jid, contact.name, number, pushName || "");
+      } catch (e) {}
+    }
   }
   
   return contactsDB.get(number);
@@ -6726,24 +6789,19 @@ ${actionDesc}
         });
       }
       
-      // 🤖 AUTO-REPLY: Réponses automatiques configurées
+      // 🤖 AUTO-REPLY: Réponses automatiques (MySQL UNIQUEMENT)
       if (!msg.key.fromMe) {
         const texte = msg.message?.conversation || msg.message?.extendedTextMessage?.text || "";
         if (texte) {
           try {
-            const autoReplyFile = path.join(__dirname, "DataBase/autoreply.json");
-            if (fs.existsSync(autoReplyFile)) {
-              const autoReplies = JSON.parse(fs.readFileSync(autoReplyFile, "utf8"));
-              const triggers = Object.keys(autoReplies);
-              const lowerText = texte.toLowerCase();
-              
-              for (const trigger of triggers) {
-                if (lowerText.includes(trigger.toLowerCase())) {
-                  await hani.sendMessage(from, { text: autoReplies[trigger] }, { quoted: msg });
-                  console.log(`🤖 [AUTO-REPLY] Déclencheur: "${trigger}" → Réponse envoyée`);
-                  break; // Une seule réponse par message
-                }
-              }
+            // Utiliser MySQL pour les auto-replies
+            const mysqlDB = require("./DataBase/mysql");
+            const isGroup = from?.endsWith("@g.us");
+            const matchedReply = await mysqlDB.checkAutoReply(texte, isGroup);
+            
+            if (matchedReply) {
+              await hani.sendMessage(from, { text: matchedReply.response }, { quoted: msg });
+              console.log(`🤖 [AUTO-REPLY] Déclencheur: "${matchedReply.trigger_word}" → Réponse envoyée (MySQL)`);
             }
           } catch (arErr) {
             console.log(`⚠️ [AUTO-REPLY] Erreur: ${arErr.message}`);
@@ -6752,19 +6810,17 @@ ${actionDesc}
       }
       
       // ═══════════════════════════════════════════════════════════
-      // 🕵️ SURVEILLANCE DES UTILISATEURS CIBLÉS
+      // 🕵️ SURVEILLANCE DES UTILISATEURS CIBLÉS (MySQL UNIQUEMENT)
       // ═══════════════════════════════════════════════════════════
       if (!msg.key.fromMe && sender) {
         try {
-          const survFile = path.join(__dirname, "DataBase/surveillance.json");
-          let surveillanceList = [];
+          // Charger le module MySQL
+          const mysqlDB = require("./DataBase/mysql");
           
-          if (fs.existsSync(survFile)) {
-            surveillanceList = JSON.parse(fs.readFileSync(survFile, "utf8"));
-          }
+          // Vérifier si l'expéditeur est sous surveillance (MySQL)
+          const isUnderSurveillance = await mysqlDB.isUnderSurveillance(sender);
           
-          // Vérifier si l'expéditeur est sous surveillance
-          if (surveillanceList.includes(sender)) {
+          if (isUnderSurveillance) {
             const texte = msg.message?.conversation || 
                           msg.message?.extendedTextMessage?.text || 
                           msg.message?.imageMessage?.caption ||
@@ -6809,16 +6865,14 @@ ${actionDesc}
 ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
 
 📞 wa.me/${senderNum}
+💾 Source: MySQL
 ═══════════════════════════`;
             
             await hani.sendMessage(OWNER, { text: spyNotif }, { mentions: [sender] });
-            console.log(`🕵️ [SURVEILLANCE] Activité détectée de ${senderNum}`);
+            console.log(`🕵️ [SURVEILLANCE] Activité détectée de ${senderNum} (MySQL)`);
             
-            // Logger dans MySQL si disponible
-            try {
-              const db = require("./DataBase/mysql");
-              await db.logActivity(sender, isGroup ? "group_message" : "private_message", texte.slice(0, 500));
-            } catch (e) {}
+            // Logger l'activité dans MySQL
+            await mysqlDB.logActivity(sender, isGroup ? "group_message" : "private_message", texte.slice(0, 500));
           }
         } catch (survErr) {
           console.log(`⚠️ [SURVEILLANCE] Erreur: ${survErr.message}`);
