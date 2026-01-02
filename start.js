@@ -21,10 +21,55 @@ const {
   useMultiFileAuthState,
   DisconnectReason,
   downloadMediaMessage,
+  getContentType,
 } = require("@whiskeysockets/baileys");
 
 // Charger la configuration
 require("dotenv").config({ override: true });
+
+// ═══════════════════════════════════════════════════════════
+// 📦 SYSTÈME DE COMMANDES MODULAIRES (OVLCMD)
+// ═══════════════════════════════════════════════════════════
+
+const { findCommand, executeCommand, getCommands } = require("./lib/ovlcmd");
+
+// Charger tous les modules de commandes
+const commandModules = [
+  "./cmd/Telechargement",
+  "./cmd/Outils",
+  "./cmd/Fun",
+  "./cmd/Groupe",
+  "./cmd/Owner",
+  "./cmd/Systeme",
+  "./cmd/Search",
+  "./cmd/Ia",
+  "./cmd/Conversion",
+  "./cmd/Fx_audio",
+  "./cmd/Status",
+  "./cmd/Image_edits",
+  "./cmd/Logo",
+  "./cmd/Reaction",
+  "./cmd/Confidentialite",
+  "./cmd/ProFeatures",
+  "./cmd/Premium",
+  "./cmd/Ovl-economy",
+  "./cmd/Ovl-game",
+  "./cmd/Advanced",
+  "./cmd/Menu",
+  "./cmd/Payments"
+];
+
+let loadedModules = 0;
+for (const mod of commandModules) {
+  try {
+    require(mod);
+    loadedModules++;
+  } catch (e) {
+    // Ignorer silencieusement les modules non chargés
+  }
+}
+console.log(`[CMD] ✅ ${loadedModules}/${commandModules.length} modules de commandes chargés`);
+console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles via ovlcmd`);
 
 const config = {
   PREFIXE: process.env.PREFIXE || ".",
@@ -36,7 +81,7 @@ const config = {
 };
 
 // Dossier de session
-const SESSION_FOLDER = "./DataBase/session/principale";
+const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reconnexion)
 
 // États simples pour activer/désactiver des protections (en mémoire)
 const protectionState = {
@@ -67,8 +112,57 @@ function getMessageText(msg) {
   return "";
 }
 
-// Stockage des messages à vue unique interceptés
-const viewOnceMessages = new Map();
+// ═══════════════════════════════════════════════════════════
+// 👁️ STOCKAGE PERSISTANT DES VUES UNIQUES
+// ═══════════════════════════════════════════════════════════
+const VIEW_ONCE_FILE = path.join(__dirname, 'DataBase', 'viewonce_cache.json');
+
+// Charger les vues uniques depuis le fichier
+function loadViewOnceMessages() {
+  try {
+    if (fs.existsSync(VIEW_ONCE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(VIEW_ONCE_FILE, 'utf8'));
+      const map = new Map();
+      for (const [key, value] of Object.entries(data)) {
+        map.set(key, value);
+      }
+      console.log(`[VV] ✅ ${map.size} vues uniques chargées depuis le cache`);
+      return map;
+    }
+  } catch (e) {
+    console.log(`[VV] ⚠️ Erreur chargement cache: ${e.message}`);
+  }
+  return new Map();
+}
+
+// Sauvegarder les vues uniques dans le fichier
+function saveViewOnceMessages(map) {
+  try {
+    const obj = {};
+    for (const [key, value] of map) {
+      // Ne pas sauvegarder le message complet (trop lourd), juste les métadonnées
+      obj[key] = {
+        id: value.id,
+        sender: value.sender,
+        chat: value.chat,
+        pushName: value.pushName,
+        type: value.type,
+        date: value.date,
+        timestamp: value.timestamp,
+        fromMe: value.fromMe,
+        // Sauvegarder la structure du message pour pouvoir le télécharger
+        messageKey: value.message?.key,
+        messageContent: value.message?.message
+      };
+    }
+    fs.writeFileSync(VIEW_ONCE_FILE, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (e) {
+    console.log(`[VV] ⚠️ Erreur sauvegarde cache: ${e.message}`);
+  }
+}
+
+// Stockage des messages à vue unique interceptés (persistant)
+const viewOnceMessages = loadViewOnceMessages();
 
 // Réponses basiques et lisibles (bypass du code obfusqué)
 async function handleCommand(ovl, msg) {
@@ -83,10 +177,29 @@ async function handleCommand(ovl, msg) {
   // Numéro du bot (pour envoyer en privé)
   const botNumber = ovl.user?.id?.split(":")[0] + "@s.whatsapp.net";
   
-  // Fonction pour répondre en privé (à soi-même)
+  // ═══════════════════════════════════════════════════════════
+  // 🗑️ SUPPRIMER AUTOMATIQUEMENT LE MESSAGE DE COMMANDE
+  // ═══════════════════════════════════════════════════════════
+  const isOwnChat = from === botNumber;
+  
+  // Supprimer le message de commande si on n'est pas dans notre propre chat
+  if (!isOwnChat && msg.key.fromMe) {
+    try {
+      await ovl.sendMessage(from, { delete: msg.key });
+      console.log(`🗑️ Commande .${command} supprimée du chat ${from}`);
+    } catch (e) {
+      console.log(`⚠️ Impossible de supprimer la commande: ${e.message}`);
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // 📩 TOUJOURS RÉPONDRE EN PRIVÉ (à soi-même)
+  // ═══════════════════════════════════════════════════════════
+  
+  // Fonction pour répondre en privé (à soi-même) - TOUJOURS utilisée
   const sendPrivate = (text) => ovl.sendMessage(botNumber, { text });
   
-  // Fonction pour répondre dans le chat actuel
+  // Fonction pour répondre dans le chat actuel (rarement utilisée)
   const sendHere = (text) => ovl.sendMessage(from, { text });
 
   const toggle = (key) => {
@@ -94,9 +207,8 @@ async function handleCommand(ovl, msg) {
     return protectionState[key];
   };
 
-  // Par défaut, répondre en privé sauf si on est déjà dans notre propre chat
-  const isOwnChat = from === botNumber;
-  const send = isOwnChat ? sendHere : sendPrivate;
+  // TOUJOURS envoyer en privé à soi-même
+  const send = sendPrivate;
 
   // Charger le système de menu stylisé
   let MenuSystem, AccessControl;
@@ -231,26 +343,85 @@ async function handleCommand(ovl, msg) {
     case "vv":
     case "viewonce":
     case "vo": {
-      // Récupérer le message auquel on répond
-      const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-      if (!quotedMsg) {
-        return send("❌ Réponds à un message à vue unique pour le récupérer.");
+      // Récupérer les informations du message cité de plusieurs façons
+      const msgType = Object.keys(msg.message || {})[0];
+      const contextInfo = msg.message?.[msgType]?.contextInfo || 
+                          msg.message?.extendedTextMessage?.contextInfo ||
+                          msg.message?.imageMessage?.contextInfo ||
+                          msg.message?.videoMessage?.contextInfo;
+      
+      if (!contextInfo?.stanzaId) {
+        return send("❌ Réponds à un message à vue unique pour le récupérer.\n\n💡 Utilise `.listvv` pour voir les vues uniques interceptées.");
       }
       
-      // Vérifier si c'est un message à vue unique
-      const viewOnceMsg = quotedMsg.viewOnceMessage || quotedMsg.viewOnceMessageV2 || quotedMsg.viewOnceMessageV2Extension;
-      if (!viewOnceMsg) {
-        return send("❌ Ce message n'est pas un message à vue unique.");
+      const quotedId = contextInfo.stanzaId;
+      const quotedMsg = contextInfo.quotedMessage;
+      
+      console.log(`[VV] ID message cité: ${quotedId}`);
+      console.log(`[VV] Type quotedMsg: ${quotedMsg ? Object.keys(quotedMsg).join(', ') : 'null'}`);
+      
+      // Méthode 1: Chercher dans les messages à vue unique interceptés
+      let storedViewOnce = viewOnceMessages.get(quotedId);
+      
+      // Méthode 2: Chercher par sender + timestamp approximatif
+      if (!storedViewOnce) {
+        for (const [id, data] of viewOnceMessages) {
+          if (contextInfo.participant === data.message?.key?.participant ||
+              contextInfo.participant === data.sender) {
+            storedViewOnce = data;
+            break;
+          }
+        }
+      }
+      
+      let viewOnceContent = null;
+      let originalMsg = null;
+      
+      // Essayer d'obtenir le contenu à vue unique
+      if (storedViewOnce) {
+        // Utiliser le message stocké
+        console.log(`[VV] ✅ Message trouvé dans le cache: ${storedViewOnce.type}`);
+        originalMsg = storedViewOnce.message;
+        viewOnceContent = originalMsg.message?.viewOnceMessage || 
+                          originalMsg.message?.viewOnceMessageV2 || 
+                          originalMsg.message?.viewOnceMessageV2Extension;
+      } else if (quotedMsg) {
+        // Essayer depuis le quotedMessage directement
+        viewOnceContent = quotedMsg.viewOnceMessage || 
+                          quotedMsg.viewOnceMessageV2 || 
+                          quotedMsg.viewOnceMessageV2Extension;
+        
+        // Parfois le média est directement dans quotedMessage
+        if (!viewOnceContent) {
+          const quotedType = Object.keys(quotedMsg)[0];
+          if (quotedType === "imageMessage" || quotedType === "videoMessage" || quotedType === "audioMessage") {
+            // C'est peut-être une vue unique dont le wrapper a été retiré
+            viewOnceContent = { message: quotedMsg };
+            console.log(`[VV] Média direct trouvé: ${quotedType}`);
+          }
+        }
+      }
+      
+      if (!viewOnceContent) {
+        console.log(`[VV] ❌ Pas de vue unique trouvée. QuotedMsg keys: ${quotedMsg ? Object.keys(quotedMsg).join(', ') : 'null'}`);
+        return send("❌ Ce message n'est pas un message à vue unique.\n\n💡 Astuce: Les vues uniques doivent être interceptées AVANT d'être ouvertes. Utilise `.listvv` pour voir celles déjà interceptées.");
       }
       
       try {
-        const mediaMsg = viewOnceMsg.message;
-        const mediaType = Object.keys(mediaMsg)[0];
-        const media = mediaMsg[mediaType];
+        const mediaMsg = viewOnceContent.message;
+        const mediaType = Object.keys(mediaMsg || {})[0];
+        const media = mediaMsg?.[mediaType];
         
-        // Télécharger le média
+        if (!mediaType || !media) {
+          return send("❌ Impossible de lire le contenu du média.");
+        }
+        
+        console.log(`[VV] Téléchargement du média: ${mediaType}`);
+        
+        // Télécharger le média - utiliser le bon message original
+        const downloadMsg = originalMsg || { message: mediaMsg, key: { ...msg.key, id: quotedId } };
         const stream = await downloadMediaMessage(
-          { message: mediaMsg, key: msg.key },
+          downloadMsg,
           "buffer",
           {},
           { logger: pino({ level: "silent" }), reuploadRequest: ovl.updateMediaMessage }
@@ -276,30 +447,103 @@ async function handleCommand(ovl, msg) {
             mimetype: "audio/mp4"
           });
         } else {
-          return send("❌ Type de média non supporté.");
+          return send("❌ Type de média non supporté: " + mediaType);
         }
         
         console.log(`👁️ Vue unique récupérée pour ${from} (envoyée en privé)`);
+        
+        // Supprimer du cache après récupération et sauvegarder
+        if (storedViewOnce) {
+          viewOnceMessages.delete(quotedId);
+          saveViewOnceMessages(viewOnceMessages);
+        }
+        
       } catch (e) {
-        console.log("⚠️ Erreur viewonce:", e.message);
-        return send("❌ Impossible de récupérer ce média à vue unique.");
+        console.log("⚠️ Erreur viewonce:", e.message, e.stack);
+        return send("❌ Impossible de récupérer ce média.\n\nErreur: " + e.message);
       }
       return;
     }
     
     case "listvv":
     case "listviewonce": {
+      console.log(`[LISTVV] Nombre de vues uniques en cache: ${viewOnceMessages.size}`);
+      
       if (viewOnceMessages.size === 0) {
-        return send("📭 Aucun message à vue unique intercepté récemment.");
+        return send("📭 Aucun message à vue unique intercepté récemment.\n\n💡 Les vues uniques sont automatiquement interceptées quand elles arrivent. Attends qu'une vue unique soit envoyée.");
       }
       
       let list = "👁️ *Messages à vue unique interceptés :*\n\n";
       let i = 1;
       for (const [id, data] of viewOnceMessages) {
-        list += `${i}. De: ${data.sender}\n   Type: ${data.type}\n   Date: ${data.date}\n\n`;
+        const senderName = data.pushName || data.sender?.split('@')[0] || 'Inconnu';
+        list += `*${i}.* ${senderName}\n`;
+        list += `   📁 Type: ${data.type}\n`;
+        list += `   🕐 Date: ${data.date}\n`;
+        list += `   🆔 ID: ${id.substring(0, 10)}...\n\n`;
         i++;
       }
+      list += `\n💡 *Pour récupérer:* Réponds au message original avec .vv`;
       return send(list);
+    }
+    
+    // Commande pour récupérer la dernière vue unique sans répondre
+    case "lastvv":
+    case "lastviewonce": {
+      if (viewOnceMessages.size === 0) {
+        return send("📭 Aucun message à vue unique intercepté.");
+      }
+      
+      // Obtenir le dernier message
+      const lastEntry = Array.from(viewOnceMessages.entries()).pop();
+      if (!lastEntry) {
+        return send("❌ Erreur lors de la récupération.");
+      }
+      
+      const [lastId, lastData] = lastEntry;
+      
+      try {
+        const viewOnceContent = lastData.message.message?.viewOnceMessage || 
+                                lastData.message.message?.viewOnceMessageV2 || 
+                                lastData.message.message?.viewOnceMessageV2Extension;
+        
+        if (!viewOnceContent) {
+          return send("❌ Le contenu n'est plus disponible.");
+        }
+        
+        const mediaMsg = viewOnceContent.message;
+        const mediaType = Object.keys(mediaMsg || {})[0];
+        const media = mediaMsg?.[mediaType];
+        
+        console.log(`[LASTVV] Téléchargement: ${mediaType}`);
+        
+        const stream = await downloadMediaMessage(
+          lastData.message,
+          "buffer",
+          {},
+          { logger: pino({ level: "silent" }), reuploadRequest: ovl.updateMediaMessage }
+        );
+        
+        const dest = isOwnChat ? from : botNumber;
+        const caption = `👁️ Dernière vue unique (de ${lastData.pushName || 'Inconnu'}):\n${media?.caption || ''}`;
+        
+        if (mediaType === "imageMessage") {
+          await ovl.sendMessage(dest, { image: stream, caption });
+        } else if (mediaType === "videoMessage") {
+          await ovl.sendMessage(dest, { video: stream, caption });
+        } else if (mediaType === "audioMessage") {
+          await ovl.sendMessage(dest, { audio: stream, mimetype: "audio/mp4" });
+        }
+        
+        console.log(`👁️ Dernière vue unique récupérée`);
+        viewOnceMessages.delete(lastId);
+        saveViewOnceMessages(viewOnceMessages); // Sauvegarder après suppression
+        
+      } catch (e) {
+        console.log("⚠️ Erreur lastvv:", e.message);
+        return send("❌ Erreur: " + e.message);
+      }
+      return;
     }
     
     case "antilink":
@@ -315,8 +559,71 @@ async function handleCommand(ovl, msg) {
       else protectionState[key] = toggle(key);
       return send(`🛡️ ${key} ${protectionState[key] ? "activé" : "désactivé"}.`);
     }
-    default:
-      return send(`❓ Commande inconnue : ${config.PREFIXE}${command}`);
+    default: {
+      // ═══════════════════════════════════════════════════════════
+      // 🔄 DÉLÉGUER AU SYSTÈME DE COMMANDES PRINCIPAL (OVLCMD)
+      // ═══════════════════════════════════════════════════════════
+      
+      // Rechercher si la commande existe dans le système principal
+      const cmdData = findCommand(command);
+      
+      if (cmdData) {
+        try {
+          // Préparer les options pour le handler de commande
+          const isGroup = from.endsWith("@g.us");
+          const sender = msg.key.participant || from;
+          const senderNumber = sender.replace("@s.whatsapp.net", "").replace("@lid", "");
+          const ownerNumber = (config.NUMERO_OWNER || "").replace(/[^0-9]/g, "");
+          const isOwner = senderNumber === ownerNumber || senderNumber.includes(ownerNumber);
+          
+          // Fonction répondre pour les commandes - TOUJOURS EN PRIVÉ
+          const repondre = async (text) => {
+            // Envoyer en privé à soi-même au lieu du chat actuel
+            await ovl.sendMessage(botNumber, { text });
+          };
+          
+          // Préparer le message structuré pour les commandes
+          const ms = msg;
+          const arg = rest;
+          const texte = args;
+          
+          // Options passées au handler
+          const options = {
+            repondre,
+            arg,
+            texte,
+            ms,
+            superUser: isOwner,
+            auteurMessage: sender,
+            isGroup,
+            auteurMsgReworded: sender,
+            verifGroupe: isGroup,
+            nomAuteurMessage: msg.pushName || "Utilisateur",
+            msgRepondu: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage,
+            auteurMsgRepondu: msg.message?.extendedTextMessage?.contextInfo?.participant,
+            idBot: botNumber,
+            preniumUsers: [],
+            superUsers: [config.NUMERO_OWNER],
+            dev: [],
+            prefixe: config.PREFIXE,
+            nomGroupe: isGroup ? (await ovl.groupMetadata(from).catch(() => ({ subject: "Groupe" }))).subject : null,
+            // Ajouter la destination privée pour les commandes qui envoient des médias
+            destPrivate: botNumber,
+          };
+          
+          // Exécuter la commande
+          await executeCommand(command, ovl, msg, options);
+          return;
+        } catch (e) {
+          console.log(`[CMD] ⚠️ Erreur exécution ${command}:`, e.message);
+          return sendPrivate(`❌ Erreur lors de l'exécution de la commande: ${e.message}`);
+        }
+      }
+      
+      // Si la commande n'existe vraiment pas, ne pas répondre
+      // (pour ne pas spammer à chaque message)
+      return;
+    }
   }
 }
 
@@ -453,28 +760,47 @@ async function startBot() {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
       
-      // Intercepter les messages à vue unique automatiquement
+      // ═══════════════════════════════════════════════════════════
+      // 👁️ INTERCEPTER LES MESSAGES À VUE UNIQUE
+      // ═══════════════════════════════════════════════════════════
       const viewOnceContent = msg.message.viewOnceMessage || msg.message.viewOnceMessageV2 || msg.message.viewOnceMessageV2Extension;
-      if (viewOnceContent && !msg.key.fromMe) {
-        const sender = msg.key.remoteJid;
+      if (viewOnceContent) {
+        const chatJid = msg.key.remoteJid;
+        const senderJid = msg.key.participant || msg.key.remoteJid;
         const mediaMsg = viewOnceContent.message;
         const mediaType = Object.keys(mediaMsg || {})[0] || "inconnu";
         
-        // Stocker le message à vue unique
+        console.log(`\n══════════════════════════════════════`);
+        console.log(`👁️ VUE UNIQUE DÉTECTÉE!`);
+        console.log(`   ID: ${msg.key.id}`);
+        console.log(`   De: ${msg.pushName || senderJid}`);
+        console.log(`   Type: ${mediaType}`);
+        console.log(`   Chat: ${chatJid}`);
+        console.log(`══════════════════════════════════════\n`);
+        
+        // Stocker le message à vue unique avec plus d'infos
         viewOnceMessages.set(msg.key.id, {
-          sender: sender,
+          id: msg.key.id,
+          sender: senderJid,
+          chat: chatJid,
+          pushName: msg.pushName || "Inconnu",
           type: mediaType.replace("Message", ""),
           date: new Date().toLocaleString("fr-FR"),
-          message: msg
+          timestamp: Date.now(),
+          message: msg,  // Message complet pour téléchargement
+          fromMe: msg.key.fromMe
         });
         
-        // Garder seulement les 20 derniers
-        if (viewOnceMessages.size > 20) {
+        // Garder les 50 derniers
+        if (viewOnceMessages.size > 50) {
           const firstKey = viewOnceMessages.keys().next().value;
           viewOnceMessages.delete(firstKey);
         }
         
-        console.log(`👁️ Vue unique interceptée de ${sender} (${mediaType})`);
+        // Sauvegarder sur le disque
+        saveViewOnceMessages(viewOnceMessages);
+        
+        console.log(`[VV] ✅ Vue unique sauvegardée. Total: ${viewOnceMessages.size}`);
       }
       
       // Stocker tous les messages pour anti-delete
@@ -774,7 +1100,6 @@ app.get("/api/connection-status", (req, res) => {
 // Routes pour les pages HTML
 app.get("/", (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
-  const fs = require('fs');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
@@ -834,7 +1159,6 @@ app.get("/", (req, res) => {
 // Route pour la page d'abonnement
 app.get("/subscribe.html", (req, res) => {
   const subscribePath = path.join(__dirname, 'public', 'subscribe.html');
-  const fs = require('fs');
   if (fs.existsSync(subscribePath)) {
     res.sendFile(subscribePath);
   } else {
@@ -845,7 +1169,6 @@ app.get("/subscribe.html", (req, res) => {
 // Route pour la page de paiements (admin)
 app.get("/payments.html", (req, res) => {
   const paymentsPath = path.join(__dirname, 'public', 'payments.html');
-  const fs = require('fs');
   if (fs.existsSync(paymentsPath)) {
     res.sendFile(paymentsPath);
   } else {

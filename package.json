@@ -8,7 +8,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node hani.js",
+    "start": "node start.js",
     "build": "npm install --legacy-peer-deps",
     "pm2": "pm2 start hani.js --attach --name hani",
     "stop": "pm2 stop all",

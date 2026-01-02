@@ -300,14 +300,23 @@ app.post('/api/subscribe', (req, res) => {
     requests.push(request);
     fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
     
+    // Générer le lien Wave pour compatibilité frontend
+    const paymentNumber = '+2250150252467';
+    const cleanNumber = paymentNumber.replace(/[^0-9]/g, '');
+    const paymentAmount = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()];
     res.json({
       success: true,
       message: 'Demande enregistrée ! Effectuez le paiement puis envoyez la capture.',
       requestId: request.id,
       paymentInfo: {
-        number: '+2250150252467',
-        amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()]
-      }
+        number: paymentNumber,
+        amount: paymentAmount
+      },
+      paymentLink: {
+        web: `https://pay.wave.com/m/${cleanNumber}`
+      },
+      paymentNumber: cleanNumber,
+      amount: paymentAmount
     });
   } catch (e) {
     res.status(500).json({ error: e.message });

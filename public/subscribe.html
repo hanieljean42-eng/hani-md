@@ -592,14 +592,57 @@
         const data = await response.json();
         
         if (data.success) {
-          // Show success modal
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('modalMessage').innerHTML = `
-            <strong>Numéro de commande:</strong> ${data.payment.orderId}<br><br>
-            Envoyez <strong>${prices[selectedPlan]} FCFA</strong> via <strong>${methodNames[selectedMethod]}</strong><br><br>
-            Vous recevrez une confirmation sur WhatsApp une fois le paiement validé.
-          `;
-          document.getElementById('successModal').classList.add('show');
+          // Numéro de réception pour les paiements
+          const WAVE_NUMBER = '0150252467'; // Numéro Wave pour recevoir les paiements
+          const MOOV_NUMBER = '0150252467'; // Numéro Moov Money
+          const amount = prices[selectedPlan];
+          const orderId = data.payment.orderId;
+          
+          // Redirection vers l'app de paiement
+          if (selectedMethod === 'wave') {
+            // Lien Wave avec montant pré-rempli
+            // Format: wave://send?phone=NUMERO&amount=MONTANT&note=MESSAGE
+            const waveLink = `https://pay.wave.com/m/${WAVE_NUMBER}/${amount}?note=HANI-MD-${orderId}`;
+            
+            // Afficher le modal puis rediriger
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('modalMessage').innerHTML = `
+              <strong>✅ Commande créée!</strong><br><br>
+              <strong>Numéro de commande:</strong> ${orderId}<br>
+              <strong>Montant:</strong> ${amount} FCFA<br><br>
+              <p>Vous allez être redirigé vers Wave...</p>
+              <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 15px;">
+                Si la redirection ne fonctionne pas, envoyez <strong>${amount} FCFA</strong> au <strong>${WAVE_NUMBER}</strong> avec le message: <strong>HANI-MD-${orderId}</strong>
+              </p>
+            `;
+            document.getElementById('successModal').classList.add('show');
+            
+            // Rediriger après 2 secondes
+            setTimeout(() => {
+              window.location.href = waveLink;
+            }, 2000);
+            
+          } else if (selectedMethod === 'moov') {
+            // Pour Moov Money, on affiche les instructions
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('modalMessage').innerHTML = `
+              <strong>✅ Commande créée!</strong><br><br>
+              <strong>Numéro de commande:</strong> ${orderId}<br>
+              <strong>Montant:</strong> ${amount} FCFA<br><br>
+              <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 10px; margin-top: 10px;">
+                <p><strong>📱 Instructions Moov Money:</strong></p>
+                <ol style="text-align: left; margin-top: 10px;">
+                  <li>Composez <strong>*155#</strong></li>
+                  <li>Choisissez "Transfert d'argent"</li>
+                  <li>Entrez le numéro: <strong>${MOOV_NUMBER}</strong></li>
+                  <li>Montant: <strong>${amount} FCFA</strong></li>
+                  <li>Motif: <strong>HANI-MD-${orderId}</strong></li>
+                </ol>
+              </div>
+              <p style="margin-top: 15px;">Vous recevrez une confirmation WhatsApp après validation.</p>
+            `;
+            document.getElementById('successModal').classList.add('show');
+          }
         } else {
           throw new Error(data.error || 'Erreur lors de la création');
         }
