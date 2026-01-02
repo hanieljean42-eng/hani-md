@@ -575,8 +575,11 @@
       document.getElementById('loading').style.display = 'block';
       alertDiv.style.display = 'none';
       
+      // URL du backend
+      const API_URL = 'https://hani-md-api.loca.lt';
+      
       try {
-        const response = await fetch('/api/payment/create', {
+        const response = await fetch(API_URL + '/api/payment/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
