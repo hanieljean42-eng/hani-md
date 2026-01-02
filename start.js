@@ -8,6 +8,11 @@ const fs = require("fs");
 const path = require("path");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
+const QRCode = require("qrcode"); // Pour générer QR en image web
+
+// Variable globale pour stocker le QR code actuel
+let currentQR = null;
+let connectionStatus = 'disconnected';
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -361,10 +366,13 @@ async function startBot() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log("\n📱 SCANNE CE QR CODE AVEC WHATSAPP:");
-      console.log("   Menu → Appareils connectés → Connecter un appareil\n");
-      qrcode.generate(qr, { small: true });
-      console.log("\n");
+      currentQR = qr;
+      connectionStatus = 'waiting_qr';
+      console.log("\n📱 QR CODE DISPONIBLE !");
+      console.log("═══════════════════════════════════════════════════");
+      console.log("👉 Ouvre ton navigateur sur: http://localhost:" + port + "/qr");
+      console.log("═══════════════════════════════════════════════════");
+      console.log("   Puis scanne le QR avec WhatsApp → Appareils connectés\n");
     }
 
     if (connection === "connecting") {
@@ -372,6 +380,8 @@ async function startBot() {
     }
 
     if (connection === "open") {
+      currentQR = null;
+      connectionStatus = 'connected';
       console.log("\n");
       console.log("╔════════════════════════════════════════╗");
       console.log("║     ✅ CONNEXION RÉUSSIE !             ║");
@@ -603,6 +613,164 @@ app.use(express.urlencoded({ extended: true }));
 // Servir les fichiers statiques (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ═══════════════════════════════════════════════════════════
+// 📱 PAGE QR CODE POUR CONNEXION WHATSAPP
+// ═══════════════════════════════════════════════════════════
+app.get("/qr", async (req, res) => {
+  if (connectionStatus === 'connected') {
+    res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HANI-MD - Connecté</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container { text-align: center; padding: 40px; }
+    .emoji { font-size: 6rem; margin-bottom: 20px; }
+    h1 { font-size: 2.5rem; margin-bottom: 15px; }
+    p { font-size: 1.2rem; opacity: 0.9; }
+    .btn { display: inline-block; margin-top: 30px; padding: 15px 40px; background: white; color: #128C7E; text-decoration: none; border-radius: 50px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji">✅</div>
+    <h1>Bot Connecté !</h1>
+    <p>HANI-MD est maintenant connecté à WhatsApp</p>
+    <a href="/" class="btn">🏠 Retour à l'accueil</a>
+  </div>
+</body>
+</html>
+    `);
+  } else if (currentQR) {
+    try {
+      const qrImageUrl = await QRCode.toDataURL(currentQR, { width: 400, margin: 2 });
+      res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="30">
+  <title>HANI-MD - Scanner QR Code</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container { text-align: center; padding: 40px; }
+    h1 { font-size: 2rem; margin-bottom: 10px; }
+    .subtitle { font-size: 1rem; opacity: 0.9; margin-bottom: 30px; }
+    .qr-box { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 20px; 
+      display: inline-block;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .qr-box img { display: block; }
+    .instructions { 
+      margin-top: 30px; 
+      background: rgba(255,255,255,0.1); 
+      padding: 20px; 
+      border-radius: 15px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .instructions h3 { margin-bottom: 15px; }
+    .instructions ol { text-align: left; padding-left: 20px; }
+    .instructions li { margin: 8px 0; }
+    .refresh { margin-top: 20px; font-size: 0.9rem; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 HANI-MD - Connexion WhatsApp</h1>
+    <p class="subtitle">Scanne ce QR code avec ton téléphone</p>
+    <div class="qr-box">
+      <img src="${qrImageUrl}" alt="QR Code WhatsApp">
+    </div>
+    <div class="instructions">
+      <h3>📱 Comment faire ?</h3>
+      <ol>
+        <li>Ouvre <strong>WhatsApp</strong> sur ton téléphone</li>
+        <li>Va dans <strong>Menu (⋮)</strong> ou <strong>Paramètres</strong></li>
+        <li>Clique sur <strong>Appareils connectés</strong></li>
+        <li>Appuie sur <strong>Connecter un appareil</strong></li>
+        <li>Scanne ce QR code</li>
+      </ol>
+    </div>
+    <p class="refresh">🔄 Page rafraîchie automatiquement toutes les 30 secondes</p>
+  </div>
+</body>
+</html>
+      `);
+    } catch (e) {
+      res.send("Erreur génération QR: " + e.message);
+    }
+  } else {
+    res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="5">
+  <title>HANI-MD - En attente</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container { text-align: center; padding: 40px; }
+    .spinner { font-size: 4rem; animation: spin 2s linear infinite; display: inline-block; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    h1 { font-size: 2rem; margin: 20px 0; }
+    p { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner">⏳</div>
+    <h1>En attente du QR code...</h1>
+    <p>Le bot démarre, patiente quelques secondes</p>
+    <p style="margin-top: 20px; font-size: 0.9rem;">🔄 Rafraîchissement automatique...</p>
+  </div>
+</body>
+</html>
+    `);
+  }
+});
+
+// API pour vérifier le statut de connexion
+app.get("/api/connection-status", (req, res) => {
+  res.json({ status: connectionStatus, hasQR: !!currentQR });
+});
+
 // Routes pour les pages HTML
 app.get("/", (req, res) => {
   const indexPath = path.join(__dirname, 'public', 'index.html');
@@ -769,9 +937,19 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);
   console.log(`📱 Site accessible: http://localhost:${port}`);
+  // Afficher l'IP locale pour l'accès depuis le téléphone
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  for (const name in networkInterfaces) {
+    for (const iface of networkInterfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        console.log(`📲 Accès depuis téléphone: http://${iface.address}:${port}`);
+      }
+    }
+  }
 });
 
 // Lancer le bot
