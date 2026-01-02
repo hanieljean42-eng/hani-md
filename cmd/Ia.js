@@ -1,676 +1,429 @@
-function _0x3847() {
-  const _0x365db4 = [
-    "AMfNrNm",
-    "rhnVBNu",
-    "z3jVCq",
-    "uw5uyM8",
-    "BgXHBwe",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjie1PEhrYywWU",
-    "Ahr0Chm6lY9HCgKUA2vUC2HPCM8Uy2zKl2fWAs9HAs9NCM9Xp3rLEhq9",
-    "C2vHCMnO",
-    "mte1qM9WD25o",
-    "DxnLCG",
-    "Ahr0Chm6lY9HCgKUC2HPEM8UDg9Wl2fPl2DWDd9HCgLRzxK9C2HPEM8MCxvLCNK9",
-    "yMfYza",
-    "vMv1AwXSzxOGzw50CMvYihvUihrLEhrLig91ihvUzsbXDwvZDgLVBI4",
-    "yxHPB3m",
-    "BM90x2zVDw5K",
-    "mtG2Dhjxsvvu",
-    "rxjYzxvYiejSywnRyM94idO",
-    "y29WAwXVDa",
-    "EfnMuNm",
-    "rxjYzxvYienVCgLSB3qGoG",
-    "y29TCgXLDgvK",
-    "rxjYzxvYierbteXfidO",
-    "wNHpqwO",
-    "vejIAwe",
-    "u2n2v0C",
-    "ygbGug93zxjLzcbcEsbpvKWTturGyga",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjlG",
-    "vxrPBgLZzsbSj0fqssbNChqGCg91CIbNW6LUW6LYzxiGzgvZihldQxbVBNnLCY4",
-    "BxnN",
-    "ifvUzsbLCNjLDxiGzxn0ihn1CNzLBNvLigXVCNmGzhuGDhjHAxrLBwvUDcbKzsbSysbYzxf1W6P0zs4",
-    "uePfvvG",
-    "rxjYzxvYigXVCNmGzguGBgeGz8oPBSoPCMf0Aw9UigrLigWNAw1Hz2uUifldQwvZC2f5zxOGCgX1CYb0yxjKlG",
-    "y29UC3rYDwn0B3i",
-    "vw5ywNi",
-    "rxjYzxvYiejHCMqGoG",
-    "nJaZndDcq2L1DfC",
-    "Ahr0Chm6lY9UzxHYys5HCNLHAgnYlMnJl2fWAs9JAgf0l3rHC2SV",
-    "z09rsKC",
-    "BwL4DhjHBa",
-    "zxjYB3i",
-    "mJu0nZyZu29qs0jY",
-    "thztCvi",
-    "vMv1AwXSzxOGzw50CMvYihvUihbYB21WDcbWB3vYigFdQw7dQxjLCIb1BMuGCSoPCg9UC2uU",
-    "Ahr0Chm6lY9HCgKUA2vUC2HPCM8Uy2zKl2fWAs9HAs9TAxH0CMfSp3rLEhq9",
-    "yK1zChy",
-    "EfLfq2i",
-    "q3LLrNC",
-    "yMXHy2TIB3G",
-    "qKS5",
-    "z2HJtuu",
-    "rxjYzxvYieDLBwLUAs1qCM8GoG",
-    "otC2mdLNz0Xqwgu",
-    "sgvQwvq",
-    "twTxCKG",
-    "zgfSBgu",
-    "ueLcDgK",
-    "zgf0yq",
-    "yxjYyxLIDwzMzxi",
-    "zMftvK4",
-    "vmoIy2HLigLUDhjVDxzHyMXLlIbwzxvPBgXLEIbYW6LLC3nHEwvYlG",
-    "Aw9WuMW",
-    "rxjYzxvYieXLBM5HidO",
-    "rxjYzxvYieXSyw1HidO",
-    "Avz3DgS",
-    "CMvZDwX0",
-    "EwvmugC",
-    "vw5LigvYCMv1CIbLC3qGC3vYDMvUDwuGBg9YCYbKzsbSj2fWCgvSimoGigWNqvbjlG",
-    "BxjWDxe",
-    "rxjYzxvYieDYB3eGoG",
-    "AfrStgq",
-    "Ahr0Chm6lY9Mz3nPlMTVEwvIlMfWCc9HCgKVywKVBgvUBMe/Dgv4Dd0",
-    "ue9Jzeu",
-    "yw5ZD2vY",
-    "q05zELG",
-    "rxjYzxvYie1PEhrYywWGoG",
-    "Ahr0Chm6lY9Mz3nPlMTVEwvIlMfWCc9HCgKVywKVy29WAwXVDd90zxH0pq",
-    "Ahr0Chm6lY9HCgKUzgLPB2zMyY53zwiUAwqVyxbPl2fPl2jHCMq/CxvLCNK9",
-    "AM9PBG",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjiejHCMqU",
-    "mJi3ndC2ohvQt1rJEa",
-    "DNPps2y",
-    "BgvUz3rO",
-    "vxrPBgLZzsbSj0fqssbmzw5UysbWB3vYigFdQw7dQxjLCIbKzxmGCSoPCg9UC2vZlG",
-    "BwvZC2fNzq",
-    "z2v0",
-    "CwrKEfe",
-    "A1nIBwy",
-    "odaWnZaWDLzhANHS",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjieDLBwLUAs1qCM8U",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjieXSyw1HlG",
-    "CMvZCg9UC2u",
-    "rxjYzxvYieDqvca6",
-    "kcGOlISPkYKRksSK",
-    "y0nkEMC",
-    "lI4VBgLIl292BgnTza",
-    "B2HzCMq",
-    "t0fwD2O",
-    "yxbWBgLJyxrPB24VANnVBG",
-    "ogTzwK9erG",
-    "B3jhquK",
-    "EwDJuLe",
-    "C2vUze1LC3nHz2u",
-    "AfrNsMq",
-    "z3b0",
-    "r2XdqNm",
-    "BvHls3K",
-    "vxrPBgLZzsbcBgfJA2jVEcbWB3vYihldQxbVBMrYzsbHDxGGCxvLC3rPB25ZlG",
-    "C05sy0W",
-    "uvvlvuu",
-    "rMfPDgvZigfWCgvSimoGigWNqvbjieDYB3eGCg91CIbVyNrLBMLYigrLCYbYW6LWB25ZzxmU",
-    "u3DNExK",
-    "C3rHDhvZ",
-    "y3PKr3i",
-    "Ahr0Chm6lY9HCgKUz3vYDxnLBNnLAs53B3jRzxjZlMrLDI9SBgfTyt9WCM9TChq9",
-    "wLDAD0m",
-    "nMjcCfzZyG",
-    "vxrPBgLZzsbSj0fqssbhzw1PBMKTuhjVihbVDxiGz8oPBSoPCMvYigrLCYbYW6LWB25ZzxmU",
-    "vxrPBgLZzsbSj0fqssbdB3bPBg90ihbVDxiGz8oPBSoPCMvYigrLCYbYW6LWB25ZzxmU",
-    "Cg9ZDa",
-    "r8oPBSoOCMuGzgvZigLTywDLCYbHDMvJierbteXfluuU",
-    "CNDPvNy",
-    "t3Dxs0W",
-    "rxjYzxvYigrLihldQxbVBNnLigrLigWNqvbjieDYB3eU",
-    "mty2ote1mg5gue9hCa",
-    "CgvUzgLUzW",
-    "z2vTAw5P",
-    "B0DeEKu",
-    "CMLeyNa",
-  ];
-  _0x3847 = function () {
-    return _0x365db4;
-  };
-  return _0x3847();
-}
-function _0x166c(_0x2c3d1d, _0x4cc17e) {
-  const _0x142d0c = _0x3847();
-  return (
-    (_0x166c = function (_0xe4a123, _0xef8d62) {
-      _0xe4a123 = _0xe4a123 - 0x1e4;
-      let _0x384706 = _0x142d0c[_0xe4a123];
-      if (_0x166c["iuvAiD"] === undefined) {
-        var _0x166c0d = function (_0x19dbb7) {
-          const _0x42bf9f = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
-          let _0x4da97e = "",
-            _0x6ac87d = "",
-            _0x1844f1 = _0x4da97e + _0x166c0d;
-          for (
-            let _0x2ddfdd = 0x0, _0x1d4962, _0xd0fa86, _0x1ca32c = 0x0;
-            (_0xd0fa86 = _0x19dbb7["charAt"](_0x1ca32c++));
-            ~_0xd0fa86 &&
-            ((_0x1d4962 = _0x2ddfdd % 0x4 ? _0x1d4962 * 0x40 + _0xd0fa86 : _0xd0fa86),
-            _0x2ddfdd++ % 0x4)
-              ? (_0x4da97e +=
-                  _0x1844f1["charCodeAt"](_0x1ca32c + 0xa) - 0xa !== 0x0
-                    ? String["fromCharCode"](0xff & (_0x1d4962 >> ((-0x2 * _0x2ddfdd) & 0x6)))
-                    : _0x2ddfdd)
-              : 0x0
-          ) {
-            _0xd0fa86 = _0x42bf9f["indexOf"](_0xd0fa86);
-          }
-          for (
-            let _0xa6223a = 0x0, _0x3c84a1 = _0x4da97e["length"];
-            _0xa6223a < _0x3c84a1;
-            _0xa6223a++
-          ) {
-            _0x6ac87d +=
-              "%" + ("00" + _0x4da97e["charCodeAt"](_0xa6223a)["toString"](0x10))["slice"](-0x2);
-          }
-          return decodeURIComponent(_0x6ac87d);
-        };
-        ((_0x166c["qZOIoz"] = _0x166c0d), (_0x2c3d1d = arguments), (_0x166c["iuvAiD"] = !![]));
-      }
-      const _0x3075fe = _0x142d0c[0x0],
-        _0x46931f = _0xe4a123 + _0x3075fe,
-        _0x155bf9 = _0x2c3d1d[_0x46931f];
-      if (!_0x155bf9) {
-        const _0x1779f5 = function (_0x3e546e) {
-          ((this["oQCnKX"] = _0x3e546e),
-            (this["oBHXEb"] = [0x1, 0x0, 0x0]),
-            (this["LLDIVW"] = function () {
-              return "newState";
-            }),
-            (this["gbHgHD"] = "\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*"),
-            (this["FswRok"] = "[\x27|\x22].+[\x27|\x22];?\x20*}"));
-        };
-        ((_0x1779f5["prototype"]["CoqTlp"] = function () {
-          const _0x2874d0 = new RegExp(this["gbHgHD"] + this["FswRok"]),
-            _0x4fab00 = _0x2874d0["test"](this["LLDIVW"]["toString"]())
-              ? --this["oBHXEb"][0x1]
-              : --this["oBHXEb"][0x0];
-          return this["FgSjKQ"](_0x4fab00);
-        }),
-          (_0x1779f5["prototype"]["FgSjKQ"] = function (_0x65629d) {
-            if (!Boolean(~_0x65629d)) return _0x65629d;
-            return this["pqQtla"](this["oQCnKX"]);
-          }),
-          (_0x1779f5["prototype"]["pqQtla"] = function (_0x3c5d2f) {
-            for (
-              let _0x2a2d8c = 0x0, _0x5a226b = this["oBHXEb"]["length"];
-              _0x2a2d8c < _0x5a226b;
-              _0x2a2d8c++
-            ) {
-              (this["oBHXEb"]["push"](Math["round"](Math["random"]())),
-                (_0x5a226b = this["oBHXEb"]["length"]));
-            }
-            return _0x3c5d2f(this["oBHXEb"][0x0]);
-          }),
-          new _0x1779f5(_0x166c)["CoqTlp"](),
-          (_0x384706 = _0x166c["qZOIoz"](_0x384706)),
-          (_0x2c3d1d[_0x46931f] = _0x384706));
-      } else _0x384706 = _0x155bf9;
-      return _0x384706;
-    }),
-    _0x166c(_0x2c3d1d, _0x4cc17e)
-  );
-}
-const _0x12224c = _0x166c;
-(function (_0x5cedd1, _0x579cfe) {
-  const _0x324cb8 = _0x166c,
-    _0x54a0f1 = _0x5cedd1();
-  while (!![]) {
+/**
+ * ═══════════════════════════════════════════════════════════
+ * 🤖 HANI-MD - Commandes Intelligence Artificielle
+ * ═══════════════════════════════════════════════════════════
+ * GPT, Gemini, DALL-E, génération d'images
+ * Version désobfusquée et optimisée
+ * ═══════════════════════════════════════════════════════════
+ */
+
+const { ovlcmd } = require("../lib/ovlcmd");
+const axios = require("axios");
+
+// ═══════════════════════════════════════════════════════════
+// 🤖 GPT / CHATGPT
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "gpt",
+    classe: "IA",
+    react: "🤖",
+    desc: "Discuter avec ChatGPT",
+    alias: ["chatgpt", "ai", "openai"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
     try {
-      const _0x1c3cc1 =
-        (-parseInt(_0x324cb8(0x23b)) / 0x1) * (-parseInt(_0x324cb8(0x1fb)) / 0x2) +
-        parseInt(_0x324cb8(0x230)) / 0x3 +
-        parseInt(_0x324cb8(0x25f)) / 0x4 +
-        (parseInt(_0x324cb8(0x210)) / 0x5) * (parseInt(_0x324cb8(0x217)) / 0x6) +
-        (-parseInt(_0x324cb8(0x22b)) / 0x7) * (parseInt(_0x324cb8(0x1ea)) / 0x8) +
-        -parseInt(_0x324cb8(0x257)) / 0x9 +
-        -parseInt(_0x324cb8(0x203)) / 0xa;
-      if (_0x1c3cc1 === _0x579cfe) break;
-      else _0x54a0f1["push"](_0x54a0f1["shift"]());
-    } catch (_0x4474ed) {
-      _0x54a0f1["push"](_0x54a0f1["shift"]());
+      const question = arg.join(" ");
+      if (!question) {
+        return repondre("❌ Utilisation: .gpt [question]\n\n📝 Exemple: .gpt Explique-moi la photosynthèse");
+      }
+
+      await repondre("🤖 Réflexion en cours...");
+
+      // APIs GPT gratuites
+      const apis = [
+        `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(question)}`,
+        `https://api.agatz.xyz/api/gpt4?message=${encodeURIComponent(question)}`,
+        `https://api.itzpire.com/ai/gpt?text=${encodeURIComponent(question)}`
+      ];
+
+      let response = null;
+      
+      for (const apiUrl of apis) {
+        try {
+          const res = await axios.get(apiUrl, { timeout: 30000 });
+          
+          if (res.data) {
+            // Différents formats de réponse
+            response = res.data.result || res.data.response || res.data.answer || res.data.message || res.data.data;
+            
+            if (response && typeof response === "string" && response.length > 10) {
+              break;
+            }
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      if (response) {
+        // Limiter la longueur
+        if (response.length > 4000) {
+          response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
+        }
+        
+        let result = `🤖 *ChatGPT*\n\n`;
+        result += `❓ *Question:*\n${question}\n\n`;
+        result += `💡 *Réponse:*\n${response}\n\n`;
+        result += `✨ Powered by HANI-MD`;
+        
+        repondre(result);
+      } else {
+        repondre("❌ Désolé, je n'ai pas pu obtenir de réponse. Réessayez plus tard.");
+      }
+
+    } catch (error) {
+      console.error("[GPT]", error);
+      repondre(`❌ Erreur: ${error.message}`);
     }
   }
-})(_0x3847, 0x24b4c);
-const _0xef8d62 = (function () {
-    let _0xfde153 = !![];
-    return function (_0x2852d8, _0x114d4a) {
-      const _0x3e97ae = _0xfde153
-        ? function () {
-            if (_0x114d4a) {
-              const _0x18d099 = _0x114d4a["apply"](_0x2852d8, arguments);
-              return ((_0x114d4a = null), _0x18d099);
+);
+
+// ═══════════════════════════════════════════════════════════
+// 💎 GEMINI (Google AI)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "gemini",
+    classe: "IA",
+    react: "💎",
+    desc: "Discuter avec Google Gemini",
+    alias: ["bard", "googleai"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const question = arg.join(" ");
+      if (!question) {
+        return repondre("❌ Utilisation: .gemini [question]");
+      }
+
+      await repondre("💎 Gemini réfléchit...");
+
+      // API Gemini
+      const apiUrl = `https://api.vrfrnd.xyz/api/gemini?prompt=${encodeURIComponent(question)}`;
+      
+      try {
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && (res.data.result || res.data.response)) {
+          let response = res.data.result || res.data.response;
+          
+          if (response.length > 4000) {
+            response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
+          }
+          
+          let result = `💎 *Google Gemini*\n\n`;
+          result += `❓ *Question:*\n${question}\n\n`;
+          result += `💡 *Réponse:*\n${response}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      // Fallback vers GPT
+      repondre("❌ Gemini non disponible. Essayez .gpt à la place.");
+
+    } catch (error) {
+      console.error("[GEMINI]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎨 DALL-E (Génération d'images)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "dalle",
+    classe: "IA",
+    react: "🎨",
+    desc: "Générer une image avec DALL-E",
+    alias: ["imagine", "generate", "createimg"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    try {
+      const prompt = arg.join(" ");
+      if (!prompt) {
+        return repondre("❌ Utilisation: .dalle [description de l'image]\n\n📝 Exemple: .dalle Un chat astronaute sur la lune");
+      }
+
+      await repondre("🎨 Génération de l'image en cours... (peut prendre 30-60 secondes)");
+
+      // APIs de génération d'images
+      const apis = [
+        `https://api.vrfrnd.xyz/api/dalle?prompt=${encodeURIComponent(prompt)}`,
+        `https://api.itzpire.com/ai/generate-image?prompt=${encodeURIComponent(prompt)}`
+      ];
+
+      let imageUrl = null;
+      
+      for (const apiUrl of apis) {
+        try {
+          const res = await axios.get(apiUrl, { timeout: 60000 });
+          
+          if (res.data) {
+            imageUrl = res.data.result || res.data.url || res.data.image || res.data.data;
+            
+            if (imageUrl && imageUrl.startsWith("http")) {
+              break;
             }
           }
-        : function () {};
-      return ((_0xfde153 = ![]), _0x3e97ae);
-    };
-  })(),
-  _0xe4a123 = _0xef8d62(this, function () {
-    const _0x56f379 = _0x166c,
-      _0x6deddc = { mrpuq: _0x56f379(0x1e4) };
-    return _0xe4a123["toString"]()
-      ["search"](_0x6deddc[_0x56f379(0x24b)])
-      ["toString"]()
-      [_0x56f379(0x228)](_0xe4a123)
-      [_0x56f379(0x20f)](_0x6deddc[_0x56f379(0x24b)]);
-  });
-_0xe4a123();
-const { ovlcmd } = require(_0x12224c(0x1e6)),
-  axios = require(_0x12224c(0x215));
-(ovlcmd(
-  { nom_cmd: _0x12224c(0x1ef), classe: "IA", react: "🤖", desc: _0x12224c(0x223) },
-  async (_0x6e7bbb, _0x3aa9ff, _0x5871e1) => {
-    const _0x396a7b = _0x12224c,
-      _0x50719b = {
-        PIBti: function (_0x3d87e5, _0xf199d7) {
-          return _0x3d87e5(_0xf199d7);
-        },
-        ZrlGq: _0x396a7b(0x222),
-        qddxQ: _0x396a7b(0x263),
-        iVwtk: _0x396a7b(0x24a),
-      },
-      { arg: _0x33c22f, ms: _0x3064e7, repondre: _0x3015be } = _0x5871e1;
-    if (!_0x33c22f["length"])
-      return _0x50719b[_0x396a7b(0x23f)](
-        _0x3015be,
-        "Veuillez\x20entrer\x20un\x20prompt\x20pour\x20générer\x20une\x20réponse.",
-      );
-    const _0x426739 = _0x33c22f["join"]("\x20"),
-      _0x2758b0 = _0x396a7b(0x212) + _0x50719b[_0x396a7b(0x23f)](encodeURIComponent, _0x426739);
-    try {
-      const _0x794b0c = await axios[_0x396a7b(0x25c)](_0x2758b0),
-        _0x557131 = _0x794b0c[_0x396a7b(0x240)]?.[_0x396a7b(0x224)] || _0x50719b["ZrlGq"];
-      return _0x50719b[_0x396a7b(0x23f)](_0x3015be, _0x557131);
-    } catch (_0x3c5e66) {
-      return (
-        console["error"](_0x50719b[_0x396a7b(0x25d)], _0x3c5e66),
-        _0x50719b["PIBti"](_0x3015be, _0x50719b[_0x396a7b(0x247)])
-      );
-    }
-  },
-),
-  ovlcmd(
-    { nom_cmd: _0x12224c(0x23e), classe: "IA", react: "🎨", desc: _0x12224c(0x1ff) },
-    async (_0x4f395b, _0x468c7b, _0x4a285f) => {
-      const _0x29de07 = _0x12224c,
-        _0x3d1869 = {
-          Swgyy: function (_0x45d94b, _0x48eaf8) {
-            return _0x45d94b(_0x48eaf8);
-          },
-          PJEUX: _0x29de07(0x241),
-          hTgJd: _0x29de07(0x221),
-          OwWKL: function (_0x51bb07, _0x1ef1a6) {
-            return _0x51bb07(_0x1ef1a6);
-          },
-          ghcME: _0x29de07(0x227),
-        },
-        { arg: _0x226f83, ms: _0x286661, repondre: _0x3cfb01 } = _0x4a285f;
-      if (!_0x226f83[_0x29de07(0x259)])
-        return _0x3d1869[_0x29de07(0x1f6)](
-          _0x3cfb01,
-          "Veuillez\x20entrer\x20une\x20description\x20pour\x20générer\x20une\x20image.",
-        );
-      try {
-        const _0x5efdf2 = _0x3d1869[_0x29de07(0x1f6)](
-            encodeURIComponent,
-            _0x226f83[_0x29de07(0x255)]("\x20"),
-          ),
-          _0x4607cb = await axios[_0x29de07(0x25c)](
-            "https://api.shizo.top/ai/imagine?apikey=shizo&prompt=" + _0x5efdf2,
-            { responseType: _0x3d1869[_0x29de07(0x226)] },
-          ),
-          _0x3dde51 = Buffer["from"](_0x4607cb[_0x29de07(0x240)]);
-        return _0x468c7b[_0x29de07(0x1ed)](
-          _0x4f395b,
-          { image: _0x3dde51, caption: _0x3d1869[_0x29de07(0x1ee)] },
-          { quoted: _0x286661 },
-        );
-      } catch (_0x268430) {
-        return (
-          console[_0x29de07(0x22f)](_0x29de07(0x21d), _0x268430),
-          _0x3d1869[_0x29de07(0x201)](_0x3cfb01, _0x3d1869[_0x29de07(0x239)])
-        );
-      }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x12224c(0x237), classe: "IA", react: "🖤", desc: _0x12224c(0x1f2) },
-    async (_0x31b3f6, _0x207eb, _0x3f3901) => {
-      const _0x400f0d = _0x12224c,
-        _0x4f9cf0 = {
-          ohYrd: function (_0x536b72, _0x1fae0a) {
-            return _0x536b72(_0x1fae0a);
-          },
-          aWTXY: _0x400f0d(0x214),
-          pSPUP: "https://nexra.aryahcr.cc/api/chat/complements",
-          AIwjF: _0x400f0d(0x211),
-          czdGr: "Répondre\x20à\x20l\x27utilisateur.",
-          Bfmcv: "blackbox",
-          TBbia: _0x400f0d(0x204),
-          LvSqR: "error",
-          yeLPg: _0x400f0d(0x225),
-          HejYT: _0x400f0d(0x21c),
-          POcdE: "Aucune\x20réponse\x20générée.",
-          QnTbo: _0x400f0d(0x216),
-          OAVwj: function (_0x5ca77f, _0x357ccd) {
-            return _0x5ca77f(_0x357ccd);
-          },
-          EiQbM: _0x400f0d(0x218),
-          orGAI: _0x400f0d(0x24a),
-        },
-        { arg: _0x17120f, ms: _0x49d6e7, repondre: _0x2489c4 } = _0x3f3901;
-      if (!_0x17120f[_0x400f0d(0x259)])
-        return _0x4f9cf0[_0x400f0d(0x1e7)](_0x2489c4, _0x4f9cf0["aWTXY"]);
-      const _0x100207 = _0x17120f["join"]("\x20"),
-        _0x18cee8 = _0x4f9cf0["pSPUP"];
-      try {
-        const _0x24a1b3 = await axios[_0x400f0d(0x1fe)](
-            _0x18cee8,
-            {
-              messages: [{ role: _0x4f9cf0["AIwjF"], content: _0x100207 }],
-              prompt: _0x4f9cf0[_0x400f0d(0x1f8)],
-              websearch: ![],
-              stream: ![],
-              markdown: ![],
-              model: _0x4f9cf0["Bfmcv"],
-            },
-            { headers: { "Content-Type": _0x400f0d(0x1e9) } },
-          ),
-          _0x334691 = _0x24a1b3[_0x400f0d(0x240)]["id"];
-        let _0x4d43f3 = !![];
-        while (_0x4d43f3) {
-          const _0x15772f = await axios[_0x400f0d(0x25c)](
-            _0x400f0d(0x22c) + _0x4f9cf0["ohYrd"](encodeURIComponent, _0x334691),
-          );
-          switch (_0x15772f[_0x400f0d(0x240)][_0x400f0d(0x1f7)]) {
-            case _0x4f9cf0[_0x400f0d(0x21f)]:
-              _0x4d43f3 = !![];
-              break;
-            case _0x4f9cf0[_0x400f0d(0x231)]:
-              _0x4d43f3 = ![];
-              return _0x2489c4(_0x4f9cf0[_0x400f0d(0x249)]);
-            case _0x4f9cf0[_0x400f0d(0x23c)]:
-              _0x4d43f3 = ![];
-              return _0x4f9cf0[_0x400f0d(0x1e7)](
-                _0x2489c4,
-                _0x15772f[_0x400f0d(0x240)][_0x400f0d(0x25b)] || _0x4f9cf0[_0x400f0d(0x24f)],
-              );
-            case _0x4f9cf0[_0x400f0d(0x20b)]:
-              _0x4d43f3 = ![];
-              return _0x4f9cf0[_0x400f0d(0x1e8)](_0x2489c4, _0x400f0d(0x243));
-          }
+        } catch (e) {
+          continue;
         }
-      } catch (_0x385f82) {
-        return (
-          console[_0x400f0d(0x22f)](_0x4f9cf0["EiQbM"], _0x385f82),
-          _0x4f9cf0[_0x400f0d(0x1e8)](_0x2489c4, _0x4f9cf0[_0x400f0d(0x1eb)])
-        );
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: "lenna", classe: "IA", react: "🤖", desc: _0x12224c(0x25a) },
-    async (_0x447ca4, _0x4d5b30, _0x4d24b5) => {
-      const _0x42a805 = _0x12224c,
-        _0x10fa57 = {
-          oGDzE: function (_0xe724ec, _0x56a49c) {
-            return _0xe724ec(_0x56a49c);
-          },
-          Dsonu: function (_0x1c286c, _0x2e87c5) {
-            return _0x1c286c(_0x2e87c5);
-          },
-          jagFs: _0x42a805(0x222),
-          hTlLd: function (_0x5dfbff, _0x3a6ee4) {
-            return _0x5dfbff(_0x3a6ee4);
-          },
-          vzOKf: _0x42a805(0x245),
-        },
-        { arg: _0x384826, ms: _0x340424, repondre: _0x1fefc0 } = _0x4d24b5;
-      if (!_0x384826["length"]) return _0x10fa57[_0x42a805(0x206)](_0x1fefc0, _0x42a805(0x232));
-      const _0x30a227 = _0x384826[_0x42a805(0x255)]("\x20"),
-        _0x488656 = _0x42a805(0x24e) + _0x10fa57[_0x42a805(0x209)](encodeURIComponent, _0x30a227);
+
+      if (imageUrl) {
+        await ovl.sendMessage(msg.key.remoteJid, {
+          image: { url: imageUrl },
+          caption: `🎨 *DALL-E*\n\n📝 Prompt: ${prompt}\n\n✨ Powered by HANI-MD`
+        }, { quoted: ms });
+      } else {
+        repondre("❌ Impossible de générer l'image. Réessayez avec un autre prompt.");
+      }
+
+    } catch (error) {
+      console.error("[DALLE]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 📝 RÉSUMÉ DE TEXTE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "summarize",
+    classe: "IA",
+    react: "📝",
+    desc: "Résumer un texte",
+    alias: ["resume", "summary"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const text = arg.join(" ");
+      if (!text || text.length < 50) {
+        return repondre("❌ Utilisation: .summarize [texte long à résumer]\n\n⚠️ Le texte doit contenir au moins 50 caractères.");
+      }
+
+      await repondre("📝 Résumé en cours...");
+
+      const prompt = `Résume ce texte en quelques phrases clés:\n\n${text}`;
+      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
+      
       try {
-        const _0x1da245 = await axios[_0x42a805(0x25c)](_0x488656),
-          _0xc28977 = _0x1da245["data"]?.[_0x42a805(0x25b)] || _0x10fa57[_0x42a805(0x208)];
-        return _0x10fa57[_0x42a805(0x24d)](_0x1fefc0, _0xc28977);
-      } catch (_0x4530d4) {
-        return (
-          console["error"](_0x10fa57[_0x42a805(0x258)], _0x4530d4),
-          _0x10fa57[_0x42a805(0x206)](
-            _0x1fefc0,
-            "Une\x20erreur\x20est\x20survenue\x20lors\x20de\x20l\x27appel\x20à\x20l\x27API.",
-          )
-        );
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && res.data.result) {
+          let result = `📝 *Résumé*\n\n`;
+          result += `${res.data.result}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      repondre("❌ Impossible de résumer le texte. Réessayez.");
+
+    } catch (error) {
+      console.error("[SUMMARIZE]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 💻 CODE ASSISTANT
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "code",
+    classe: "IA",
+    react: "💻",
+    desc: "Générer du code avec l'IA",
+    alias: ["coder", "programming"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const request = arg.join(" ");
+      if (!request) {
+        return repondre("❌ Utilisation: .code [description du code]\n\n📝 Exemple: .code Fonction Python pour calculer le factoriel");
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x12224c(0x219), classe: "IA", react: "🤖", desc: _0x12224c(0x1fd) },
-    async (_0x3016b0, _0x240a57, _0x5f2a7c) => {
-      const _0x42ec6f = _0x12224c,
-        _0x2e721d = {
-          ygcRQ: function (_0x319633, _0x476460) {
-            return _0x319633(_0x476460);
-          },
-          mXKKy: _0x42ec6f(0x232),
-          Pidlu: function (_0x1640c5, _0x186692) {
-            return _0x1640c5(_0x186692);
-          },
-          ZoMsc: _0x42ec6f(0x222),
-          ZWZwC: function (_0x3e1c99, _0x3d07d9) {
-            return _0x3e1c99(_0x3d07d9);
-          },
-          UthOM: _0x42ec6f(0x21b),
-          rwiVv: "Une\x20erreur\x20est\x20survenue\x20lors\x20de\x20l\x27appel\x20à\x20l\x27API.",
-        },
-        { arg: _0x14f682, ms: _0x2f6d54, repondre: _0xfbd891 } = _0x5f2a7c;
-      if (!_0x14f682[_0x42ec6f(0x259)])
-        return _0x2e721d[_0x42ec6f(0x1ec)](_0xfbd891, _0x2e721d[_0x42ec6f(0x1f1)]);
-      const _0x47078f = _0x14f682[_0x42ec6f(0x255)]("\x20"),
-        _0x3c5ff8 = _0x42ec6f(0x253) + _0x2e721d["Pidlu"](encodeURIComponent, _0x47078f);
+
+      await repondre("💻 Génération du code...");
+
+      const prompt = `Génère du code pour: ${request}. Fournis uniquement le code avec des commentaires explicatifs.`;
+      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
+      
       try {
-        const _0x9c9978 = await axios["get"](_0x3c5ff8),
-          _0x99f012 =
-            _0x9c9978[_0x42ec6f(0x240)]?.[_0x42ec6f(0x240)]?.[_0x42ec6f(0x250)] ||
-            _0x2e721d["ZoMsc"];
-        return _0x2e721d[_0x42ec6f(0x1fa)](_0xfbd891, _0x99f012);
-      } catch (_0x1ad05e) {
-        return (
-          console[_0x42ec6f(0x22f)](_0x2e721d["UthOM"], _0x1ad05e),
-          _0x2e721d[_0x42ec6f(0x1ec)](_0xfbd891, _0x2e721d[_0x42ec6f(0x200)])
-        );
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && res.data.result) {
+          let code = res.data.result;
+          
+          if (code.length > 4000) {
+            code = code.substring(0, 4000) + "\n\n... [Code tronqué]";
+          }
+          
+          let result = `💻 *Code Assistant*\n\n`;
+          result += `📝 Demande: ${request}\n\n`;
+          result += `${code}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      repondre("❌ Impossible de générer le code. Réessayez.");
+
+    } catch (error) {
+      console.error("[CODE]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🌐 TRADUCTION IA
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "aitranslate",
+    classe: "IA",
+    react: "🌐",
+    desc: "Traduire avec l'IA (meilleure qualité)",
+    alias: ["aitrad", "smarttranslate"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      if (arg.length < 2) {
+        return repondre("❌ Utilisation: .aitranslate [langue] [texte]\n\n📝 Exemple: .aitranslate anglais Bonjour comment vas-tu?");
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x12224c(0x205), classe: "IA", react: "🤖", desc: _0x12224c(0x1fc) },
-    async (_0x247186, _0x1109f1, _0x2ad3ba) => {
-      const _0x4c28fb = _0x12224c,
-        _0x184d29 = {
-          iGmPN: function (_0x3564c2, _0x2b95e4) {
-            return _0x3564c2(_0x2b95e4);
-          },
-          iopRl: _0x4c28fb(0x232),
-          sNRcL: function (_0x5dc51c, _0x2c281f) {
-            return _0x5dc51c(_0x2c281f);
-          },
-          gOQJG: function (_0x874e06, _0x4d8eb0) {
-            return _0x874e06(_0x4d8eb0);
-          },
-          sVwJf: function (_0x5b7303, _0x1cae1f) {
-            return _0x5b7303(_0x1cae1f);
-          },
-          rSECq: "Une\x20erreur\x20est\x20survenue\x20lors\x20de\x20l\x27appel\x20à\x20l\x27API.",
-        },
-        { arg: _0x5f4ff8, ms: _0x4c9c57, repondre: _0x4c178c } = _0x2ad3ba;
-      if (!_0x5f4ff8["length"]) return _0x184d29["iGmPN"](_0x4c178c, _0x184d29[_0x4c28fb(0x244)]);
-      const _0x2258f5 = _0x5f4ff8["join"]("\x20"),
-        _0x2b5e51 =
-          "https://bk9.fun/ai/gemini?q=" +
-          _0x184d29[_0x4c28fb(0x1f3)](encodeURIComponent, _0x2258f5);
+
+      const targetLang = arg[0];
+      const text = arg.slice(1).join(" ");
+
+      await repondre("🌐 Traduction IA en cours...");
+
+      const prompt = `Traduis ce texte en ${targetLang} de manière naturelle et fluide:\n\n"${text}"`;
+      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
+      
       try {
-        const _0x54a4a1 = await axios[_0x4c28fb(0x25c)](_0x2b5e51),
-          _0x21e0b9 = _0x54a4a1[_0x4c28fb(0x240)]?.[_0x4c28fb(0x238)] || _0x4c28fb(0x260);
-        return _0x184d29[_0x4c28fb(0x22d)](_0x4c178c, _0x21e0b9);
-      } catch (_0x2443d5) {
-        return (
-          console[_0x4c28fb(0x22f)](_0x4c28fb(0x23a), _0x2443d5),
-          _0x184d29["sVwJf"](_0x4c178c, _0x184d29["rSECq"])
-        );
-      }
-    },
-  ),
-  ovlcmd(
-    {
-      nom_cmd: _0x12224c(0x20c),
-      classe: "IA",
-      react: "🤖",
-      desc: "Utilise\x20l\x27API\x20Llama\x20pour\x20générer\x20des\x20réponses.",
-    },
-    async (_0x4f7279, _0x12c19e, _0x42d18e) => {
-      const _0x4dcac3 = _0x12224c,
-        _0x448dde = {
-          CyeFw: function (_0x48c610, _0xc0b4d2) {
-            return _0x48c610(_0xc0b4d2);
-          },
-          OhFHz: _0x4dcac3(0x232),
-          MvDBa: _0x4dcac3(0x261),
-          GlCBs: function (_0x2eaea6, _0x3c43ee) {
-            return _0x2eaea6(_0x3c43ee);
-          },
-          MkWrH: _0x4dcac3(0x24a),
-        },
-        { arg: _0x3014ab, repondre: _0x382b03 } = _0x42d18e;
-      if (!_0x3014ab[_0x4dcac3(0x259)])
-        return _0x448dde[_0x4dcac3(0x236)](_0x382b03, _0x448dde["OhFHz"]);
-      const _0x5cafe5 = _0x3014ab[_0x4dcac3(0x255)]("\x20"),
-        _0x5d9fb5 = _0x4dcac3(0x1f9) + _0x448dde[_0x4dcac3(0x236)](encodeURIComponent, _0x5cafe5);
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && res.data.result) {
+          let result = `🌐 *Traduction IA*\n\n`;
+          result += `📝 Original: ${text}\n`;
+          result += `🎯 Langue: ${targetLang}\n\n`;
+          result += `✅ Traduction:\n${res.data.result}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      repondre("❌ Impossible de traduire. Essayez .translate pour une traduction simple.");
+
+    } catch (error) {
+      console.error("[AITRANSLATE]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🧠 QUIZ IA
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "aiquiz",
+    classe: "IA",
+    react: "🧠",
+    desc: "Générer un quiz sur un sujet",
+    alias: ["quizai", "genquiz"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const topic = arg.join(" ") || "culture générale";
+
+      await repondre("🧠 Génération du quiz...");
+
+      const prompt = `Génère une question de quiz sur "${topic}" avec 4 choix de réponses (A, B, C, D) et indique la bonne réponse à la fin. Format clair.`;
+      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
+      
       try {
-        const _0x43b9e4 = await axios[_0x4dcac3(0x25c)](_0x5d9fb5),
-          _0x30a6da =
-            _0x43b9e4[_0x4dcac3(0x240)]?.[_0x4dcac3(0x262)]?.[_0x4dcac3(0x262)] ||
-            _0x448dde["MvDBa"];
-        return _0x382b03(_0x30a6da);
-      } catch (_0xeb26ac) {
-        return (
-          console[_0x4dcac3(0x22f)](_0x4dcac3(0x246), _0xeb26ac),
-          _0x448dde[_0x4dcac3(0x1f0)](_0x382b03, _0x448dde[_0x4dcac3(0x23d)])
-        );
-      }
-    },
-  ),
-  ovlcmd(
-    {
-      nom_cmd: _0x12224c(0x213),
-      classe: "IA",
-      react: "🤖",
-      desc: "Faites\x20appel\x20à\x20l\x27API\x20Bard\x20pour\x20obtenir\x20des\x20réponses.",
-    },
-    async (_0x90ff23, _0x1b3c22, _0xbb8b21) => {
-      const _0x3f8ffb = _0x12224c,
-        _0x591cbb = {
-          ScvWG: function (_0x53c717, _0x3607b6) {
-            return _0x53c717(_0x3607b6);
-          },
-          kSbmf: "Veuillez\x20entrer\x20un\x20prompt\x20pour\x20générer\x20une\x20réponse.",
-          QUKUE: _0x3f8ffb(0x22a),
-          xYECb: function (_0x4e3456, _0x94416f) {
-            return _0x4e3456(_0x94416f);
-          },
-          faSVN: _0x3f8ffb(0x24a),
-        },
-        { arg: _0x16bbe4, repondre: _0x33b0d3 } = _0xbb8b21;
-      if (!_0x16bbe4[_0x3f8ffb(0x259)])
-        return _0x591cbb[_0x3f8ffb(0x220)](_0x33b0d3, _0x591cbb[_0x3f8ffb(0x25e)]);
-      const _0x1f2248 = _0x16bbe4[_0x3f8ffb(0x255)]("\x20"),
-        _0xa1a727 = _0x3f8ffb(0x254) + encodeURIComponent(_0x1f2248);
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && res.data.result) {
+          let result = `🧠 *Quiz IA*\n\n`;
+          result += `📚 Sujet: ${topic}\n\n`;
+          result += `${res.data.result}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      repondre("❌ Impossible de générer le quiz. Réessayez.");
+
+    } catch (error) {
+      console.error("[AIQUIZ]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 📖 HISTOIRE IA
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "story",
+    classe: "IA",
+    react: "📖",
+    desc: "Générer une histoire",
+    alias: ["histoire", "conte"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const theme = arg.join(" ") || "aventure fantastique";
+
+      await repondre("📖 Création de l'histoire...");
+
+      const prompt = `Écris une courte histoire captivante (environ 200 mots) sur le thème: "${theme}". Style narratif engageant.`;
+      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
+      
       try {
-        const _0x340aa2 = await axios[_0x3f8ffb(0x25c)](_0xa1a727),
-          _0x28b48e =
-            _0x340aa2[_0x3f8ffb(0x240)]?.[_0x3f8ffb(0x248)]?.["message"] || _0x3f8ffb(0x256);
-        return _0x33b0d3(_0x28b48e);
-      } catch (_0x352f76) {
-        return (
-          console["error"](_0x591cbb[_0x3f8ffb(0x1f4)], _0x352f76),
-          _0x591cbb[_0x3f8ffb(0x235)](_0x33b0d3, _0x591cbb[_0x3f8ffb(0x242)])
-        );
-      }
-    },
-  ),
-  ovlcmd(
-    {
-      nom_cmd: _0x12224c(0x22e),
-      classe: "IA",
-      react: "🤖",
-      desc: "Faites\x20appel\x20à\x20l\x27API\x20Mistral\x20pour\x20obtenir\x20des\x20réponses.",
-    },
-    async (_0x14b808, _0x23e0fa, _0x302757) => {
-      const _0x4a32d0 = _0x12224c,
-        _0x5e919c = {
-          KONZI: _0x4a32d0(0x232),
-          riDbp: function (_0x27aab5, _0x2027b8) {
-            return _0x27aab5(_0x2027b8);
-          },
-          xSfRs: _0x4a32d0(0x20d),
-          ZxOAj: _0x4a32d0(0x252),
-          ffMoh: function (_0x54d66e, _0x5c5c89) {
-            return _0x54d66e(_0x5c5c89);
-          },
-          cCJzg: "Une\x20erreur\x20est\x20survenue\x20lors\x20de\x20l\x27appel\x20à\x20l\x27API.",
-        },
-        { arg: _0x1a8b04, repondre: _0x16d35c } = _0x302757;
-      if (!_0x1a8b04["length"]) return _0x16d35c(_0x5e919c["KONZI"]);
-      const _0x122e05 = _0x1a8b04[_0x4a32d0(0x255)]("\x20"),
-        _0xf426b = _0x4a32d0(0x233) + _0x5e919c[_0x4a32d0(0x207)](encodeURIComponent, _0x122e05);
-      try {
-        const _0x392335 = await axios["get"](_0xf426b),
-          _0x1036e8 =
-            _0x392335["data"]?.[_0x4a32d0(0x240)]?.[_0x4a32d0(0x262)] ||
-            _0x5e919c[_0x4a32d0(0x21a)];
-        return _0x5e919c[_0x4a32d0(0x207)](_0x16d35c, _0x1036e8);
-      } catch (_0x5de949) {
-        return (
-          console[_0x4a32d0(0x22f)](_0x5e919c[_0x4a32d0(0x21e)], _0x5de949),
-          _0x5e919c["ffMoh"](_0x16d35c, _0x5e919c[_0x4a32d0(0x1e5)])
-        );
-      }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x12224c(0x20a), classe: "IA", react: "🤖", desc: _0x12224c(0x1f5) },
-    async (_0x359cc4, _0xb94876, _0x316c0e) => {
-      const _0x30285c = _0x12224c,
-        _0x291e79 = {
-          CNYzX: function (_0x454a65, _0x3434cd) {
-            return _0x454a65(_0x3434cd);
-          },
-          bMYpv: _0x30285c(0x24c),
-          UnXZr: "Une\x20erreur\x20est\x20survenue\x20lors\x20de\x20l\x27appel\x20à\x20l\x27API.",
-        },
-        { arg: _0x7f7b9b, repondre: _0xa4104f } = _0x316c0e;
-      if (!_0x7f7b9b[_0x30285c(0x259)])
-        return _0x291e79["CNYzX"](
-          _0xa4104f,
-          "Veuillez\x20entrer\x20un\x20prompt\x20pour\x20générer\x20une\x20réponse.",
-        );
-      const _0x2c8c70 = _0x7f7b9b["join"]("\x20"),
-        _0x30e300 = _0x30285c(0x20e) + _0x291e79[_0x30285c(0x251)](encodeURIComponent, _0x2c8c70);
-      try {
-        const _0x415f08 = await axios[_0x30285c(0x25c)](_0x30e300),
-          _0x42c4d9 =
-            _0x415f08[_0x30285c(0x240)]?.[_0x30285c(0x240)]?.[_0x30285c(0x262)] || _0x30285c(0x202);
-        return _0xa4104f(_0x42c4d9);
-      } catch (_0x3f5062) {
-        return (
-          console[_0x30285c(0x22f)](_0x291e79[_0x30285c(0x234)], _0x3f5062),
-          _0xa4104f(_0x291e79[_0x30285c(0x229)])
-        );
-      }
-    },
-  ));
+        const res = await axios.get(apiUrl, { timeout: 30000 });
+        
+        if (res.data && res.data.result) {
+          let result = `📖 *Histoire*\n\n`;
+          result += `🎭 Thème: ${theme}\n\n`;
+          result += `${res.data.result}\n\n`;
+          result += `✨ Powered by HANI-MD`;
+          
+          return repondre(result);
+        }
+      } catch (e) {}
+
+      repondre("❌ Impossible de générer l'histoire. Réessayez.");
+
+    } catch (error) {
+      console.error("[STORY]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+console.log("[CMD] ✅ Ia.js chargé - Commandes: gpt, gemini, dalle, summarize, code, aitranslate, aiquiz, story");

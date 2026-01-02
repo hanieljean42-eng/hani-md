@@ -1,19 +1,57 @@
-node_modules/
-.env
-*.db
-config_env.json
-cache_jid.json
-store_msg.json
+# ===========================================
+# HANI-MD V2.6.0 SECURE - .gitignore
+# ===========================================
 
-# Session WhatsApp
+# Dépendances
+node_modules/
+
+# Variables d'environnement (IMPORTANT!)
+.env
+config_env.json
+
+# Sessions WhatsApp (SENSIBLE!)
+session/
 DataBase/session/
 DataBase/hani.json
+auth_info*/
+
+# Fichiers de données locaux
+*.db
+cache_jid.json
+store_msg.json
+lib/cache_jid.json
+lib/store_msg.json
+DataBase/autoreply.json
+DataBase/banned.json
+DataBase/contacts.json
+DataBase/notes.json
+DataBase/surveillance.json
+DataBase/users_pro.json
+
+# Logs et fichiers temporaires
+*.log
+*.tmp
+*.bak
+debug.log
+npm-debug.log*
 
 # Fichiers système
 .DS_Store
 Thumbs.db
-*.log
-*.tmp
+desktop.ini
+*.swp
+*.swo
 
-# Dossiers de déobfuscation
+# Dossiers de déobfuscation et debug
 deobf/
+temp/
+test/
+
+# Fichiers de développement local
+CLEANUP.ps1
+*.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*

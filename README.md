@@ -1,15 +1,39 @@
-# 🌟 HANI-MD - Bot WhatsApp Intelligent
+# 🌟 HANI-MD V2.6.0 SECURE - Bot WhatsApp Premium
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.6.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/Node.js-18+-green.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
   <img src="https://img.shields.io/badge/WhatsApp-Multi--Device-brightgreen.svg" alt="WhatsApp">
+  <img src="https://img.shields.io/badge/Status-Secure-success.svg" alt="Secure">
 </p>
 
 <p align="center">
-  <b>🔥 Bot WhatsApp puissant avec fonctionnalités avancées de surveillance, protection et extraction 🔥</b>
+  <b>🔥 Bot WhatsApp premium avec système d'abonnements, protection avancée et fonctionnalités exclusives 🔥</b>
 </p>
+
+---
+
+## ✨ Nouveautés v2.6.0 SECURE
+
+- 🎨 **Nouveau système de menus stylisés** avec thèmes personnalisables
+- 💎 **Système d'abonnements premium** avec 6 niveaux
+- 🔐 **Contrôle d'accès avancé** par commande
+- 🌐 **Interface web intégrée** pour les abonnements
+- 💳 **Paiement mobile** via Wave & Moov Money
+
+---
+
+## 💎 Plans d'Abonnement
+
+| Plan | Prix | Commandes/Jour | Accès |
+|------|------|----------------|-------|
+| 🆓 FREE | Gratuit | 30 | Commandes de base |
+| 🥉 BRONZE | 500 F/mois | 100 | + Téléchargements |
+| 🥈 ARGENT | 1000 F/mois | 200 | + Convertisseurs |
+| 🥇 OR | 2000 F/mois | 500 | + IA & Recherche |
+| 💎 DIAMANT | 5000 F/mois | Illimité | Toutes les fonctionnalités |
+| ♾️ LIFETIME | 15000 F (unique) | Illimité à vie | Accès permanent |
 
 ---
 
@@ -18,123 +42,69 @@
 ### 🔐 Protection & Sécurité
 | Fonction | Description |
 |----------|-------------|
-| Anti-Delete | Récupère automatiquement les messages supprimés |
+| Anti-Delete | Récupère les messages supprimés |
 | Anti-Spam | Protection contre le spam |
 | Anti-Bot | Bloque les autres bots |
 | Anti-Link | Supprime les liens non autorisés |
 | Anti-Call | Bloque et rejette les appels |
+| Anti-Tag | Protection contre le tag abusif |
+| Anti-Mention | Protection contre les mentions massives |
 
-### 🕵️ Surveillance Avancée
+### 🕵️ Surveillance Avancée (Premium)
 | Fonction | Description |
 |----------|-------------|
-| Spy Mode | Surveiller l'activité d'un utilisateur en temps réel |
-| Interception Médias | Récupère automatiquement TOUTES les photos/vidéos des surveillés |
-| Activity Tracker | Suivi complet: messages, groupes, dernière vue |
-| Alertes instantanées | Notification à chaque activité |
+| Spy Mode | Surveiller l'activité en temps réel |
+| Interception Médias | Récupère photos/vidéos automatiquement |
+| Activity Tracker | Suivi complet des activités |
+| Alertes instantanées | Notifications en temps réel |
 
 ### 👁️ Vue Unique (View Once)
-- ✅ Interception automatique des photos/vidéos à vue unique
-- ✅ Sauvegarde instantanée avant que l'expéditeur ne supprime
+- ✅ Interception automatique des médias à vue unique
+- ✅ Sauvegarde instantanée
 - ✅ Envoi en privé au propriétaire
 
 ### 📸 Statuts / Stories
-- ✅ Sauvegarde automatique de tous les statuts
+- ✅ Sauvegarde automatique
 - ✅ Récupération des statuts supprimés
-- ✅ Visualisation en privé
+- ✅ Téléchargement de statuts
 
-### 📁 Extraction de Médias
-- ✅ Voir tous les médias reçus par utilisateur
-- ✅ Télécharger images/vidéos/audios/documents
-- ✅ Historique complet des fichiers
+### 🤖 Intelligence Artificielle (Premium)
+- 💬 ChatGPT intégré
+- 🎨 Génération d'images AI
+- 🎵 IA musicale
+
+### 📥 Téléchargements
+- YouTube (audio & vidéo)
+- TikTok, Instagram, Facebook
+- Spotify, SoundCloud
+- Twitter/X, Pinterest
 
 ---
 
-## 📋 Liste Complète des Commandes
+## 📋 Catégories de Commandes
 
-### 📊 Général
-| Commande | Description |
-|----------|-------------|
-| `.menu` | Afficher le menu complet |
-| `.ping` | Vérifier la latence du bot |
-| `.info` | Informations du bot |
-| `.stats` | Statistiques d'utilisation |
-
-### 🕵️ Espionnage & Surveillance
-| Commande | Description |
-|----------|-------------|
-| `.spy @user` ou `.spy [numéro]` | Surveiller un utilisateur |
-| `.unspy @user` | Arrêter la surveillance |
-| `.spylist` | Liste des utilisateurs surveillés |
-| `.activity` | Top 15 des utilisateurs les plus actifs |
-| `.activity @user` | Voir l'activité détaillée d'un utilisateur |
-
-### 📁 Extraction
-| Commande | Description |
-|----------|-------------|
-| `.extract` | Liste des utilisateurs avec médias stockés |
-| `.extract @user` | Voir les médias d'un utilisateur |
-| `.getmedia [numéro] [n°]` | Télécharger un média spécifique |
-| `.medialist` | Statistiques des médias stockés |
-| `.clearmedia` | Supprimer les médias stockés |
-
-### 🔐 Protection
-| Commande | Description |
-|----------|-------------|
-| `.antidelete on/off` | Anti-suppression de messages |
-| `.antispam on/off` | Anti-spam |
-| `.anticall on/off` | Anti-appel |
-| `.antilink on/off` | Anti-liens |
-| `.antibot on/off` | Anti-bots |
-
-### 👁️ Vue Unique
-| Commande | Description |
-|----------|-------------|
-| `.vv` | Récupérer une vue unique (répondre au message) |
-| `.listvv` | Liste des vues uniques interceptées |
-
-### 📸 Statuts
-| Commande | Description |
-|----------|-------------|
-| `.savestatus on/off` | Activer la sauvegarde auto |
-| `.deletedstatus` | Voir les statuts supprimés |
-| `.getstatus [n°]` | Récupérer un statut spécifique |
-| `.liststatus` | Liste de tous les statuts |
-
-### 👥 Groupe
-| Commande | Description |
-|----------|-------------|
-| `.kick @user` | Expulser un membre |
-| `.add [numéro]` | Ajouter un membre |
-| `.promote @user` | Promouvoir en admin |
-| `.demote @user` | Rétrograder |
-| `.mute on/off` | Désactiver le bot |
-| `.warn @user` | Avertir un membre |
-| `.warnlist` | Liste des avertissements |
-
-### 🎮 Fun
-| Commande | Description |
-|----------|-------------|
-| `.sticker` | Créer un sticker (répondre à une image) |
-| `.dice` | Lancer un dé |
-| `.flip` | Pile ou face |
-| `.quote` | Citation aléatoire |
-
-### 🔧 Outils
-| Commande | Description |
-|----------|-------------|
-| `.calc [expression]` | Calculatrice |
-| `.tts [texte]` | Texte vers audio |
-| `.tr [lang] [texte]` | Traduction |
-
-### 👑 Owner Seulement
-| Commande | Description |
-|----------|-------------|
-| `.ban @user` | Bannir du bot |
-| `.unban @user` | Débannir |
-| `.sudo @user` | Ajouter un admin bot |
-| `.delsudo @user` | Retirer un admin bot |
-| `.broadcast [msg]` | Diffuser dans tous les groupes |
-| `.restart` | Redémarrer le bot |
+| Catégorie | Commande | Description |
+|-----------|----------|-------------|
+| 📊 Système | `.menu` | Menu principal stylisé |
+| | `.menucat [catégorie]` | Menu par catégorie |
+| | `.ping` | Latence du bot |
+| | `.info` | Informations |
+| 🔐 Protection | `.antilink on/off` | Protection liens |
+| | `.antispam on/off` | Protection spam |
+| | `.antibot on/off` | Protection bots |
+| | `.anticall on/off` | Protection appels |
+| 📥 Téléchargement | `.yt [url]` | YouTube |
+| | `.tiktok [url]` | TikTok |
+| | `.ig [url]` | Instagram |
+| 🤖 IA | `.gpt [question]` | ChatGPT |
+| | `.dall-e [prompt]` | Génération image |
+| 👥 Groupe | `.kick @user` | Expulser |
+| | `.promote @user` | Promouvoir admin |
+| | `.demote @user` | Rétrograder |
+| 🎮 Fun | `.sticker` | Créer sticker |
+| | `.quote` | Citation aléatoire |
+| 💎 Premium | `.sub` | Voir son abonnement |
+| | `.upgrade` | Améliorer son plan |
 
 ---
 
@@ -156,6 +126,8 @@ cp .env.example .env
 
 # 4. Lancer le bot
 npm start
+# ou
+node start.js
 
 # 5. Scanner le QR code avec WhatsApp
 ```
@@ -163,72 +135,64 @@ npm start
 ### ☁️ Déploiement sur Render (Recommandé)
 
 1. **Fork** ce repository sur GitHub
-2. Allez sur [render.com](https://render.com) et connectez votre GitHub
-3. Cliquez sur **New → Web Service**
-4. Sélectionnez le repo **HANI-MD**
-5. Configurez :
+2. Allez sur [render.com](https://render.com)
+3. **New → Web Service** → Sélectionnez le repo
+4. Configurez :
    - **Name**: `hani-md`
-   - **Region**: `Frankfurt` (ou le plus proche)
    - **Build Command**: `npm install --legacy-peer-deps`
-   - **Start Command**: `node hani.js`
-6. Ajoutez les **Environment Variables** :
-   ```
-   PREFIXE = .
-   NOM_OWNER = VotreNom
-   NUMERO_OWNER = 22501XXXXXXXX
-   MODE = public
-   SESSION_ID = HANI-MD~xxxxxxx  (voir ci-dessous)
-   MYSQL_URL = mysql://user:pass@host:3306/db  (optionnel, voir ci-dessous)
-   ```
-7. Cliquez sur **Create Web Service**
+   - **Start Command**: `node start.js`
+5. Ajoutez les **Environment Variables**
+6. **Create Web Service**
 
-### 🔑 Générer un SESSION_ID (Obligatoire pour Render)
-
-Render n'a pas de stockage persistant sur le plan gratuit. Vous devez générer un SESSION_ID localement :
+### 🔑 Générer un SESSION_ID
 
 ```bash
-# Sur votre PC, après avoir scanné le QR code une première fois
 node session-generator.js
-
-# Copiez le SESSION_ID affiché et ajoutez-le dans Render
-```
-
-### 🗄️ Base de Données MySQL (Recommandé)
-
-Pour que vos données (contacts, messages supprimés, stats) persistent entre les redémarrages :
-
-**Hébergeurs MySQL gratuits :**
-| Service | Gratuit | Lien |
-|---------|---------|------|
-| PlanetScale | 5GB | https://planetscale.com |
-| Railway | 500MB | https://railway.app |
-| Clever Cloud | 256MB | https://clever-cloud.com |
-| FreeSQLDatabase | 5MB | https://freesqldatabase.com |
-| db4free.net | 200MB | https://db4free.net |
-
-**Configuration :**
-1. Créez un compte sur l'un des services ci-dessus
-2. Créez une base de données MySQL
-3. Récupérez les identifiants de connexion
-4. Ajoutez `MYSQL_URL` dans les variables Render
-
-**Format de l'URL** :
-```
-mysql://username:password@host:3306/database_name
+# Copiez le SESSION_ID et ajoutez-le dans les variables d'environnement
 ```
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Variables d'Environnement
 
 | Variable | Description | Exemple |
 |----------|-------------|---------|
 | `PREFIXE` | Préfixe des commandes | `.` |
 | `NOM_OWNER` | Votre nom | `Hanie` |
-| `NUMERO_OWNER` | Votre numéro WhatsApp (sans +) | `2250150252467` |
-| `MODE` | `public` (tous) ou `private` (vous seul) | `public` |
-| `SESSION_ID` | Session encodée pour déploiement | `HANI-MD~xxx...` |
+| `NUMERO_OWNER` | Votre numéro (sans +) | `2250150252467` |
+| `MODE` | `public` ou `private` | `public` |
+| `SESSION_ID` | Session encodée | `HANI-MD~xxx...` |
 | `MYSQL_URL` | URL MySQL (optionnel) | `mysql://user:pass@host/db` |
+
+---
+
+## 📁 Structure du Projet
+
+```
+HANI-MD/
+├── start.js            # Point d'entrée principal
+├── hani.js             # Core du bot WhatsApp
+├── Ovl.js              # Gestionnaire de connexion
+├── session.js          # Gestion des sessions
+├── set.js              # Configuration
+├── cmd/                # Modules de commandes
+│   ├── Menu.js         # Nouveau système de menus
+│   ├── Groupe.js       # Commandes de groupe
+│   ├── Telechargement.js
+│   ├── Ia.js           # Commandes IA
+│   └── ...
+├── lib/                # Bibliothèques
+│   ├── MenuSystem.js   # Générateur de menus
+│   ├── AccessControl.js # Contrôle d'accès
+│   ├── PaymentSystem.js # Système de paiement
+│   └── ...
+├── DataBase/           # Modules de base de données
+├── Ovl_events/         # Gestionnaires d'événements
+├── public/             # Interface web
+│   ├── index.html      # Page d'accueil
+│   └── subscribe.html  # Page d'abonnement
+└── assets/             # Ressources statiques
+```
 
 ---
 
@@ -236,22 +200,35 @@ mysql://username:password@host:3306/database_name
 
 ⚠️ **Important** :
 
-- Ne partagez jamais votre fichier `.env`
-- Ne partagez jamais le dossier `DataBase/session/`
-- Ne partagez jamais votre `SESSION_ID`
-- Utilisez les fonctionnalités de surveillance de manière éthique
+- ❌ Ne partagez jamais votre fichier `.env`
+- ❌ Ne partagez jamais le dossier `session/`
+- ❌ Ne partagez jamais votre `SESSION_ID`
+- ✅ Utilisez les fonctionnalités de manière éthique
+
+---
+
+## 💳 Méthodes de Paiement
+
+| Méthode | Disponible |
+|---------|------------|
+| 🟢 Wave | ✅ Actif |
+| 🟡 Moov Money | ✅ Actif |
 
 ---
 
 ## 📱 Support
 
 - **Auteur**: H2025
-- **Version**: 1.0.0
+- **Version**: 2.6.0 SECURE
 - **License**: MIT
 
 ---
 
 <p align="center">
   <b>⭐ Si vous aimez ce projet, n'oubliez pas de mettre une étoile ! ⭐</b>
+</p>
+
+<p align="center">
+  <i>Développé avec ❤️ par H2025</i>
 </p>
 

@@ -1,180 +1,197 @@
-const _0x33d352 = _0x54d0;
-function _0x5427() {
-  const _0x492011 = [
-    "ANPRwwm",
-    "refuqujbu0u",
-    "qwLUEG",
-    "mJaXmJu2oerPrLPYsW",
-    "y29UzMLN",
-    "4BsaYARjTog0OVcFLixINkG",
-    "zw52",
-    "zg90zw52",
-    "zxHWB3j0CW",
-    "u1rjq0TfuL9qqunlx05btuu",
-    "Dg9tDhjPBMC",
-    "yxbWBhK",
-    "C2vHCMnO",
-    "y29UC3rYDwn0B3i",
-    "mJCZovvTuLDhCW",
-    "nde4wfPbruv1",
-    "ufjfrKLyrq",
-    "B3zS",
-    "mtz6ru1Zqwi",
-    "mJqXmJG5meTsCwf5Ca",
-    "mJi2nte0nJmYmdm",
-    "n2jnsLHSvq",
-    "u1rjq0TfuL9bvvrit1jFtKfnrq",
-    "mtjxDgvuDva",
-    "mtC2nJaYngX2ugDLtG",
-    "ChvIBgLJ",
-    "mZi3otmZCvrTuvHz",
-    "mteYnZKWsfjhBM9K",
-    "ndeXmZyYANvusMHO",
-    "odbHqvHrC1G",
-    "muj0AwjuDG",
-    "4Bsp4BsGYP8T4Bsn4BsflEg0OpcDN7G",
-  ];
-  _0x5427 = function () {
-    return _0x492011;
-  };
-  return _0x5427();
+/**
+ * ═══════════════════════════════════════════════════════════
+ * ⚙️ HANI-MD - Configuration Settings
+ * ═══════════════════════════════════════════════════════════
+ * Fichier de configuration centrale du bot
+ * Version désobfusquée et optimisée
+ * ═══════════════════════════════════════════════════════════
+ */
+
+require("dotenv").config();
+
+// ═══════════════════════════════════════════════════════════
+// 📋 CONFIGURATION DU BOT
+// ═══════════════════════════════════════════════════════════
+
+const config = {
+  // Informations du bot
+  BOT_NAME: process.env.BOT_NAME || "HANI-MD",
+  BOT_VERSION: "2.6.0",
+  OWNER_NAME: process.env.NOM_OWNER || process.env.OWNER_NAME || "HANIEL",
+  OWNER_NUMBER: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "",
+  
+  // Préfixe des commandes
+  PREFIX: process.env.PREFIXE || process.env.PREFIX || ".",
+  
+  // Mode du bot
+  MODE: process.env.MODE || "public", // public ou private
+  
+  // Session
+  SESSION_ID: process.env.SESSION_ID || "",
+  SESSION_DIR: process.env.SESSION_DIR || "./session_principale",
+  
+  // Personnalisation
+  STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "HANI-MD",
+  STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "HANIEL",
+  
+  // Fonctionnalités auto
+  AUTO_READ: process.env.AUTO_READ === "true",
+  AUTO_TYPING: process.env.AUTO_TYPING === "true",
+  AUTO_RECORDING: process.env.AUTO_RECORDING === "true",
+  AUTO_BIO: process.env.AUTO_BIO === "true",
+  AUTO_REACT: process.env.AUTO_REACT === "true",
+  
+  // Présence
+  PRESENCE: process.env.PRESENCE || "online", // online, offline, composing, recording
+  
+  // Anti-features
+  ANTI_CALL: process.env.ANTI_CALL !== "false",
+  ANTI_DELETE: process.env.ANTI_DELETE === "true",
+  ANTI_LINK: process.env.ANTI_LINK === "true",
+  ANTI_SPAM: process.env.ANTI_SPAM === "true",
+  
+  // Messages d'accueil
+  WELCOME_MESSAGE: process.env.WELCOME_MESSAGE !== "false",
+  GOODBYE_MESSAGE: process.env.GOODBYE_MESSAGE !== "false",
+  
+  // Limites
+  MAX_DOWNLOAD_SIZE: parseInt(process.env.MAX_DOWNLOAD_SIZE) || 100, // MB
+  COMMAND_COOLDOWN: parseInt(process.env.COMMAND_COOLDOWN) || 3, // secondes
+  
+  // Base de données
+  DATABASE_URL: process.env.DATABASE_URL || process.env.MYSQL_URL || "",
+  USE_MYSQL: process.env.USE_MYSQL === "true",
+  
+  // API Keys
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
+  REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY || "",
+  
+  // Timezone
+  TIMEZONE: process.env.TIMEZONE || "Africa/Abidjan",
+  LANGUAGE: process.env.LANGUAGE || "fr",
+  
+  // Premium
+  PREMIUM_ENABLED: process.env.PREMIUM_ENABLED !== "false"
+};
+
+// ═══════════════════════════════════════════════════════════
+// 🎨 EMOJIS
+// ═══════════════════════════════════════════════════════════
+
+const EMOJIS = {
+  success: "✅",
+  error: "❌",
+  warning: "⚠️",
+  info: "ℹ️",
+  loading: "⏳",
+  done: "✔️",
+  star: "⭐",
+  fire: "🔥",
+  music: "🎵",
+  video: "🎬",
+  image: "🖼️",
+  document: "📄",
+  sticker: "🎨",
+  download: "📥",
+  upload: "📤",
+  search: "🔍",
+  settings: "⚙️",
+  lock: "🔐",
+  unlock: "🔓",
+  crown: "👑",
+  diamond: "💎",
+  money: "💰",
+  game: "🎮",
+  bot: "🤖",
+  phone: "📱",
+  link: "🔗",
+  time: "⏰",
+  calendar: "📅",
+  heart: "❤️",
+  sparkle: "✨"
+};
+
+// ═══════════════════════════════════════════════════════════
+// 📝 MESSAGES
+// ═══════════════════════════════════════════════════════════
+
+const MESSAGES = {
+  // Erreurs
+  OWNER_ONLY: "❌ Cette commande est réservée au propriétaire !",
+  ADMIN_ONLY: "❌ Cette commande est réservée aux administrateurs !",
+  GROUP_ONLY: "❌ Cette commande fonctionne uniquement dans les groupes !",
+  PRIVATE_ONLY: "❌ Cette commande fonctionne uniquement en privé !",
+  BOT_ADMIN_REQUIRED: "❌ Le bot doit être administrateur pour cette action !",
+  PREMIUM_ONLY: "💎 Cette fonctionnalité nécessite un compte Premium !",
+  COMMAND_DISABLED: "❌ Cette commande est désactivée !",
+  COOLDOWN_ACTIVE: "⏳ Veuillez attendre avant de réutiliser cette commande.",
+  ERROR_OCCURRED: "❌ Une erreur s'est produite. Réessayez plus tard.",
+  
+  // Succès
+  COMMAND_SUCCESS: "✅ Commande exécutée avec succès !",
+  SETTINGS_SAVED: "✅ Paramètres sauvegardés !",
+  
+  // Informations
+  PROCESSING: "⏳ Traitement en cours...",
+  DOWNLOADING: "📥 Téléchargement en cours...",
+  UPLOADING: "📤 Envoi en cours..."
+};
+
+// ═══════════════════════════════════════════════════════════
+// 🔧 FONCTIONS UTILITAIRES
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Vérifier si un numéro est le propriétaire
+ */
+function isOwner(jid) {
+  const ownerNumbers = config.OWNER_NUMBER.split(",").map(n => n.trim() + "@s.whatsapp.net");
+  return ownerNumbers.some(owner => jid.includes(owner.split("@")[0]));
 }
-function _0x54d0(_0x2187c1, _0x3aa6de) {
-  const _0x20762d = _0x5427();
-  return (
-    (_0x54d0 = function (_0x23703d, _0x24232a) {
-      _0x23703d = _0x23703d - 0xb5;
-      let _0x5427ca = _0x20762d[_0x23703d];
-      if (_0x54d0["KNxhdj"] === undefined) {
-        var _0x54d081 = function (_0x51c61f) {
-          const _0x7148a5 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
-          let _0x2c6da7 = "",
-            _0x4c63e1 = "",
-            _0x3b4a20 = _0x2c6da7 + _0x54d081;
-          for (
-            let _0x3ad1db = 0x0, _0x12ad16, _0x666ec, _0x1d7b45 = 0x0;
-            (_0x666ec = _0x51c61f["charAt"](_0x1d7b45++));
-            ~_0x666ec &&
-            ((_0x12ad16 = _0x3ad1db % 0x4 ? _0x12ad16 * 0x40 + _0x666ec : _0x666ec),
-            _0x3ad1db++ % 0x4)
-              ? (_0x2c6da7 +=
-                  _0x3b4a20["charCodeAt"](_0x1d7b45 + 0xa) - 0xa !== 0x0
-                    ? String["fromCharCode"](0xff & (_0x12ad16 >> ((-0x2 * _0x3ad1db) & 0x6)))
-                    : _0x3ad1db)
-              : 0x0
-          ) {
-            _0x666ec = _0x7148a5["indexOf"](_0x666ec);
-          }
-          for (
-            let _0x3a75cc = 0x0, _0x37f30c = _0x2c6da7["length"];
-            _0x3a75cc < _0x37f30c;
-            _0x3a75cc++
-          ) {
-            _0x4c63e1 +=
-              "%" + ("00" + _0x2c6da7["charCodeAt"](_0x3a75cc)["toString"](0x10))["slice"](-0x2);
-          }
-          return decodeURIComponent(_0x4c63e1);
-        };
-        ((_0x54d0["BNtcia"] = _0x54d081), (_0x2187c1 = arguments), (_0x54d0["KNxhdj"] = !![]));
-      }
-      const _0x3ab120 = _0x20762d[0x0],
-        _0x445b57 = _0x23703d + _0x3ab120,
-        _0x143dd2 = _0x2187c1[_0x445b57];
-      if (!_0x143dd2) {
-        const _0x9af371 = function (_0x48295f) {
-          ((this["ZtyMyh"] = _0x48295f),
-            (this["BAmPji"] = [0x1, 0x0, 0x0]),
-            (this["ruWqif"] = function () {
-              return "newState";
-            }),
-            (this["skGvAb"] = "\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*"),
-            (this["INeWtO"] = "[\x27|\x22].+[\x27|\x22];?\x20*}"));
-        };
-        ((_0x9af371["prototype"]["YhctdE"] = function () {
-          const _0x2c1f69 = new RegExp(this["skGvAb"] + this["INeWtO"]),
-            _0x473b22 = _0x2c1f69["test"](this["ruWqif"]["toString"]())
-              ? --this["BAmPji"][0x1]
-              : --this["BAmPji"][0x0];
-          return this["pTLNDW"](_0x473b22);
-        }),
-          (_0x9af371["prototype"]["pTLNDW"] = function (_0x2f8ed6) {
-            if (!Boolean(~_0x2f8ed6)) return _0x2f8ed6;
-            return this["WOKnsq"](this["ZtyMyh"]);
-          }),
-          (_0x9af371["prototype"]["WOKnsq"] = function (_0x5825e1) {
-            for (
-              let _0x9282f = 0x0, _0x4f015f = this["BAmPji"]["length"];
-              _0x9282f < _0x4f015f;
-              _0x9282f++
-            ) {
-              (this["BAmPji"]["push"](Math["round"](Math["random"]())),
-                (_0x4f015f = this["BAmPji"]["length"]));
-            }
-            return _0x5825e1(this["BAmPji"][0x0]);
-          }),
-          new _0x9af371(_0x54d0)["YhctdE"](),
-          (_0x5427ca = _0x54d0["BNtcia"](_0x5427ca)),
-          (_0x2187c1[_0x445b57] = _0x5427ca));
-      } else _0x5427ca = _0x143dd2;
-      return _0x5427ca;
-    }),
-    _0x54d0(_0x2187c1, _0x3aa6de)
-  );
+
+/**
+ * Obtenir le numéro formaté
+ */
+function formatNumber(jid) {
+  return jid.replace("@s.whatsapp.net", "").replace("@g.us", "");
 }
-(function (_0xcf56a2, _0x88355) {
-  const _0x2da7d8 = _0x54d0,
-    _0x4f15b7 = _0xcf56a2();
-  while (!![]) {
-    try {
-      const _0x4b4e67 =
-        (-parseInt(_0x2da7d8(0xb8)) / 0x1) * (parseInt(_0x2da7d8(0xb6)) / 0x2) +
-        (parseInt(_0x2da7d8(0xc8)) / 0x3) * (parseInt(_0x2da7d8(0xb7)) / 0x4) +
-        parseInt(_0x2da7d8(0xcd)) / 0x5 +
-        (parseInt(_0x2da7d8(0xbd)) / 0x6) * (-parseInt(_0x2da7d8(0xcf)) / 0x7) +
-        (parseInt(_0x2da7d8(0xcc)) / 0x8) * (parseInt(_0x2da7d8(0xd4)) / 0x9) +
-        (parseInt(_0x2da7d8(0xb5)) / 0xa) * (parseInt(_0x2da7d8(0xc9)) / 0xb) +
-        (-parseInt(_0x2da7d8(0xd1)) / 0xc) * (parseInt(_0x2da7d8(0xd2)) / 0xd);
-      if (_0x4b4e67 === _0x88355) break;
-      else _0x4f15b7["push"](_0x4f15b7["shift"]());
-    } catch (_0x544731) {
-      _0x4f15b7["push"](_0x4f15b7["shift"]());
-    }
-  }
-})(_0x5427, 0x4f6ed);
-const _0x24232a = (function () {
-    let _0x29b1b1 = !![];
-    return function (_0x5a875f, _0x2a1618) {
-      const _0x2d4b78 = _0x29b1b1
-        ? function () {
-            const _0x1a4c5b = _0x54d0;
-            if (_0x2a1618) {
-              const _0x5e1cf1 = _0x2a1618[_0x1a4c5b(0xc5)](_0x5a875f, arguments);
-              return ((_0x2a1618 = null), _0x5e1cf1);
-            }
-          }
-        : function () {};
-      return ((_0x29b1b1 = ![]), _0x2d4b78);
-    };
-  })(),
-  _0x23703d = _0x24232a(this, function () {
-    const _0x474372 = _0x54d0,
-      _0x3813d1 = { jzkYc: "(((.+)+)+)+$" };
-    return _0x23703d[_0x474372(0xc4)]()
-      [_0x474372(0xc6)](_0x3813d1[_0x474372(0xba)])
-      [_0x474372(0xc4)]()
-      [_0x474372(0xc7)](_0x23703d)
-      [_0x474372(0xc6)](_0x3813d1[_0x474372(0xba)]);
-  });
-_0x23703d();
-const dotenv = require(_0x33d352(0xc1));
-(dotenv[_0x33d352(0xbe)]({ override: !![] }),
-  (module[_0x33d352(0xc2)] = {
-    PREFIXE: process[_0x33d352(0xc0)][_0x33d352(0xca)] || "",
-    NOM_OWNER: process["env"]["NOM_OWNER"] || _0x33d352(0xbc),
-    NUMERO_OWNER: process[_0x33d352(0xc0)]["NUMERO_OWNER"] || _0x33d352(0xce),
-    MODE: process[_0x33d352(0xc0)]["MODE"] || _0x33d352(0xd3),
-    SESSION_ID: process[_0x33d352(0xc0)]["SESSION_ID"] || _0x33d352(0xcb),
-    STICKER_PACK_NAME: process["env"][_0x33d352(0xc3)] || _0x33d352(0xbf),
-    STICKER_AUTHOR_NAME: process[_0x33d352(0xc0)][_0x33d352(0xd0)] || _0x33d352(0xb9),
-    DATABASE: process["env"][_0x33d352(0xbb)],
-  }));
+
+/**
+ * Formater la durée
+ */
+function formatDuration(ms) {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) return `${days}j ${hours % 24}h`;
+  if (hours > 0) return `${hours}h ${minutes % 60}m`;
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
+}
+
+/**
+ * Formater les bytes
+ */
+function formatBytes(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+// Export
+module.exports = {
+  ...config,
+  config,
+  EMOJIS,
+  MESSAGES,
+  isOwner,
+  formatNumber,
+  formatDuration,
+  formatBytes
+};
+
+console.log("[SET] ✅ Configuration chargée");

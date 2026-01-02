@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, #1e1b4b 50%, var(--dark) 100%);
+      min-height: 100vh;
+      color: var(--light);
+      padding: 2rem;
+    }
+
+    .container { max-width: 600px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      margin-bottom: 2rem;
+      transition: color 0.3s;
+    }
+    .back-link:hover { color: var(--light); }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header { text-align: center; margin-bottom: 2rem; }
+    .card-header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .card-header p { color: rgba(255, 255, 255, 0.6); }
+
+    .steps { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .step { display: flex; align-items: center; gap: 0.5rem; color: rgba(255, 255, 255, 0.4); }
+    .step.active { color: var(--primary); }
+    .step.completed { color: var(--success); }
+
+    .step-number {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.9rem;
+    }
+    .step.active .step-number { background: var(--primary); color: white; }
+    .step.completed .step-number { background: var(--success); color: white; }
+    .step-line { width: 40px; height: 2px; background: rgba(255, 255, 255, 0.1); }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px; color: var(--light); font-size: 1rem;
+      transition: all 0.3s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    .form-group select option { background: var(--dark); }
+
+    .plan-options { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+
+    .plan-option {
+      display: flex; align-items: center; padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid var(--glass-border);
+      border-radius: 16px; cursor: pointer; transition: all 0.3s;
+    }
+    .plan-option:hover { border-color: rgba(99, 102, 241, 0.5); }
+    .plan-option.selected { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+    .plan-option.popular { border-color: var(--warning); }
+    .plan-option input { display: none; }
+
+    .plan-icon { font-size: 2rem; margin-right: 1rem; }
+    .plan-details { flex: 1; }
+    .plan-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
+    .plan-desc { font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); }
+    .plan-price { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+    .plan-price span { font-size: 0.8rem; font-weight: 400; color: rgba(255, 255, 255, 0.6); }
+
+    .popular-badge {
+      background: linear-gradient(135deg, var(--warning), #f59e0b);
+      color: #000; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 700; margin-left: 8px;
+    }
+
+    .payment-methods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
+
+    .payment-method {
+      display: flex; flex-direction: column; align-items: center; padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid var(--glass-border);
+      border-radius: 12px; cursor: pointer; transition: all 0.3s;
+    }
+    .payment-method:hover { border-color: rgba(99, 102, 241, 0.5); }
+    .payment-method.selected { border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+    .payment-method i { font-size: 2rem; margin-bottom: 0.5rem; }
+    .payment-method input { display: none; }
+    
+    .orange { color: #ff6600; }
+    .mtn { color: #ffcc00; }
+    .wave { color: #1dc2e8; }
+    .moov { color: #0066cc; }
+
+    .payment-info {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;
+    }
+    .payment-info h3 { color: var(--accent); margin-bottom: 1rem; font-size: 1rem; }
+    .payment-info .number { font-size: 1.5rem; font-weight: 800; color: var(--light); margin: 0.5rem 0; }
+    .payment-info .amount { font-size: 1.3rem; font-weight: 700; color: var(--warning); }
+    .payment-info .copy-btn {
+      background: var(--primary); color: white; border: none; padding: 8px 16px;
+      border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 0.5rem;
+    }
+    .payment-info .copy-btn:hover { background: var(--secondary); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 16px 32px; border: none; border-radius: 14px;
+      font-weight: 700; font-size: 1rem; cursor: pointer;
+      transition: all 0.3s; width: 100%;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #059669);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent; color: var(--light);
+      border: 2px solid var(--glass-border);
+    }
+    .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
+
+    .step-content { display: none; }
+    .step-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .success-icon {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--success), #059669);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem; font-size: 3rem;
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5; padding: 1rem; border-radius: 12px;
+      margin-bottom: 1rem; display: none;
+    }
+
+    .loading { display: none; text-align: center; padding: 2rem; }
+    .loading.active { display: block; }
+    .spinner {
+      width: 50px; height: 50px; margin: 0 auto 1rem;
+      border: 4px solid var(--glass-border);
+      border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .client-id-box {
+      background: var(--dark); padding: 1rem; border-radius: 12px;
+      text-align: center; margin: 1rem 0;
+    }
+    .client-id-box code {
+      font-size: 1.3rem; font-weight: 700; color: var(--accent);
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .payment-methods { grid-template-columns: 1fr; }
+      .steps { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">
+      <i class="fas fa-arrow-left"></i> Retour à l'accueil
+    </a>
+
+    <div class="card">
+      <div class="card-header">
+        <h1>🚀 Inscription HANI-MD Premium</h1>
+        <p>Activez votre bot WhatsApp personnel en quelques minutes</p>
+      </div>
+
+      <!-- Étapes -->
+      <div class="steps">
+        <div class="step active" id="step-ind-1">
+          <div class="step-number">1</div>
+          <span>Plan</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-ind-2">
+          <div class="step-number">2</div>
+          <span>Infos</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-ind-3">
+          <div class="step-number">3</div>
+          <span>Paiement</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-ind-4">
+          <div class="step-number">4</div>
+          <span>Connexion</span>
+        </div>
+      </div>
+
+      <div class="error-message" id="error-msg"></div>
+
+      <!-- Étape 1: Choix du plan -->
+      <div class="step-content active" id="step-1">
+        <h2 style="margin-bottom: 1.5rem;">Choisissez votre plan</h2>
+        
+        <div class="plan-options" id="plans-container">
+          <div class="plan-option" data-plan="bronze" data-price="500">
+            <input type="radio" name="plan" value="bronze">
+            <div class="plan-icon">🥉</div>
+            <div class="plan-details">
+              <div class="plan-name">Bronze</div>
+              <div class="plan-desc">100 commandes/jour • 30 jours</div>
+            </div>
+            <div class="plan-price">500 <span>FCFA</span></div>
+          </div>
+
+          <div class="plan-option" data-plan="argent" data-price="1000">
+            <input type="radio" name="plan" value="argent">
+            <div class="plan-icon">🥈</div>
+            <div class="plan-details">
+              <div class="plan-name">Argent</div>
+              <div class="plan-desc">500 commandes/jour • IA complète • 30 jours</div>
+            </div>
+            <div class="plan-price">1000 <span>FCFA</span></div>
+          </div>
+
+          <div class="plan-option popular" data-plan="or" data-price="2000">
+            <input type="radio" name="plan" value="or">
+            <div class="plan-icon">🥇</div>
+            <div class="plan-details">
+              <div class="plan-name">Or <span class="popular-badge">POPULAIRE</span></div>
+              <div class="plan-desc">ILLIMITÉ • Toutes fonctionnalités • 30 jours</div>
+            </div>
+            <div class="plan-price">2000 <span>FCFA</span></div>
+          </div>
+
+          <div class="plan-option" data-plan="diamant" data-price="5000">
+            <input type="radio" name="plan" value="diamant">
+            <div class="plan-icon">💎</div>
+            <div class="plan-details">
+              <div class="plan-name">Diamant</div>
+              <div class="plan-desc">ILLIMITÉ • Multi-numéros • Support VIP • 30 jours</div>
+            </div>
+            <div class="plan-price">5000 <span>FCFA</span></div>
+          </div>
+
+          <div class="plan-option" data-plan="lifetime" data-price="15000">
+            <input type="radio" name="plan" value="lifetime">
+            <div class="plan-icon">👑</div>
+            <div class="plan-details">
+              <div class="plan-name">Lifetime</div>
+              <div class="plan-desc">ACCÈS À VIE • Mises à jour gratuites</div>
+            </div>
+            <div class="plan-price">15000 <span>FCFA</span></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-step-1" disabled>
+          Continuer <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Étape 2: Informations -->
+      <div class="step-content" id="step-2">
+        <h2 style="margin-bottom: 1.5rem;">Vos informations</h2>
+        
+        <div class="form-group">
+          <label><i class="fas fa-phone"></i> Numéro WhatsApp *</label>
+          <input type="tel" id="phone" placeholder="Ex: 2250102030405" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-user"></i> Nom (optionnel)</label>
+          <input type="text" id="name" placeholder="Votre nom">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-envelope"></i> Email (optionnel)</label>
+          <input type="email" id="email" placeholder="votre@email.com">
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+          <button class="btn btn-outline" onclick="goToStep(1)">
+            <i class="fas fa-arrow-left"></i> Retour
+          </button>
+          <button class="btn btn-primary" id="btn-step-2" style="flex: 1;">
+            Continuer <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Étape 3: Paiement -->
+      <div class="step-content" id="step-3">
+        <h2 style="margin-bottom: 1.5rem;">💳 Effectuez le paiement</h2>
+        
+        <div class="order-summary" style="background: rgba(99, 102, 241, 0.1); padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid rgba(99, 102, 241, 0.2);">
+          <h3 style="margin-bottom: 1rem; color: var(--accent);">📋 Récapitulatif</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Plan:</span>
+            <strong id="summary-plan">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 1.3rem; color: var(--success);">
+            <span>Total:</span>
+            <strong id="summary-amount">-</strong>
+          </div>
+        </div>
+
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 1rem; text-align: center;">
+          Cliquez sur votre méthode de paiement pour payer:
+        </p>
+
+        <div class="payment-buttons" style="display: grid; gap: 1rem;">
+          <button class="btn-payment wave" id="btn-pay-wave" onclick="initPayment('wave')" style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 1.2rem; background: linear-gradient(135deg, #1DC8B9, #0FA89B); border: none; border-radius: 16px; color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+            <img src="https://www.wave.com/img/logo-wave.svg" alt="Wave" style="height: 28px; filter: brightness(10);" onerror="this.style.display='none'">
+            <span>Payer avec Wave</span>
+          </button>
+          
+          <button class="btn-payment moov" id="btn-pay-moov" onclick="initPayment('moov')" style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 1.2rem; background: linear-gradient(135deg, #FFB800, #FF9500); border: none; border-radius: 16px; color: #000; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s;">
+            <span style="font-size: 1.5rem;">📱</span>
+            <span>Payer avec Moov Money</span>
+          </button>
+        </div>
+
+        <div id="payment-waiting" style="display: none; margin-top: 2rem;">
+          <div style="text-align: center; padding: 2rem; background: rgba(251, 191, 36, 0.1); border-radius: 16px; border: 1px solid rgba(251, 191, 36, 0.3);">
+            <div class="spinner" style="border-top-color: var(--warning);"></div>
+            <h3 style="color: var(--warning); margin-bottom: 0.5rem;">⏳ En attente de votre paiement...</h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem;">
+              Référence: <strong id="order-ref">-</strong>
+            </p>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 1rem;">
+              Effectuez le paiement de <strong id="waiting-amount">-</strong> via <span id="waiting-method">-</span>
+            </p>
+            <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 0.5rem;">
+              Cette page se mettra à jour automatiquement une fois le paiement validé.
+            </p>
+          </div>
+          
+          <div style="margin-top: 1.5rem; text-align: center;">
+            <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 1rem;">
+              L'app ne s'est pas ouverte? Cliquez ci-dessous:
+            </p>
+            <a id="manual-pay-link" href="#" target="_blank" class="btn btn-outline" style="display: inline-flex;">
+              <i class="fas fa-external-link-alt"></i> Ouvrir l'app de paiement
+            </a>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" id="step3-buttons">
+          <button class="btn btn-outline" onclick="goToStep(2)">
+            <i class="fas fa-arrow-left"></i> Retour
+          </button>
+        </div>
+      </div>
+
+      <!-- Étape 4: Succès & Connexion -->
+      <div class="step-content" id="step-4">
+        <div class="loading active" id="loading-register">
+          <div class="spinner"></div>
+          <p>Création de votre compte en cours...</p>
+        </div>
+
+        <div id="success-content" style="display: none; text-align: center;">
+          <div class="success-icon">✅</div>
+          <h2 style="margin-bottom: 1rem;">Inscription Réussie!</h2>
+          <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+            Votre compte premium a été créé avec succès.
+          </p>
+
+          <div class="client-id-box">
+            <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">
+              Votre ID Client (gardez-le précieusement):
+            </p>
+            <code id="client-id-display">HANI-XXXX-XXXX</code>
+          </div>
+
+          <p style="color: rgba(255,255,255,0.7); margin: 1.5rem 0;">
+            <i class="fas fa-qrcode" style="color: var(--accent);"></i>
+            Scannez maintenant le QR code pour connecter votre WhatsApp au bot.
+          </p>
+
+          <a href="#" id="connect-link" class="btn btn-primary">
+            <i class="fas fa-qrcode"></i> Connecter mon WhatsApp
+          </a>
+
+          <p style="margin-top: 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5);">
+            💡 Besoin d'aide? <a href="https://wa.me/22550252467" style="color: var(--accent);">Contactez-nous</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85rem;">
+      <p>© 2025 HANI-MD Premium • <a href="https://wa.me/22550252467" style="color: var(--accent);">Support</a></p>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let selectedPlan = null;
+    let selectedPlanName = null;
+    let selectedPrice = 0;
+    let selectedPayment = null;
+    let userData = {};
+    let currentPaymentId = null;
+    let currentOrderId = null;
+    let checkPaymentInterval = null;
+
+    // Éléments
+    const planOptions = document.querySelectorAll('.plan-option');
+
+    // Sélection du plan
+    planOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        planOptions.forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedPlan = option.dataset.plan;
+        selectedPrice = parseInt(option.dataset.price);
+        selectedPlanName = option.querySelector('.plan-name').textContent;
+        document.getElementById('btn-step-1').disabled = false;
+      });
+    });
+
+    // Navigation entre les étapes
+    function goToStep(step) {
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      document.getElementById('step-' + step).classList.add('active');
+
+      document.querySelectorAll('.step').forEach((s, i) => {
+        s.classList.remove('active', 'completed');
+        if (i + 1 < step) s.classList.add('completed');
+        if (i + 1 === step) s.classList.add('active');
+      });
+      
+      // Afficher le récapitulatif à l'étape 3
+      if (step === 3) {
+        document.getElementById('summary-plan').textContent = selectedPlanName || selectedPlan;
+        document.getElementById('summary-amount').textContent = selectedPrice + ' FCFA';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 5000);
+    }
+
+    // Étape 1 -> 2
+    document.getElementById('btn-step-1').addEventListener('click', () => {
+      if (!selectedPlan) return showError('Veuillez choisir un plan');
+      goToStep(2);
+    });
+
+    // Étape 2 -> 3
+    document.getElementById('btn-step-2').addEventListener('click', () => {
+      const phone = document.getElementById('phone').value.replace(/\D/g, '');
+      if (!phone || phone.length < 8) {
+        return showError('Veuillez entrer un numéro WhatsApp valide');
+      }
+      userData = {
+        phone,
+        name: document.getElementById('name').value || null,
+        email: document.getElementById('email').value || null
+      };
+      goToStep(3);
+    });
+
+    // Générer les liens de paiement Wave/Moov
+    function getPaymentLink(method, amount, phone, reference) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      
+      if (method === 'wave') {
+        // Lien Wave - ouvre l'app Wave pour envoyer de l'argent
+        // Format: https://pay.wave.com/m/NUMERO (sans le +)
+        return `https://pay.wave.com/m/${cleanPhone}`;
+      } else if (method === 'moov') {
+        // Lien Moov Money - USSD
+        return `tel:*155*1*${cleanPhone}*${amount}#`;
+      }
+      return null;
+    }
+
+    // Initialiser le paiement
+    async function initPayment(method) {
+      selectedPayment = method;
+      
+      // Désactiver les boutons
+      document.getElementById('btn-pay-wave').disabled = true;
+      document.getElementById('btn-pay-moov').disabled = true;
+      document.getElementById('btn-pay-wave').style.opacity = '0.6';
+      document.getElementById('btn-pay-moov').style.opacity = '0.6';
+      
+      try {
+        // Créer la demande de paiement
+        const response = await fetch('/api/payment/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: userData.phone,
+            name: userData.name,
+            email: userData.email,
+            plan: selectedPlan,
+            paymentMethod: method
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentPaymentId = data.paymentId;
+          currentOrderId = data.orderId;
+          
+          // Afficher la section d'attente
+          document.getElementById('payment-waiting').style.display = 'block';
+          document.getElementById('order-ref').textContent = data.orderId;
+          document.getElementById('waiting-amount').textContent = data.amount + ' FCFA';
+          document.getElementById('waiting-method').textContent = method === 'wave' ? 'Wave' : 'Moov Money';
+          document.getElementById('step3-buttons').style.display = 'none';
+          
+          // Déterminer le lien de paiement à utiliser
+          let payLink;
+          if (data.paymentLink) {
+            if (method === 'wave') {
+              payLink = data.paymentLink.web || getPaymentLink(method, data.amount, data.paymentNumber, data.orderId);
+            } else if (method === 'moov') {
+              payLink = 'tel:' + data.paymentLink.ussd;
+            }
+          } else {
+            payLink = getPaymentLink(method, data.amount, data.paymentNumber, data.orderId);
+          }
+          
+          // Configurer le lien manuel
+          document.getElementById('manual-pay-link').href = payLink;
+          
+          // Ouvrir l'app de paiement
+          if (method === 'wave') {
+            window.open(payLink, '_blank');
+          } else if (method === 'moov') {
+            // Pour Moov, on utilise le lien tel: pour ouvrir le dialer
+            window.location.href = payLink;
+          }
+          
+          // Démarrer la vérification automatique
+          startPaymentCheck();
+          
+        } else {
+          showError(data.error || 'Erreur lors de la création du paiement');
+          resetPaymentButtons();
+        }
+      } catch (e) {
+        console.error('Erreur:', e);
+        showError('Erreur de connexion. Veuillez réessayer.');
+        resetPaymentButtons();
+      }
+    }
+    
+    function resetPaymentButtons() {
+      document.getElementById('btn-pay-wave').disabled = false;
+      document.getElementById('btn-pay-moov').disabled = false;
+      document.getElementById('btn-pay-wave').style.opacity = '1';
+      document.getElementById('btn-pay-moov').style.opacity = '1';
+    }
+
+    // Vérifier le statut du paiement toutes les 5 secondes
+    function startPaymentCheck() {
+      if (checkPaymentInterval) clearInterval(checkPaymentInterval);
+      
+      checkPaymentInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/payment/check/' + currentPaymentId);
+          const data = await res.json();
+          
+          if (data.success && data.payment) {
+            if (data.payment.status === 'completed') {
+              clearInterval(checkPaymentInterval);
+              onPaymentSuccess(data.payment);
+            } else if (data.payment.status === 'rejected') {
+              clearInterval(checkPaymentInterval);
+              onPaymentRejected(data.payment);
+            }
+          }
+        } catch (e) {
+          console.log('Vérification paiement...', e.message);
+        }
+      }, 5000);
+    }
+
+    // Paiement validé!
+    function onPaymentSuccess(data) {
+      goToStep(4);
+      document.getElementById('loading-register').style.display = 'none';
+      document.getElementById('success-content').innerHTML = `
+        <div class="success-icon">🎉</div>
+        <h2 style="margin-bottom: 1rem;">Paiement Validé!</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+          Votre paiement a été reçu et votre compte est activé!
+        </p>
+
+        <div class="client-id-box">
+          <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">
+            Votre ID Client:
+          </p>
+          <code id="client-id-display">${data.clientId || currentOrderId}</code>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 12px; margin: 1.5rem 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+          <p style="font-size: 0.95rem;">🚀 <strong>Prochaine étape:</strong></p>
+          <p style="margin-top: 0.5rem; color: rgba(255,255,255,0.8);">
+            Connectez votre WhatsApp au bot pour commencer à l'utiliser!
+          </p>
+        </div>
+
+        <a href="connect.html?id=${data.clientId || currentOrderId}" class="btn btn-primary" style="width: 100%;">
+          <i class="fas fa-qrcode"></i> Connecter mon WhatsApp
+        </a>
+
+        <p style="margin-top: 1.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.5);">
+          💡 Besoin d'aide? <a href="https://wa.me/2250150252467" style="color: var(--accent);">Contactez-nous</a>
+        </p>
+      `;
+      document.getElementById('success-content').style.display = 'block';
+    }
+
+    // Paiement rejeté
+    function onPaymentRejected(data) {
+      showError('Paiement rejeté: ' + (data.reason || 'Contactez le support'));
+      document.getElementById('payment-waiting').style.display = 'none';
+      document.getElementById('step3-buttons').style.display = 'flex';
+      resetPaymentButtons();
+    }
+
+    // Fonction utilitaire pour copier
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Copié!');
+      });
+    }
+
+    // Pré-remplir depuis URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const planParam = urlParams.get('plan');
+    if (planParam) {
+      const option = document.querySelector(`.plan-option[data-plan="${planParam}"]`);
+      if (option) {
+        option.click();
+      }
+    }
+  </script>
+</body>
+</html>

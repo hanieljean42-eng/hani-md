@@ -1,903 +1,446 @@
-function _0xd9ef(_0x189e65, _0x381d8d) {
-  const _0x5e1382 = _0x5888();
-  return (
-    (_0xd9ef = function (_0x54ca57, _0x4b3872) {
-      _0x54ca57 = _0x54ca57 - 0xdc;
-      let _0x588853 = _0x5e1382[_0x54ca57];
-      if (_0xd9ef["wjuDPc"] === undefined) {
-        var _0xd9efc4 = function (_0x34c0a5) {
-          const _0x3ea37f = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
-          let _0x68e78c = "",
-            _0x4195b1 = "",
-            _0x22d1d0 = _0x68e78c + _0xd9efc4;
-          for (
-            let _0x153751 = 0x0, _0x3c846b, _0x4e7224, _0xa6f476 = 0x0;
-            (_0x4e7224 = _0x34c0a5["charAt"](_0xa6f476++));
-            ~_0x4e7224 &&
-            ((_0x3c846b = _0x153751 % 0x4 ? _0x3c846b * 0x40 + _0x4e7224 : _0x4e7224),
-            _0x153751++ % 0x4)
-              ? (_0x68e78c +=
-                  _0x22d1d0["charCodeAt"](_0xa6f476 + 0xa) - 0xa !== 0x0
-                    ? String["fromCharCode"](0xff & (_0x3c846b >> ((-0x2 * _0x153751) & 0x6)))
-                    : _0x153751)
-              : 0x0
-          ) {
-            _0x4e7224 = _0x3ea37f["indexOf"](_0x4e7224);
-          }
-          for (
-            let _0x9bf165 = 0x0, _0x5ee680 = _0x68e78c["length"];
-            _0x9bf165 < _0x5ee680;
-            _0x9bf165++
-          ) {
-            _0x4195b1 +=
-              "%" + ("00" + _0x68e78c["charCodeAt"](_0x9bf165)["toString"](0x10))["slice"](-0x2);
-          }
-          return decodeURIComponent(_0x4195b1);
-        };
-        ((_0xd9ef["HaaDil"] = _0xd9efc4), (_0x189e65 = arguments), (_0xd9ef["wjuDPc"] = !![]));
-      }
-      const _0x1e2f00 = _0x5e1382[0x0],
-        _0x315c23 = _0x54ca57 + _0x1e2f00,
-        _0x2d9412 = _0x189e65[_0x315c23];
-      if (!_0x2d9412) {
-        const _0x248e39 = function (_0x468308) {
-          ((this["RpPAxX"] = _0x468308),
-            (this["BEIDvq"] = [0x1, 0x0, 0x0]),
-            (this["EAtIhO"] = function () {
-              return "newState";
-            }),
-            (this["wrwamR"] = "\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*"),
-            (this["dfudml"] = "[\x27|\x22].+[\x27|\x22];?\x20*}"));
-        };
-        ((_0x248e39["prototype"]["XvPOac"] = function () {
-          const _0x2a89fb = new RegExp(this["wrwamR"] + this["dfudml"]),
-            _0x2b2b3a = _0x2a89fb["test"](this["EAtIhO"]["toString"]())
-              ? --this["BEIDvq"][0x1]
-              : --this["BEIDvq"][0x0];
-          return this["vbMBiN"](_0x2b2b3a);
-        }),
-          (_0x248e39["prototype"]["vbMBiN"] = function (_0x1e2c8f) {
-            if (!Boolean(~_0x1e2c8f)) return _0x1e2c8f;
-            return this["YNNxEr"](this["RpPAxX"]);
-          }),
-          (_0x248e39["prototype"]["YNNxEr"] = function (_0x2e1cd3) {
-            for (
-              let _0x1c297f = 0x0, _0x3e840b = this["BEIDvq"]["length"];
-              _0x1c297f < _0x3e840b;
-              _0x1c297f++
-            ) {
-              (this["BEIDvq"]["push"](Math["round"](Math["random"]())),
-                (_0x3e840b = this["BEIDvq"]["length"]));
-            }
-            return _0x2e1cd3(this["BEIDvq"][0x0]);
-          }),
-          new _0x248e39(_0xd9ef)["XvPOac"](),
-          (_0x588853 = _0xd9ef["HaaDil"](_0x588853)),
-          (_0x189e65[_0x315c23] = _0x588853));
-      } else _0x588853 = _0x2d9412;
-      return _0x588853;
-    }),
-    _0xd9ef(_0x189e65, _0x381d8d)
-  );
-}
-const _0x4e7876 = _0xd9ef;
-(function (_0x49cd7a, _0x2c75d6) {
-  const _0x1d5ff5 = _0xd9ef,
-    _0x35a363 = _0x49cd7a();
-  while (!![]) {
+/**
+ * ═══════════════════════════════════════════════════════════
+ * 🎭 HANI-MD - Commandes Fun
+ * ═══════════════════════════════════════════════════════════
+ * Blagues, jeux, divertissement
+ * Version désobfusquée et optimisée
+ * ═══════════════════════════════════════════════════════════
+ */
+
+const { ovlcmd } = require("../lib/ovlcmd");
+const axios = require("axios");
+
+// ═══════════════════════════════════════════════════════════
+// 🎲 DÉ
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "dice",
+    classe: "Fun",
+    react: "🎲",
+    desc: "Lancer un dé",
+    alias: ["de", "roll"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
     try {
-      const _0x2bbabd =
-        (parseInt(_0x1d5ff5(0x177)) / 0x1) * (-parseInt(_0x1d5ff5(0x152)) / 0x2) +
-        parseInt(_0x1d5ff5(0x10a)) / 0x3 +
-        parseInt(_0x1d5ff5(0x121)) / 0x4 +
-        (-parseInt(_0x1d5ff5(0x149)) / 0x5) * (-parseInt(_0x1d5ff5(0x13d)) / 0x6) +
-        -parseInt(_0x1d5ff5(0x135)) / 0x7 +
-        (parseInt(_0x1d5ff5(0x107)) / 0x8) * (parseInt(_0x1d5ff5(0x12c)) / 0x9) +
-        -parseInt(_0x1d5ff5(0xe0)) / 0xa;
-      if (_0x2bbabd === _0x2c75d6) break;
-      else _0x35a363["push"](_0x35a363["shift"]());
-    } catch (_0x35e264) {
-      _0x35a363["push"](_0x35a363["shift"]());
+      const sides = parseInt(arg[0]) || 6;
+      const result = Math.floor(Math.random() * sides) + 1;
+      
+      repondre(`🎲 *Lancer de dé*\n\n🎯 Dé à ${sides} faces\n✨ Résultat: *${result}*`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
     }
   }
-})(_0x5888, 0x270ad);
-function _0x5888() {
-  const _0x416a84 = [
-    "vw5LigvYCMv1CIbZj2vZDcbWCM9KDwL0zsbSB3jZigrLigXHihldQwn1CmoPCMf0Aw9UigrLigXHigjSywD1zs4",
-    "BMfTzq",
-    "vvzstvm",
-    "yxHPB3m",
-    "EefVt3y",
-    "Ahr0Chm6lY92mI5QB2TLyxbPlMrLDI9QB2TLl0fUEt9Syw5NpwzY",
-    "vgvZDcbKzsbJB21WyxrPyMLSAxtdQsbLBNrYzsbKzxv4ihbLCNnVBM5LCW",
-    "lI4Vrgf0yujHC2uVCMfUAW",
-    "sw52zxjZzsbSzsb0zxH0zsbMB3vYBMKU",
-    "zMXVB3i",
-    "rw52B2LLihvUig1LC3nHz2uGzMfRzsbJB21TzsbZAsb1BIbHDxrYzsb1DgLSAxnHDgv1CIbSj2f2ywL0igvUDM95W6K",
-    "zMLUze9Uzq",
-    "iaRILimG8j+tIIaQrvHqidOQia",
-    "lI4VBgLIl3n0EwXL",
-    "A0DRCvO",
-    "rMrYrgW",
-    "y2L0yxrPB24",
-    "sw5JB25UDq",
-    "zMfUy3KGBgLZDcbVDMWkcG",
-    "CMv2zxjZzq",
-    "t1zmlu1elvyY",
-    "C2vUze1LC3nHz2u",
-    "qhmUD2HHDhnHChaUBMv0",
-    "t1zmluDprc1mrvzfta",
-    "4P2K77IpicPqB3vYie1HzgfTzsdWN5kb8j+pU+kaJEkzGo+4JYO",
-    "zMfRzq",
-    "u1zOAwu",
-    "yxbWBhK",
-    "u2HdwwG",
-    "vM91CYbUj2f2zxOGCgfZigvUy29YzsbKzsbYyw5NlIbdB21Tzw5JzxOGW6aGAw50zxjHz2LYihbVDxiGzw4GB2j0zw5PCIb1BIaH",
-    "C3rHDhvZ",
-    "CMfUzg9T",
-    "AunVB20",
-    "CMvWBgfJzq",
-    "x1n0EwXLigLUDhjVDxzHyMXLihbVDxiGBcDjrca6ia",
-    "mty2nJf4Bxnlt1a",
-    "cIPqzxjZB25UywDLidOQia",
-    "4PwW4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4Psa4PwV",
-    "Dvn5D00",
-    "z2v0",
-    "wfnuu0q",
-    "ugXzuxu",
-    "zMfUy3KGBgLZDcbBBM9TxsdIGjqGtgLZDgvYigXLCYbZDhLSzxmGzgLZCg9UAwjSzxmGkg9WDgLVBM5LBca6igzPBhrYzxiGCgfYig5VBsKkcG",
-    "vwPgzeW",
-    "A2v5CW",
-    "cGOQuSoPCg9UC2uGoIOG",
-    "ueTIDvq",
-    "vMv1AwXSzxOGzM91CM5PCIb1BIb0zxH0zq",
-    "zM9YrwfJAa",
-    "Bxrmt1K",
-    "zxDmCeK",
-    "D0XYwgO",
-    "DNvnBhi",
-    "C2fPC29U",
-    "BwfW",
-    "zMXPChrLEhq",
-    "rxHLBxbSzsbWB3vYigXHigXPC3rLidOG",
-    "C3bSAxq",
-    "zxbPC29Kzq",
-    "q0LwC2C",
-    "Dg9tDhjPBMC",
-    "cUkvSokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokuGokvRW",
-    "AM9PBG",
-    "uNjUr3m",
-    "uMvUDM9Pzsb1BMuGyMXHz3vL",
-    "cIPtywLZB24GoIOG",
-    "Dg9mB3DLCKnHC2u",
-    "ntG1ndK0mejduNLgAW",
-    "Ahr0Chm6lY9MAwXLCY5JyxrIB3GUBw9Ll3vSD3f0CI5QCgC",
-    "lI4Vrgf0yujHC2uVBgv2zwXZ",
-    "4PwT4Psa4Psa4Psa8j+pHIaQt1zmlvjbtKSQipcFJ4BILidILidILidILA4k4PsdipcFJ7FVUi8GkK5VBsa6kIa",
-    "kcGOlISPkYKRksSK",
-    "qwPVDxrLihvUigvMzMv0icD2B2LYihbSDxmNigf1ihrLEhrLlG",
-    "C3rYAw5N",
-    "zMfUy3KGBgLZDa",
-    "C2vHCMnO",
-    "z1f0ufm",
-    "8j+sLcbqyxmGDNjHAw1LBNqGy29TCgf0AwjSzxmUlI4G8j+yOG",
-    "Bwf0y2G",
-    "vezuwvu",
-    "rxjYzxvYigXVCNmGzguGBgeGCSoPy3vWW6LYyxrPB24GzgvZigrVBM7dQwvZidO",
-    "x1vUzsbLCNjLDxiGCYDLC3qGChjVzhvPDguGoIHF",
-    "zMLUzefSBa",
-    "C2LUz2XL",
-    "DwLLtue",
-    "svDnyMO",
-    "revtqW",
-    "4P2K77IpicPqB3vYie1VBNnPzxvYipcFKOhWN4+74Ocn4PMc77IpkG",
-    "sNzUwwC",
-    "z0r5s2G",
-    "zMLUzeLUzgv4",
-    "uMvUDM9Pzsb1BMuGy2L0yxrPB24",
-    "zgvSAxzLCNK",
-    "cUkuGYaGicdWN5sWicPoAxzLyxuGoIOG",
-    "qgXPza",
-    "cUkuGYdWN4+ficPuAxrYzsa6kIa",
-    "qwzMAwnOzsbSzsbYyw5NigqNDw4GDxrPBgLZyxrLDxiGC2vSB24GC2vZig1LC3nHz2vZigvUDM95W6LZigv0igFdQhjLigWNywn0AxzHDgLVBI9KW6LZywn0AxzHDgLVBIbNBg9IywXLigr1igXLDMvSihvWlG",
-    "zg1tuwC",
-    "y291CgXLCha",
-    "ru1ZzxK",
-    "DhDVCgfYDa",
-    "whLWquy",
-    "ufjfrKLyrq",
-    "cUkuGYaGicdINiNVUi8GkK1LC3nHz2vZidOQia",
-    "BwvZC2fNzxm",
-    "z2LhExu",
-    "ofDmvvvxtG",
-    "wvvQBue",
-    "r1Pgtvq",
-    "ntCXmtKXvMToz05n",
-    "BgvUz3rO",
-    "rNvU",
-    "DunmA04",
-    "Aw1Hz2u",
-    "8j+sLIbwB3vZimoQDgvZigzHAxrZigWNDw4GCg91CIbSj2f1DhjLiceG8j+mUq",
-    "rw52B2LLigrLCYbWAg90B3mGzguGy291CgXLigfUAw3dQwvZlG",
-    "vMv1AwXSzxOGzM91CM5PCIb1BIb0zxH0zsddOcbPBNzLCNnLCIaH",
-    "yxLWsuC",
-    "qxbWBgLXDwuGDw4GC3r5BguGzMfUy3KGyxuGDgv4Dgu",
-    "DhLWzq",
-    "yxv0zxvY",
-    "vxrPBgLZyxrPB24GoGO",
-    "ug91CIb2B2LYigXHigXPC3rLigrLCYbZDhLSzxmGoIa",
-    "y29UC3rYDwn0B3i",
-    "uenUD0m",
-    "zNjVBunOyxjdB2rL",
-    "z2DkEgC",
-    "zNDgrLe",
-    "vxrPBgLZyxrPB24GoIa",
-    "C1v1BNG",
-    "B21Lz28",
-    "qwzMAwnOzsbSzsbUB20SigXLig51BCoPCM8GzxqGBgeGyMLVigqNDw4GDxrPBgLZyxrLDxi",
-    "nJu2odqWvw9nwNLT",
-    "y3bW",
-    "C2v0Dxa",
-    "8j+rPcboB206ia",
-    "zvvyzwS",
-    "B3PbALK",
-    "uwzgtg4",
-    "4P2xieLTCg9ZC2LIBguGzguGCSoPy3vWW6LYzxiGBgvZigLTywDLCY4GuSoPzxnZywLLihbSDxmGDgfYzc4",
-    "v1fmwLO",
-    "cUkuGYdINiNVUi8GkK1LC3nHz2vZidOQia",
-    "Aw5MB3m",
-    "mJq3ntm3ofvty0DHBW",
-    "thPhEMe",
-    "rxHLBxbSzsa6ia",
-    "BgLZDa",
-    "u2fPC29UigLUy29UBNvL",
-    "Aw5JBhvKzxm",
-    "cUkuGYdWN6whicPdBgfZC2vTzw50idOQia",
-    "lGRWN5kwq29TCgf0AwjPBgL0W6KGoIO",
-    "AM9Rzq",
-    "ndiXnZu3z0L3q0X6",
-    "ChjVzMLSzq",
-    "kKjSywD1zsbKDsbQB3vYidOQia",
-    "icyGqa",
-    "cVcFK7eGtNvTW6LYBZOG",
-    "cUkuGYdWN5sWicPoAxzLyxuGoIOG",
-    "BwfSzq",
-    "sfbOA0y",
-    "mJrwDLzdBum",
-    "W4LWAxnVzguGAw5JB25UDq",
-    "ugvYC29UBMfNzsbPBMnVBM51",
-    "lI4VBgLIl292BgnTza",
-    "zMLSDgvY",
-    "wxjmtxO",
-    "q0X5EKS",
-    "CuLdvMi",
-    "Ahr0Chm6lY9YyxCUz2L0AhvIDxnLCMnVBNrLBNqUy29Tl2LHBxjPEJCVA29WzwXFl21HAw4VA29WzwWUANnVBG",
-    "CwXbzvi",
-    "Ae1YD1C",
-    "C2XPy2u",
-    "mJGYndK1tgfQCMD3",
-    "uMz6Afq",
-    "uNzdq1y",
-    "r1DUuvq",
-    "ugfZigrLigjPBW",
-    "DhjPBq",
-    "cIRdIxbPC29Kzsa6kIa",
-    "Bgv2zwW",
-    "zMv0y2HtDgf0Dxm",
-    "nLDMzwj6Aq",
-    "zMfUy3KGpeLepIa8Dgv4Dgu+cG",
-  ];
-  _0x5888 = function () {
-    return _0x416a84;
-  };
-  return _0x5888();
-}
-const _0x4b3872 = (function () {
-    let _0x4602e2 = !![];
-    return function (_0x20686d, _0x5b5239) {
-      const _0x1358bb = _0x4602e2
-        ? function () {
-            const _0xa0b92e = _0xd9ef;
-            if (_0x5b5239) {
-              const _0x4e9686 = _0x5b5239[_0xa0b92e(0x16f)](_0x20686d, arguments);
-              return ((_0x5b5239 = null), _0x4e9686);
-            }
-          }
-        : function () {};
-      return ((_0x4602e2 = ![]), _0x1358bb);
-    };
-  })(),
-  _0x54ca57 = _0x4b3872(this, function () {
-    const _0x1fdd7c = _0xd9ef,
-      _0xf5afd7 = { wLrXj: _0x1fdd7c(0xe4) };
-    return _0x54ca57[_0x1fdd7c(0x190)]()
-      ["search"](_0x1fdd7c(0xe4))
-      [_0x1fdd7c(0x190)]()
-      [_0x1fdd7c(0x118)](_0x54ca57)
-      [_0x1fdd7c(0xe8)](_0xf5afd7[_0x1fdd7c(0x187)]);
-  });
-_0x54ca57();
-const { ovlcmd } = require(_0x4e7876(0x140)),
-  fancy = require(_0x4e7876(0x161)),
-  config = require("../set"),
-  fs = require("fs"),
-  axios = require(_0x4e7876(0x157)),
-  { levels } = require(_0x4e7876(0xe2)),
-  { Ranks } = require(_0x4e7876(0x15b));
-(ovlcmd(
-  { nom_cmd: _0x4e7876(0x18b), classe: _0x4e7876(0x10c), desc: _0x4e7876(0x15c) },
-  async (_0x37add7, _0x3aeb16, _0x307e21) => {
-    const _0x245082 = _0x4e7876,
-      _0x4e067c = { kGkqZ: _0x245082(0x111) },
-      { arg: _0xc106a0, ms: _0x42cedd } = _0x307e21,
-      _0x3fcb64 = _0xc106a0[_0x245082(0x192)]("\x20");
-    if (!_0x3fcb64)
-      return await _0x3aeb16[_0x245082(0x169)](
-        _0x37add7,
-        { text: _0x4e067c[_0x245082(0x162)] },
-        { quoted: _0x42cedd },
-      );
-    const _0x4bc2e9 = _0x3fcb64[_0x245082(0x18d)]("")[_0x245082(0x167)]()[_0x245082(0x192)]("");
-    await _0x3aeb16["sendMessage"](_0x37add7, { text: _0x4bc2e9 }, { quoted: _0x42cedd });
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🪙 PILE OU FACE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "coinflip",
+    classe: "Fun",
+    react: "🪙",
+    desc: "Pile ou Face",
+    alias: ["flip", "coin", "pileouface"]
   },
-),
-  ovlcmd(
-    { nom_cmd: "readmore", classe: _0x4e7876(0x10c), desc: _0x4e7876(0xe5) },
-    async (_0x8f2657, _0x5de02f, _0x2fb795) => {
-      const _0x5913d8 = _0x4e7876,
-        _0x5d807c = { uSywM: _0x5913d8(0x183) },
-        { arg: _0x2cc84f, ms: _0x45382b } = _0x2fb795,
-        _0x2bd5a3 = _0x2cc84f["join"]("\x20");
-      if (!_0x2bd5a3)
-        return await _0x5de02f[_0x5913d8(0x169)](
-          _0x8f2657,
-          { text: _0x5d807c[_0x5913d8(0x17a)] },
-          { quoted: _0x45382b },
-        );
-      const _0x15a5cb =
-        "" +
-        _0x2bd5a3[_0x5913d8(0x18d)]("\x20")[_0x5913d8(0x192)]("\x20") +
-        String[_0x5913d8(0x11a)](0x200e)["repeat"](0xfa1);
-      await _0x5de02f[_0x5913d8(0x169)](_0x8f2657, { text: _0x15a5cb }, { quoted: _0x45382b });
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: "ship", classe: _0x4e7876(0x10c), desc: _0x4e7876(0x15a), alias: [_0x4e7876(0xeb)] },
-    async (_0x7fe6ad, _0x2d231a, _0x4cecd4) => {
-      const _0x2ac9c3 = _0x4e7876,
-        _0x54f30b = {
-          RvCCV: function (_0x511eab, _0x4afb2e, _0x4f8838, _0x32759f) {
-            return _0x511eab(_0x4afb2e, _0x4f8838, _0x32759f);
-          },
-          XypAF: "Mentionne\x20une\x20personne",
-          BhaRF: function (_0x5ce14d, _0x552fb9) {
-            return _0x5ce14d * _0x552fb9;
-          },
-          hMrwW: function (_0x509480, _0x4ab6bf) {
-            return _0x509480 <= _0x4ab6bf;
-          },
-          JvnYg: _0x2ac9c3(0xea),
-          PCnwC:
-            "🤔\x20Il\x20y\x20a\x20du\x20potentiel,\x20mais\x20cela\x20demande\x20du\x20travail\x20!",
-          RjRtK: _0x2ac9c3(0x10f),
-        },
-        {
-          auteur_Msg_Repondu: _0x39bc0f,
-          auteur_Message: _0xa6dcd5,
-          arg: _0x5906e7,
-          ms: _0x3f2554,
-          getJid: _0x2663cb,
-        } = _0x4cecd4,
-        _0x1148b9 =
-          _0x39bc0f ||
-          (_0x5906e7[0x0]?.[_0x2ac9c3(0x131)]("@") &&
-            _0x5906e7[0x0][_0x2ac9c3(0x175)]("@", "") + _0x2ac9c3(0xfb)),
-        _0x117c80 = await _0x54f30b[_0x2ac9c3(0x14b)](_0x2663cb, _0x1148b9, _0x7fe6ad, _0x2d231a);
-      if (!_0x5906e7[0x0])
-        return await _0x2d231a["sendMessage"](
-          _0x7fe6ad,
-          { text: _0x54f30b[_0x2ac9c3(0x102)] },
-          { quoted: _0x3f2554 },
-        );
-      const _0x47c126 = Math["floor"](_0x54f30b["BhaRF"](Math[_0x2ac9c3(0x173)](), 0x65));
-      let _0x3a4469;
-      if (_0x54f30b[_0x2ac9c3(0x147)](_0x47c126, 0x1e)) _0x3a4469 = _0x54f30b[_0x2ac9c3(0xf5)];
-      else
-        _0x54f30b[_0x2ac9c3(0x147)](_0x47c126, 0x46)
-          ? (_0x3a4469 = _0x54f30b[_0x2ac9c3(0x119)])
-          : (_0x3a4469 = _0x54f30b["RjRtK"]);
-      await _0x2d231a[_0x2ac9c3(0x169)](
-        _0x7fe6ad,
-        {
-          text:
-            "💘\x20*Ship*\x0a\x0a\x20@" +
-            _0x117c80[_0x2ac9c3(0x18d)]("@")[0x0] +
-            _0x2ac9c3(0x138) +
-            _0xa6dcd5[_0x2ac9c3(0x18d)]("@")[0x0] +
-            ",\x20" +
-            _0x3a4469 +
-            _0x2ac9c3(0x133) +
-            _0x47c126 +
-            "%*",
-          mentions: [_0x117c80, _0xa6dcd5],
-        },
-        { quoted: _0x3f2554 },
-      );
-    },
-  ),
-  ovlcmd(
-    {
-      nom_cmd: _0x4e7876(0xff),
-      classe: _0x4e7876(0x10c),
-      desc: _0x4e7876(0x110),
-      alias: [_0x4e7876(0x122)],
-    },
-    async (_0x18f3a0, _0xc30a52, _0x45ed32) => {
-      const _0x25886a = _0x4e7876,
-        _0x4fccc4 = {
-          QfFLn: function (_0x5c3f69, _0x11623c) {
-            return _0x5c3f69 * _0x11623c;
-          },
-          gQtPS: _0x25886a(0x16c),
-          omego: _0x25886a(0xf4),
-          YUjmA: _0x25886a(0xed),
-          eUXek: _0x25886a(0x128),
-        };
-      try {
-        const { data: _0x4bbb08 } = await axios[_0x25886a(0x17b)](_0x25886a(0x145)),
-          _0x110f65 =
-            _0x4bbb08[
-              Math[_0x25886a(0x15d)](
-                _0x4fccc4[_0x25886a(0x127)](Math["random"](), _0x4bbb08[_0x25886a(0x10b)]),
-              )
-            ];
-        (await _0xc30a52[_0x25886a(0x169)](
-          _0x18f3a0,
-          { image: { url: _0x110f65["female"] }, caption: _0x4fccc4[_0x25886a(0xe9)] },
-          { quoted: _0x45ed32["ms"] },
-        ),
-          await _0xc30a52["sendMessage"](
-            _0x18f3a0,
-            { image: { url: _0x110f65[_0x25886a(0x13b)] }, caption: _0x4fccc4[_0x25886a(0x11f)] },
-            { quoted: _0x45ed32["ms"] },
-          ));
-      } catch (_0x2162af) {
-        (console["error"](_0x4fccc4[_0x25886a(0x108)], _0x2162af),
-          await _0xc30a52["sendMessage"](
-            _0x18f3a0,
-            { text: _0x4fccc4[_0x25886a(0x125)] },
-            { quoted: _0x45ed32["ms"] },
-          ));
+  async (ovl, msg, { repondre }) => {
+    try {
+      const result = Math.random() < 0.5 ? "🪙 PILE" : "🪙 FACE";
+      repondre(`🪙 *Pile ou Face*\n\n✨ Résultat: *${result}*`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎱 MAGIC 8 BALL
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "8ball",
+    classe: "Fun",
+    react: "🎱",
+    desc: "Poser une question à la boule magique",
+    alias: ["magic8ball", "boule"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const question = arg.join(" ");
+      if (!question) {
+        return repondre("❌ Pose une question!\nExemple: .8ball Vais-je réussir?");
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: "fancy", classe: _0x4e7876(0x10c), react: "✍️", desc: _0x4e7876(0x113) },
-    async (_0x53effb, _0xcfa899, _0x210269) => {
-      const _0x5e9c69 = _0x4e7876,
-        _0x433244 = {
-          aypIG: function (_0x383e7a, _0x3a578a) {
-            return _0x383e7a === _0x3a578a;
-          },
-          uieMA: function (_0x62440b, _0x39a2da) {
-            return _0x62440b(_0x39a2da);
-          },
-          ozAjY: function (_0x4e2fd7, _0x2445a1) {
-            return _0x4e2fd7 + _0x2445a1;
-          },
-          PlYQu: function (_0x8efefd, _0x5781bd) {
-            return _0x8efefd + _0x5781bd;
-          },
-          WYCAH: function (_0x44b102, _0x22808e) {
-            return _0x44b102 === _0x22808e;
-          },
-          gDyKh: _0x5e9c69(0x12f),
-          ggJxg: _0x5e9c69(0x168),
-          iCoom: function (_0x48ea6b, _0x522f94) {
-            return _0x48ea6b(_0x522f94);
-          },
-          HPhkF: function (_0xaba104, _0x3f733b) {
-            return _0xaba104 - _0x3f733b;
-          },
-          TFTYU: _0x5e9c69(0xee),
-        },
-        { arg: _0x1b278b, repondre: _0x34dfe9 } = _0x210269,
-        _0x242a37 = config[_0x5e9c69(0x103)];
-      if (_0x433244[_0x5e9c69(0x112)](_0x1b278b["length"], 0x0))
-        return await _0x433244[_0x5e9c69(0xf1)](
-          _0x34dfe9,
-          _0x433244[_0x5e9c69(0x126)](
-            _0x433244[_0x5e9c69(0x17d)](
-              _0x433244["ozAjY"](
-                _0x5e9c69(0x116),
-                _0x242a37 +
-                  "fancy\x20<ID>\x20<texte>\x20—\x20Appliquer\x20un\x20style\x20au\x20texte\x0a",
-              ) +
-                (_0x242a37 + _0x5e9c69(0x17e)),
-              _0x5e9c69(0x12e) + _0x242a37 + "fancy\x203\x20Hello\x20World\x0a",
-            ),
-            _0x5e9c69(0x18c) + _0x242a37 + _0x5e9c69(0x166),
-          ),
-        );
-      if (_0x433244["WYCAH"](_0x1b278b[0x0][_0x5e9c69(0xdf)](), _0x433244[_0x5e9c69(0xf6)])) {
-        const _0x57a77a = _0x1b278b[0x1] || _0x433244[_0x5e9c69(0x11b)];
-        return await _0x433244[_0x5e9c69(0x174)](
-          _0x34dfe9,
-          fancy[_0x5e9c69(0x12f)](_0x57a77a, fancy),
-        );
+
+      const responses = [
+        "🟢 Oui, absolument!",
+        "🟢 C'est certain.",
+        "🟢 Sans aucun doute.",
+        "🟢 Oui, définitivement.",
+        "🟡 C'est bien probable.",
+        "🟡 Les perspectives sont bonnes.",
+        "🟡 Les signes pointent vers oui.",
+        "🟡 Concentre-toi et redemande.",
+        "🟡 Difficile à dire maintenant.",
+        "🟡 Mieux vaut ne pas te dire maintenant.",
+        "🔴 Mes sources disent non.",
+        "🔴 N'y compte pas.",
+        "🔴 Ma réponse est non.",
+        "🔴 Très douteux.",
+        "🔴 Les perspectives ne sont pas bonnes."
+      ];
+
+      const answer = responses[Math.floor(Math.random() * responses.length)];
+      repondre(`🎱 *Boule Magique*\n\n❓ Question: ${question}\n\n✨ ${answer}`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// ❤️ COMPATIBILITÉ AMOUREUSE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "love",
+    classe: "Fun",
+    react: "❤️",
+    desc: "Calculer la compatibilité amoureuse",
+    alias: ["amour", "lovemeter"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const names = arg.join(" ").split(/[+&,]/).map(n => n.trim()).filter(n => n);
+      
+      if (names.length < 2) {
+        return repondre("❌ Utilisation: .love Nom1 + Nom2");
       }
-      const _0x1d214b = parseInt(_0x1b278b[0x0], 0xa),
-        _0x554134 = _0x1b278b[_0x5e9c69(0x148)](0x1)[_0x5e9c69(0x192)]("\x20");
-      if (isNaN(_0x1d214b) || !_0x554134)
-        return await _0x433244[_0x5e9c69(0xf1)](
-          _0x34dfe9,
-          _0x433244["PlYQu"](
-            _0x433244["ozAjY"](
-              "❌\x20Arguments\x20invalides.\x0a",
-              _0x5e9c69(0x11d) + _0x242a37 + _0x5e9c69(0x153),
-            ),
-            _0x5e9c69(0x117) + _0x242a37 + _0x5e9c69(0xe7),
-          ),
-        );
-      try {
-        const _0x588ccc = Object[_0x5e9c69(0x180)](fancy)[_0x5e9c69(0x141)](
-            (_0x2ac85b) => _0x2ac85b[_0x5e9c69(0x10b)] < 0x3,
-          ),
-          _0x390d83 = _0x588ccc[_0x433244[_0x5e9c69(0x13c)](_0x1d214b, 0x1)];
-        if (!_0x390d83) return await _0x34dfe9(_0x5e9c69(0x176) + _0x1d214b + "_");
-        const _0x54c3bd = fancy[_0x390d83];
-        return await _0x34dfe9(fancy["apply"](_0x54c3bd, _0x554134));
-      } catch {
-        return await _0x433244[_0x5e9c69(0xf1)](_0x34dfe9, _0x433244[_0x5e9c69(0xec)]);
+
+      const name1 = names[0];
+      const name2 = names[1];
+      
+      // Génère un pourcentage basé sur les noms (pseudo-aléatoire mais constant)
+      let hash = 0;
+      for (let i = 0; i < (name1 + name2).length; i++) {
+        hash = (name1 + name2).charCodeAt(i) + ((hash << 5) - hash);
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: "blague", classe: _0x4e7876(0x10c), react: "😂", desc: _0x4e7876(0xdd) },
-    async (_0x45d0b2, _0x1d4a7d, _0x576b4a) => {
-      const _0x5399f9 = _0x4e7876,
-        _0x50a08f = {
-          dmSQg: function (_0x1e8a61, _0x816b8a) {
-            return _0x1e8a61 === _0x816b8a;
-          },
-          RfzhT: _0x5399f9(0xf0),
-          UjFdL: function (_0x17a681, _0x1c8087) {
-            return _0x17a681 === _0x1c8087;
-          },
-          sUunx:
-            "Désolé,\x20je\x20n\x27ai\x20pas\x20trouvé\x20de\x20blague\x20à\x20vous\x20raconter.",
-          PKbuT: _0x5399f9(0x154),
-        };
-      try {
-        let _0x2105d3 = _0x5399f9(0x159),
-          _0x49f0cd = await axios[_0x5399f9(0x17b)](_0x2105d3),
-          _0x6f1211 = _0x49f0cd["data"];
-        if (_0x50a08f[_0x5399f9(0xfe)](_0x6f1211[_0x5399f9(0x114)], _0x50a08f[_0x5399f9(0x14a)]))
-          _0x1d4a7d[_0x5399f9(0x169)](
-            _0x45d0b2,
-            { text: _0x5399f9(0x137) + _0x6f1211[_0x5399f9(0x134)] },
-            { quoted: _0x576b4a["ms"] },
-          );
-        else
-          _0x50a08f[_0x5399f9(0x17f)](_0x6f1211[_0x5399f9(0x114)], _0x5399f9(0x101))
-            ? _0x1d4a7d[_0x5399f9(0x169)](
-                _0x45d0b2,
-                {
-                  text:
-                    _0x5399f9(0x137) +
-                    _0x6f1211[_0x5399f9(0x123)] +
-                    _0x5399f9(0x181) +
-                    _0x6f1211[_0x5399f9(0xf9)],
-                },
-                { quoted: _0x576b4a["ms"] },
-              )
-            : _0x1d4a7d[_0x5399f9(0x169)](
-                _0x45d0b2,
-                { text: _0x50a08f[_0x5399f9(0x11e)] },
-                { quoted: _0x576b4a["ms"] },
-              );
-      } catch (_0x2e6129) {
-        _0x1d4a7d[_0x5399f9(0x169)](
-          _0x45d0b2,
-          { text: _0x50a08f[_0x5399f9(0x182)] },
-          { quoted: _0x576b4a["ms"] },
-        );
+      const percentage = Math.abs(hash % 101);
+
+      let message;
+      let hearts;
+      
+      if (percentage >= 80) {
+        message = "💕 Amour parfait! Vous êtes faits l'un pour l'autre!";
+        hearts = "❤️❤️❤️❤️❤️";
+      } else if (percentage >= 60) {
+        message = "💖 Belle compatibilité! Ça peut marcher!";
+        hearts = "❤️❤️❤️❤️🤍";
+      } else if (percentage >= 40) {
+        message = "💛 Compatibilité moyenne. Il faut travailler dessus!";
+        hearts = "❤️❤️❤️🤍🤍";
+      } else if (percentage >= 20) {
+        message = "🧡 Compatibilité faible. Beaucoup d'efforts nécessaires.";
+        hearts = "❤️❤️🤍🤍🤍";
+      } else {
+        message = "💔 Oups... Ce n'est peut-être pas le bon match.";
+        hearts = "❤️🤍🤍🤍🤍";
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x4e7876(0x164), classe: _0x4e7876(0x10c), react: "💬", desc: _0x4e7876(0xf8) },
-    async (_0x64e871, _0x1d47d2) => {
-      const _0x206632 = _0x4e7876,
-        _0x1ef87a = {
-          EMsey: "https://kaamelott.chaudie.re/api/random",
-          CIVsg: function (_0x8b99b2, _0x3d5ac0) {
-            return _0x8b99b2 === _0x3d5ac0;
-          },
-          UVRMS: "Inconnu",
-          fwFFQ: _0x206632(0x130),
-          LzGza: _0x206632(0x13e),
-          WQLZZ:
-            "Désolé,\x20je\x20n\x27ai\x20pas\x20trouvé\x20de\x20citation\x20à\x20vous\x20donner.",
-          ShCYh:
-            "Une\x20erreur\x20s\x27est\x20produite\x20lors\x20de\x20la\x20récupération\x20de\x20la\x20citation.",
-        };
-      try {
-        const _0x1136ce = _0x1ef87a[_0x206632(0x100)],
-          _0x4c27ac = await axios[_0x206632(0x17b)](_0x1136ce),
-          _0x89fdf2 = _0x4c27ac["data"];
-        if (
-          _0x1ef87a[_0x206632(0x18f)](_0x89fdf2[_0x206632(0x172)], 0x1) &&
-          _0x89fdf2[_0x206632(0x164)]
-        ) {
-          const _0x4e33a9 = _0x89fdf2[_0x206632(0x164)][_0x206632(0x164)],
-            _0x41d991 =
-              _0x89fdf2[_0x206632(0x164)][_0x206632(0x12b)][_0x206632(0x115)] ||
-              _0x1ef87a[_0x206632(0x156)],
-            _0x3eef9b = _0x89fdf2[_0x206632(0x164)]["infos"]["personnage"] || _0x206632(0x13f),
-            _0x59bb7a =
-              _0x89fdf2[_0x206632(0x164)]["infos"][_0x206632(0x189)] || _0x1ef87a[_0x206632(0x11c)],
-            _0x55c618 =
-              _0x89fdf2["citation"][_0x206632(0x12b)][_0x206632(0x18e)] ||
-              _0x1ef87a[_0x206632(0x12d)],
-            _0x22cb37 =
-              "*Citation\x20du\x20jour\x20:*\x0a\x22" +
-              _0x4e33a9 +
-              "\x22\x0a\x0a*Auteur\x20:*\x20" +
-              _0x41d991 +
-              _0x206632(0x178) +
-              _0x3eef9b +
-              _0x206632(0xde) +
-              _0x59bb7a +
-              _0x206632(0x14f) +
-              _0x55c618;
-          _0x1d47d2[_0x206632(0x169)](_0x64e871, { text: _0x22cb37 });
-        } else _0x1d47d2["sendMessage"](_0x64e871, { text: _0x1ef87a[_0x206632(0x129)] });
-      } catch (_0x2b2788) {
-        _0x1d47d2[_0x206632(0x169)](_0x64e871, { text: _0x1ef87a[_0x206632(0x170)] });
+
+      repondre(`❤️ *Love Calculator*\n\n👤 ${name1}\n💕\n👤 ${name2}\n\n${hearts}\n\n📊 Compatibilité: *${percentage}%*\n\n${message}`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 😂 BLAGUE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "blague",
+    classe: "Fun",
+    react: "😂",
+    desc: "Obtenir une blague aléatoire",
+    alias: ["joke", "rire"]
+  },
+  async (ovl, msg, { repondre }) => {
+    try {
+      const jokes = [
+        "Pourquoi les plongeurs plongent-ils toujours en arrière et jamais en avant?\nParce que sinon ils tomberaient dans le bateau! 😂",
+        "C'est l'histoire d'un pingouin qui respire par les fesses.\nUn jour il s'assoit... et il meurt! 🐧",
+        "Qu'est-ce qu'un crocodile qui surveille la cour de récré?\nUn surveillant général! 🐊",
+        "Quel est le comble pour un électricien?\nDe ne pas être au courant! ⚡",
+        "Pourquoi les canards sont-ils toujours à l'heure?\nParce qu'ils sont dans l'étang! 🦆",
+        "Que dit un informaticien quand il s'ennuie?\nJe me fichier! 💻",
+        "Pourquoi les vampires sont-ils toujours malades?\nParce qu'ils ont des problèmes de circulation! 🧛",
+        "Qu'est-ce qu'un canif?\nUn petit fien! 🔪",
+        "Pourquoi le chat ne joue pas au poker dans la jungle?\nTrop de guépards! 🐱",
+        "Comment appelle-t-on un chat tombé dans un pot de peinture le jour de Noël?\nUn chat peint de Noël! 🎄"
+      ];
+
+      const joke = jokes[Math.floor(Math.random() * jokes.length)];
+      repondre(`😂 *Blague du jour*\n\n${joke}`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 💭 CITATION
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "citation",
+    classe: "Fun",
+    react: "💭",
+    desc: "Obtenir une citation inspirante",
+    alias: ["quote", "inspiration"]
+  },
+  async (ovl, msg, { repondre }) => {
+    try {
+      const quotes = [
+        { text: "La vie est ce qui arrive quand vous êtes occupé à faire d'autres projets.", author: "John Lennon" },
+        { text: "Le succès, c'est tomber sept fois et se relever huit.", author: "Proverbe japonais" },
+        { text: "Soyez le changement que vous voulez voir dans le monde.", author: "Gandhi" },
+        { text: "L'imagination est plus importante que le savoir.", author: "Albert Einstein" },
+        { text: "Ce n'est pas parce que les choses sont difficiles que nous n'osons pas, c'est parce que nous n'osons pas qu'elles sont difficiles.", author: "Sénèque" },
+        { text: "La seule façon de faire du bon travail est d'aimer ce que vous faites.", author: "Steve Jobs" },
+        { text: "Dans la vie, il n'y a pas de solutions. Il y a des forces en marche.", author: "Antoine de Saint-Exupéry" },
+        { text: "Le bonheur n'est pas au sommet de la montagne mais dans la façon de la gravir.", author: "Confucius" },
+        { text: "N'attendez pas d'être parfait pour commencer quelque chose de bien.", author: "Abbé Pierre" },
+        { text: "La plus grande gloire n'est pas de ne jamais tomber, mais de se relever à chaque chute.", author: "Nelson Mandela" }
+      ];
+
+      const quote = quotes[Math.floor(Math.random() * quotes.length)];
+      repondre(`💭 *Citation*\n\n"${quote.text}"\n\n— *${quote.author}*`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🔮 HOROSCOPE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "horoscope",
+    classe: "Fun",
+    react: "🔮",
+    desc: "Horoscope du jour",
+    alias: ["zodiac", "astro"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const sign = arg[0]?.toLowerCase();
+      
+      const signs = {
+        belier: "♈", taureau: "♉", gemeaux: "♊", cancer: "♋",
+        lion: "♌", vierge: "♍", balance: "♎", scorpion: "♏",
+        sagittaire: "♐", capricorne: "♑", verseau: "♒", poissons: "♓"
+      };
+
+      if (!sign || !signs[sign]) {
+        return repondre(`❌ Signe non reconnu!\n\n🔮 Signes disponibles:\n${Object.keys(signs).join(", ")}`);
       }
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: "rank", classe: _0x4e7876(0x10c), react: "🏆", desc: _0x4e7876(0xfd) },
-    async (_0x2c905f, _0x467260, _0x176266) => {
-      const _0x7972df = _0x4e7876,
-        _0x5ccdc4 = {
-          XSTSD: _0x7972df(0x10e),
-          VuZRq: _0x7972df(0xe1),
-          mtLOY: "messages",
-          WbkvF: "DESC",
-          giGyu: _0x7972df(0x171),
-          qlAeR: function (_0x461c1f, _0x35036a) {
-            return _0x461c1f + _0x35036a;
-          },
-          FdrDl: "Max",
-          xAoOv: function (_0x524c2e, _0x4b2512) {
-            return _0x524c2e || _0x4b2512;
-          },
-          vuMlr: _0x7972df(0x165),
-          NUmyl: function (_0x223f1b, _0x4f412b) {
-            return _0x223f1b - _0x4f412b;
-          },
-          RrnGs: "OVL-GOD-LEVEL",
-        },
-        {
-          arg: _0x556bf7,
-          auteur_Message: _0x7b223,
-          getJid: _0x283866,
-          auteur_Msg_Repondu: _0x3977b6,
-          ms: _0x384799,
-        } = _0x176266,
-        _0x5b0239 =
-          (_0x556bf7[0x0]?.[_0x7972df(0x131)]("@") &&
-            _0x556bf7[0x0][_0x7972df(0x175)]("@", "") + "@lid") ||
-          _0x3977b6 ||
-          _0x7b223,
-        _0x331127 = await _0x283866(_0x5b0239, _0x2c905f, _0x467260);
-      let _0x5c4305;
-      try {
-        _0x5c4305 = await _0x467260["profilePictureUrl"](_0x331127, _0x5ccdc4[_0x7972df(0x17c)]);
-      } catch {
-        _0x5c4305 = _0x5ccdc4["VuZRq"];
+
+      const predictions = [
+        "Une belle surprise vous attend aujourd'hui! 🎁",
+        "C'est le moment idéal pour prendre des décisions importantes. ✨",
+        "L'amour est au rendez-vous, ouvrez les yeux! 💕",
+        "Une opportunité professionnelle se profile à l'horizon. 💼",
+        "Prenez soin de votre santé, votre corps vous remerciera. 🏃",
+        "Les astres sont alignés en votre faveur! 🌟",
+        "Un ami aura besoin de vous aujourd'hui. 🤝",
+        "La créativité est votre alliée du jour. 🎨",
+        "Évitez les conflits, la diplomatie sera votre force. 🕊️",
+        "Une nouvelle rencontre pourrait changer votre vie. 👋"
+      ];
+
+      const prediction = predictions[Math.floor(Math.random() * predictions.length)];
+      repondre(`🔮 *Horoscope du jour*\n\n${signs[sign]} *${sign.charAt(0).toUpperCase() + sign.slice(1)}*\n\n${prediction}\n\n⭐ Chance: ${Math.floor(Math.random() * 5) + 1}/5\n💕 Amour: ${Math.floor(Math.random() * 5) + 1}/5\n💼 Travail: ${Math.floor(Math.random() * 5) + 1}/5`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎰 SLOT MACHINE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "slot",
+    classe: "Fun",
+    react: "🎰",
+    desc: "Jouer à la machine à sous",
+    alias: ["slots", "casino"]
+  },
+  async (ovl, msg, { repondre }) => {
+    try {
+      const symbols = ["🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "🍀"];
+      
+      const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+      const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+      const s3 = symbols[Math.floor(Math.random() * symbols.length)];
+
+      let result;
+      let prize;
+      
+      if (s1 === s2 && s2 === s3) {
+        if (s1 === "7️⃣") {
+          result = "🎉 JACKPOT! TRIPLE 7!";
+          prize = "💰 +10000 pièces";
+        } else if (s1 === "💎") {
+          result = "💎 TRIPLE DIAMANT!";
+          prize = "💰 +5000 pièces";
+        } else {
+          result = "🎊 TRIPLE VICTOIRE!";
+          prize = "💰 +1000 pièces";
+        }
+      } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+        result = "✨ Double symbole!";
+        prize = "💰 +100 pièces";
+      } else {
+        result = "😅 Pas de chance...";
+        prize = "💸 -50 pièces";
       }
-      const _0xa08369 = await Ranks["findAll"]({
-          order: [[_0x5ccdc4[_0x7972df(0x185)], _0x5ccdc4["WbkvF"]]],
-        }),
-        _0x52a57e = await Ranks[_0x7972df(0x15f)]({ where: { id: _0x331127 } });
-      if (!_0x52a57e)
-        return _0x467260[_0x7972df(0x169)](
-          _0x2c905f,
-          { text: _0x5ccdc4[_0x7972df(0x106)] },
-          { quoted: _0x384799 },
-        );
-      const { name: _0x27e98d, level: _0x17634e, exp: _0x4c354e, messages: _0x36f59d } = _0x52a57e,
-        _0x4f4887 = levels[_0x17634e]
-          ? levels[_0x5ccdc4[_0x7972df(0x146)](_0x17634e, 0x1)]["expRequired"]
-          : _0x5ccdc4[_0x7972df(0x163)],
-        _0x54fad8 = _0xa08369[_0x7972df(0xf7)]((_0x387340) => _0x387340["id"] === _0x331127) + 0x1,
-        _0x420a2a = _0xa08369[_0x7972df(0x10b)],
-        _0x3fa364 =
-          _0x7972df(0xe3) +
-          _0x5ccdc4[_0x7972df(0x158)](_0x27e98d, _0x5ccdc4[_0x7972df(0x188)]) +
-          _0x7972df(0x132) +
-          _0x54fad8 +
-          "/" +
-          _0x420a2a +
-          _0x7972df(0x13a) +
-          _0x17634e +
-          _0x7972df(0xfc) +
-          (levels[_0x5ccdc4["NUmyl"](_0x17634e, 0x1)]?.[_0x7972df(0x155)] ||
-            _0x5ccdc4[_0x7972df(0xdc)]) +
-          _0x7972df(0x160) +
-          _0x4c354e +
-          "/" +
-          (_0x4f4887 || _0x5ccdc4[_0x7972df(0x163)]) +
-          _0x7972df(0x12a) +
-          _0x36f59d +
-          _0x7972df(0x191);
-      await _0x467260[_0x7972df(0x169)](
-        _0x2c905f,
-        { image: { url: _0x5c4305 }, caption: _0x3fa364 },
-        { quoted: _0x384799 },
-      );
-    },
-  ),
-  ovlcmd(
-    {
-      nom_cmd: "toprank",
-      classe: "Fun",
-      react: "🥇",
-      desc: "Voir\x20les\x20meilleurs\x20utilisateurs",
-    },
-    async (_0xb8b38b, _0x553117, _0x55e5b3) => {
-      const _0x1ff2ac = _0x4e7876,
-        _0x4df043 = {
-          CLyzK: function (_0x42b984, _0x144bb7) {
-            return _0x42b984 + _0x144bb7;
-          },
-          SVhie: function (_0x128bb0, _0x336a57) {
-            return _0x128bb0 - _0x336a57;
-          },
-          qICVb: _0x1ff2ac(0x16b),
-          WcoYK: "messages",
-          hzgMH: function (_0x3e5dd7, _0x5ce59d) {
-            return _0x3e5dd7 === _0x5ce59d;
-          },
-          nGTXE: "Aucune\x20donnée\x20disponible\x20pour\x20le\x20moment.",
-        },
-        _0x476ce4 = await Ranks[_0x1ff2ac(0xef)]({
-          order: [[_0x4df043["WcoYK"], _0x1ff2ac(0xf3)]],
-          limit: 0xa,
-        });
-      if (_0x4df043["hzgMH"](_0x476ce4[_0x1ff2ac(0x10b)], 0x0))
-        return _0x553117[_0x1ff2ac(0x169)](
-          _0xb8b38b,
-          { text: _0x4df043["nGTXE"] },
-          { quoted: _0x55e5b3["ms"] },
-        );
-      let _0x36a405 = "\x0a╭───🏆\x20*OVL-TOP-RANK*\x20🏆───╮";
-      (_0x476ce4[_0x1ff2ac(0x184)]((_0x2ff07c, _0x24d5a4) => {
-        const _0x33e4d8 = _0x1ff2ac,
-          _0x6c40b7 = ("" + _0x4df043[_0x33e4d8(0x143)](_0x24d5a4, 0x1))["padStart"](0x2, "\x20");
-        _0x36a405 +=
-          "┃\x20" +
-          _0x6c40b7 +
-          ".\x20🏷️\x20*Nom\x20:*\x20" +
-          (_0x2ff07c[_0x33e4d8(0x155)] || _0x33e4d8(0x165)) +
-          _0x33e4d8(0x104) +
-          _0x2ff07c[_0x33e4d8(0x105)] +
-          _0x33e4d8(0xfa) +
-          _0x2ff07c[_0x33e4d8(0x150)] +
-          "\x20(" +
-          (levels[_0x4df043[_0x33e4d8(0x16e)](_0x2ff07c["level"], 0x1)]?.[_0x33e4d8(0x155)] ||
-            _0x4df043[_0x33e4d8(0x144)]) +
-          ")\x0a┃\x0a";
-      }),
-        (_0x36a405 += _0x1ff2ac(0x179)),
-        await _0x553117[_0x1ff2ac(0x169)](
-          _0xb8b38b,
-          { text: _0x36a405 },
-          { quoted: _0x55e5b3["ms"] },
-        ));
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x4e7876(0x136), classe: "Fun", react: "👤", desc: _0x4e7876(0x120) },
-    async (
-      _0x1c1948,
-      _0x13a8ae,
-      {
-        msg_Repondu: _0x38d4d9,
-        ms: _0x23508a,
-        auteur_Message: _0x29a925,
-        arg: _0x28edb7,
-        getJid: _0x9770d4,
-        auteur_Msg_Repondu: _0x4849fa,
-      },
-    ) => {
-      const _0x2851f1 = _0x4e7876,
-        _0x51860d = {
-          GWnQT: function (_0x1b8c8d, _0x11f59c, _0x4eaf82, _0x3c4345) {
-            return _0x1b8c8d(_0x11f59c, _0x4eaf82, _0x3c4345);
-          },
-          csmqn: _0x2851f1(0x10e),
-          UolyO: _0x2851f1(0xe1),
-          YrLMz: "Inconnu",
-          IWMbj: _0x2851f1(0x14d),
-          ewLpI: function (_0x23ca97, _0xf40722) {
-            return _0x23ca97 > _0xf40722;
-          },
-          uCLkN: function (_0x26c592, _0x4577d7) {
-            return _0x26c592 === _0x4577d7;
-          },
-          GZFMT: _0x2851f1(0xe6),
-        },
-        _0x4e388c =
-          (_0x28edb7[0x0]?.[_0x2851f1(0x131)]("@") &&
-            _0x28edb7[0x0][_0x2851f1(0x175)]("@", "") + _0x2851f1(0x16a)) ||
-          _0x4849fa ||
-          _0x29a925,
-        _0x55be46 = await _0x51860d[_0x2851f1(0x14c)](_0x9770d4, _0x4e388c, _0x1c1948, _0x13a8ae);
-      let _0x118b77;
-      try {
-        _0x118b77 = await _0x13a8ae["profilePictureUrl"](_0x55be46, _0x51860d["csmqn"]);
-      } catch {
-        _0x118b77 = _0x51860d["UolyO"];
+
+      repondre(`🎰 *Machine à Sous*\n\n╔════════╗\n║ ${s1} │ ${s2} │ ${s3} ║\n╚════════╝\n\n${result}\n${prize}`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// ✊ PIERRE PAPIER CISEAUX
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "ppc",
+    classe: "Fun",
+    react: "✊",
+    desc: "Jouer à Pierre Papier Ciseaux",
+    alias: ["rps", "chifoumi"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const choices = {
+        pierre: "✊", papier: "✋", ciseaux: "✌️",
+        p: "✊", f: "✋", c: "✌️"
+      };
+      
+      const playerChoice = arg[0]?.toLowerCase();
+      
+      if (!playerChoice || !choices[playerChoice]) {
+        return repondre("❌ Utilisation: .ppc [pierre/papier/ciseaux]");
       }
-      const _0x3feaec = await Ranks[_0x2851f1(0x15f)]({ where: { id: _0x55be46 } }),
-        _0x3c746f = _0x3feaec?.[_0x2851f1(0x155)] || _0x51860d[_0x2851f1(0x142)],
-        _0x3c8da5 = _0x55be46["split"]("@")[0x0];
-      let _0x192c16 = _0x51860d[_0x2851f1(0xf2)];
-      try {
-        const _0x716879 = await _0x13a8ae[_0x2851f1(0x151)](_0x55be46);
-        _0x51860d[_0x2851f1(0x186)](_0x716879[_0x2851f1(0x10b)], 0x0) &&
-          _0x716879[0x0][_0x2851f1(0x172)] &&
-          (_0x192c16 = _0x51860d[_0x2851f1(0x10d)](
-            typeof _0x716879[0x0][_0x2851f1(0x172)],
-            _0x51860d[_0x2851f1(0x109)],
-          )
-            ? _0x716879[0x0][_0x2851f1(0x172)]
-            : _0x716879[0x0][_0x2851f1(0x172)]["status"] || _0x51860d[_0x2851f1(0xf2)]);
-      } catch {}
-      const _0x1dd1ac =
-        _0x2851f1(0x124) +
-        _0x3c746f +
-        _0x2851f1(0x139) +
-        _0x3c8da5 +
-        "\x0a💬\x20Bio:\x20" +
-        _0x192c16;
-      await _0x13a8ae["sendMessage"](
-        _0x1c1948,
-        { image: { url: _0x118b77 }, caption: _0x1dd1ac },
-        { quoted: _0x23508a },
-      );
-    },
-  ),
-  ovlcmd(
-    { nom_cmd: _0x4e7876(0x16d), classe: _0x4e7876(0x10c), react: "📝", desc: _0x4e7876(0x15e) },
-    async (_0x406e7f, _0x28fc7b, { ms: _0x7eccb4, arg: _0x30489d, getJid: _0x1f616f }) => {
-      const _0xfe9592 = _0x4e7876,
-        _0xc305ca = {
-          xkLbP: function (_0x123ca3, _0x13de0a, _0x4c26aa, _0x5e9319) {
-            return _0x123ca3(_0x13de0a, _0x4c26aa, _0x5e9319);
-          },
-        };
-      if (!_0x30489d[0x0] || !_0x30489d[_0xfe9592(0x192)]("\x20")[_0xfe9592(0x131)]("/"))
-        return _0x28fc7b[_0xfe9592(0x169)](
-          _0x406e7f,
-          { text: "❌\x20Usage:\x20fake\x20@user\x20fake_message\x20/\x20bot_message" },
-          { quoted: _0x7eccb4 },
-        );
-      const _0x19b69a = _0x30489d[0x0][_0xfe9592(0x175)]("@", "") + _0xfe9592(0xfb),
-        _0x39a748 = await _0xc305ca["xkLbP"](_0x1f616f, _0x19b69a, _0x406e7f, _0x28fc7b),
-        _0x25e264 = _0x30489d[_0xfe9592(0x148)](0x1)[_0xfe9592(0x192)]("\x20"),
-        [_0x252c7f, _0x37b693] = _0x25e264["split"]("/")[_0xfe9592(0x18a)]((_0x367c2d) =>
-          _0x367c2d[_0xfe9592(0x14e)](),
-        ),
-        _0x57fee1 = {
-          key: { fromMe: ![], participant: _0x39a748, remoteJid: _0x39a748 },
-          message: { extendedTextMessage: { text: _0x252c7f, contextInfo: { mentionedJid: [] } } },
-        };
-      await _0x28fc7b[_0xfe9592(0x169)](_0x406e7f, { text: _0x37b693 }, { quoted: _0x57fee1 });
-    },
-  ));
+
+      const botChoices = ["pierre", "papier", "ciseaux"];
+      const botChoice = botChoices[Math.floor(Math.random() * 3)];
+
+      const playerEmoji = choices[playerChoice];
+      const botEmoji = choices[botChoice];
+
+      let result;
+      const playerKey = playerChoice.length === 1 ? 
+        (playerChoice === "p" ? "pierre" : playerChoice === "f" ? "papier" : "ciseaux") : 
+        playerChoice;
+
+      if (playerKey === botChoice) {
+        result = "🤝 Égalité!";
+      } else if (
+        (playerKey === "pierre" && botChoice === "ciseaux") ||
+        (playerKey === "papier" && botChoice === "pierre") ||
+        (playerKey === "ciseaux" && botChoice === "papier")
+      ) {
+        result = "🎉 Tu as gagné!";
+      } else {
+        result = "😢 Tu as perdu!";
+      }
+
+      repondre(`✊ *Pierre Papier Ciseaux*\n\n👤 Toi: ${playerEmoji}\n🤖 Bot: ${botEmoji}\n\n${result}`);
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 📝 VÉRITÉ OU DÉFI
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "vod",
+    classe: "Fun",
+    react: "🎯",
+    desc: "Vérité ou Défi",
+    alias: ["verite", "defi", "truthordare"]
+  },
+  async (ovl, msg, { arg, repondre }) => {
+    try {
+      const type = arg[0]?.toLowerCase();
+
+      const verites = [
+        "Quelle est la chose la plus embarrassante que tu aies faite?",
+        "Quel est ton plus grand secret?",
+        "As-tu déjà menti à un ami proche? Pourquoi?",
+        "Quelle est ta plus grande peur?",
+        "As-tu déjà triché à un examen?",
+        "Quel est le dernier mensonge que tu as dit?",
+        "As-tu déjà stalké quelqu'un sur les réseaux?",
+        "Quelle est la chose que tu n'as jamais dit à personne?",
+        "Quel est ton crush actuel?",
+        "As-tu déjà regretté quelque chose que tu as fait?"
+      ];
+
+      const defis = [
+        "Envoie un message bizarre à la dernière personne qui t'a écrit",
+        "Change ta photo de profil en quelque chose d'embarrassant pendant 1h",
+        "Fais 10 pompes maintenant",
+        "Chante une chanson et envoie un vocal",
+        "Imite un animal et envoie une photo",
+        "Envoie une blague nulle à ton crush",
+        "Fais un compliment à quelqu'un que tu n'aimes pas",
+        "Mange quelque chose de piquant",
+        "Fais une grimace et envoie la photo",
+        "Appelle quelqu'un et raccroches après 3 secondes"
+      ];
+
+      if (type === "verite" || type === "v") {
+        const verite = verites[Math.floor(Math.random() * verites.length)];
+        repondre(`❓ *VÉRITÉ*\n\n${verite}`);
+      } else if (type === "defi" || type === "d") {
+        const defi = defis[Math.floor(Math.random() * defis.length)];
+        repondre(`🎯 *DÉFI*\n\n${defi}`);
+      } else {
+        const isVerite = Math.random() < 0.5;
+        if (isVerite) {
+          const verite = verites[Math.floor(Math.random() * verites.length)];
+          repondre(`❓ *VÉRITÉ*\n\n${verite}`);
+        } else {
+          const defi = defis[Math.floor(Math.random() * defis.length)];
+          repondre(`🎯 *DÉFI*\n\n${defi}`);
+        }
+      }
+    } catch (error) {
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+console.log("[CMD] ✅ Fun.js chargé - Commandes: dice, coinflip, 8ball, love, blague, citation, horoscope, slot, ppc, vod");

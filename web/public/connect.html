@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion WhatsApp - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, #1e1b4b 50%, var(--dark) 100%);
+      min-height: 100vh;
+      color: var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container { max-width: 500px; width: 100%; }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+
+    .logo { font-size: 3.5rem; margin-bottom: 1rem; animation: bounce 2s infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 1.8rem; margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle { color: rgba(255, 255, 255, 0.6); margin-bottom: 2rem; }
+
+    /* États */
+    .state { display: none; }
+    .state.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Formulaire ID */
+    .form-group { margin-bottom: 1.5rem; text-align: left; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255, 255, 255, 0.8); font-weight: 500; }
+    .form-group input {
+      width: 100%; padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px; color: var(--light); font-size: 1rem;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .form-group input:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    /* QR Code */
+    .qr-container {
+      background: white; border-radius: 20px;
+      padding: 1.5rem; margin: 2rem auto; max-width: 280px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    .qr-container img { width: 100%; height: auto; border-radius: 10px; }
+
+    .qr-placeholder {
+      width: 220px; height: 220px;
+      background: #f0f0f0; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+    }
+    .qr-placeholder i { font-size: 3rem; color: #ccc; }
+
+    /* Loading */
+    .loading { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .spinner {
+      width: 60px; height: 60px;
+      border: 4px solid var(--glass-border);
+      border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success Icon */
+    .success-icon {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--success), #059669);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem; font-size: 4rem;
+      animation: scaleIn 0.5s ease;
+    }
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+    /* Error Icon */
+    .error-icon {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--error), #dc2626);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem; font-size: 3rem;
+    }
+
+    /* Info box */
+    .info-box {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0; text-align: left;
+    }
+    .info-box h3 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--accent); }
+    .info-box ol { margin-left: 1.2rem; color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; }
+    .info-box li { margin: 0.5rem 0; }
+
+    /* Plan badge */
+    .plan-badge {
+      display: inline-block; padding: 8px 20px; border-radius: 25px;
+      font-weight: 700; margin: 1rem 0; font-size: 1.1rem;
+    }
+    .plan-or { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; }
+    .plan-argent { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+    .plan-bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
+    .plan-diamant { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .plan-lifetime { background: linear-gradient(135deg, #fbbf24, #8b5cf6); color: #fff; }
+
+    /* Phone number display */
+    .phone-display {
+      background: var(--dark); padding: 1rem; border-radius: 12px;
+      margin: 1rem 0; font-size: 1.3rem; font-weight: 700; color: var(--accent);
+    }
+
+    /* Expiry info */
+    .expiry-info {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 1rem; border-radius: 10px; margin: 1rem 0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 16px 32px; border: none; border-radius: 14px;
+      font-weight: 700; font-size: 1rem; cursor: pointer;
+      transition: all 0.3s; width: 100%; text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+    .btn-outline { background: transparent; color: var(--light); border: 2px solid var(--glass-border); }
+    .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
+
+    .btn-link { background: none; border: none; color: var(--accent); cursor: pointer; margin-top: 1rem; }
+
+    /* Timer */
+    .timer { font-size: 1.5rem; font-weight: 700; color: var(--warning); margin: 1rem 0; }
+
+    /* Footer */
+    .footer-links {
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      font-size: 0.85rem; color: rgba(255, 255, 255, 0.5);
+    }
+    .footer-links a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">🤖</div>
+      <h1>HANI-MD Premium</h1>
+      <p class="subtitle">Connectez votre WhatsApp</p>
+
+      <!-- État 0: Entrer l'ID client -->
+      <div class="state active" id="state-input">
+        <div class="form-group">
+          <label><i class="fas fa-key"></i> Votre ID Client</label>
+          <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou CLI_XXXX">
+        </div>
+
+        <button class="btn btn-primary" id="btn-verify">
+          <i class="fas fa-check-circle"></i> Vérifier & Connecter
+        </button>
+
+        <div class="footer-links">
+          <p>Pas encore inscrit? <a href="subscribe.html">S'inscrire</a></p>
+          <p style="margin-top: 0.5rem;"><a href="https://wa.me/22550252467">Besoin d'aide?</a></p>
+        </div>
+      </div>
+
+      <!-- État 1: Vérification en cours -->
+      <div class="state" id="state-verifying">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Vérification de votre compte...</p>
+        </div>
+      </div>
+
+      <!-- État 2: QR Code -->
+      <div class="state" id="state-qr">
+        <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.8);">
+          <span class="plan-badge" id="plan-badge">🥇 Or</span>
+        </p>
+
+        <div class="qr-container" id="qr-container">
+          <div class="qr-placeholder">
+            <div class="spinner" style="width: 40px; height: 40px;"></div>
+          </div>
+        </div>
+
+        <div class="timer" id="qr-timer">02:00</div>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Le QR expire dans ce délai</p>
+
+        <div class="info-box">
+          <h3><i class="fas fa-mobile-alt"></i> Comment scanner?</h3>
+          <ol>
+            <li>Ouvrez WhatsApp sur votre téléphone</li>
+            <li>Allez dans <strong>Menu ⋮</strong> → <strong>Appareils connectés</strong></li>
+            <li>Appuyez sur <strong>Connecter un appareil</strong></li>
+            <li>Scannez ce QR code</li>
+          </ol>
+        </div>
+
+        <button class="btn btn-outline" id="btn-refresh-qr">
+          <i class="fas fa-sync"></i> Actualiser le QR
+        </button>
+      </div>
+
+      <!-- État 3: Connexion en cours -->
+      <div class="state" id="state-connecting">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Connexion en cours...</p>
+          <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+            Veuillez patienter, cela peut prendre quelques secondes...
+          </p>
+        </div>
+      </div>
+
+      <!-- État 4: Connecté avec succès -->
+      <div class="state" id="state-success">
+        <div class="success-icon">✅</div>
+        <h2 style="margin-bottom: 1rem;">Bot Connecté!</h2>
+        
+        <p style="color: rgba(255,255,255,0.7);">Votre bot HANI-MD est maintenant actif sur:</p>
+        <div class="phone-display" id="connected-phone">+225 01 02 03 04 05</div>
+        
+        <p class="plan-badge" id="success-plan-badge">🥇 Or</p>
+
+        <div class="expiry-info" id="expiry-info">
+          <i class="fas fa-clock"></i> Votre abonnement expire le: <strong id="expiry-date">01/02/2026</strong>
+        </div>
+
+        <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+          <h3 style="color: var(--success);"><i class="fas fa-check"></i> Que faire maintenant?</h3>
+          <ol>
+            <li>Envoyez <strong>.menu</strong> pour voir les commandes</li>
+            <li>Tapez <strong>.help</strong> pour l'aide</li>
+            <li>Essayez <strong>.ping</strong> pour tester</li>
+          </ol>
+        </div>
+
+        <a href="index.html" class="btn btn-success">
+          <i class="fas fa-home"></i> Retour à l'accueil
+        </a>
+      </div>
+
+      <!-- État 5: Erreur -->
+      <div class="state" id="state-error">
+        <div class="error-icon">❌</div>
+        <h2 style="margin-bottom: 1rem;">Erreur</h2>
+        <p id="error-message" style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+          Une erreur s'est produite.
+        </p>
+
+        <button class="btn btn-primary" onclick="resetState()">
+          <i class="fas fa-redo"></i> Réessayer
+        </button>
+
+        <div class="footer-links">
+          <p><a href="https://wa.me/22550252467">Contactez le support</a></p>
+        </div>
+      </div>
+
+      <!-- État 6: Abonnement expiré -->
+      <div class="state" id="state-expired">
+        <div class="error-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">⏰</div>
+        <h2 style="margin-bottom: 1rem;">Abonnement Expiré</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+          Votre abonnement a expiré. Renouvelez pour continuer à utiliser HANI-MD.
+        </p>
+
+        <a href="subscribe.html" class="btn btn-primary">
+          <i class="fas fa-crown"></i> Renouveler mon abonnement
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let clientId = null;
+    let pollInterval = null;
+    let timerInterval = null;
+    let timeLeft = 120; // 2 minutes
+
+    // Éléments
+    const states = {
+      input: document.getElementById('state-input'),
+      verifying: document.getElementById('state-verifying'),
+      qr: document.getElementById('state-qr'),
+      connecting: document.getElementById('state-connecting'),
+      success: document.getElementById('state-success'),
+      error: document.getElementById('state-error'),
+      expired: document.getElementById('state-expired')
+    };
+
+    function showState(stateName) {
+      Object.values(states).forEach(s => s.classList.remove('active'));
+      states[stateName].classList.add('active');
+    }
+
+    function resetState() {
+      clientId = null;
+      clearInterval(pollInterval);
+      clearInterval(timerInterval);
+      document.getElementById('client-id').value = '';
+      showState('input');
+    }
+
+    function showError(message) {
+      document.getElementById('error-message').textContent = message;
+      showState('error');
+    }
+
+    function formatPhone(phone) {
+      if (!phone) return 'Inconnu';
+      return '+' + phone.replace(/(\d{3})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'À vie';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function getPlanBadge(plan) {
+      const badges = {
+        'BRONZE': '🥉 Bronze',
+        'ARGENT': '🥈 Argent',
+        'OR': '🥇 Or',
+        'DIAMANT': '💎 Diamant',
+        'LIFETIME': '👑 Lifetime'
+      };
+      return badges[plan?.toUpperCase()] || plan;
+    }
+
+    function getPlanClass(plan) {
+      return 'plan-' + (plan?.toLowerCase() || 'or');
+    }
+
+    // Timer QR
+    function startTimer() {
+      timeLeft = 120;
+      updateTimer();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          refreshQR();
+        }
+      }, 1000);
+    }
+
+    function updateTimer() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('qr-timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Vérifier le client
+    async function verifyClient() {
+      clientId = document.getElementById('client-id').value.trim().toUpperCase();
+      
+      if (!clientId) {
+        return alert('Veuillez entrer votre ID client');
+      }
+
+      showState('verifying');
+
+      try {
+        const response = await fetch(`/api/clients/verify/${clientId}`);
+        const data = await response.json();
+
+        if (!data.valid) {
+          return showError('ID client invalide ou non trouvé. Vérifiez votre ID.');
+        }
+
+        // Vérifier expiration
+        if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
+          return showState('expired');
+        }
+
+        // Si déjà connecté
+        if (data.status === 'connected') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          if (data.expiresAt) {
+            document.getElementById('expiry-date').textContent = formatDate(data.expiresAt);
+          } else {
+            document.getElementById('expiry-info').innerHTML = '<i class="fas fa-infinity"></i> Abonnement <strong>à vie</strong>';
+          }
+          return showState('success');
+        }
+
+        // Initier la connexion
+        await initiateConnection(data.plan);
+
+      } catch (e) {
+        console.error('Erreur:', e);
+        showError('Erreur de connexion au serveur. Veuillez réessayer.');
+      }
+    }
+
+    // Initier la connexion
+    async function initiateConnection(plan) {
+      try {
+        const response = await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
+        const data = await response.json();
+
+        if (data.error) {
+          return showError(data.error);
+        }
+
+        if (data.status === 'connected') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          return showState('success');
+        }
+
+        // Afficher le QR et commencer le polling
+        document.getElementById('plan-badge').textContent = getPlanBadge(plan);
+        document.getElementById('plan-badge').className = 'plan-badge ' + getPlanClass(plan);
+        showState('qr');
+        startTimer();
+        startPolling();
+
+      } catch (e) {
+        console.error('Erreur:', e);
+        showError('Erreur lors de l\'initiation de la connexion.');
+      }
+    }
+
+    // Polling pour le QR code
+    function startPolling() {
+      pollInterval = setInterval(pollQR, 2000);
+      pollQR(); // Première requête immédiate
+    }
+
+    async function pollQR() {
+      try {
+        const response = await fetch(`/api/clients/qr/${clientId}`);
+        const data = await response.json();
+
+        if (data.status === 'connected') {
+          clearInterval(pollInterval);
+          clearInterval(timerInterval);
+          
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          
+          // Animation de transition
+          showState('connecting');
+          setTimeout(() => showState('success'), 1500);
+          return;
+        }
+
+        if (data.qr) {
+          document.getElementById('qr-container').innerHTML = 
+            `<img src="${data.qr}" alt="QR Code" style="width: 100%;">`;
+        }
+
+      } catch (e) {
+        console.error('Erreur polling:', e);
+      }
+    }
+
+    // Rafraîchir le QR
+    async function refreshQR() {
+      clearInterval(pollInterval);
+      clearInterval(timerInterval);
+      
+      document.getElementById('qr-container').innerHTML = `
+        <div class="qr-placeholder">
+          <div class="spinner" style="width: 40px; height: 40px;"></div>
+        </div>
+      `;
+
+      try {
+        await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
+        startTimer();
+        startPolling();
+      } catch (e) {
+        showError('Erreur lors du rafraîchissement du QR.');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('btn-verify').addEventListener('click', verifyClient);
+    document.getElementById('btn-refresh-qr').addEventListener('click', refreshQR);
+
+    document.getElementById('client-id').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') verifyClient();
+    });
+
+    // Pré-remplir depuis URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const idParam = urlParams.get('id');
+    if (idParam) {
+      document.getElementById('client-id').value = idParam;
+      verifyClient();
+    }
+  </script>
+</body>
+</html>

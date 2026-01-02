@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HANI-MD Premium - Bot WhatsApp Intelligent #1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --gold: #fbbf24;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.15);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, #1e1b4b 50%, var(--dark) 100%);
+      min-height: 100vh;
+      color: var(--light);
+      overflow-x: hidden;
+    }
+
+    .bg-animation {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-animation .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.3;
+      animation: float 25s ease-in-out infinite;
+    }
+
+    .orb:nth-child(1) { width: 500px; height: 500px; background: var(--primary); top: 5%; left: 5%; }
+    .orb:nth-child(2) { width: 400px; height: 400px; background: var(--secondary); top: 50%; right: 5%; animation-delay: -7s; }
+    .orb:nth-child(3) { width: 300px; height: 300px; background: var(--accent); bottom: 5%; left: 30%; animation-delay: -14s; }
+    .orb:nth-child(4) { width: 200px; height: 200px; background: var(--gold); top: 30%; left: 50%; animation-delay: -20s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-40px) scale(1.05); }
+    }
+
+    header {
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 100;
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 1.6rem; font-weight: 800; }
+    .logo-icon { font-size: 2.5rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+    nav { display: flex; gap: 2rem; align-items: center; }
+    nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: all 0.3s; }
+    nav a:hover { color: var(--accent); }
+
+    .nav-btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+    .nav-btn:hover { transform: scale(1.05); }
+
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 4rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      color: var(--accent);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--gold), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    .btn {
+      padding: 16px 36px;
+      border-radius: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5); }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #f59e0b);
+      color: #1e1b4b;
+      box-shadow: 0 8px 30px rgba(251, 191, 36, 0.4);
+    }
+    .btn-gold:hover { transform: translateY(-3px); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--light);
+      border: 2px solid var(--glass-border);
+    }
+    .btn-outline:hover { background: var(--glass); border-color: var(--accent); }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 3rem 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.95rem;
+      margin-top: 5px;
+    }
+
+    section { padding: 5rem 2rem; max-width: 1400px; margin: 0 auto; }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-header h2 {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+      font-weight: 800;
+    }
+
+    .section-header p {
+      color: rgba(255,255,255,0.6);
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: all 0.4s;
+      backdrop-filter: blur(20px);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--primary);
+      box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-card h3 { font-size: 1.4rem; margin-bottom: 1rem; font-weight: 700; }
+    .feature-card p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 1rem; }
+
+    .feature-list { list-style: none; font-size: 0.9rem; }
+    .feature-list li {
+      padding: 6px 0;
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-list li i { color: var(--success); }
+
+    .icon-download { background: linear-gradient(135deg, #ef4444, #f97316); }
+    .icon-ai { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+    .icon-group { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+    .icon-fun { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .icon-tools { background: linear-gradient(135deg, #10b981, #14b8a6); }
+    .icon-security { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .icon-economy { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .icon-premium { background: linear-gradient(135deg, #f59e0b, #eab308); }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .plan-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      position: relative;
+      transition: all 0.4s;
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+
+    .plan-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .plan-card:hover::before { opacity: 1; }
+    .plan-card:hover { transform: translateY(-10px); border-color: var(--primary); }
+
+    .plan-card.popular {
+      border: 2px solid var(--gold);
+      transform: scale(1.02);
+    }
+
+    .plan-card.popular::before {
+      background: linear-gradient(90deg, var(--gold), #f59e0b);
+      opacity: 1;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--gold), #f59e0b);
+      color: #1e1b4b;
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .plan-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .plan-name { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .plan-price { font-size: 2.8rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .plan-price span { font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.6); }
+    .plan-duration { color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; }
+
+    .plan-features { list-style: none; margin-bottom: 2rem; }
+    .plan-features li {
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .plan-features li:last-child { border: none; }
+    .plan-features li i.fa-check { color: var(--success); }
+    .plan-features li i.fa-times { color: rgba(255,255,255,0.3); }
+
+    .plan-btn { width: 100%; justify-content: center; padding: 16px; font-size: 1rem; }
+
+    .commands-section {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 30px;
+      padding: 3rem;
+      margin: 3rem 0;
+      backdrop-filter: blur(20px);
+    }
+
+    .commands-tabs {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      color: var(--light);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-color: transparent;
+    }
+
+    .commands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .command-item {
+      background: rgba(255,255,255,0.05);
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+
+    .command-item:hover {
+      background: rgba(99, 102, 241, 0.2);
+      transform: translateX(5px);
+    }
+
+    .command-item .prefix { color: var(--accent); font-weight: 700; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+    }
+
+    .step-card { text-align: center; padding: 2rem; }
+
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 auto 1.5rem;
+    }
+
+    .step-card h3 { font-size: 1.3rem; margin-bottom: 1rem; }
+    .step-card p { color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+    .payment-methods {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 2rem 0;
+    }
+
+    .payment-item {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .payment-item i { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+
+    .orange { color: #ff6600; }
+    .mtn { color: #ffcc00; }
+    .wave { color: #1dc2e8; }
+    .moov { color: #0066cc; }
+
+    .cta-section {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 30px;
+      padding: 4rem 2rem;
+      text-align: center;
+      margin: 3rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: "";
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+    .cta-section h2 { font-size: 2.5rem; margin-bottom: 1rem; position: relative; }
+    .cta-section p { font-size: 1.2rem; opacity: 0.9; margin-bottom: 2rem; position: relative; }
+    .cta-section .btn { position: relative; }
+
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.3s; }
+    .footer-links a:hover { color: var(--accent); }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .social-links a {
+      width: 45px;
+      height: 45px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--light);
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+
+    .social-links a:hover { background: var(--primary); transform: translateY(-3px); }
+
+    .copyright { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
+
+    @media (max-width: 768px) {
+      header { flex-direction: column; gap: 1rem; }
+      nav { gap: 1rem; }
+      .hero h1 { font-size: 2.5rem; }
+      .stats-bar { gap: 2rem; }
+      .plan-card.popular { transform: none; }
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeIn 0.8s forwards;
+    }
+
+    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <div class="bg-animation">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🤖</span>
+      <span>HANI-MD</span>
+    </div>
+    <nav>
+      <a href="#features">Fonctionnalités</a>
+      <a href="#commands">Commandes</a>
+      <a href="#plans">Tarifs</a>
+      <a href="subscribe.html" class="nav-btn">Souscrire</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-badge fade-in">
+      <i class="fas fa-bolt"></i>
+      <span>Le Bot WhatsApp #1 en Afrique</span>
+    </div>
+    
+    <h1 class="fade-in delay-1">
+      Automatisez WhatsApp<br>avec <span>HANI-MD Premium</span>
+    </h1>
+    
+    <p class="fade-in delay-2">
+      Le bot WhatsApp le plus puissant avec +246 commandes. Téléchargement, IA, 
+      gestion de groupes, jeux, économie virtuelle et bien plus encore !
+    </p>
+    
+    <div class="hero-buttons fade-in delay-3">
+      <a href="#plans" class="btn btn-gold">
+        <i class="fas fa-crown"></i> Voir les Plans
+      </a>
+      <a href="connect.html" class="btn btn-outline">
+        <i class="fas fa-qrcode"></i> Connecter Mon Bot
+      </a>
+    </div>
+  </section>
+
+  <div class="stats-bar">
+    <div class="stat-item fade-in delay-1">
+      <div class="stat-number" id="cmd-count">246+</div>
+      <div class="stat-label">Commandes</div>
+    </div>
+    <div class="stat-item fade-in delay-2">
+      <div class="stat-number">32</div>
+      <div class="stat-label">Catégories</div>
+    </div>
+    <div class="stat-item fade-in delay-3">
+      <div class="stat-number" id="user-count">5000+</div>
+      <div class="stat-label">Utilisateurs</div>
+    </div>
+    <div class="stat-item fade-in delay-4">
+      <div class="stat-number">99.9%</div>
+      <div class="stat-label">Uptime</div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="section-header">
+      <h2>🚀 Fonctionnalités Puissantes</h2>
+      <p>Découvrez tout ce que HANI-MD peut faire pour vous</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon icon-download">📥</div>
+        <h3>Téléchargement</h3>
+        <p>Téléchargez depuis toutes les plateformes populaires</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> YouTube (Audio & Vidéo HD)</li>
+          <li><i class="fas fa-check"></i> TikTok sans watermark</li>
+          <li><i class="fas fa-check"></i> Instagram Reels & Posts</li>
+          <li><i class="fas fa-check"></i> Facebook & Twitter/X</li>
+          <li><i class="fas fa-check"></i> Spotify Music</li>
+          <li><i class="fas fa-check"></i> Pinterest Images</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-1">
+        <div class="feature-icon icon-ai">🤖</div>
+        <h3>Intelligence Artificielle</h3>
+        <p>Accédez aux IA les plus puissantes</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> ChatGPT / GPT-4</li>
+          <li><i class="fas fa-check"></i> Google Gemini</li>
+          <li><i class="fas fa-check"></i> DALL-E (Génération d'images)</li>
+          <li><i class="fas fa-check"></i> Résumé automatique</li>
+          <li><i class="fas fa-check"></i> Traduction IA</li>
+          <li><i class="fas fa-check"></i> Génération de code</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-2">
+        <div class="feature-icon icon-group">👥</div>
+        <h3>Gestion de Groupes</h3>
+        <p>Gérez vos groupes comme un pro</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Anti-link & Anti-spam</li>
+          <li><i class="fas fa-check"></i> Welcome & Goodbye</li>
+          <li><i class="fas fa-check"></i> Kick, Add, Promote</li>
+          <li><i class="fas fa-check"></i> Tag All Members</li>
+          <li><i class="fas fa-check"></i> Avertissements (Warn)</li>
+          <li><i class="fas fa-check"></i> Protection groupe</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-3">
+        <div class="feature-icon icon-fun">🎮</div>
+        <h3>Jeux & Divertissement</h3>
+        <p>Amusez-vous avec des jeux interactifs</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Quiz & Trivia</li>
+          <li><i class="fas fa-check"></i> Devinez le nombre</li>
+          <li><i class="fas fa-check"></i> Pierre-Feuille-Ciseaux</li>
+          <li><i class="fas fa-check"></i> Blackjack & Roulette</li>
+          <li><i class="fas fa-check"></i> Tic-Tac-Toe</li>
+          <li><i class="fas fa-check"></i> Duels & Défis</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-4">
+        <div class="feature-icon icon-tools">🛠️</div>
+        <h3>Outils & Conversion</h3>
+        <p>Des outils pratiques au quotidien</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Création de stickers</li>
+          <li><i class="fas fa-check"></i> QR Code Generator</li>
+          <li><i class="fas fa-check"></i> Traduction (100+ langues)</li>
+          <li><i class="fas fa-check"></i> Text-to-Speech</li>
+          <li><i class="fas fa-check"></i> Calculatrice avancée</li>
+          <li><i class="fas fa-check"></i> Météo & Actualités</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon icon-economy">💰</div>
+        <h3>Économie Virtuelle</h3>
+        <p>Un système économique complet</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Portefeuille & Banque</li>
+          <li><i class="fas fa-check"></i> Daily Rewards</li>
+          <li><i class="fas fa-check"></i> Travail & Pêche</li>
+          <li><i class="fas fa-check"></i> Transferts d'argent</li>
+          <li><i class="fas fa-check"></i> Classement global</li>
+          <li><i class="fas fa-check"></i> Jeux d'argent</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-1">
+        <div class="feature-icon icon-security">🔒</div>
+        <h3>Sécurité & Confidentialité</h3>
+        <p>Protégez votre compte</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Anti-appel automatique</li>
+          <li><i class="fas fa-check"></i> Block/Unblock facile</li>
+          <li><i class="fas fa-check"></i> Mode invisible</li>
+          <li><i class="fas fa-check"></i> Masquer "vu" & "en ligne"</li>
+          <li><i class="fas fa-check"></i> Protection anti-delete</li>
+          <li><i class="fas fa-check"></i> Mode espion</li>
+        </ul>
+      </div>
+
+      <div class="feature-card fade-in delay-2">
+        <div class="feature-icon icon-premium">👑</div>
+        <h3>Fonctions Premium</h3>
+        <p>Exclusivités pour membres premium</p>
+        <ul class="feature-list">
+          <li><i class="fas fa-check"></i> Commandes illimitées</li>
+          <li><i class="fas fa-check"></i> Support prioritaire 24/7</li>
+          <li><i class="fas fa-check"></i> Mises à jour anticipées</li>
+          <li><i class="fas fa-check"></i> Multi-numéros</li>
+          <li><i class="fas fa-check"></i> Badge exclusif</li>
+          <li><i class="fas fa-check"></i> Fonctions bêta</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="commands">
+    <div class="section-header">
+      <h2>📋 +246 Commandes Disponibles</h2>
+      <p>Explorez toutes les commandes par catégorie</p>
+    </div>
+
+    <div class="commands-section">
+      <div class="commands-tabs">
+        <button class="tab-btn active" onclick="showCommands('download')">📥 Téléchargement</button>
+        <button class="tab-btn" onclick="showCommands('ai')">🤖 IA</button>
+        <button class="tab-btn" onclick="showCommands('group')">👥 Groupe</button>
+        <button class="tab-btn" onclick="showCommands('fun')">🎮 Jeux</button>
+        <button class="tab-btn" onclick="showCommands('tools')">🛠️ Outils</button>
+        <button class="tab-btn" onclick="showCommands('economy')">💰 Économie</button>
+      </div>
+
+      <div id="commands-container" class="commands-grid"></div>
+    </div>
+  </section>
+
+  <section id="plans">
+    <div class="section-header">
+      <h2>💎 Choisissez Votre Plan</h2>
+      <p>Des tarifs adaptés à tous les besoins</p>
+    </div>
+
+    <div class="plans-grid">
+      <div class="plan-card fade-in">
+        <div class="plan-icon">🥉</div>
+        <div class="plan-name">Bronze</div>
+        <div class="plan-price">500 <span>FCFA</span></div>
+        <div class="plan-duration">30 jours</div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> 100 commandes/jour</li>
+          <li><i class="fas fa-check"></i> Téléchargements audio/vidéo</li>
+          <li><i class="fas fa-check"></i> Stickers avancés</li>
+          <li><i class="fas fa-check"></i> Conversion de fichiers</li>
+          <li><i class="fas fa-times"></i> IA limitée</li>
+          <li><i class="fas fa-times"></i> Support standard</li>
+        </ul>
+        <a href="subscribe.html?plan=bronze" class="btn btn-outline plan-btn">Choisir Bronze</a>
+      </div>
+
+      <div class="plan-card fade-in delay-1">
+        <div class="plan-icon">🥈</div>
+        <div class="plan-name">Argent</div>
+        <div class="plan-price">1000 <span>FCFA</span></div>
+        <div class="plan-duration">30 jours</div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> 500 commandes/jour</li>
+          <li><i class="fas fa-check"></i> Tous téléchargements HD</li>
+          <li><i class="fas fa-check"></i> IA complète (GPT, DALL-E)</li>
+          <li><i class="fas fa-check"></i> Gestion de groupe</li>
+          <li><i class="fas fa-check"></i> Anti-spam & protections</li>
+          <li><i class="fas fa-check"></i> Support prioritaire</li>
+        </ul>
+        <a href="subscribe.html?plan=argent" class="btn btn-outline plan-btn">Choisir Argent</a>
+      </div>
+
+      <div class="plan-card popular fade-in delay-2">
+        <div class="plan-badge">⭐ Populaire</div>
+        <div class="plan-icon">🥇</div>
+        <div class="plan-name">Or</div>
+        <div class="plan-price">2000 <span>FCFA</span></div>
+        <div class="plan-duration">30 jours</div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> Commandes ILLIMITÉES</li>
+          <li><i class="fas fa-check"></i> Toutes les fonctionnalités</li>
+          <li><i class="fas fa-check"></i> IA sans limite</li>
+          <li><i class="fas fa-check"></i> Priorité maximale</li>
+          <li><i class="fas fa-check"></i> Support VIP 24/7</li>
+          <li><i class="fas fa-check"></i> Fonctionnalités bêta</li>
+        </ul>
+        <a href="subscribe.html?plan=or" class="btn btn-gold plan-btn">Choisir Or</a>
+      </div>
+
+      <div class="plan-card fade-in delay-3">
+        <div class="plan-icon">💎</div>
+        <div class="plan-name">Diamant</div>
+        <div class="plan-price">5000 <span>FCFA</span></div>
+        <div class="plan-duration">30 jours</div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> TOUT ILLIMITÉ</li>
+          <li><i class="fas fa-check"></i> Multi-numéros (3 max)</li>
+          <li><i class="fas fa-check"></i> Accès API</li>
+          <li><i class="fas fa-check"></i> Bot dédié possible</li>
+          <li><i class="fas fa-check"></i> Support personnel</li>
+          <li><i class="fas fa-check"></i> Fonctions exclusives</li>
+        </ul>
+        <a href="subscribe.html?plan=diamant" class="btn btn-outline plan-btn">Choisir Diamant</a>
+      </div>
+
+      <div class="plan-card fade-in delay-4">
+        <div class="plan-icon">👑</div>
+        <div class="plan-name">Lifetime</div>
+        <div class="plan-price">15000 <span>FCFA</span></div>
+        <div class="plan-duration">À VIE</div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> ACCÈS À VIE</li>
+          <li><i class="fas fa-check"></i> Toutes les fonctionnalités</li>
+          <li><i class="fas fa-check"></i> Mises à jour gratuites</li>
+          <li><i class="fas fa-check"></i> Support VIP permanent</li>
+          <li><i class="fas fa-check"></i> Badge exclusif 👑</li>
+          <li><i class="fas fa-check"></i> Priorité absolue</li>
+        </ul>
+        <a href="subscribe.html?plan=lifetime" class="btn btn-primary plan-btn">Choisir Lifetime</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-header">
+      <h2>📱 Comment ça Marche ?</h2>
+      <p>En 4 étapes simples</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card fade-in">
+        <div class="step-number">1</div>
+        <h3>Choisissez un Plan</h3>
+        <p>Sélectionnez le plan qui correspond à vos besoins</p>
+      </div>
+      <div class="step-card fade-in delay-1">
+        <div class="step-number">2</div>
+        <h3>Effectuez le Paiement</h3>
+        <p>Payez via Orange Money, MTN, Wave ou Moov</p>
+      </div>
+      <div class="step-card fade-in delay-2">
+        <div class="step-number">3</div>
+        <h3>Recevez votre Code</h3>
+        <p>Un code d'activation vous sera envoyé</p>
+      </div>
+      <div class="step-card fade-in delay-3">
+        <div class="step-number">4</div>
+        <h3>Activez & Profitez !</h3>
+        <p>Utilisez .upgrade CODE et c'est parti !</p>
+      </div>
+    </div>
+
+    <div class="payment-methods">
+      <div class="payment-item fade-in">
+        <i class="fas fa-mobile-alt orange"></i>
+        <div>Orange Money</div>
+      </div>
+      <div class="payment-item fade-in delay-1">
+        <i class="fas fa-mobile-alt mtn"></i>
+        <div>MTN Money</div>
+      </div>
+      <div class="payment-item fade-in delay-2">
+        <i class="fas fa-mobile-alt wave"></i>
+        <div>Wave</div>
+      </div>
+      <div class="payment-item fade-in delay-3">
+        <i class="fas fa-mobile-alt moov"></i>
+        <div>Moov Money</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cta-section">
+      <h2>🚀 Prêt à Commencer ?</h2>
+      <p>Rejoignez des milliers d'utilisateurs satisfaits</p>
+      <div class="hero-buttons">
+        <a href="subscribe.html" class="btn btn-gold">
+          <i class="fas fa-crown"></i> Souscrire Maintenant
+        </a>
+        <a href="https://wa.me/22550252467" class="btn btn-outline" target="_blank">
+          <i class="fab fa-whatsapp"></i> Contactez-nous
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-links">
+      <a href="#features">Fonctionnalités</a>
+      <a href="#commands">Commandes</a>
+      <a href="#plans">Tarifs</a>
+      <a href="admin.html">Admin</a>
+      <a href="https://wa.me/22550252467">Contact</a>
+    </div>
+    <div class="social-links">
+      <a href="https://wa.me/22550252467" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      <a href="#" title="Telegram"><i class="fab fa-telegram"></i></a>
+      <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+    <div class="copyright">© 2025 HANI-MD par H2025. Tous droits réservés.</div>
+  </footer>
+
+  <script>
+    const commandsData = {
+      download: ['.ytaudio', '.ytvideo', '.tiktokdl', '.fbvideo', '.igdownload', '.spotifydownload', '.pinterestdl', '.twitterdl'],
+      ai: ['.gpt', '.gemini', '.dalle', '.summarize', '.code', '.aitranslate', '.aiquiz', '.story'],
+      group: ['.kick', '.add', '.promote', '.demote', '.tagall', '.antilink', '.antispam', '.welcome', '.goodbye', '.warn', '.groupinfo', '.adminlist', '.memberlist', '.grouplink', '.revoke'],
+      fun: ['.guess', '.quiz', '.rps', '.blackjack', '.slot', '.8ball', '.duel', '.scramble', '.dice', '.coinflip', '.tictactoe', '.blague', '.love', '.horoscope'],
+      tools: ['.s', '.toimage', '.toaudio', '.qrcode', '.translate', '.tts', '.calculate', '.weather', '.google', '.wikipedia', '.lyrics', '.removebg'],
+      economy: ['.balance', '.register', '.daily', '.work', '.transfer', '.deposit', '.withdraw', '.leaderboard', '.gamble', '.fish', '.hunt', '.shop']
+    };
+
+    function showCommands(category) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const container = document.getElementById('commands-container');
+      container.innerHTML = commandsData[category].map(cmd => 
+        `<div class="command-item"><span class="prefix">${cmd}</span></div>`
+      ).join('');
+    }
+
+    showCommands('download');
+
+    // Animations on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+
+    // Fetch real stats
+    fetch('/api/stats').then(r => r.json()).then(data => {
+      if (data.commands) document.getElementById('cmd-count').textContent = data.commands + '+';
+      if (data.users) document.getElementById('user-count').textContent = data.users + '+';
+    }).catch(() => {});
+  </script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activer un code - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, #1e1b4b 50%, var(--dark) 100%);
+      min-height: 100vh;
+      color: var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      margin-bottom: 2rem;
+      transition: color 0.3s;
+    }
+
+    .back-link:hover {
+      color: var(--light);
+    }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+
+    .card-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--light);
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-group input.code-input {
+      text-align: center;
+      font-size: 1.3rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .message.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--success);
+      color: var(--success);
+      display: block;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      display: block;
+    }
+
+    /* Success Result */
+    .result-card {
+      display: none;
+    }
+
+    .result-card.show {
+      display: block;
+    }
+
+    .result-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 3rem;
+    }
+
+    .result-icon.success {
+      background: linear-gradient(135deg, var(--success), #059669);
+    }
+
+    .result-icon.error {
+      background: linear-gradient(135deg, var(--danger), #dc2626);
+    }
+
+    .result-card h2 {
+      margin-bottom: 1rem;
+    }
+
+    .result-card p {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-badge .icon {
+      font-size: 2rem;
+    }
+
+    .info-box {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .info-box p {
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .info-box .label {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--glass-border);
+      margin: 2rem 0;
+    }
+
+    .help-text {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+      margin-top: 1.5rem;
+    }
+
+    .help-text a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .help-text a:hover {
+      text-decoration: underline;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">
+      <i class="fas fa-arrow-left"></i> Retour à l'accueil
+    </a>
+
+    <!-- Activation Form -->
+    <div class="card" id="activationForm">
+      <div class="card-icon">🔑</div>
+      <h1>Activer votre Premium</h1>
+      <p class="subtitle">Entrez votre code d'activation reçu après paiement</p>
+
+      <div class="message" id="message"></div>
+
+      <form id="activateForm">
+        <div class="form-group">
+          <label>Votre numéro WhatsApp</label>
+          <input type="tel" id="phone" placeholder="Ex: 2250150252467" required>
+        </div>
+
+        <div class="form-group">
+          <label>Code d'activation</label>
+          <input type="text" id="code" class="code-input" placeholder="ABC123XYZ" required maxlength="20">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <i class="fas fa-unlock"></i> Activer mon Premium
+        </button>
+      </form>
+
+      <p class="help-text">
+        Pas encore de code? <a href="/subscribe">Acheter un abonnement</a>
+      </p>
+    </div>
+
+    <!-- Success Result -->
+    <div class="card result-card" id="successCard">
+      <div class="result-icon success">
+        <i class="fas fa-check"></i>
+      </div>
+      <h2>Activation réussie! 🎉</h2>
+      <p>Votre abonnement premium est maintenant actif</p>
+
+      <div class="plan-badge">
+        <span class="icon" id="resultIcon">🥇</span>
+        <span id="resultPlan">Plan Or</span>
+      </div>
+
+      <div class="info-box">
+        <p>
+          <span class="label">Durée</span>
+          <span id="resultDuration">30 jours</span>
+        </p>
+        <p>
+          <span class="label">Expire le</span>
+          <span id="resultExpires">-</span>
+        </p>
+      </div>
+
+      <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+        Vous pouvez maintenant utiliser toutes les commandes premium sur WhatsApp!<br>
+        Tapez <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;">.premium</code> pour voir votre statut.
+      </p>
+
+      <a href="/" class="btn btn-primary">
+        <i class="fas fa-home"></i> Retour à l'accueil
+      </a>
+    </div>
+
+    <!-- Error Result -->
+    <div class="card result-card" id="errorCard">
+      <div class="result-icon error">
+        <i class="fas fa-times"></i>
+      </div>
+      <h2>Échec de l'activation</h2>
+      <p id="errorMessage">Le code est invalide ou a déjà été utilisé.</p>
+
+      <button class="btn btn-primary" onclick="resetForm()">
+        <i class="fas fa-redo"></i> Réessayer
+      </button>
+
+      <p class="help-text">
+        Problème? <a href="https://wa.me/2250150252467" target="_blank" id="supportLink">Contactez le support</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let whatsappNumber = '2250150252467';
+
+    document.getElementById('activateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const phone = document.getElementById('phone').value.trim();
+      const code = document.getElementById('code').value.trim().toUpperCase();
+      const submitBtn = document.getElementById('submitBtn');
+      const message = document.getElementById('message');
+      
+      if (!phone || phone.length < 8) {
+        message.className = 'message error';
+        message.style.display = 'block';
+        message.textContent = 'Veuillez entrer un numéro valide';
+        return;
+      }
+      
+      if (!code || code.length < 6) {
+        message.className = 'message error';
+        message.style.display = 'block';
+        message.textContent = 'Veuillez entrer un code valide';
+        return;
+      }
+
+      // Créer le lien WhatsApp avec le code
+      const waMessage = encodeURIComponent(`🔓 *Activation Premium HANI-MD*\n\n📱 Mon numéro: ${phone}\n🔑 Mon code: ${code}\n\n⏳ En attente d'activation...`);
+      
+      // Afficher le succès et rediriger vers WhatsApp
+      message.className = 'message success';
+      message.style.display = 'block';
+      message.innerHTML = `✅ Envoyez votre code sur WhatsApp pour activation!<br><a href="https://wa.me/${whatsappNumber}?text=${waMessage}" target="_blank" style="color: #10b981; font-weight: bold;">👉 Cliquez ici pour activer</a>`;
+      
+      // Ouvrir WhatsApp automatiquement
+      setTimeout(() => {
+        window.open(`https://wa.me/${whatsappNumber}?text=${waMessage}`, '_blank');
+      }, 1000);
+    });
+
+    function resetForm() {
+      document.getElementById('activationForm').style.display = 'block';
+      document.getElementById('successCard').classList.remove('show');
+      document.getElementById('errorCard').classList.remove('show');
+      document.getElementById('code').value = '';
+      document.getElementById('message').style.display = 'none';
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').innerHTML = '<i class="fas fa-unlock"></i> Activer mon Premium';
+    }
+
+    // Auto-uppercase code input
+    document.getElementById('code').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "paymentNumbers": {
+    "wave": {
+      "name": "Wave",
+      "number": "+2250150252467",
+      "merchantName": "HANI-MD PREMIUM",
+      "logo": "🟢",
+      "instructions": "Envoyez l'argent au numéro ci-dessus via Wave"
+    },
+    "moov": {
+      "name": "Moov Money",
+      "number": "+2250150252467",
+      "merchantName": "HANI-MD PREMIUM",
+      "logo": "🟡",
+      "instructions": "Envoyez l'argent au numéro ci-dessus via Moov Money"
+    }
+  },
+  "adminWhatsApp": "2250150252467",
+  "plans": {
+    "bronze": {
+      "name": "Bronze",
+      "price": 500,
+      "duration": 30,
+      "emoji": "🥉"
+    },
+    "argent": {
+      "name": "Argent",
+      "price": 1000,
+      "duration": 30,
+      "emoji": "🥈"
+    },
+    "or": {
+      "name": "Or",
+      "price": 2000,
+      "duration": 30,
+      "emoji": "🥇"
+    },
+    "diamant": {
+      "name": "Diamant",
+      "price": 5000,
+      "duration": 30,
+      "emoji": "💎"
+    },
+    "lifetime": {
+      "name": "Lifetime",
+      "price": 15000,
+      "duration": -1,
+      "emoji": "👑"
+    }
+  },
+  "currency": "FCFA"
+}

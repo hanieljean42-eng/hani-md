@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S'abonner - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: white;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      margin-bottom: 30px;
+      opacity: 0.8;
+      transition: opacity 0.3s;
+    }
+    
+    .back-link:hover { opacity: 1; }
+    
+    .form-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 25px;
+      padding: 40px 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .form-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .form-header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    
+    .form-header p {
+      opacity: 0.7;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 15px 20px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #25D366;
+      background: rgba(255,255,255,0.15);
+    }
+    
+    .form-control::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+    
+    select.form-control {
+      cursor: pointer;
+    }
+    
+    select.form-control option {
+      background: #1a1a2e;
+      color: white;
+    }
+    
+    /* Plan Cards */
+    .plan-options {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    
+    .plan-option {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .plan-option:hover {
+      border-color: rgba(37,211,102,0.5);
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .plan-option.selected {
+      border-color: #25D366;
+      background: rgba(37,211,102,0.1);
+    }
+    
+    .plan-option input {
+      display: none;
+    }
+    
+    .plan-icon {
+      font-size: 1.5rem;
+      margin-right: 15px;
+    }
+    
+    .plan-info {
+      flex: 1;
+    }
+    
+    .plan-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    
+    .plan-desc {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+    
+    .plan-price {
+      font-weight: 700;
+      color: #25D366;
+    }
+    
+    /* Payment Methods */
+    .payment-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    
+    .payment-method {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 15px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .payment-method:hover {
+      border-color: rgba(37,211,102,0.5);
+    }
+    
+    .payment-method.selected {
+      border-color: #25D366;
+      background: rgba(37,211,102,0.1);
+    }
+    
+    .payment-method input {
+      display: none;
+    }
+    
+    .payment-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    
+    .payment-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(37,211,102,0.4);
+    }
+    
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Summary */
+    .summary {
+      background: rgba(37,211,102,0.1);
+      border: 1px solid rgba(37,211,102,0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .summary-row:last-child {
+      margin-bottom: 0;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-weight: 600;
+    }
+    
+    .summary-total {
+      color: #25D366;
+      font-size: 1.2rem;
+    }
+    
+    /* Alert */
+    .alert {
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .alert-success {
+      background: rgba(37,211,102,0.2);
+      border: 1px solid #25D366;
+      color: #25D366;
+    }
+    
+    .alert-error {
+      background: rgba(239,68,68,0.2);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+    }
+    
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #25D366;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Success Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-radius: 25px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      border: 1px solid rgba(37,211,102,0.3);
+    }
+    
+    .modal-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    
+    .modal h2 {
+      margin-bottom: 15px;
+    }
+    
+    .modal p {
+      opacity: 0.8;
+      margin-bottom: 25px;
+    }
+    
+    .modal .btn {
+      padding: 15px 30px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">
+      <i class="fas fa-arrow-left"></i> Retour
+    </a>
+    
+    <div class="form-card">
+      <div class="form-header">
+        <h1>💎 S'abonner Premium</h1>
+        <p>Débloquez toutes les fonctionnalités</p>
+      </div>
+      
+      <div id="alert" class="alert"></div>
+      
+      <form id="subscribeForm">
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label><i class="fab fa-whatsapp"></i> Numéro WhatsApp</label>
+          <input type="tel" id="phone" class="form-control" placeholder="Ex: 2250150252467" required>
+        </div>
+        
+        <!-- Plan Selection -->
+        <div class="form-group">
+          <label>📦 Choisir votre plan</label>
+          <div class="plan-options">
+            <label class="plan-option" data-plan="bronze" data-price="500">
+              <input type="radio" name="plan" value="bronze">
+              <span class="plan-icon">🥉</span>
+              <div class="plan-info">
+                <div class="plan-name">Bronze</div>
+                <div class="plan-desc">100 cmd/jour • 1 mois</div>
+              </div>
+              <span class="plan-price">500 F</span>
+            </label>
+            
+            <label class="plan-option" data-plan="argent" data-price="1000">
+              <input type="radio" name="plan" value="argent">
+              <span class="plan-icon">🥈</span>
+              <div class="plan-info">
+                <div class="plan-name">Argent</div>
+                <div class="plan-desc">200 cmd/jour • 1 mois</div>
+              </div>
+              <span class="plan-price">1000 F</span>
+            </label>
+            
+            <label class="plan-option selected" data-plan="or" data-price="2000">
+              <input type="radio" name="plan" value="or" checked>
+              <span class="plan-icon">🥇</span>
+              <div class="plan-info">
+                <div class="plan-name">Or ⭐</div>
+                <div class="plan-desc">500 cmd/jour • 1 mois</div>
+              </div>
+              <span class="plan-price">2000 F</span>
+            </label>
+            
+            <label class="plan-option" data-plan="diamant" data-price="5000">
+              <input type="radio" name="plan" value="diamant">
+              <span class="plan-icon">💎</span>
+              <div class="plan-info">
+                <div class="plan-name">Diamant</div>
+                <div class="plan-desc">Illimité • 1 mois</div>
+              </div>
+              <span class="plan-price">5000 F</span>
+            </label>
+            
+            <label class="plan-option" data-plan="lifetime" data-price="15000">
+              <input type="radio" name="plan" value="lifetime">
+              <span class="plan-icon">👑</span>
+              <div class="plan-info">
+                <div class="plan-name">Lifetime</div>
+                <div class="plan-desc">Illimité • À vie</div>
+              </div>
+              <span class="plan-price">15000 F</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Payment Method -->
+        <div class="form-group">
+          <label>💳 Mode de paiement</label>
+          <div class="payment-methods">
+            <label class="payment-method selected" data-method="wave">
+              <input type="radio" name="method" value="wave" checked>
+              <span class="payment-icon">🟢</span>
+              <span class="payment-name">Wave</span>
+            </label>
+            
+            <label class="payment-method" data-method="moov">
+              <input type="radio" name="method" value="moov">
+              <span class="payment-icon">🟡</span>
+              <span class="payment-name">Moov Money</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Summary -->
+        <div class="summary">
+          <div class="summary-row">
+            <span>Plan sélectionné</span>
+            <span id="summaryPlan">Or</span>
+          </div>
+          <div class="summary-row">
+            <span>Mode de paiement</span>
+            <span id="summaryMethod">Wave</span>
+          </div>
+          <div class="summary-row">
+            <span>Total à payer</span>
+            <span id="summaryTotal" class="summary-total">2000 FCFA</span>
+          </div>
+        </div>
+        
+        <!-- Submit -->
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-lock"></i> Procéder au paiement
+        </button>
+      </form>
+      
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Création de votre commande...</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-icon">✅</div>
+      <h2>Commande créée!</h2>
+      <p id="modalMessage">Suivez les instructions de paiement envoyées sur WhatsApp.</p>
+      <a href="/" class="btn">Retour à l'accueil</a>
+    </div>
+  </div>
+  
+  <script>
+    // Plan selection
+    const planOptions = document.querySelectorAll('.plan-option');
+    const paymentMethods = document.querySelectorAll('.payment-method');
+    
+    const prices = {
+      bronze: 500,
+      argent: 1000,
+      or: 2000,
+      diamant: 5000,
+      lifetime: 15000
+    };
+    
+    const planNames = {
+      bronze: 'Bronze 🥉',
+      argent: 'Argent 🥈',
+      or: 'Or 🥇',
+      diamant: 'Diamant 💎',
+      lifetime: 'Lifetime 👑'
+    };
+    
+    const methodNames = {
+      wave: 'Wave 🟢',
+      moov: 'Moov Money 🟡'
+    };
+    
+    let selectedPlan = 'or';
+    let selectedMethod = 'wave';
+    
+    // URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const planParam = urlParams.get('plan');
+    if (planParam && prices[planParam]) {
+      selectedPlan = planParam;
+      planOptions.forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.dataset.plan === planParam) {
+          opt.classList.add('selected');
+          opt.querySelector('input').checked = true;
+        }
+      });
+    }
+    
+    function updateSummary() {
+      document.getElementById('summaryPlan').textContent = planNames[selectedPlan];
+      document.getElementById('summaryMethod').textContent = methodNames[selectedMethod];
+      document.getElementById('summaryTotal').textContent = prices[selectedPlan] + ' FCFA';
+    }
+    
+    planOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        planOptions.forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        option.querySelector('input').checked = true;
+        selectedPlan = option.dataset.plan;
+        updateSummary();
+      });
+    });
+    
+    paymentMethods.forEach(method => {
+      method.addEventListener('click', () => {
+        paymentMethods.forEach(m => m.classList.remove('selected'));
+        method.classList.add('selected');
+        method.querySelector('input').checked = true;
+        selectedMethod = method.dataset.method;
+        updateSummary();
+      });
+    });
+    
+    updateSummary();
+    
+    // Form submission
+    document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const phone = document.getElementById('phone').value.trim();
+      const alertDiv = document.getElementById('alert');
+      
+      // Validation
+      if (!phone || phone.length < 10) {
+        alertDiv.className = 'alert alert-error';
+        alertDiv.style.display = 'block';
+        alertDiv.textContent = '❌ Veuillez entrer un numéro WhatsApp valide';
+        return;
+      }
+      
+      // Show loading
+      document.getElementById('subscribeForm').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      alertDiv.style.display = 'none';
+      
+      try {
+        const response = await fetch('/api/payment/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: phone,
+            plan: selectedPlan,
+            method: selectedMethod
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Show success modal
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('modalMessage').innerHTML = `
+            <strong>Numéro de commande:</strong> ${data.payment.orderId}<br><br>
+            Envoyez <strong>${prices[selectedPlan]} FCFA</strong> via <strong>${methodNames[selectedMethod]}</strong><br><br>
+            Vous recevrez une confirmation sur WhatsApp une fois le paiement validé.
+          `;
+          document.getElementById('successModal').classList.add('show');
+        } else {
+          throw new Error(data.error || 'Erreur lors de la création');
+        }
+      } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('subscribeForm').style.display = 'block';
+        alertDiv.className = 'alert alert-error';
+        alertDiv.style.display = 'block';
+        alertDiv.textContent = '❌ ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

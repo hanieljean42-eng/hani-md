@@ -1,74 +1,115 @@
-const util = require("util");
+/**
+ * ═══════════════════════════════════════════════════════════
+ * ⚡ HANI-MD - Eval/Exec
+ * ═══════════════════════════════════════════════════════════
+ * Exécute du code JavaScript pour le propriétaire
+ * ═══════════════════════════════════════════════════════════
+ */
+
 const { exec } = require("child_process");
+const util = require("util");
 
-async function eval_exec(
-  ovl,
-  {
-    verif_Groupe,
-    mbre_membre,
-    membre_Groupe,
-    verif_Admin,
-    infos_Groupe,
-    nom_Groupe,
-    auteur_Message,
-    nom_Auteur_Message,
-    mtype,
-    id_Bot,
-    prenium_id,
-    dev_id,
-    dev_num,
-    id_Bot_N,
-    verif_Ovl_Admin,
-    prefixe,
-    arg,
-    repondre,
-    groupe_Admin,
-    msg_Repondu,
-    auteur_Msg_Repondu,
-    ms,
-    ms_org,
-    texte,
-    getJid,
-    quote,
-  },
-) {
-  if (!dev_id || !texte) return;
-
-  if (texte.startsWith("$")) {
-    const cmd = texte.slice(1).trim();
-    if (!cmd) return repondre("*Commande vide*");
-    await new Promise((resolve) => {
-      exec(cmd, (error, stdout, stderr) => {
-        if (error) {
-          repondre(`Erreur d'exécution :\n${error.message}`).then(resolve);
-        } else if (stderr) {
-          repondre(`Erreur :\n${stderr}`).then(resolve);
-        } else {
-          const output = stdout || "Commande exécutée sans sortie.";
-          repondre(output).then(resolve);
-        }
-      });
-    });
-  } else if (texte.startsWith(">")) {
-    const code = texte.slice(1).trim();
-    if (!code) return repondre("*Code vide*");
-    try {
-      let result;
-      const wrapped = `(async () => { return ${code} })()`;
-      try {
-        result = await eval(wrapped);
-      } catch {
-        result = await eval(`(async () => { ${code} })()`);
-      }
-      if (typeof result === "undefined") return await repondre("undefined");
-      let output =
-        typeof result === "object" ? util.inspect(result, { depth: 1 }) : result.toString();
-      await repondre(output);
-    } catch (error) {
-      const err = util.inspect(error, { depth: 1 });
-      await repondre(`Erreur dans le code JS:\n${err}`, ovl.user.id);
+/**
+ * Gestionnaire eval/exec
+ * @param {Object} ovl - Instance du bot
+ * @param {Object} msg - Message reçu
+ * @param {Object} options - Options de contexte
+ */
+async function handle(ovl, msg, options) {
+  try {
+    const { superUser } = options;
+    
+    // Seulement pour le propriétaire
+    if (!superUser) return;
+    
+    // Récupérer le texte du message
+    let text = "";
+    if (msg.message?.conversation) {
+      text = msg.message.conversation;
+    } else if (msg.message?.extendedTextMessage?.text) {
+      text = msg.message.extendedTextMessage.text;
     }
+    
+    if (!text) return;
+    
+    const chatId = msg.key.remoteJid;
+    
+    // Commande eval (JavaScript)
+    if (text.startsWith("=>")) {
+      const code = text.slice(2).trim();
+      if (!code) return;
+      
+      try {
+        let result = await eval(`(async () => { ${code} })()`);
+        
+        if (typeof result !== "string") {
+          result = util.inspect(result, { depth: 2 });
+        }
+        
+        await ovl.sendMessage(chatId, {
+          text: `✅ *Résultat:*\n\n\`\`\`\n${result}\n\`\`\``
+        }, { quoted: msg });
+        
+      } catch (error) {
+        await ovl.sendMessage(chatId, {
+          text: `❌ *Erreur:*\n\n\`\`\`\n${error.message}\n\`\`\``
+        }, { quoted: msg });
+      }
+    }
+    
+    // Commande exec rapide (une ligne)
+    if (text.startsWith(">")) {
+      const code = text.slice(1).trim();
+      if (!code) return;
+      
+      try {
+        let result = await eval(code);
+        
+        if (typeof result !== "string") {
+          result = util.inspect(result, { depth: 2 });
+        }
+        
+        await ovl.sendMessage(chatId, {
+          text: `✅ ${result}`
+        }, { quoted: msg });
+        
+      } catch (error) {
+        await ovl.sendMessage(chatId, {
+          text: `❌ ${error.message}`
+        }, { quoted: msg });
+      }
+    }
+    
+    // Commande shell ($)
+    if (text.startsWith("$")) {
+      const command = text.slice(1).trim();
+      if (!command) return;
+      
+      exec(command, { maxBuffer: 10 * 1024 * 1024 }, async (error, stdout, stderr) => {
+        let output = "";
+        
+        if (error) {
+          output = `❌ Erreur: ${error.message}`;
+        } else if (stderr) {
+          output = `⚠️ Stderr:\n${stderr}`;
+        } else {
+          output = stdout || "✅ Commande exécutée (pas de sortie)";
+        }
+        
+        // Tronquer si trop long
+        if (output.length > 4000) {
+          output = output.substring(0, 4000) + "\n... (tronqué)";
+        }
+        
+        await ovl.sendMessage(chatId, {
+          text: `\`\`\`\n${output}\n\`\`\``
+        }, { quoted: msg });
+      });
+    }
+    
+  } catch (error) {
+    console.error("[EVAL_EXEC]", error);
   }
 }
 
-module.exports = eval_exec;
+module.exports = { handle };

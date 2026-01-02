@@ -1,230 +1,244 @@
-const _0x30f2d0 = _0x5221;
-(function (_0x5c81f5, _0x5294a8) {
-  const _0x515040 = _0x5221,
-    _0x27a624 = _0x5c81f5();
-  while (!![]) {
-    try {
-      const _0x4e068f =
-        (-parseInt(_0x515040(0x1f0)) / 0x1) * (parseInt(_0x515040(0x1e3)) / 0x2) +
-        (parseInt(_0x515040(0x1ff)) / 0x3) * (parseInt(_0x515040(0x200)) / 0x4) +
-        parseInt(_0x515040(0x201)) / 0x5 +
-        (-parseInt(_0x515040(0x1ea)) / 0x6) * (parseInt(_0x515040(0x1e8)) / 0x7) +
-        -parseInt(_0x515040(0x1fa)) / 0x8 +
-        -parseInt(_0x515040(0x1e6)) / 0x9 +
-        parseInt(_0x515040(0x1fd)) / 0xa;
-      if (_0x4e068f === _0x5294a8) break;
-      else _0x27a624["push"](_0x27a624["shift"]());
-    } catch (_0x2a8821) {
-      _0x27a624["push"](_0x27a624["shift"]());
-    }
+/**
+ * ═══════════════════════════════════════════════════════════
+ * 🔑 HANI-MD - Session Manager (Root)
+ * ═══════════════════════════════════════════════════════════
+ * Gestionnaire de session WhatsApp principal
+ * Version désobfusquée et optimisée
+ * ═══════════════════════════════════════════════════════════
+ */
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const { useMultiFileAuthState } = require("@whiskeysockets/baileys");
+
+// Chemins de session
+const SESSION_DIR = process.env.SESSION_DIR || "./session_principale";
+const BACKUP_DIR = "./session_backup";
+
+/**
+ * Initialiser le dossier de session
+ */
+function initSessionDir() {
+  if (!fs.existsSync(SESSION_DIR)) {
+    fs.mkdirSync(SESSION_DIR, { recursive: true });
+    console.log("[SESSION] 📁 Dossier de session créé:", SESSION_DIR);
   }
-})(_0x244e, 0x1b217);
-function _0x5221(_0x311074, _0x343fa3) {
-  const _0x4dad52 = _0x244e();
-  return (
-    (_0x5221 = function (_0x207878, _0x5ebb5d) {
-      _0x207878 = _0x207878 - 0x1e2;
-      let _0x244e24 = _0x4dad52[_0x207878];
-      if (_0x5221["QnrWoV"] === undefined) {
-        var _0x52215e = function (_0x602a6a) {
-          const _0x472dec = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
-          let _0x55268d = "",
-            _0x29af99 = "",
-            _0x1c319e = _0x55268d + _0x52215e;
-          for (
-            let _0x28e22f = 0x0, _0x20a74d, _0x549de4, _0x170c59 = 0x0;
-            (_0x549de4 = _0x602a6a["charAt"](_0x170c59++));
-            ~_0x549de4 &&
-            ((_0x20a74d = _0x28e22f % 0x4 ? _0x20a74d * 0x40 + _0x549de4 : _0x549de4),
-            _0x28e22f++ % 0x4)
-              ? (_0x55268d +=
-                  _0x1c319e["charCodeAt"](_0x170c59 + 0xa) - 0xa !== 0x0
-                    ? String["fromCharCode"](0xff & (_0x20a74d >> ((-0x2 * _0x28e22f) & 0x6)))
-                    : _0x28e22f)
-              : 0x0
-          ) {
-            _0x549de4 = _0x472dec["indexOf"](_0x549de4);
-          }
-          for (
-            let _0x36eaea = 0x0, _0x508f7d = _0x55268d["length"];
-            _0x36eaea < _0x508f7d;
-            _0x36eaea++
-          ) {
-            _0x29af99 +=
-              "%" + ("00" + _0x55268d["charCodeAt"](_0x36eaea)["toString"](0x10))["slice"](-0x2);
-          }
-          return decodeURIComponent(_0x29af99);
-        };
-        ((_0x5221["sGKznk"] = _0x52215e), (_0x311074 = arguments), (_0x5221["QnrWoV"] = !![]));
+  return SESSION_DIR;
+}
+
+/**
+ * Vérifier si une session existe
+ */
+function hasSession() {
+  const credsPath = path.join(SESSION_DIR, "creds.json");
+  return fs.existsSync(credsPath);
+}
+
+/**
+ * Obtenir l'état d'authentification
+ */
+async function getAuthState() {
+  initSessionDir();
+  return useMultiFileAuthState(SESSION_DIR);
+}
+
+/**
+ * Sauvegarder la session (backup)
+ */
+function backupSession() {
+  try {
+    if (!hasSession()) {
+      console.log("[SESSION] ⚠️ Aucune session à sauvegarder");
+      return false;
+    }
+    
+    if (!fs.existsSync(BACKUP_DIR)) {
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    }
+    
+    const timestamp = Date.now();
+    const backupPath = path.join(BACKUP_DIR, `backup_${timestamp}`);
+    
+    // Copier tous les fichiers de session
+    fs.mkdirSync(backupPath, { recursive: true });
+    
+    const files = fs.readdirSync(SESSION_DIR);
+    for (const file of files) {
+      const src = path.join(SESSION_DIR, file);
+      const dest = path.join(backupPath, file);
+      
+      if (fs.statSync(src).isFile()) {
+        fs.copyFileSync(src, dest);
       }
-      const _0x31032b = _0x4dad52[0x0],
-        _0xd30a16 = _0x207878 + _0x31032b,
-        _0x1bbd64 = _0x311074[_0xd30a16];
-      if (!_0x1bbd64) {
-        const _0x465763 = function (_0x5bb264) {
-          ((this["lftlDz"] = _0x5bb264),
-            (this["UHLZaO"] = [0x1, 0x0, 0x0]),
-            (this["mNVjON"] = function () {
-              return "newState";
-            }),
-            (this["UriyRd"] = "\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*"),
-            (this["oNRCiL"] = "[\x27|\x22].+[\x27|\x22];?\x20*}"));
-        };
-        ((_0x465763["prototype"]["FKHuke"] = function () {
-          const _0x10cda8 = new RegExp(this["UriyRd"] + this["oNRCiL"]),
-            _0x38a10a = _0x10cda8["test"](this["mNVjON"]["toString"]())
-              ? --this["UHLZaO"][0x1]
-              : --this["UHLZaO"][0x0];
-          return this["uCSmtc"](_0x38a10a);
-        }),
-          (_0x465763["prototype"]["uCSmtc"] = function (_0x30f5fc) {
-            if (!Boolean(~_0x30f5fc)) return _0x30f5fc;
-            return this["RjaBQR"](this["lftlDz"]);
-          }),
-          (_0x465763["prototype"]["RjaBQR"] = function (_0x282413) {
-            for (
-              let _0x5c94b5 = 0x0, _0x4fe2ce = this["UHLZaO"]["length"];
-              _0x5c94b5 < _0x4fe2ce;
-              _0x5c94b5++
-            ) {
-              (this["UHLZaO"]["push"](Math["round"](Math["random"]())),
-                (_0x4fe2ce = this["UHLZaO"]["length"]));
-            }
-            return _0x282413(this["UHLZaO"][0x0]);
-          }),
-          new _0x465763(_0x5221)["FKHuke"](),
-          (_0x244e24 = _0x5221["sGKznk"](_0x244e24)),
-          (_0x311074[_0xd30a16] = _0x244e24));
-      } else _0x244e24 = _0x1bbd64;
-      return _0x244e24;
-    }),
-    _0x5221(_0x311074, _0x343fa3)
-  );
+    }
+    
+    console.log("[SESSION] 💾 Backup créé:", backupPath);
+    return backupPath;
+  } catch (e) {
+    console.error("[SESSION] ❌ Erreur backup:", e.message);
+    return false;
+  }
 }
-const _0x5ebb5d = (function () {
-    let _0x85c17 = !![];
-    return function (_0x283b98, _0x57b407) {
-      const _0x58630d = _0x85c17
-        ? function () {
-            if (_0x57b407) {
-              const _0xd329c0 = _0x57b407["apply"](_0x283b98, arguments);
-              return ((_0x57b407 = null), _0xd329c0);
-            }
-          }
-        : function () {};
-      return ((_0x85c17 = ![]), _0x58630d);
+
+/**
+ * Restaurer une session depuis un backup
+ */
+function restoreSession(backupPath) {
+  try {
+    if (!fs.existsSync(backupPath)) {
+      console.log("[SESSION] ❌ Backup introuvable:", backupPath);
+      return false;
+    }
+    
+    initSessionDir();
+    
+    const files = fs.readdirSync(backupPath);
+    for (const file of files) {
+      const src = path.join(backupPath, file);
+      const dest = path.join(SESSION_DIR, file);
+      
+      if (fs.statSync(src).isFile()) {
+        fs.copyFileSync(src, dest);
+      }
+    }
+    
+    console.log("[SESSION] ✅ Session restaurée depuis:", backupPath);
+    return true;
+  } catch (e) {
+    console.error("[SESSION] ❌ Erreur restauration:", e.message);
+    return false;
+  }
+}
+
+/**
+ * Supprimer la session actuelle
+ */
+function deleteSession() {
+  try {
+    if (fs.existsSync(SESSION_DIR)) {
+      fs.rmSync(SESSION_DIR, { recursive: true });
+      console.log("[SESSION] 🗑️ Session supprimée");
+      return true;
+    }
+  } catch (e) {
+    console.error("[SESSION] ❌ Erreur suppression:", e.message);
+  }
+  return false;
+}
+
+/**
+ * Obtenir les informations de session
+ */
+function getSessionInfo() {
+  try {
+    const credsPath = path.join(SESSION_DIR, "creds.json");
+    
+    if (!fs.existsSync(credsPath)) {
+      return null;
+    }
+    
+    const creds = JSON.parse(fs.readFileSync(credsPath, "utf8"));
+    const stats = fs.statSync(credsPath);
+    
+    return {
+      exists: true,
+      phone: creds.me?.id?.split(":")[0] || "Inconnu",
+      name: creds.me?.name || "Inconnu",
+      createdAt: stats.birthtime,
+      modifiedAt: stats.mtime,
+      size: stats.size
     };
-  })(),
-  _0x207878 = _0x5ebb5d(this, function () {
-    const _0x5027f6 = _0x5221,
-      _0x4b296b = { hvCkC: "(((.+)+)+)+$" };
-    return _0x207878[_0x5027f6(0x1e4)]()
-      [_0x5027f6(0x1f8)](_0x4b296b[_0x5027f6(0x1e9)])
-      [_0x5027f6(0x1e4)]()
-      ["constructor"](_0x207878)
-      ["search"](_0x4b296b[_0x5027f6(0x1e9)]);
-  });
-_0x207878();
-const fs = require("fs"),
-  path = require(_0x30f2d0(0x1ef)),
-  { Sequelize, DataTypes } = require(_0x30f2d0(0x1e2)),
-  sequelize = new Sequelize(_0x30f2d0(0x1ec), {
-    dialect: _0x30f2d0(0x1e7),
-    ssl: !![],
-    protocol: "postgres",
-    dialectOptions: { native: !![], ssl: { require: !![], rejectUnauthorized: ![] } },
-    logging: ![],
-  }),
-  Session = sequelize[_0x30f2d0(0x1f5)](
-    _0x30f2d0(0x1fb),
-    {
-      id: { type: DataTypes["STRING"], primaryKey: !![] },
-      content: { type: DataTypes["TEXT"], allowNull: ![] },
-      keys: { type: DataTypes[_0x30f2d0(0x1f6)], allowNull: ![] },
-      createdAt: { type: DataTypes["DATE"], allowNull: ![] },
-    },
-    { tableName: "sessions", timestamps: ![] },
-  );
-function _0x244e() {
-  const _0x5018b7 = [
-    "zxHWB3j0CW",
-    "zgvMAw5L",
-    "vevyva",
-    "C3LUyW",
-    "C2vHCMnO",
-    "AM9PBG",
-    "mtuWmZu2mefTqMnetG",
-    "u2vZC2LVBG",
-    "zxHPC3rZu3LUyW",
-    "mJq3mti1mej5ANzUsq",
-    "BwTKAxjtEw5J",
-    "nMPdAM1gAa",
-    "mZG2oda0vwTvtKDZ",
-    "otK0mda1r0jLyNrs",
-    "C2f2zq",
-    "lI4Vyxv0Aa",
-    "C2vXDwvSAxPL",
-    "mJiXntbKCLv2v20",
-    "Dg9tDhjPBMC",
-    "D3jPDgvgAwXLu3LUyW",
-    "mtaZmdq3m2zSBhrXrq",
-    "Cg9ZDgDYzxm",
-    "mJaZsfDHq1Pv",
-    "AhzdA0m",
-    "ndiXmJzzqNbesxe",
-    "C3rYAw5NAwz5",
-    "Cg9ZDgDYzxnXBdOVl3bVC3rNCMvZlM1RDNL3C3j2CgjUz2nHywjPAgXIoMrHDgfIyxnLqhbHC3nxB3jKmubHD3mTmc1LDs1UB3j0Ac0XlNbVB2XLCI5ZDxbHyMfZzs5JB206nJu0mY9WB3n0z3jLCW",
-    "y29UDgvUDa",
-    "y3jLzhmUANnVBG",
-    "Cgf0Aa",
-    "mMfNsKjxAa",
-    "CgfYC2u",
-    "A2v5CW",
-    "Avv5zeu",
-  ];
-  _0x244e = function () {
-    return _0x5018b7;
-  };
-  return _0x244e();
+  } catch (e) {
+    return null;
+  }
 }
-(async () => {
-  const _0x4ecdbc = _0x30f2d0;
-  await Session[_0x4ecdbc(0x1f7)]();
-})();
-async function get_session(_0x3e67a1) {
-  const _0x2168e2 = _0x30f2d0,
-    _0x3f67b7 = await Session["findByPk"](_0x3e67a1);
-  if (!_0x3f67b7) return null;
-  return (
-    (_0x3f67b7["createdAt"] = new Date()),
-    await _0x3f67b7[_0x2168e2(0x202)](),
-    {
-      creds: JSON[_0x2168e2(0x1f1)](_0x3f67b7[_0x2168e2(0x1ed)]),
-      keys: JSON[_0x2168e2(0x1f1)](_0x3f67b7[_0x2168e2(0x1f2)]),
+
+/**
+ * Générer un SESSION_ID encodé
+ */
+function generateSessionId() {
+  try {
+    if (!hasSession()) {
+      return null;
     }
-  );
+    
+    const credsPath = path.join(SESSION_DIR, "creds.json");
+    const creds = fs.readFileSync(credsPath, "utf8");
+    
+    // Encoder en base64
+    const encoded = Buffer.from(creds).toString("base64");
+    
+    return `HANI-MD_${encoded}`;
+  } catch (e) {
+    console.error("[SESSION] ❌ Erreur génération ID:", e.message);
+    return null;
+  }
 }
-async function restaureAuth(_0x2d4e9f, _0x572211, _0x1884c8) {
-  const _0x199224 = _0x30f2d0,
-    _0x262ae7 = {
-      iUydE: function (_0x14abe2, _0x3f56ef) {
-        return _0x14abe2 > _0x3f56ef;
-      },
-    },
-    _0xf7c564 = path["join"](__dirname, _0x199224(0x203));
-  if (!fs[_0x199224(0x1fc)](_0xf7c564)) fs[_0x199224(0x1fe)](_0xf7c564, { recursive: !![] });
-  const _0x1848f0 = path[_0x199224(0x1f9)](_0xf7c564, _0x2d4e9f);
-  if (!fs["existsSync"](_0x1848f0)) fs[_0x199224(0x1fe)](_0x1848f0, { recursive: !![] });
-  fs["writeFileSync"](
-    path[_0x199224(0x1f9)](_0x1848f0, _0x199224(0x1ee)),
-    JSON[_0x199224(0x1eb)](_0x572211),
-  );
-  if (_0x1884c8 && _0x262ae7[_0x199224(0x1f3)](Object[_0x199224(0x1f2)](_0x1884c8)["length"], 0x0))
-    for (const _0x210f27 in _0x1884c8) {
-      fs[_0x199224(0x1e5)](
-        path[_0x199224(0x1f9)](_0x1848f0, _0x210f27 + ".json"),
-        JSON[_0x199224(0x1eb)](_0x1884c8[_0x210f27]),
-      );
+
+/**
+ * Décoder et restaurer depuis SESSION_ID
+ */
+function restoreFromSessionId(sessionId) {
+  try {
+    if (!sessionId.startsWith("HANI-MD_")) {
+      console.log("[SESSION] ❌ Format SESSION_ID invalide");
+      return false;
     }
+    
+    const encoded = sessionId.replace("HANI-MD_", "");
+    const decoded = Buffer.from(encoded, "base64").toString("utf8");
+    
+    // Valider le JSON
+    JSON.parse(decoded);
+    
+    initSessionDir();
+    fs.writeFileSync(path.join(SESSION_DIR, "creds.json"), decoded);
+    
+    console.log("[SESSION] ✅ Session restaurée depuis SESSION_ID");
+    return true;
+  } catch (e) {
+    console.error("[SESSION] ❌ Erreur restauration:", e.message);
+    return false;
+  }
 }
-module[_0x30f2d0(0x1f4)] = { get_session: get_session, restaureAuth: restaureAuth };
+
+/**
+ * Lister les backups disponibles
+ */
+function listBackups() {
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) {
+      return [];
+    }
+    
+    const dirs = fs.readdirSync(BACKUP_DIR);
+    return dirs
+      .filter(d => d.startsWith("backup_"))
+      .map(d => ({
+        name: d,
+        path: path.join(BACKUP_DIR, d),
+        timestamp: parseInt(d.replace("backup_", ""))
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp);
+  } catch (e) {
+    return [];
+  }
+}
+
+module.exports = {
+  SESSION_DIR,
+  BACKUP_DIR,
+  initSessionDir,
+  hasSession,
+  getAuthState,
+  backupSession,
+  restoreSession,
+  deleteSession,
+  getSessionInfo,
+  generateSessionId,
+  restoreFromSessionId,
+  listBackups
+};
+
+console.log("[SESSION] ✅ Session Manager chargé");

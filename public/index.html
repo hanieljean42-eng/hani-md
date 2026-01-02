@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HANI-MD Premium - Bot WhatsApp #1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    /* Header */
+    .header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .logo-icon {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    
+    .nav-links a:hover { color: #25D366; }
+    
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 20px 60px;
+      position: relative;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(37,211,102,0.1)"/></svg>');
+      background-size: 50px;
+      animation: float 20s linear infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50px); }
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: rgba(37,211,102,0.2);
+      color: #25D366;
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      border: 1px solid rgba(37,211,102,0.3);
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+    
+    .hero h1 span {
+      background: linear-gradient(135deg, #25D366, #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero p {
+      font-size: 1.3rem;
+      opacity: 0.8;
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 16px 40px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: white;
+      box-shadow: 0 10px 30px rgba(37,211,102,0.4);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(37,211,102,0.5);
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.5);
+    }
+    
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 60px;
+      justify-content: center;
+      margin-top: 60px;
+      flex-wrap: wrap;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #25D366;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    
+    /* Features */
+    .features {
+      padding: 100px 20px;
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .section-title {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .section-title h2 {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+    
+    .section-title p {
+      opacity: 0.7;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .feature-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(37,211,102,0.3);
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, rgba(37,211,102,0.2), rgba(0,212,255,0.2));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 20px;
+    }
+    
+    .feature-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+    
+    .feature-card p {
+      opacity: 0.7;
+      font-size: 0.95rem;
+    }
+    
+    /* Pricing */
+    .pricing {
+      padding: 100px 20px;
+    }
+    
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .pricing-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 25px;
+      padding: 40px 30px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .pricing-card.popular {
+      border-color: #25D366;
+      transform: scale(1.05);
+    }
+    
+    .pricing-card.popular::before {
+      content: '⭐ POPULAIRE';
+      position: absolute;
+      top: 20px;
+      right: -35px;
+      background: #25D366;
+      color: white;
+      padding: 5px 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transform: rotate(45deg);
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      border-color: rgba(37,211,102,0.5);
+    }
+    
+    .pricing-card.popular:hover {
+      transform: scale(1.05) translateY(-10px);
+    }
+    
+    .plan-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+    
+    .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #25D366;
+      margin-bottom: 5px;
+    }
+    
+    .plan-price span {
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+    
+    .plan-features {
+      list-style: none;
+      margin: 30px 0;
+      text-align: left;
+    }
+    
+    .plan-features li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .plan-features li i {
+      color: #25D366;
+    }
+    
+    .plan-btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    /* Footer */
+    .footer {
+      padding: 60px 20px;
+      background: rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .footer-links a {
+      color: white;
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+    
+    .footer-links a:hover { opacity: 1; }
+    
+    .social-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    
+    .social-links a {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+    
+    .social-links a:hover {
+      background: #25D366;
+      transform: translateY(-5px);
+    }
+    
+    .copyright {
+      opacity: 0.5;
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header { padding: 15px 20px; }
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero p { font-size: 1rem; }
+      .stats { gap: 30px; }
+      .stat-number { font-size: 1.8rem; }
+      .pricing-card.popular { transform: scale(1); }
+      .pricing-card.popular:hover { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <span>HANI-MD</span>
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#features">Fonctionnalités</a></li>
+        <li><a href="#pricing">Tarifs</a></li>
+        <li><a href="https://wa.me/2250150252467" target="_blank">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge">🔥 BOT #1 EN CÔTE D'IVOIRE</div>
+      <h1>Le Bot WhatsApp <span>le Plus Puissant</span> d'Afrique</h1>
+      <p>Téléchargement de médias, IA intelligente, gestion de groupe avancée et plus de 200 commandes à portée de main.</p>
+      
+      <div class="cta-buttons">
+        <a href="subscribe.html" class="btn btn-primary">
+          <i class="fas fa-crown"></i> S'abonner Premium
+        </a>
+        <a href="https://wa.me/2250150252467?text=Salut%20je%20veux%20essayer%20le%20bot" class="btn btn-secondary" target="_blank">
+          <i class="fab fa-whatsapp"></i> Essai Gratuit
+        </a>
+      </div>
+      
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">5000+</div>
+          <div class="stat-label">Utilisateurs actifs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">200+</div>
+          <div class="stat-label">Commandes</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">99.9%</div>
+          <div class="stat-label">Uptime</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="section-title">
+      <h2>Fonctionnalités Premium</h2>
+      <p>Tout ce dont vous avez besoin dans un seul bot</p>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <h3>Téléchargement</h3>
+        <p>YouTube, TikTok, Instagram, Facebook, Spotify et plus encore</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>Intelligence Artificielle</h3>
+        <p>ChatGPT, Gemini, génération d'images avec DALL-E</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Gestion de Groupe</h3>
+        <p>Antilink, antispam, welcome, goodbye et modération avancée</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Création de Logos</h3>
+        <p>Effets de texte, logos 3D, stickers personnalisés</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Recherche</h3>
+        <p>Google, Wikipedia, paroles de chansons, météo</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Protection</h3>
+        <p>Antibot, anticall, antitag pour protéger votre groupe</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="section-title">
+      <h2>Nos Offres Premium</h2>
+      <p>Choisissez le plan qui vous convient</p>
+    </div>
+    
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-icon">🥉</div>
+        <div class="plan-name">Bronze</div>
+        <div class="plan-price">500 <span>FCFA/mois</span></div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> 100 commandes/jour</li>
+          <li><i class="fas fa-check"></i> Téléchargement basique</li>
+          <li><i class="fas fa-check"></i> ChatGPT limité</li>
+          <li><i class="fas fa-check"></i> Support par WhatsApp</li>
+        </ul>
+        <a href="subscribe.html?plan=bronze" class="btn btn-secondary plan-btn">Choisir</a>
+      </div>
+      
+      <div class="pricing-card">
+        <div class="plan-icon">🥈</div>
+        <div class="plan-name">Argent</div>
+        <div class="plan-price">1000 <span>FCFA/mois</span></div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> 200 commandes/jour</li>
+          <li><i class="fas fa-check"></i> Tous les téléchargements</li>
+          <li><i class="fas fa-check"></i> IA illimitée</li>
+          <li><i class="fas fa-check"></i> Création de logos</li>
+        </ul>
+        <a href="subscribe.html?plan=argent" class="btn btn-secondary plan-btn">Choisir</a>
+      </div>
+      
+      <div class="pricing-card popular">
+        <div class="plan-icon">🥇</div>
+        <div class="plan-name">Or</div>
+        <div class="plan-price">2000 <span>FCFA/mois</span></div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> 500 commandes/jour</li>
+          <li><i class="fas fa-check"></i> Toutes les fonctionnalités</li>
+          <li><i class="fas fa-check"></i> Hidetag illimité</li>
+          <li><i class="fas fa-check"></i> Support prioritaire</li>
+        </ul>
+        <a href="subscribe.html?plan=or" class="btn btn-primary plan-btn">Choisir</a>
+      </div>
+      
+      <div class="pricing-card">
+        <div class="plan-icon">💎</div>
+        <div class="plan-name">Diamant</div>
+        <div class="plan-price">5000 <span>FCFA/mois</span></div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> Commandes illimitées</li>
+          <li><i class="fas fa-check"></i> Bot dédié possible</li>
+          <li><i class="fas fa-check"></i> Accès anticipé</li>
+          <li><i class="fas fa-check"></i> Support VIP 24/7</li>
+        </ul>
+        <a href="subscribe.html?plan=diamant" class="btn btn-secondary plan-btn">Choisir</a>
+      </div>
+      
+      <div class="pricing-card">
+        <div class="plan-icon">👑</div>
+        <div class="plan-name">Lifetime</div>
+        <div class="plan-price">15000 <span>FCFA</span></div>
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> Accès à vie</li>
+          <li><i class="fas fa-check"></i> Tout inclus à jamais</li>
+          <li><i class="fas fa-check"></i> Mises à jour gratuites</li>
+          <li><i class="fas fa-check"></i> Badge VIP exclusif</li>
+        </ul>
+        <a href="subscribe.html?plan=lifetime" class="btn btn-secondary plan-btn">Choisir</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="social-links">
+      <a href="https://wa.me/2250150252467" target="_blank"><i class="fab fa-whatsapp"></i></a>
+      <a href="#"><i class="fab fa-telegram"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+    </div>
+    
+    <div class="footer-links">
+      <a href="#">Conditions d'utilisation</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="https://wa.me/2250150252467">Support</a>
+    </div>
+    
+    <p class="copyright">© 2026 HANI-MD Premium. Tous droits réservés.</p>
+  </footer>
+</body>
+</html>

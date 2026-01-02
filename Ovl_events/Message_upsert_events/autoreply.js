@@ -1,69 +1,110 @@
 /**
- * ╔═══════════════════════════════════════════════════════════╗
- * ║        🤖 HANI-MD - Auto Reply Handler V2.0               ║
- * ║     Gestion des réponses automatiques                     ║
- * ║              Par H2025 - 2025                             ║
- * ╚═══════════════════════════════════════════════════════════╝
+ * ═══════════════════════════════════════════════════════════
+ * 💬 HANI-MD - Auto Reply
+ * ═══════════════════════════════════════════════════════════
+ * Réponses automatiques personnalisées
+ * ═══════════════════════════════════════════════════════════
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const AUTO_REPLY_FILE = path.join(__dirname, '../../DataBase/autoreply.json');
+const AUTOREPLY_PATH = path.join(__dirname, "../../DataBase/autoreply.json");
 
 /**
- * Charge les auto-replies depuis le fichier JSON
+ * Charger les auto-réponses
  */
-function loadAutoReplies() {
+function loadAutoreplies() {
   try {
-    if (fs.existsSync(AUTO_REPLY_FILE)) {
-      return JSON.parse(fs.readFileSync(AUTO_REPLY_FILE, 'utf8'));
+    if (fs.existsSync(AUTOREPLY_PATH)) {
+      return JSON.parse(fs.readFileSync(AUTOREPLY_PATH, "utf8"));
     }
-  } catch (e) {
-    console.log('[AutoReply] Erreur chargement:', e.message);
-  }
+  } catch (e) {}
   return {};
 }
 
 /**
- * Vérifie et répond aux auto-replies
- * @param {object} hani - Instance Baileys
- * @param {object} ms - Message objet
- * @param {string} texte - Texte du message
- * @returns {boolean} - true si une réponse a été envoyée
+ * Gestionnaire auto-reply
+ * @param {Object} ovl - Instance du bot
+ * @param {Object} msg - Message reçu
+ * @param {Object} options - Options de contexte
  */
-async function handleAutoReply(hani, ms, texte) {
-  if (!texte) return false;
-  
-  const autoReplies = loadAutoReplies();
-  const triggers = Object.keys(autoReplies);
-  
-  if (triggers.length === 0) return false;
-  
-  const lowerText = texte.toLowerCase();
-  
-  for (const trigger of triggers) {
-    // Vérifie si le message contient le trigger
-    if (lowerText.includes(trigger.toLowerCase())) {
-      const response = autoReplies[trigger];
-      
-      try {
-        await hani.sendMessage(ms.key.remoteJid, { 
-          text: response 
-        }, { 
-          quoted: ms 
-        });
-        return true;
-      } catch (e) {
-        console.log('[AutoReply] Erreur envoi:', e.message);
+async function handle(ovl, msg, options) {
+  try {
+    // Ne pas répondre à soi-même
+    if (msg.key.fromMe) return;
+    
+    // Récupérer le texte du message
+    let text = "";
+    if (msg.message?.conversation) {
+      text = msg.message.conversation;
+    } else if (msg.message?.extendedTextMessage?.text) {
+      text = msg.message.extendedTextMessage.text;
+    }
+    
+    if (!text) return;
+    
+    const lowerText = text.toLowerCase().trim();
+    const chatId = msg.key.remoteJid;
+    
+    // Charger les auto-réponses
+    const autoreplies = loadAutoreplies();
+    
+    // Vérifier les correspondances globales
+    const globalReplies = autoreplies.global || {};
+    const chatReplies = autoreplies[chatId] || {};
+    
+    // Chercher une correspondance
+    let reply = null;
+    
+    // Priorité aux réponses spécifiques au chat
+    for (const [trigger, response] of Object.entries(chatReplies)) {
+      if (lowerText.includes(trigger.toLowerCase())) {
+        reply = response;
+        break;
       }
     }
+    
+    // Si pas trouvé, chercher dans les réponses globales
+    if (!reply) {
+      for (const [trigger, response] of Object.entries(globalReplies)) {
+        if (lowerText.includes(trigger.toLowerCase())) {
+          reply = response;
+          break;
+        }
+      }
+    }
+    
+    // Réponses par défaut intégrées
+    if (!reply) {
+      const defaultReplies = {
+        "bonjour bot": "👋 Bonjour! Comment puis-je vous aider?",
+        "salut bot": "👋 Salut! Je suis HANI-MD, votre assistant.",
+        "bot": null, // Pas de réponse pour juste "bot"
+        "merci bot": "🙏 De rien! Heureux d'avoir pu aider.",
+        "bonne nuit": "🌙 Bonne nuit! Fais de beaux rêves.",
+        "good morning": "☀️ Good morning! Have a great day!",
+        "hello bot": "👋 Hello! How can I help you?"
+      };
+      
+      for (const [trigger, response] of Object.entries(defaultReplies)) {
+        if (lowerText === trigger && response) {
+          reply = response;
+          break;
+        }
+      }
+    }
+    
+    // Envoyer la réponse si trouvée
+    if (reply) {
+      await ovl.sendMessage(chatId, {
+        text: reply
+      }, { quoted: msg });
+    }
+    
+  } catch (error) {
+    console.error("[AUTOREPLY]", error);
   }
-  
-  return false;
 }
 
-module.exports = {
-  handleAutoReply,
-  loadAutoReplies
-};
+module.exports = { handle };

@@ -1,7 +1,8 @@
 /**
  * ╔═══════════════════════════════════════════════════════════╗
- * ║           🗄️ HANI-MD - MySQL Database Module v2.0         ║
+ * ║           🗄️ HANI-MD - MySQL Database Module v2.1         ║
  * ║     Base de données externe pour persistance des données  ║
+ * ║    ✅ FALLBACK JSON LOCAL quand MySQL non configuré       ║
  * ║              MySQL2 v3.15+ - Dernière version             ║
  * ╚═══════════════════════════════════════════════════════════╝
  * 
@@ -25,6 +26,7 @@
  */
 
 const mysql = require('mysql2/promise');
+const localDB = require('./local_storage'); // Fallback JSON local
 
 let pool = null;
 let isConnected = false;
@@ -435,7 +437,10 @@ async function createTables() {
 // ═══════════════════════════════════════════════════════════
 
 async function getUser(jid) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getUser(jid);
+  }
   try {
     const [rows] = await pool.execute('SELECT * FROM users WHERE jid = ?', [jid]);
     return rows[0] || null;
@@ -445,7 +450,10 @@ async function getUser(jid) {
 }
 
 async function updateUser(jid, data) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.updateUser(jid, data);
+  }
   try {
     const fields = [];
     const values = [];
@@ -500,7 +508,10 @@ async function isSudo(jid) {
 }
 
 async function getSudoList() {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getSudoList();
+  }
   try {
     const [rows] = await pool.execute('SELECT jid FROM users WHERE is_sudo = 1');
     return rows.map(r => r.jid);
@@ -510,7 +521,10 @@ async function getSudoList() {
 }
 
 async function getBannedUsers() {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getBannedUsers();
+  }
   try {
     const [rows] = await pool.execute('SELECT jid FROM users WHERE is_banned = 1');
     return rows.map(r => r.jid);
@@ -524,7 +538,10 @@ async function getBannedUsers() {
 // ═══════════════════════════════════════════════════════════
 
 async function getGroup(jid) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getGroup(jid);
+  }
   try {
     const [rows] = await pool.execute('SELECT * FROM `groups` WHERE jid = ?', [jid]);
     return rows[0] || null;
@@ -534,7 +551,10 @@ async function getGroup(jid) {
 }
 
 async function updateGroup(jid, data) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.updateGroup(jid, data);
+  }
   try {
     const columns = Object.keys(data).join(', ');
     const placeholders = Object.keys(data).map(() => '?').join(', ');
@@ -556,7 +576,10 @@ async function updateGroup(jid, data) {
 // ═══════════════════════════════════════════════════════════
 
 async function addWarn(groupJid, userJid) {
-  if (!isConnected) return 0;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.addWarn(groupJid, userJid);
+  }
   try {
     await pool.execute(
       `INSERT INTO warns (group_jid, user_jid, count) VALUES (?, ?, 1)
@@ -574,7 +597,10 @@ async function addWarn(groupJid, userJid) {
 }
 
 async function getWarns(groupJid, userJid) {
-  if (!isConnected) return 0;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getWarns(groupJid, userJid);
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT count FROM warns WHERE group_jid = ? AND user_jid = ?',
@@ -587,7 +613,10 @@ async function getWarns(groupJid, userJid) {
 }
 
 async function resetWarns(groupJid, userJid) {
-  if (!isConnected) return;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.resetWarns(groupJid, userJid);
+  }
   try {
     await pool.execute(
       'DELETE FROM warns WHERE group_jid = ? AND user_jid = ?',
@@ -1001,7 +1030,11 @@ async function getAllAdmins() {
 // ═══════════════════════════════════════════════════════════
 
 async function createCustomCommand(name, response, mediaUrl = null, mediaType = null, createdBy = null) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: createCustomCommand');
+    return localDB.createCustomCommand(name, response, mediaUrl, mediaType, createdBy);
+  }
   try {
     await pool.execute(
       `INSERT INTO custom_commands (name, response, media_url, media_type, created_by) 
@@ -1016,7 +1049,10 @@ async function createCustomCommand(name, response, mediaUrl = null, mediaType = 
 }
 
 async function getCustomCommand(name) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getCustomCommand(name);
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT * FROM custom_commands WHERE name = ? AND is_active = TRUE',
@@ -1033,7 +1069,10 @@ async function getCustomCommand(name) {
 }
 
 async function getAllCustomCommands() {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getAllCustomCommands();
+  }
   try {
     const [rows] = await pool.execute('SELECT * FROM custom_commands WHERE is_active = TRUE ORDER BY name');
     return rows;
@@ -1043,7 +1082,11 @@ async function getAllCustomCommands() {
 }
 
 async function deleteCustomCommand(name) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: deleteCustomCommand');
+    return localDB.deleteCustomCommand(name);
+  }
   try {
     await pool.execute('UPDATE custom_commands SET is_active = FALSE WHERE name = ?', [name]);
     return true;
@@ -1114,7 +1157,11 @@ async function getAllScheduledMessages(status = null) {
 // ═══════════════════════════════════════════════════════════
 
 async function createAutoReply(triggerWord, response, triggerType = 'contains', options = {}) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: createAutoReply');
+    return localDB.createAutoReply(triggerWord, response, triggerType, options);
+  }
   try {
     await pool.execute(
       `INSERT INTO auto_replies (trigger_word, trigger_type, response, media_url, media_type, group_only, private_only) 
@@ -1129,7 +1176,10 @@ async function createAutoReply(triggerWord, response, triggerType = 'contains', 
 }
 
 async function getAutoReplies(isGroup = false) {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getAutoReplies(isGroup);
+  }
   try {
     let query = 'SELECT * FROM auto_replies WHERE is_active = TRUE';
     if (isGroup) {
@@ -1145,7 +1195,10 @@ async function getAutoReplies(isGroup = false) {
 }
 
 async function checkAutoReply(text, isGroup = false) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.checkAutoReply(text, isGroup);
+  }
   try {
     const replies = await getAutoReplies(isGroup);
     const lowerText = text.toLowerCase();
@@ -1184,7 +1237,11 @@ async function checkAutoReply(text, isGroup = false) {
 }
 
 async function deleteAutoReply(id) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: deleteAutoReply');
+    return localDB.deleteAutoReply(id);
+  }
   try {
     await pool.execute('UPDATE auto_replies SET is_active = FALSE WHERE id = ?', [id]);
     return true;
@@ -1198,7 +1255,10 @@ async function deleteAutoReply(id) {
 // ═══════════════════════════════════════════════════════════
 
 async function getEconomy(jid) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getEconomy(jid);
+  }
   try {
     const [rows] = await pool.execute('SELECT * FROM economy WHERE jid = ?', [jid]);
     if (!rows[0]) {
@@ -1213,7 +1273,10 @@ async function getEconomy(jid) {
 }
 
 async function updateBalance(jid, amount, type = 'add') {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.updateBalance(jid, amount, type);
+  }
   try {
     await getEconomy(jid); // Ensure account exists
     
@@ -1237,7 +1300,10 @@ async function updateBalance(jid, amount, type = 'add') {
 }
 
 async function transferMoney(fromJid, toJid, amount) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.transferMoney(fromJid, toJid, amount);
+  }
   try {
     const fromAccount = await getEconomy(fromJid);
     if (!fromAccount || fromAccount.balance < amount) return false;
@@ -1260,7 +1326,10 @@ async function transferMoney(fromJid, toJid, amount) {
 }
 
 async function depositToBank(jid, amount) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.depositToBank(jid, amount);
+  }
   try {
     const account = await getEconomy(jid);
     if (!account || account.balance < amount) return false;
@@ -1276,7 +1345,10 @@ async function depositToBank(jid, amount) {
 }
 
 async function withdrawFromBank(jid, amount) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.withdrawFromBank(jid, amount);
+  }
   try {
     const account = await getEconomy(jid);
     if (!account || account.bank < amount) return false;
@@ -1292,7 +1364,10 @@ async function withdrawFromBank(jid, amount) {
 }
 
 async function getLeaderboard(limit = 10) {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getLeaderboard(limit);
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT jid, balance, bank, (balance + bank) as total FROM economy ORDER BY total DESC LIMIT ?',
@@ -1370,7 +1445,11 @@ async function getPool() {
 // ═══════════════════════════════════════════════════════════
 
 async function saveNote(userJid, name, content) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: saveNote');
+    return localDB.saveNote(userJid, name, content);
+  }
   try {
     await pool.execute(
       `INSERT INTO notes (user_jid, name, content) VALUES (?, ?, ?)
@@ -1385,7 +1464,10 @@ async function saveNote(userJid, name, content) {
 }
 
 async function getNote(userJid, name) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getNote(userJid, name);
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT * FROM notes WHERE user_jid = ? AND name = ?',
@@ -1398,7 +1480,10 @@ async function getNote(userJid, name) {
 }
 
 async function getAllNotes(userJid) {
-  if (!isConnected) return [];
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getAllNotes(userJid);
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT * FROM notes WHERE user_jid = ? ORDER BY created_at DESC',
@@ -1411,7 +1496,11 @@ async function getAllNotes(userJid) {
 }
 
 async function deleteNote(userJid, name) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: deleteNote');
+    return localDB.deleteNote(userJid, name);
+  }
   try {
     await pool.execute('DELETE FROM notes WHERE user_jid = ? AND name = ?', [userJid, name.toLowerCase()]);
     return true;
@@ -1425,7 +1514,10 @@ async function deleteNote(userJid, name) {
 // ═══════════════════════════════════════════════════════════
 
 async function getGroupProtection(groupJid) {
-  if (!isConnected) return null;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.getGroupProtection(groupJid);
+  }
   try {
     const [rows] = await pool.execute('SELECT * FROM group_protections WHERE group_jid = ?', [groupJid]);
     return rows[0] || null;
@@ -1435,7 +1527,11 @@ async function getGroupProtection(groupJid) {
 }
 
 async function setGroupProtection(groupJid, protections) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    console.log('[DB] Fallback JSON: setGroupProtection');
+    return localDB.setGroupProtection(groupJid, protections);
+  }
   try {
     const fields = Object.keys(protections);
     const values = Object.values(protections);
@@ -1455,7 +1551,10 @@ async function setGroupProtection(groupJid, protections) {
 }
 
 async function isProtectionEnabled(groupJid, protectionType) {
-  if (!isConnected) return false;
+  // 🔄 FALLBACK JSON LOCAL si MySQL non connecté
+  if (!isConnected) {
+    return localDB.isProtectionEnabled(groupJid, protectionType);
+  }
   try {
     const protection = await getGroupProtection(groupJid);
     return protection ? protection[protectionType] === 1 : false;

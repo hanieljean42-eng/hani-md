@@ -93,14 +93,77 @@ async function handleCommand(ovl, msg) {
   const isOwnChat = from === botNumber;
   const send = isOwnChat ? sendHere : sendPrivate;
 
+  // Charger le système de menu stylisé
+  let MenuSystem, AccessControl;
+  try {
+    MenuSystem = require('./lib/MenuSystem');
+    AccessControl = require('./lib/AccessControl');
+  } catch (e) {
+    console.log('[START] Modules de menu non disponibles, utilisation du menu basique');
+  }
+
+  // Fonction pour obtenir les infos utilisateur
+  const getUserInfo = async (jid) => {
+    const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
+    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '2250150252467');
+    
+    let plan = 'FREE';
+    let dailyLimit = 30;
+    let commandsToday = 0;
+    
+    try {
+      const premiumDB = require('./DataBase/premium');
+      const status = await premiumDB.getPremiumStatus(jid);
+      if (status && status.plan) {
+        plan = status.plan;
+        dailyLimit = status.dailyLimit || 30;
+        commandsToday = status.commandsToday || 0;
+      }
+    } catch (e) {}
+    
+    if (isOwner) {
+      plan = 'OWNER';
+      dailyLimit = -1;
+    }
+    
+    return {
+      name: msg.pushName || 'Utilisateur',
+      phone: phone,
+      plan: plan,
+      isOwner: isOwner,
+      isPremium: ['BRONZE', 'ARGENT', 'OR', 'DIAMANT', 'LIFETIME', 'OWNER'].includes(plan),
+      commandsToday: commandsToday,
+      dailyLimit: dailyLimit
+    };
+  };
+
   switch (command) {
     case "ping":
       return send("🏓 Pong! Le bot est en ligne.");
     case "menu":
-    case "help": {
+    case "help":
+    case "aide": {
+      if (MenuSystem) {
+        try {
+          const userInfo = await getUserInfo(from);
+          const category = args[0] ? args[0].toLowerCase() : null;
+          
+          let menuText;
+          if (category && MenuSystem.CATEGORIES[category]) {
+            menuText = MenuSystem.generateCategoryMenu(category, userInfo);
+          } else {
+            menuText = MenuSystem.generateMainMenu(userInfo);
+          }
+          return send(menuText);
+        } catch (e) {
+          console.log('[MENU] Erreur:', e.message);
+        }
+      }
+      
+      // Menu de fallback si MenuSystem non disponible
       const menuText = `
 ╭━━━━━━━━━━━━━━━━━━━━━╮
-┃    🤖 OVL-MD-V2 (clean) 
+┃    🤖 HANI-MD V2.6.0
 ┃━━━━━━━━━━━━━━━━━━━━━
 ┃ Préfixe : ${config.PREFIXE}
 ┃ Mode    : ${config.MODE}
@@ -527,17 +590,188 @@ async function startBot() {
   return ovl;
 }
 
-// Démarrer le serveur Express pour garder le bot actif
+// Démarrer le serveur Express pour le site web et garder le bot actif
 const express = require("express");
+// path déjà importé en haut du fichier
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware pour parser JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Servir les fichiers statiques (CSS, JS, images)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes pour les pages HTML
 app.get("/", (req, res) => {
-  res.send("🤖 OVL-MD-V2 Bot WhatsApp est en ligne !");
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HANI-MD Premium</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container { text-align: center; padding: 40px; }
+    h1 { font-size: 3rem; margin-bottom: 20px; }
+    .emoji { font-size: 5rem; margin-bottom: 20px; }
+    p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.9; }
+    .btn {
+      display: inline-block;
+      padding: 15px 40px;
+      background: #25D366;
+      color: white;
+      text-decoration: none;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .status { margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji">🤖</div>
+    <h1>HANI-MD Premium</h1>
+    <p>Bot WhatsApp le plus puissant de Côte d'Ivoire</p>
+    <a href="/subscribe.html" class="btn">💎 S'abonner Premium</a>
+    <div class="status">
+      <p>✅ Bot en ligne | 🌐 Serveur actif</p>
+    </div>
+  </div>
+</body>
+</html>
+    `);
+  }
+});
+
+// Route pour la page d'abonnement
+app.get("/subscribe.html", (req, res) => {
+  const subscribePath = path.join(__dirname, 'public', 'subscribe.html');
+  const fs = require('fs');
+  if (fs.existsSync(subscribePath)) {
+    res.sendFile(subscribePath);
+  } else {
+    res.redirect('/');
+  }
+});
+
+// Route pour la page de paiements (admin)
+app.get("/payments.html", (req, res) => {
+  const paymentsPath = path.join(__dirname, 'public', 'payments.html');
+  const fs = require('fs');
+  if (fs.existsSync(paymentsPath)) {
+    res.sendFile(paymentsPath);
+  } else {
+    res.redirect('/');
+  }
+});
+
+// API pour créer un paiement
+app.post("/api/payment/create", async (req, res) => {
+  try {
+    const PaymentSystem = require('./lib/PaymentSystem');
+    const { phone, plan, method } = req.body;
+    
+    if (!phone || !plan || !method) {
+      return res.status(400).json({ success: false, error: 'Paramètres manquants' });
+    }
+    
+    const payment = PaymentSystem.createPaymentRequest(phone, plan, method);
+    res.json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API pour obtenir les stats de paiement
+app.get("/api/payment/stats", (req, res) => {
+  try {
+    const PaymentSystem = require('./lib/PaymentSystem');
+    const stats = PaymentSystem.getPaymentStats();
+    res.json({ success: true, stats });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API pour obtenir les paiements en attente
+app.get("/api/payment/pending", (req, res) => {
+  try {
+    const PaymentSystem = require('./lib/PaymentSystem');
+    const pending = PaymentSystem.getPendingPayments();
+    res.json({ success: true, pending });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API pour confirmer un paiement
+app.post("/api/payment/confirm", (req, res) => {
+  try {
+    const PaymentSystem = require('./lib/PaymentSystem');
+    const { orderId } = req.body;
+    
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId manquant' });
+    }
+    
+    const result = PaymentSystem.confirmPayment(orderId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API pour rejeter un paiement
+app.post("/api/payment/reject", (req, res) => {
+  try {
+    const PaymentSystem = require('./lib/PaymentSystem');
+    const { orderId, reason } = req.body;
+    
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId manquant' });
+    }
+    
+    const result = PaymentSystem.rejectPayment(orderId, reason || 'Paiement non reçu');
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API statut du bot
+app.get("/api/status", (req, res) => {
+  res.json({
+    success: true,
+    status: 'online',
+    botName: 'HANI-MD Premium',
+    version: 'V2.6.0',
+    uptime: process.uptime()
+  });
 });
 
 app.listen(port, () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);
+  console.log(`📱 Site accessible: http://localhost:${port}`);
 });
 
 // Lancer le bot

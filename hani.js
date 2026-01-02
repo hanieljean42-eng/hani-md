@@ -18,6 +18,61 @@ const pino = require("pino");
 const qrcode = require("qrcode-terminal");
 const qrcodeWeb = require("qrcode"); // Pour générer QR en image web
 const mysqlDB = require("./DataBase/mysql"); // MySQL pour persistance externe
+const premiumDB = require("./DataBase/premium"); // Système d'abonnement Premium
+
+// 🔒 SYSTÈME DE CONTRÔLE D'ACCÈS
+let accessControl;
+try {
+  accessControl = require("./lib/AccessControl");
+  console.log("[ACCESS] ✅ Système de contrôle d'accès chargé");
+} catch (e) {
+  console.log("[ACCESS] ⚠️ Système de contrôle d'accès non disponible:", e.message);
+  accessControl = null;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📦 SYSTÈME DE COMMANDES MODULAIRES (OVLCMD)
+// ═══════════════════════════════════════════════════════════
+
+const { findCommand, executeCommand, getCommands, getCommandsByCategory } = require("./lib/ovlcmd");
+
+// Charger tous les modules de commandes
+const commandModules = [
+  "./cmd/Telechargement",
+  "./cmd/Outils",
+  "./cmd/Fun",
+  "./cmd/Groupe",
+  "./cmd/Owner",
+  "./cmd/Systeme",
+  "./cmd/Search",
+  "./cmd/Ia",
+  "./cmd/Conversion",
+  "./cmd/Fx_audio",
+  "./cmd/Status",
+  "./cmd/Image_edits",
+  "./cmd/Logo",
+  "./cmd/Reaction",
+  "./cmd/Confidentialite",
+  "./cmd/ProFeatures",
+  "./cmd/Premium",
+  "./cmd/Ovl-economy",
+  "./cmd/Ovl-game",
+  "./cmd/Advanced",
+  "./cmd/Menu",
+  "./cmd/Payments"
+];
+
+let loadedModules = 0;
+for (const mod of commandModules) {
+  try {
+    require(mod);
+    loadedModules++;
+  } catch (e) {
+    console.log(`[CMD] ⚠️ Module ${mod} non chargé:`, e.message);
+  }
+}
+console.log(`[CMD] ✅ ${loadedModules}/${commandModules.length} modules de commandes chargés`);
+console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles via ovlcmd`);
 
 // 🔒 MODULES DE SÉCURITÉ
 let SecurityManager, SecureSessionManager;
@@ -1233,15 +1288,76 @@ function formatPhoneNumber(number) {
 
 function getMessageText(msg) {
   if (!msg?.message) return "";
-  const type = getContentType(msg.message);
-  if (!type) return "";
   
-  const content = msg.message[type];
-  if (type === "conversation") return content || "";
-  if (type === "extendedTextMessage") return content?.text || "";
-  if (type === "imageMessage") return content?.caption || "";
-  if (type === "videoMessage") return content?.caption || "";
-  if (type === "documentMessage") return content?.caption || "";
+  const m = msg.message;
+  
+  // 🔧 DEBUG: Afficher les clés du message pour comprendre la structure
+  const keys = Object.keys(m);
+  if (keys.length > 0 && !keys.includes('messageContextInfo') && keys[0] !== 'reactionMessage') {
+    console.log(`[GETTEXT] Message keys: ${keys.join(", ")}`);
+  }
+  
+  // Gérer viewOnceMessageV2 et viewOnceMessageV2Extension
+  if (m.viewOnceMessageV2) {
+    return getMessageText({ message: m.viewOnceMessageV2.message });
+  }
+  if (m.viewOnceMessageV2Extension) {
+    return getMessageText({ message: m.viewOnceMessageV2Extension.message });
+  }
+  if (m.viewOnceMessage) {
+    return getMessageText({ message: m.viewOnceMessage.message });
+  }
+  
+  // 🆕 Gérer le type "chat" (nouveau format WhatsApp)
+  if (m.chat) {
+    if (typeof m.chat === 'string') return m.chat;
+    if (m.chat?.text) return m.chat.text;
+    if (m.chat?.displayText) return m.chat.displayText;
+  }
+  
+  // Essayer plusieurs types de messages
+  if (m.conversation) return m.conversation;
+  if (m.extendedTextMessage?.text) return m.extendedTextMessage.text;
+  if (m.imageMessage?.caption) return m.imageMessage.caption;
+  if (m.videoMessage?.caption) return m.videoMessage.caption;
+  if (m.documentMessage?.caption) return m.documentMessage.caption;
+  if (m.buttonsResponseMessage?.selectedButtonId) return m.buttonsResponseMessage.selectedButtonId;
+  if (m.listResponseMessage?.singleSelectReply?.selectedRowId) return m.listResponseMessage.singleSelectReply.selectedRowId;
+  if (m.templateButtonReplyMessage?.selectedId) return m.templateButtonReplyMessage.selectedId;
+  if (m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson) {
+    try {
+      const params = JSON.parse(m.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson);
+      return params.id || "";
+    } catch {}
+  }
+  
+  // Fallback: chercher du texte dans n'importe quelle propriété
+  const type = getContentType(m);
+  if (type && m[type]) {
+    const content = m[type];
+    if (typeof content === 'string') return content;
+    if (content?.text) return content.text;
+    if (content?.caption) return content.caption;
+    if (content?.contentText) return content.contentText;
+    if (content?.selectedDisplayText) return content.selectedDisplayText;
+    if (content?.displayText) return content.displayText;
+  }
+  
+  // 🔧 Dernier recours: chercher récursivement du texte
+  for (const key of keys) {
+    if (key === 'messageContextInfo' || key === 'senderKeyDistributionMessage') continue;
+    const val = m[key];
+    if (typeof val === 'string' && val.length > 0 && val.length < 1000) {
+      console.log(`[GETTEXT] Trouvé texte dans "${key}": ${val.slice(0, 50)}`);
+      return val;
+    }
+    if (val && typeof val === 'object') {
+      if (val.text) return val.text;
+      if (val.caption) return val.caption;
+      if (val.displayText) return val.displayText;
+    }
+  }
+  
   return "";
 }
 
@@ -1329,6 +1445,13 @@ function getMainMenu(prefix, userRole = "user") {
 ┌──────「 🔧 OUTILS 」──────┐
 │ ${prefix}sticker ➜ Créer sticker
 │ ${prefix}calc    ➜ Calculatrice
+└────────────────────────────┘
+
+┌──────「 💎 PREMIUM 」──────┐
+│ ${prefix}premium ➜ Voir les plans
+│ ${prefix}myplan  ➜ Mon abonnement
+│ ${prefix}plans   ➜ Comparer les plans
+│ ${prefix}upgrade ➜ Activer un code
 └────────────────────────────┘
 
 ┌──────「 🔒 LIMITÉ 」──────┐
@@ -1430,8 +1553,10 @@ function getMainMenu(prefix, userRole = "user") {
 
 ┌─────────「 🔧 OUTILS 」─────────┐
 │ ${prefix}sticker  ➜ Image/Vidéo → Sticker
+│ ${prefix}toimg    ➜ Sticker → Image
 │ ${prefix}calc     ➜ Calculatrice
 │ ${prefix}tts      ➜ Texte → Audio
+│ ${prefix}song     ➜ Télécharger musique
 └──────────────────────────────────────┘
 
 ┌─────────「 👥 GROUPE 」─────────┐
@@ -1482,8 +1607,16 @@ function getMainMenu(prefix, userRole = "user") {
 └─────────────────────────────────────────┘
 
 ┌─────────「 🎵 TÉLÉCHARGEMENT 」─────────┐
-│ ${prefix}spotify [titre/lien] ➜ Musique
-│ ${prefix}spsearch [titre]     ➜ Recherche
+│ ${prefix}play     ➜ YouTube audio (MP3)
+│ ${prefix}video    ➜ YouTube vidéo (MP4)
+│ ${prefix}spotify  ➜ Spotify audio
+│ ${prefix}spsearch ➜ Recherche Spotify
+├──────── Réseaux Sociaux ────────┤
+│ ${prefix}tiktok   ➜ TikTok sans watermark
+│ ${prefix}fb       ➜ Vidéo Facebook
+│ ${prefix}ig       ➜ Instagram (photo/vidéo)
+│ ${prefix}twitter  ➜ Twitter/X média
+│ ${prefix}pin      ➜ Pinterest image HD
 └─────────────────────────────────────────┘
 
 ┌─────────「 ⚙️ SYSTÈME 」─────────┐
@@ -1491,6 +1624,25 @@ function getMainMenu(prefix, userRole = "user") {
 │ ${prefix}restart        ➜ Redémarrer
 │ ${prefix}invisible      ➜ on/off
 │ ${prefix}ghost          ➜ Mode fantôme
+└──────────────────────────────────────┘
+
+┌─────────「 💎 PREMIUM 」─────────┐
+│ ${prefix}premium   ➜ Voir les plans
+│ ${prefix}myplan    ➜ Mon abonnement
+│ ${prefix}plans     ➜ Comparer les plans
+│ ${prefix}upgrade   ➜ Activer un code
+├──────── 👑 Owner Only ────────┤
+│ ${prefix}gencode   ➜ Générer un code
+│ ${prefix}gencodes  ➜ Générer plusieurs
+│ ${prefix}listcodes ➜ Liste des codes
+│ ${prefix}activercode ➜ Activer pour client
+│ ${prefix}addpremium ➜ Ajouter premium
+├──────── 🚀 Bot Clients ────────┤
+│ ${prefix}deploybot  ➜ Déployer bot client
+│ ${prefix}botclients ➜ Liste bots déployés
+│ ${prefix}stopbot    ➜ Arrêter un bot
+│ ${prefix}deletebot  ➜ Supprimer un bot
+│ ${prefix}premiumhelp ➜ Aide complète
 └──────────────────────────────────────┘
 
 ╔══════════════════════════════════════╗
@@ -1582,6 +1734,8 @@ async function handleCommand(hani, msg, db) {
   // SEULEMENT si fromMe ET que c'est dans le chat du bot
   const isBotSelf = msg.key.fromMe === true;
   
+  console.log(`[DEBUG CMD] 1. isBotSelf=${isBotSelf}, isOwner=${isOwner}`);
+  
   // 🔒 RESTRICTION: SEUL LE PROPRIÉTAIRE PEUT UTILISER LE BOT
   // Les amis/contacts ne peuvent pas utiliser ce bot
   // Ils doivent scanner leur propre QR code pour avoir leur propre bot
@@ -1591,8 +1745,12 @@ async function handleCommand(hani, msg, db) {
     return;
   }
   
+  console.log(`[DEBUG CMD] 2. Passé vérification owner`);
+  
   const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
+  
+  console.log(`[DEBUG CMD] 3. isSudo=${isSudo}, isGroupMsg=${isGroupMsg}`);
   
   // Déterminer le rôle de l'utilisateur pour le menu
   const getUserRole = () => {
@@ -1603,45 +1761,153 @@ async function handleCommand(hani, msg, db) {
   };
   const userRole = getUserRole();
   
-  // Vérifier si banni
-  if (db.isBanned(sender)) {
-    return; // Ignorer les utilisateurs bannis
-  }
-
-  // Vérifier si limité (commande bloquée)
-  if (db.isLimited(sender) && db.isCommandBlocked(sender, command)) {
-    const limitations = db.getLimitations(sender);
-    const levelNames = { 1: "Basique", 2: "Moyen", 3: "Strict" };
-    await hani.sendMessage(from, { 
-      text: `⚠️ *Accès Limité*\n\nVotre compte a des restrictions (Niveau ${limitations.level} - ${levelNames[limitations.level]}).\n\nCette commande (${command}) n'est pas disponible pour vous.\n\nCommandes autorisées: menu, help, ping` 
-    }, { quoted: msg });
-    return;
-  }
-
-  // Fonctions d'envoi
-  const sendPrivate = (text) => hani.sendMessage(botNumber, { text });
-  const sendHere = (text) => hani.sendMessage(from, { text });
-  const isOwnChat = from === botNumber;
-  const send = isOwnChat ? sendHere : sendPrivate;
+  console.log(`[DEBUG CMD] 4. userRole=${userRole}`);
   
-  // Déterminer la bonne destination pour reply
-  // Si c'est un LID (@lid), on envoie au botNumber (chat "Moi-même")
-  // Si c'est un groupe ou un numéro normal, on envoie au from
-  const isLidChat = from.endsWith('@lid');
-  const replyDestination = isLidChat ? botNumber : from;
-  const reply = async (text) => {
+  // ═══════════════════════════════════════════════════════════
+  // 🔓 BYPASS COMPLET POUR OWNER - AUCUNE VÉRIFICATION BLOQUANTE
+  // ═══════════════════════════════════════════════════════════
+  // L'owner/bot ne peut JAMAIS être banni ou limité
+  // Cela évite les problèmes avec MySQL non connecté
+  if (isOwner || isBotSelf) {
+    console.log(`[DEBUG CMD] 5. ✅ OWNER/BOT - Bypass des vérifications ban/limit`);
+  } else {
+    // Vérifier si banni (uniquement pour les non-owners)
     try {
-      await hani.sendMessage(replyDestination, { text }, { quoted: msg });
+      const isBannedUser = await db.isBanned(sender);
+      console.log(`[DEBUG CMD] 5. isBannedUser=${isBannedUser} pour sender=${sender}`);
+      if (isBannedUser) {
+        console.log(`[DEBUG CMD] BANNED - retour`);
+        return; // Ignorer les utilisateurs bannis
+      }
     } catch (e) {
-      console.log(`[ERR] Erreur envoi reply à ${replyDestination}: ${e.message}`);
-      // Fallback: essayer d'envoyer à botNumber
-      if (replyDestination !== botNumber) {
+      console.log(`[DEBUG CMD] ⚠️ Erreur vérification ban (ignorée): ${e.message}`);
+      // En cas d'erreur MySQL, on laisse passer
+    }
+
+    // Vérifier si limité (commande bloquée) - uniquement pour non-owners
+    try {
+      if (db.isLimited && db.isLimited(sender) && db.isCommandBlocked && db.isCommandBlocked(sender, command)) {
+        console.log(`[DEBUG CMD] LIMITED - retour`);
+        const limitations = db.getLimitations ? db.getLimitations(sender) : { level: 1 };
+        const levelNames = { 1: "Basique", 2: "Moyen", 3: "Strict" };
+        await hani.sendMessage(from, { 
+          text: `⚠️ *Accès Limité*\n\nVotre compte a des restrictions (Niveau ${limitations.level} - ${levelNames[limitations.level]}).\n\nCette commande (${command}) n'est pas disponible pour vous.\n\nCommandes autorisées: menu, help, ping` 
+        }, { quoted: msg });
+        return;
+      }
+    } catch (e) {
+      console.log(`[DEBUG CMD] ⚠️ Erreur vérification limit (ignorée): ${e.message}`);
+    }
+  }
+  
+  console.log(`[DEBUG CMD] 6. ✅ Toutes vérifications passées - Prêt pour switch`);
+
+  // � VÉRIFICATION CONTRÔLE D'ACCÈS (nouveau système v2.0)
+  if (!isBotSelf && accessControl) {
+    try {
+      const accessCheck = accessControl.checkCommandAccess(command, sender, {
+        isGroupAdmin: verif_Admin,
+        isGroup: verif_Groupe,
+        isBotAdmin: admin_Groupe
+      });
+      
+      if (!accessCheck.allowed) {
+        console.log(`[ACCESS] ❌ Commande ${command} refusée pour ${sender}: ${accessCheck.reason}`);
+        
+        // Envoyer le message de refus stylisé
+        await hani.sendMessage(from, { text: accessCheck.message }, { quoted: msg });
+        return;
+      }
+      
+      // Incrémenter l'utilisation si ce n'est pas le owner
+      if (!accessCheck.reason?.includes('owner')) {
         try {
-          await hani.sendMessage(botNumber, { text });
+          premiumDB.incrementUsage(sender);
+        } catch (e) {}
+      }
+      
+      console.log(`[ACCESS] ✅ Commande ${command} autorisée (${accessCheck.level})`);
+    } catch (e) {
+      console.log(`[ACCESS] ⚠️ Erreur vérification accès (fallback premium): ${e.message}`);
+      
+      // Fallback vers l'ancien système
+      if (!isOwner) {
+        try {
+          const premiumCheck = premiumDB.canExecuteCommand(sender, command);
+          if (!premiumCheck.allowed) {
+            console.log(`[PREMIUM] ❌ Commande ${command} refusée pour ${sender}: ${premiumCheck.reason}`);
+            await hani.sendMessage(from, { text: premiumCheck.message }, { quoted: msg });
+            return;
+          }
+          premiumDB.incrementUsage(sender);
         } catch (e2) {
-          console.log(`[ERR] Fallback aussi échoué: ${e2.message}`);
+          console.log(`[PREMIUM] ⚠️ Erreur vérification premium (ignorée): ${e2.message}`);
         }
       }
+    }
+  } else if (!isBotSelf && !isOwner) {
+    // Fallback si accessControl non disponible
+    try {
+      const premiumCheck = premiumDB.canExecuteCommand(sender, command);
+      if (!premiumCheck.allowed) {
+        console.log(`[PREMIUM] ❌ Commande ${command} refusée pour ${sender}: ${premiumCheck.reason}`);
+        await hani.sendMessage(from, { text: premiumCheck.message }, { quoted: msg });
+        return;
+      }
+      premiumDB.incrementUsage(sender);
+    } catch (e) {
+      console.log(`[PREMIUM] ⚠️ Erreur vérification premium (ignorée): ${e.message}`);
+    }
+  }
+
+  // Fonctions d'envoi - MODE FURTIF (Stealth Mode)
+  const isLidChat = from.endsWith('@lid');
+  const isOwnChat = from === botNumber || from.includes(botNumberClean);
+  const isGroupChat = from.endsWith('@g.us');
+  
+  // 🎯 MODE FURTIF: 
+  // - Commandes exécutées depuis n'importe où
+  // - Réponses TOUJOURS envoyées vers "Moi-même" (botNumber)
+  // - Message de commande automatiquement supprimé
+  const actualDestination = botNumber;
+  console.log(`[STEALTH] 🕵️ Commande de: ${from} | Réponse vers: Moi-même (${botNumber})`);
+  
+  // 🗑️ SUPPRIMER LE MESSAGE DE COMMANDE (mode furtif)
+  // Seulement si ce n'est pas déjà dans "Moi-même"
+  if (!isOwnChat && msg.key.fromMe) {
+    try {
+      await hani.sendMessage(from, { delete: msg.key });
+      console.log(`[STEALTH] 🗑️ Message de commande supprimé dans ${from}`);
+    } catch (e) {
+      console.log(`[STEALTH] ⚠️ Impossible de supprimer le message: ${e.message}`);
+    }
+  }
+  
+  // Contexte pour les réponses (savoir d'où vient la commande)
+  const sourceInfo = isGroupChat ? `[Groupe: ${from.split('@')[0]}]` : 
+                     isLidChat ? `[LID]` : 
+                     `[DM: ${from.split('@')[0]}]`;
+  
+  const send = async (text, options = {}) => {
+    try {
+      // TOUJOURS envoyer vers "Moi-même"
+      const msgPayload = { text, ...options };
+      await hani.sendMessage(botNumber, msgPayload);
+      console.log(`[SEND] ✅ Message envoyé vers Moi-même`);
+    } catch (e) {
+      console.log(`[SEND] ❌ Erreur: ${e.message}`);
+    }
+  };
+  
+  // Reply - envoyer vers "Moi-même" (pas de citation car chat différent)
+  const reply = async (text, options = {}) => {
+    try {
+      // Envoyer vers "Moi-même" avec info sur la source
+      const msgPayload = { text, ...options };
+      await hani.sendMessage(botNumber, msgPayload);
+      console.log(`[REPLY] ✅ Réponse envoyée vers Moi-même`);
+    } catch (e) {
+      console.log(`[REPLY] ❌ Erreur: ${e.message}`);
     }
   };
 
@@ -1730,6 +1996,8 @@ async function handleCommand(hani, msg, db) {
   // ═══════════════════════════════════════════════════════════
   // 🎯 COMMANDES
   // ═══════════════════════════════════════════════════════════
+
+  console.log(`[SWITCH] 🎯 Entrée dans switch avec command="${command}" | from="${from}"`);
 
   switch (command) {
     
@@ -3226,13 +3494,808 @@ async function handleCommand(hani, msg, db) {
     case "song":
     case "music":
     case "chanson": {
-      // Alias pour spotify
+      // Alias pour play (télécharge l'audio depuis YouTube)
       if (!args) {
         return send(`🎵 *MUSIQUE*\n\n📋 *Usage:*\n\`.song [titre]\`\n\n📝 *Exemple:*\n\`.song Rema Calm Down\``);
       }
       
-      // Rediriger vers la commande spotify
-      return handleCommand("spotify", args, msg, from, sender, isOwner, isSudo, hani);
+      // Exécuter la même logique que play
+      await send("🎵 *Recherche de la musique...*\n⏳ _Patiente quelques secondes..._");
+      
+      try {
+        let audioBuffer = null;
+        let trackInfo = { title: args, artist: "", thumbnail: "" };
+        
+        // API 1: itzpire YouTube Audio
+        try {
+          const apiUrl = `https://itzpire.com/download/yt-music?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 20000 });
+          const data = await resp.json();
+          
+          if (data.status === "success" && data.data) {
+            trackInfo.title = data.data.title || args;
+            trackInfo.thumbnail = data.data.thumbnail || "";
+            if (data.data.download) {
+              const audioResp = await fetch(data.data.download);
+              audioBuffer = await audioResp.buffer();
+            }
+          }
+        } catch (e) {
+          console.log("[SONG] API 1 échouée:", e.message);
+        }
+        
+        // API 2: Alternative avec ytdl
+        if (!audioBuffer) {
+          try {
+            const searchUrl = `https://api.vrfrnd.xyz/api/ytsearch?query=${encodeURIComponent(args)}`;
+            const searchResp = await fetch(searchUrl, { timeout: 10000 });
+            const searchData = await searchResp.json();
+            
+            if (searchData.status && searchData.data && searchData.data[0]) {
+              const videoUrl = searchData.data[0].url;
+              trackInfo.title = searchData.data[0].title || args;
+              trackInfo.thumbnail = searchData.data[0].thumbnail || "";
+              
+              const dlUrl = `https://api.vrfrnd.xyz/api/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+              const dlResp = await fetch(dlUrl, { timeout: 20000 });
+              const dlData = await dlResp.json();
+              
+              if (dlData.status && dlData.data && dlData.data.download) {
+                const audioResp = await fetch(dlData.data.download);
+                audioBuffer = await audioResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[SONG] API 2 échouée:", e.message);
+          }
+        }
+        
+        if (audioBuffer) {
+          await hani.sendMessage(from, {
+            audio: audioBuffer,
+            mimetype: "audio/mp4",
+            ptt: false,
+            fileName: `${trackInfo.title}.mp3`
+          }, { quoted: msg });
+          
+          return send(`🎵 *${trackInfo.title}*\n\n✅ Téléchargement terminé!\n🔊 *Powered by HANI-MD*`);
+        }
+        
+        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Essaie avec un autre titre`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 📥 TÉLÉCHARGEMENT YOUTUBE - Audio & Vidéo
+    // ═══════════════════════════════════════════════════════════
+
+    case "play":
+    case "ytmp3": {
+      if (!args) {
+        return send(`🎵 *TÉLÉCHARGER AUDIO YOUTUBE*\n\n📋 *Usage:*\n\`.play [titre ou lien YouTube]\`\n\n📝 *Exemples:*\n\`.play Rema Calm Down\`\n\`.play https://youtube.com/watch?v=...\`\n\n🔊 Télécharge l'audio en MP3!`);
+      }
+      
+      await send("🎵 *Téléchargement audio en cours...*\n⏳ _Patiente quelques secondes..._");
+      
+      try {
+        const isYouTubeLink = args.includes("youtube.com") || args.includes("youtu.be");
+        let audioBuffer = null;
+        let trackInfo = { title: args, thumbnail: "" };
+        
+        // Si c'est un lien YouTube direct
+        if (isYouTubeLink) {
+          // API 1: Vreden
+          try {
+            const apiUrl = `https://api.vrfrnd.xyz/api/ytmp3?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 25000 });
+            const data = await resp.json();
+            
+            if (data.status && data.data) {
+              trackInfo.title = data.data.title || args;
+              trackInfo.thumbnail = data.data.thumbnail || "";
+              if (data.data.download) {
+                const audioResp = await fetch(data.data.download);
+                audioBuffer = await audioResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[PLAY] API Vreden échouée:", e.message);
+          }
+          
+          // API 2: Agatz
+          if (!audioBuffer) {
+            try {
+              const apiUrl = `https://api.agatz.xyz/api/ytmp3?url=${encodeURIComponent(args)}`;
+              const resp = await fetch(apiUrl, { timeout: 25000 });
+              const data = await resp.json();
+              
+              if (data.status === 200 && data.data) {
+                trackInfo.title = data.data.title || args;
+                if (data.data.download) {
+                  const audioResp = await fetch(data.data.download);
+                  audioBuffer = await audioResp.buffer();
+                }
+              }
+            } catch (e) {
+              console.log("[PLAY] API Agatz échouée:", e.message);
+            }
+          }
+        } else {
+          // Recherche par titre
+          try {
+            // Recherche
+            const searchUrl = `https://api.vrfrnd.xyz/api/ytsearch?query=${encodeURIComponent(args)}`;
+            const searchResp = await fetch(searchUrl, { timeout: 10000 });
+            const searchData = await searchResp.json();
+            
+            if (searchData.status && searchData.data && searchData.data[0]) {
+              const video = searchData.data[0];
+              trackInfo.title = video.title || args;
+              trackInfo.thumbnail = video.thumbnail || "";
+              
+              // Télécharger l'audio
+              const dlUrl = `https://api.vrfrnd.xyz/api/ytmp3?url=${encodeURIComponent(video.url)}`;
+              const dlResp = await fetch(dlUrl, { timeout: 25000 });
+              const dlData = await dlResp.json();
+              
+              if (dlData.status && dlData.data && dlData.data.download) {
+                const audioResp = await fetch(dlData.data.download);
+                audioBuffer = await audioResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[PLAY] Recherche échouée:", e.message);
+          }
+          
+          // API alternative pour recherche
+          if (!audioBuffer) {
+            try {
+              const apiUrl = `https://itzpire.com/download/yt-music?url=${encodeURIComponent(args)}`;
+              const resp = await fetch(apiUrl, { timeout: 20000 });
+              const data = await resp.json();
+              
+              if (data.status === "success" && data.data) {
+                trackInfo.title = data.data.title || args;
+                if (data.data.download) {
+                  const audioResp = await fetch(data.data.download);
+                  audioBuffer = await audioResp.buffer();
+                }
+              }
+            } catch (e) {
+              console.log("[PLAY] API itzpire échouée:", e.message);
+            }
+          }
+        }
+        
+        if (audioBuffer) {
+          // Envoyer avec thumbnail si disponible
+          if (trackInfo.thumbnail) {
+            try {
+              await hani.sendMessage(from, {
+                image: { url: trackInfo.thumbnail },
+                caption: `🎵 *${trackInfo.title}*\n\n⏳ Envoi de l'audio...`
+              }, { quoted: msg });
+            } catch (e) {}
+          }
+          
+          await hani.sendMessage(from, {
+            audio: audioBuffer,
+            mimetype: "audio/mp4",
+            ptt: false,
+            fileName: `${trackInfo.title}.mp3`
+          }, { quoted: msg });
+          
+          return send(`✅ *Téléchargement terminé!*\n🔊 *Powered by HANI-MD*`);
+        }
+        
+        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Vérifie le lien ou le titre`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "video":
+    case "ytmp4": {
+      if (!args) {
+        return send(`🎬 *TÉLÉCHARGER VIDÉO YOUTUBE*\n\n📋 *Usage:*\n\`.video [titre ou lien YouTube]\`\n\n📝 *Exemples:*\n\`.video Rema Calm Down\`\n\`.video https://youtube.com/watch?v=...\`\n\n📹 Télécharge la vidéo en MP4!`);
+      }
+      
+      await send("🎬 *Téléchargement vidéo en cours...*\n⏳ _Patiente quelques secondes..._");
+      
+      try {
+        const isYouTubeLink = args.includes("youtube.com") || args.includes("youtu.be");
+        let videoBuffer = null;
+        let trackInfo = { title: args, thumbnail: "" };
+        
+        // Si c'est un lien YouTube direct
+        if (isYouTubeLink) {
+          // API 1: Vreden
+          try {
+            const apiUrl = `https://api.vrfrnd.xyz/api/ytmp4?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 30000 });
+            const data = await resp.json();
+            
+            if (data.status && data.data) {
+              trackInfo.title = data.data.title || args;
+              if (data.data.download) {
+                const videoResp = await fetch(data.data.download);
+                videoBuffer = await videoResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[VIDEO] API 1 échouée:", e.message);
+          }
+          
+          // API 2: Agatz
+          if (!videoBuffer) {
+            try {
+              const apiUrl = `https://api.agatz.xyz/api/ytmp4?url=${encodeURIComponent(args)}`;
+              const resp = await fetch(apiUrl, { timeout: 30000 });
+              const data = await resp.json();
+              
+              if (data.status === 200 && data.data) {
+                trackInfo.title = data.data.title || args;
+                if (data.data.download) {
+                  const videoResp = await fetch(data.data.download);
+                  videoBuffer = await videoResp.buffer();
+                }
+              }
+            } catch (e) {
+              console.log("[VIDEO] API 2 échouée:", e.message);
+            }
+          }
+        } else {
+          // Recherche par titre
+          try {
+            const searchUrl = `https://api.vrfrnd.xyz/api/ytsearch?query=${encodeURIComponent(args)}`;
+            const searchResp = await fetch(searchUrl, { timeout: 10000 });
+            const searchData = await searchResp.json();
+            
+            if (searchData.status && searchData.data && searchData.data[0]) {
+              const video = searchData.data[0];
+              trackInfo.title = video.title || args;
+              
+              const dlUrl = `https://api.vrfrnd.xyz/api/ytmp4?url=${encodeURIComponent(video.url)}`;
+              const dlResp = await fetch(dlUrl, { timeout: 30000 });
+              const dlData = await dlResp.json();
+              
+              if (dlData.status && dlData.data && dlData.data.download) {
+                const videoResp = await fetch(dlData.data.download);
+                videoBuffer = await videoResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[VIDEO] Recherche échouée:", e.message);
+          }
+        }
+        
+        if (videoBuffer) {
+          await hani.sendMessage(from, {
+            video: videoBuffer,
+            mimetype: "video/mp4",
+            caption: `🎬 *${trackInfo.title}*\n\n✅ Téléchargement terminé!\n📹 *Powered by HANI-MD*`,
+            fileName: `${trackInfo.title}.mp4`
+          }, { quoted: msg });
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Vérifie le lien ou le titre`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 📥 TÉLÉCHARGEMENT RÉSEAUX SOCIAUX
+    // ═══════════════════════════════════════════════════════════
+
+    case "tiktok":
+    case "tt":
+    case "tiktokdl": {
+      if (!args) {
+        return send(`📱 *TÉLÉCHARGER TIKTOK*\n\n📋 *Usage:*\n\`.tiktok [lien TikTok]\`\n\n📝 *Exemple:*\n\`.tiktok https://vm.tiktok.com/...\`\n\n🎬 Télécharge la vidéo sans watermark!`);
+      }
+      
+      if (!args.includes("tiktok.com")) {
+        return send(`❌ Lien TikTok invalide!\n\n💡 Exemple:\n\`.tiktok https://vm.tiktok.com/ABC123\``);
+      }
+      
+      await send("📱 *Téléchargement TikTok en cours...*\n⏳ _Sans watermark..._");
+      
+      try {
+        let videoBuffer = null;
+        let videoInfo = { title: "", author: "" };
+        
+        // API 1: itzpire
+        try {
+          const apiUrl = `https://itzpire.com/download/tiktok?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 20000 });
+          const data = await resp.json();
+          
+          if (data.status === "success" && data.data) {
+            videoInfo.title = data.data.title || "";
+            videoInfo.author = data.data.author || "";
+            const videoUrl = data.data.video || data.data.nowm;
+            if (videoUrl) {
+              const videoResp = await fetch(videoUrl);
+              videoBuffer = await videoResp.buffer();
+            }
+          }
+        } catch (e) {
+          console.log("[TIKTOK] API 1 échouée:", e.message);
+        }
+        
+        // API 2: Agatz
+        if (!videoBuffer) {
+          try {
+            const apiUrl = `https://api.agatz.xyz/api/tiktok?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 20000 });
+            const data = await resp.json();
+            
+            if (data.status === 200 && data.data) {
+              videoInfo.author = data.data.author || "";
+              const videoUrl = data.data.nowm || data.data.video;
+              if (videoUrl) {
+                const videoResp = await fetch(videoUrl);
+                videoBuffer = await videoResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[TIKTOK] API 2 échouée:", e.message);
+          }
+        }
+        
+        // API 3: Vreden
+        if (!videoBuffer) {
+          try {
+            const apiUrl = `https://api.vrfrnd.xyz/api/tiktok?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 20000 });
+            const data = await resp.json();
+            
+            if (data.status && data.data) {
+              const videoUrl = data.data.nowm || data.data.video;
+              if (videoUrl) {
+                const videoResp = await fetch(videoUrl);
+                videoBuffer = await videoResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[TIKTOK] API 3 échouée:", e.message);
+          }
+        }
+        
+        if (videoBuffer) {
+          await hani.sendMessage(from, {
+            video: videoBuffer,
+            mimetype: "video/mp4",
+            caption: `📱 *TikTok*\n${videoInfo.author ? `👤 @${videoInfo.author}` : ""}\n\n✅ Sans watermark!\n🔥 *Powered by HANI-MD*`
+          }, { quoted: msg });
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger cette vidéo TikTok\n\n💡 Vérifie que le lien est valide`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "facebook":
+    case "fb":
+    case "fbdl": {
+      if (!args) {
+        return send(`📘 *TÉLÉCHARGER FACEBOOK*\n\n📋 *Usage:*\n\`.fb [lien vidéo Facebook]\`\n\n📝 *Exemple:*\n\`.fb https://www.facebook.com/watch?v=...\`\n\n🎬 Télécharge la vidéo!`);
+      }
+      
+      if (!args.includes("facebook.com") && !args.includes("fb.watch")) {
+        return send(`❌ Lien Facebook invalide!\n\n💡 Exemple:\n\`.fb https://www.facebook.com/watch?v=123\``);
+      }
+      
+      await send("📘 *Téléchargement Facebook en cours...*");
+      
+      try {
+        let videoBuffer = null;
+        
+        // API 1: itzpire
+        try {
+          const apiUrl = `https://itzpire.com/download/facebook?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 20000 });
+          const data = await resp.json();
+          
+          if (data.status === "success" && data.data) {
+            const videoUrl = data.data.hd || data.data.sd || data.data.video;
+            if (videoUrl) {
+              const videoResp = await fetch(videoUrl);
+              videoBuffer = await videoResp.buffer();
+            }
+          }
+        } catch (e) {
+          console.log("[FB] API 1 échouée:", e.message);
+        }
+        
+        // API 2: Agatz
+        if (!videoBuffer) {
+          try {
+            const apiUrl = `https://api.agatz.xyz/api/facebook?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 20000 });
+            const data = await resp.json();
+            
+            if (data.status === 200 && data.data) {
+              const videoUrl = data.data.hd || data.data.sd;
+              if (videoUrl) {
+                const videoResp = await fetch(videoUrl);
+                videoBuffer = await videoResp.buffer();
+              }
+            }
+          } catch (e) {
+            console.log("[FB] API 2 échouée:", e.message);
+          }
+        }
+        
+        if (videoBuffer) {
+          await hani.sendMessage(from, {
+            video: videoBuffer,
+            mimetype: "video/mp4",
+            caption: `📘 *Vidéo Facebook*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+          }, { quoted: msg });
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger cette vidéo Facebook\n\n💡 Vérifie que le lien est public`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "instagram":
+    case "ig":
+    case "igdl": {
+      if (!args) {
+        return send(`📸 *TÉLÉCHARGER INSTAGRAM*\n\n📋 *Usage:*\n\`.ig [lien post/reel Instagram]\`\n\n📝 *Exemple:*\n\`.ig https://www.instagram.com/reel/...\`\n\n🎬 Télécharge photos et vidéos!`);
+      }
+      
+      if (!args.includes("instagram.com")) {
+        return send(`❌ Lien Instagram invalide!\n\n💡 Exemple:\n\`.ig https://www.instagram.com/reel/ABC123\``);
+      }
+      
+      await send("📸 *Téléchargement Instagram en cours...*");
+      
+      try {
+        let mediaUrl = null;
+        let isVideo = false;
+        
+        // API 1: itzpire
+        try {
+          const apiUrl = `https://itzpire.com/download/instagram?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 20000 });
+          const data = await resp.json();
+          
+          if (data.status === "success" && data.data) {
+            if (Array.isArray(data.data) && data.data[0]) {
+              mediaUrl = data.data[0].url;
+              isVideo = data.data[0].type === "video";
+            } else if (data.data.url) {
+              mediaUrl = data.data.url;
+              isVideo = data.data.type === "video";
+            }
+          }
+        } catch (e) {
+          console.log("[IG] API 1 échouée:", e.message);
+        }
+        
+        // API 2: Agatz
+        if (!mediaUrl) {
+          try {
+            const apiUrl = `https://api.agatz.xyz/api/instagram?url=${encodeURIComponent(args)}`;
+            const resp = await fetch(apiUrl, { timeout: 20000 });
+            const data = await resp.json();
+            
+            if (data.status === 200 && data.data) {
+              if (Array.isArray(data.data) && data.data[0]) {
+                mediaUrl = data.data[0].url;
+                isVideo = data.data[0].type === "video";
+              } else {
+                mediaUrl = data.data.url || data.data.video || data.data.image;
+                isVideo = !!data.data.video;
+              }
+            }
+          } catch (e) {
+            console.log("[IG] API 2 échouée:", e.message);
+          }
+        }
+        
+        if (mediaUrl) {
+          const mediaResp = await fetch(mediaUrl);
+          const mediaBuffer = await mediaResp.buffer();
+          
+          if (isVideo) {
+            await hani.sendMessage(from, {
+              video: mediaBuffer,
+              mimetype: "video/mp4",
+              caption: `📸 *Instagram*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+            }, { quoted: msg });
+          } else {
+            await hani.sendMessage(from, {
+              image: mediaBuffer,
+              caption: `📸 *Instagram*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+            }, { quoted: msg });
+          }
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger ce contenu Instagram\n\n💡 Vérifie que le compte est public`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "twitter":
+    case "x":
+    case "twdl": {
+      if (!args) {
+        return send(`🐦 *TÉLÉCHARGER TWITTER/X*\n\n📋 *Usage:*\n\`.twitter [lien tweet]\`\n\n📝 *Exemple:*\n\`.twitter https://x.com/user/status/...\`\n\n🎬 Télécharge les médias!`);
+      }
+      
+      if (!args.includes("twitter.com") && !args.includes("x.com")) {
+        return send(`❌ Lien Twitter/X invalide!\n\n💡 Exemple:\n\`.twitter https://x.com/user/status/123\``);
+      }
+      
+      await send("🐦 *Téléchargement Twitter/X en cours...*");
+      
+      try {
+        let mediaUrl = null;
+        let isVideo = false;
+        
+        // API: Agatz
+        try {
+          const apiUrl = `https://api.agatz.xyz/api/twitter?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 20000 });
+          const data = await resp.json();
+          
+          if (data.status === 200 && data.data) {
+            if (data.data.video) {
+              mediaUrl = data.data.video;
+              isVideo = true;
+            } else if (data.data.image) {
+              mediaUrl = data.data.image;
+              isVideo = false;
+            }
+          }
+        } catch (e) {
+          console.log("[TWITTER] API échouée:", e.message);
+        }
+        
+        if (mediaUrl) {
+          const mediaResp = await fetch(mediaUrl);
+          const mediaBuffer = await mediaResp.buffer();
+          
+          if (isVideo) {
+            await hani.sendMessage(from, {
+              video: mediaBuffer,
+              mimetype: "video/mp4",
+              caption: `🐦 *Twitter/X*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+            }, { quoted: msg });
+          } else {
+            await hani.sendMessage(from, {
+              image: mediaBuffer,
+              caption: `🐦 *Twitter/X*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+            }, { quoted: msg });
+          }
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger ce contenu Twitter/X\n\n💡 Vérifie le lien`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "pinterest":
+    case "pin": {
+      if (!args) {
+        return send(`📌 *TÉLÉCHARGER PINTEREST*\n\n📋 *Usage:*\n\`.pin [lien Pinterest]\`\n\n📝 *Exemple:*\n\`.pin https://pin.it/...\`\n\n🖼️ Télécharge l'image en HD!`);
+      }
+      
+      if (!args.includes("pinterest") && !args.includes("pin.it")) {
+        return send(`❌ Lien Pinterest invalide!`);
+      }
+      
+      await send("📌 *Téléchargement Pinterest en cours...*");
+      
+      try {
+        let imageUrl = null;
+        
+        try {
+          const apiUrl = `https://api.agatz.xyz/api/pinterest?url=${encodeURIComponent(args)}`;
+          const resp = await fetch(apiUrl, { timeout: 15000 });
+          const data = await resp.json();
+          
+          if (data.status === 200 && data.data) {
+            imageUrl = data.data.image || data.data.url;
+          }
+        } catch (e) {
+          console.log("[PIN] API échouée:", e.message);
+        }
+        
+        if (imageUrl) {
+          const imgResp = await fetch(imageUrl);
+          const imgBuffer = await imgResp.buffer();
+          
+          await hani.sendMessage(from, {
+            image: imgBuffer,
+            caption: `📌 *Pinterest*\n\n✅ Image HD téléchargée!\n🔥 *Powered by HANI-MD*`
+          }, { quoted: msg });
+          
+          return;
+        }
+        
+        return send(`❌ Impossible de télécharger cette image`);
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🎨 OUTILS - Sticker, Calculatrice, etc.
+    // ═══════════════════════════════════════════════════════════
+
+    case "sticker":
+    case "s": {
+      // Vérifier si c'est une réponse à un média
+      const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+      const hasImage = quotedMsg?.imageMessage || msg.message?.imageMessage;
+      const hasVideo = quotedMsg?.videoMessage || msg.message?.videoMessage;
+      
+      if (!hasImage && !hasVideo) {
+        return send(`🎨 *CRÉER UN STICKER*\n\n📋 *Usage:*\nRéponds à une image ou vidéo avec \`.sticker\`\n\nOu envoie une image avec la légende \`.sticker\`\n\n💡 Les vidéos courtes deviennent des stickers animés!`);
+      }
+      
+      await send("🎨 *Création du sticker en cours...*");
+      
+      try {
+        let mediaBuffer;
+        let isVideo = false;
+        
+        // Télécharger le média
+        if (quotedMsg?.imageMessage || quotedMsg?.videoMessage) {
+          const downloadMsg = {
+            ...msg,
+            message: quotedMsg
+          };
+          mediaBuffer = await downloadMediaMessage(downloadMsg, "buffer", {});
+          isVideo = !!quotedMsg?.videoMessage;
+        } else if (msg.message?.imageMessage || msg.message?.videoMessage) {
+          mediaBuffer = await downloadMediaMessage(msg, "buffer", {});
+          isVideo = !!msg.message?.videoMessage;
+        }
+        
+        if (!mediaBuffer) {
+          return send(`❌ Impossible de télécharger le média`);
+        }
+        
+        // Créer le sticker
+        await hani.sendMessage(from, {
+          sticker: mediaBuffer,
+          packname: "HANI-MD",
+          author: config.NOM_OWNER || "H2025"
+        }, { quoted: msg });
+        
+        return;
+        
+      } catch (e) {
+        console.log("[STICKER] Erreur:", e.message);
+        return send(`❌ Erreur lors de la création du sticker: ${e.message}`);
+      }
+    }
+
+    case "toimg":
+    case "toimage": {
+      const quotedSticker = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.stickerMessage;
+      
+      if (!quotedSticker) {
+        return send(`🖼️ *STICKER → IMAGE*\n\n📋 *Usage:*\nRéponds à un sticker avec \`.toimg\`\n\n💡 Convertit le sticker en image!`);
+      }
+      
+      try {
+        const downloadMsg = {
+          ...msg,
+          message: { stickerMessage: quotedSticker }
+        };
+        const stickerBuffer = await downloadMediaMessage(downloadMsg, "buffer", {});
+        
+        await hani.sendMessage(from, {
+          image: stickerBuffer,
+          caption: `🖼️ Voici ton sticker converti en image!\n\n✅ *Powered by HANI-MD*`
+        }, { quoted: msg });
+        
+        return;
+        
+      } catch (e) {
+        return send(`❌ Erreur: ${e.message}`);
+      }
+    }
+
+    case "calc":
+    case "calculate":
+    case "calculer": {
+      if (!args) {
+        return send(`🔢 *CALCULATRICE*\n\n📋 *Usage:*\n\`.calc [expression]\`\n\n📝 *Exemples:*\n\`.calc 2+2\`\n\`.calc 100*5/2\`\n\`.calc (10+5)*3\`\n\`.calc sqrt(16)\`\n\`.calc 2^8\``);
+      }
+      
+      try {
+        // Nettoyer et sécuriser l'expression
+        let expression = args
+          .replace(/x/gi, "*")
+          .replace(/÷/g, "/")
+          .replace(/\^/g, "**")
+          .replace(/sqrt\(([^)]+)\)/gi, "Math.sqrt($1)")
+          .replace(/sin\(([^)]+)\)/gi, "Math.sin($1)")
+          .replace(/cos\(([^)]+)\)/gi, "Math.cos($1)")
+          .replace(/tan\(([^)]+)\)/gi, "Math.tan($1)")
+          .replace(/log\(([^)]+)\)/gi, "Math.log10($1)")
+          .replace(/ln\(([^)]+)\)/gi, "Math.log($1)")
+          .replace(/pi/gi, "Math.PI")
+          .replace(/e(?![a-z])/gi, "Math.E");
+        
+        // Vérifier que l'expression est sûre
+        if (!/^[0-9+\-*/.()Math\s,sqrtsincoantlog]+$/i.test(expression.replace(/\./g, ''))) {
+          return send(`❌ Expression invalide!`);
+        }
+        
+        const result = eval(expression);
+        
+        return send(`🔢 *CALCULATRICE*\n\n📝 Expression: \`${args}\`\n✅ Résultat: *${result}*`);
+        
+      } catch (e) {
+        return send(`❌ Expression invalide: ${e.message}`);
+      }
+    }
+
+    case "tts":
+    case "say":
+    case "parle": {
+      if (!args) {
+        return send(`🔊 *TEXT TO SPEECH*\n\n📋 *Usage:*\n\`.tts [texte]\`\n\n📝 *Exemple:*\n\`.tts Bonjour, je suis HANI\`\n\n🗣️ Convertit le texte en audio!`);
+      }
+      
+      await send("🔊 *Génération de l'audio...*");
+      
+      try {
+        // Utiliser l'API Google TTS
+        const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(args)}&tl=fr&client=tw-ob`;
+        
+        const audioResp = await fetch(ttsUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          }
+        });
+        const audioBuffer = await audioResp.buffer();
+        
+        await hani.sendMessage(from, {
+          audio: audioBuffer,
+          mimetype: "audio/mp3",
+          ptt: true // Envoyer comme message vocal
+        }, { quoted: msg });
+        
+        return;
+        
+      } catch (e) {
+        return send(`❌ Erreur TTS: ${e.message}`);
+      }
     }
 
     case "whoami": {
@@ -3314,7 +4377,13 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
     case "menu":
     case "help":
     case "aide": {
-      return send(getMainMenu(config.PREFIXE, userRole));
+      console.log(`[MENU] Génération du menu pour rôle: ${userRole}`);
+      const menuText = getMainMenu(config.PREFIXE, userRole);
+      console.log(`[MENU] Menu généré (${menuText.length} caractères)`);
+      console.log(`[MENU] Envoi vers: ${from}`);
+      await send(menuText);
+      console.log(`[MENU] Envoi terminé`);
+      return;
     }
 
     case "info": {
@@ -5719,9 +6788,502 @@ C'est ton identifiant WhatsApp.
       }
     }
 
-    default:
-      // Ne pas répondre pour les commandes inconnues
+    // ═══════════════════════════════════════════════════════════
+    // 💎 COMMANDES PREMIUM - SYSTÈME D'ABONNEMENT
+    // ═══════════════════════════════════════════════════════════
+
+    case "premium":
+    case "myplan": {
+      const info = premiumDB.getPremiumInfo(sender);
+      const planEmojis = { FREE: "🆓", BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+      const emoji = planEmojis[info.plan] || "📋";
+      
+      let text = `${emoji} ═══════════════════════════\n`;
+      text += `   *VOTRE ABONNEMENT PREMIUM*\n`;
+      text += `═══════════════════════════\n\n`;
+      text += `👤 *Utilisateur:* ${senderName || "Inconnu"}\n`;
+      text += `📱 *Numéro:* +${sender.split("@")[0]}\n`;
+      text += `${emoji} *Plan actuel:* ${info.plan}\n`;
+      
+      if (info.plan === "FREE") {
+        text += `\n📊 *Limites:*\n`;
+        text += `   • ${info.dailyCommands}/${info.dailyLimit} commandes/jour\n`;
+        text += `   • Fonctionnalités de base uniquement\n`;
+        text += `\n💡 *Passez à Premium pour:*\n`;
+        text += `   • Plus de commandes par jour\n`;
+        text += `   • Accès aux fonctionnalités exclusives\n`;
+        text += `   • Support prioritaire\n`;
+        text += `\n📋 Tapez \`.plans\` pour voir les offres`;
+      } else if (info.plan === "LIFETIME") {
+        text += `\n⭐ *ACCÈS ILLIMITÉ À VIE*\n`;
+        text += `   • Toutes les fonctionnalités\n`;
+        text += `   • Aucune limite de commandes\n`;
+        text += `   • Support VIP prioritaire\n`;
+        text += `\n🙏 Merci pour votre confiance!`;
+      } else {
+        text += `\n📊 *Statistiques:*\n`;
+        text += `   • Commandes aujourd'hui: ${info.dailyCommands}/${info.dailyLimit === Infinity ? "∞" : info.dailyLimit}\n`;
+        text += `   • Expire le: ${new Date(info.expiresAt).toLocaleDateString("fr-FR")}\n`;
+        const daysLeft = Math.ceil((new Date(info.expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
+        text += `   • Jours restants: ${daysLeft}\n`;
+        text += `\n✨ *Avantages actifs:*\n`;
+        text += `   • Commandes illimitées ou augmentées\n`;
+        text += `   • Fonctionnalités premium débloquées\n`;
+        if (daysLeft <= 7) {
+          text += `\n⚠️ *Votre abonnement expire bientôt!*\n`;
+          text += `Renouvelez avec \`.upgrade ${info.plan.toLowerCase()}\``;
+        }
+      }
+      
+      return send(text);
+    }
+
+    case "plans":
+    case "tarifs":
+    case "offres": {
+      let text = `💎 ═══════════════════════════\n`;
+      text += `   *PLANS PREMIUM DISPONIBLES*\n`;
+      text += `═══════════════════════════\n\n`;
+      
+      text += `🆓 *FREE* (Gratuit)\n`;
+      text += `   • 20 commandes/jour\n`;
+      text += `   • Fonctionnalités de base\n\n`;
+      
+      text += `🥉 *BRONZE* - 500 FCFA/mois\n`;
+      text += `   • 100 commandes/jour\n`;
+      text += `   • Support standard\n\n`;
+      
+      text += `🥈 *ARGENT* - 1 000 FCFA/mois\n`;
+      text += `   • 300 commandes/jour\n`;
+      text += `   • Accès fonctions avancées\n\n`;
+      
+      text += `🥇 *OR* - 2 000 FCFA/mois\n`;
+      text += `   • Commandes illimitées\n`;
+      text += `   • Toutes les fonctionnalités\n`;
+      text += `   • Support prioritaire\n\n`;
+      
+      text += `💎 *DIAMANT* - 5 000 FCFA/mois\n`;
+      text += `   • Tout OR +\n`;
+      text += `   • Fonctionnalités exclusives\n`;
+      text += `   • Support VIP 24/7\n\n`;
+      
+      text += `👑 *LIFETIME* - 15 000 FCFA (unique)\n`;
+      text += `   • Accès à vie illimité\n`;
+      text += `   • Toutes les fonctionnalités\n`;
+      text += `   • Support VIP prioritaire\n\n`;
+      
+      text += `═══════════════════════════\n`;
+      text += `📲 *Contact:* +2250150252467\n`;
+      text += `💰 *Paiement:* Wave, Orange Money, MTN\n`;
+      text += `\n💡 Pour s'abonner: \`.upgrade <plan>\``;
+      
+      return send(text);
+    }
+
+    case "upgrade":
+    case "subscribe":
+    case "acheter": {
+      const plan = args?.toUpperCase();
+      const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
+      
+      if (!plan || !validPlans.includes(plan)) {
+        let text = `📋 *Usage:* .upgrade <plan>\n\n`;
+        text += `*Plans disponibles:*\n`;
+        text += `• bronze - 500 FCFA/mois\n`;
+        text += `• argent - 1 000 FCFA/mois\n`;
+        text += `• or - 2 000 FCFA/mois\n`;
+        text += `• diamant - 5 000 FCFA/mois\n`;
+        text += `• lifetime - 15 000 FCFA (unique)\n\n`;
+        text += `💡 Exemple: \`.upgrade or\``;
+        return send(text);
+      }
+      
+      const prices = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 };
+      const price = prices[plan];
+      const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+      
+      let text = `${planEmojis[plan]} ═══════════════════════════\n`;
+      text += `   *DEMANDE D'ABONNEMENT*\n`;
+      text += `═══════════════════════════\n\n`;
+      text += `📦 *Plan choisi:* ${plan}\n`;
+      text += `💰 *Prix:* ${price.toLocaleString()} FCFA${plan === "LIFETIME" ? " (paiement unique)" : "/mois"}\n\n`;
+      text += `📲 *Pour finaliser votre achat:*\n\n`;
+      text += `1️⃣ Envoyez ${price} FCFA via:\n`;
+      text += `   • Wave: +2250150252467\n`;
+      text += `   • Orange Money: +2250150252467\n`;
+      text += `   • MTN Money: +2250150252467\n\n`;
+      text += `2️⃣ Envoyez une capture du paiement\n`;
+      text += `   à ce numéro WhatsApp\n\n`;
+      text += `3️⃣ Recevez votre code d'activation\n\n`;
+      text += `⏱️ Activation en moins de 5 minutes!\n\n`;
+      text += `═══════════════════════════\n`;
+      text += `📞 *Contact:* wa.me/2250150252467`;
+      
+      return send(text);
+    }
+
+    case "redeem":
+    case "activer":
+    case "code": {
+      if (!args) {
+        return send(`📋 *Usage:* .redeem <code>\n\n💡 Exemple: \`.redeem ABC123XYZ\`\n\nVous recevrez votre code après paiement.`);
+      }
+      
+      const result = premiumDB.redeemCode(args.trim().toUpperCase(), sender);
+      
+      if (result.success) {
+        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+        let text = `✅ ═══════════════════════════\n`;
+        text += `   *CODE ACTIVÉ AVEC SUCCÈS!*\n`;
+        text += `═══════════════════════════\n\n`;
+        text += `${planEmojis[result.plan]} *Plan:* ${result.plan}\n`;
+        if (result.plan === "LIFETIME") {
+          text += `⭐ *Durée:* À VIE!\n`;
+        } else {
+          text += `📅 *Durée:* ${result.duration} jours\n`;
+          text += `🗓️ *Expire le:* ${new Date(result.expiresAt).toLocaleDateString("fr-FR")}\n`;
+        }
+        text += `\n🎉 Profitez de vos avantages premium!\n`;
+        text += `📋 Tapez \`.premium\` pour voir votre plan`;
+        return send(text);
+      } else {
+        return send(`❌ *Erreur:* ${result.message}\n\n💡 Vérifiez que le code est correct et n'a pas déjà été utilisé.`);
+      }
+    }
+
+    // ────────── COMMANDES OWNER PREMIUM ──────────
+
+    case "gencode": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const plan = args?.toUpperCase();
+      const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
+      
+      if (!plan || !validPlans.includes(plan)) {
+        return send(`📋 *Usage:* .gencode <plan>\n\n*Plans:* bronze, argent, or, diamant, lifetime\n\n💡 Exemple: \`.gencode or\``);
+      }
+      
+      const result = premiumDB.generateCode(plan);
+      
+      if (result.success) {
+        let text = `✅ *Code généré avec succès!*\n\n`;
+        text += `📦 *Plan:* ${plan}\n`;
+        text += `🔑 *Code:* \`${result.code}\`\n`;
+        text += `📅 *Durée:* ${result.duration === "LIFETIME" ? "À vie" : result.duration + " jours"}\n\n`;
+        text += `💡 Envoyez ce code au client pour activation`;
+        return send(text);
+      } else {
+        return send(`❌ Erreur: ${result.message}`);
+      }
+    }
+
+    case "gencodes": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const parts = args?.split(/\s+/);
+      if (!parts || parts.length < 2) {
+        return send(`📋 *Usage:* .gencodes <plan> <nombre>\n\n💡 Exemple: \`.gencodes or 5\``);
+      }
+      
+      const plan = parts[0].toUpperCase();
+      const count = parseInt(parts[1]) || 1;
+      const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
+      
+      if (!validPlans.includes(plan)) {
+        return send(`❌ Plan invalide. Plans disponibles: bronze, argent, or, diamant, lifetime`);
+      }
+      
+      if (count < 1 || count > 20) {
+        return send(`❌ Nombre invalide. Entre 1 et 20 codes maximum.`);
+      }
+      
+      let text = `✅ *${count} codes ${plan} générés:*\n\n`;
+      for (let i = 0; i < count; i++) {
+        const result = premiumDB.generateCode(plan);
+        if (result.success) {
+          text += `${i + 1}. \`${result.code}\`\n`;
+        }
+      }
+      text += `\n💡 Chaque code est à usage unique.`;
+      return send(text);
+    }
+
+    case "listcodes":
+    case "codes": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const codes = premiumDB.getUnusedCodes();
+      
+      if (codes.length === 0) {
+        return send(`📋 *Aucun code disponible*\n\n💡 Générez des codes avec \`.gencode <plan>\``);
+      }
+      
+      let text = `🔑 ═══════════════════════════\n`;
+      text += `   *CODES NON UTILISÉS*\n`;
+      text += `═══════════════════════════\n\n`;
+      
+      const byPlan = {};
+      for (const c of codes) {
+        if (!byPlan[c.plan]) byPlan[c.plan] = [];
+        byPlan[c.plan].push(c.code);
+      }
+      
+      for (const [plan, planCodes] of Object.entries(byPlan)) {
+        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+        text += `${planEmojis[plan] || "📦"} *${plan}* (${planCodes.length}):\n`;
+        planCodes.forEach((code, i) => {
+          text += `   ${i + 1}. \`${code}\`\n`;
+        });
+        text += `\n`;
+      }
+      
+      text += `📊 *Total:* ${codes.length} codes disponibles`;
+      return send(text);
+    }
+
+    case "addpremium": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const parts = args?.split(/\s+/);
+      let targetJid = mentioned[0];
+      let plan = parts?.[0]?.toUpperCase();
+      let days = parseInt(parts?.[1]) || 30;
+      
+      if (mentioned[0]) {
+        plan = parts?.[0]?.toUpperCase();
+        days = parseInt(parts?.[1]) || 30;
+      } else if (parts && parts.length >= 1) {
+        const num = parts[0].replace(/[^0-9]/g, "");
+        if (num.length >= 8) {
+          targetJid = num + "@s.whatsapp.net";
+          plan = parts[1]?.toUpperCase();
+          days = parseInt(parts[2]) || 30;
+        }
+      }
+      
+      if (!targetJid || !plan) {
+        return send(`📋 *Usage:* .addpremium @user <plan> [jours]\n\n💡 Exemple: \`.addpremium @user or 30\``);
+      }
+      
+      const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
+      if (!validPlans.includes(plan)) {
+        return send(`❌ Plan invalide. Plans: bronze, argent, or, diamant, lifetime`);
+      }
+      
+      const result = premiumDB.addPremium(targetJid, plan, days);
+      
+      if (result.success) {
+        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+        return send(`✅ ${planEmojis[plan]} Premium ${plan} ajouté pour +${targetJid.split("@")[0]}\n📅 Durée: ${plan === "LIFETIME" ? "À vie" : days + " jours"}`);
+      } else {
+        return send(`❌ Erreur: ${result.message}`);
+      }
+    }
+
+    case "delpremium":
+    case "removepremium": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      let targetJid = mentioned[0];
+      if (!targetJid && args) {
+        const num = args.replace(/[^0-9]/g, "");
+        if (num.length >= 8) targetJid = num + "@s.whatsapp.net";
+      }
+      
+      if (!targetJid) {
+        return send(`📋 *Usage:* .delpremium @user\n\n💡 Exemple: \`.delpremium @user\``);
+      }
+      
+      const result = premiumDB.removePremium(targetJid);
+      
+      if (result.success) {
+        return send(`✅ Premium supprimé pour +${targetJid.split("@")[0]}`);
+      } else {
+        return send(`❌ ${result.message}`);
+      }
+    }
+
+    case "premiumlist":
+    case "listpremium": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const users = premiumDB.getAllPremiumUsers();
+      
+      if (users.length === 0) {
+        return send(`📋 *Aucun utilisateur premium*\n\n💡 Ajoutez avec \`.addpremium @user <plan>\``);
+      }
+      
+      let text = `👑 ═══════════════════════════\n`;
+      text += `   *UTILISATEURS PREMIUM*\n`;
+      text += `═══════════════════════════\n\n`;
+      
+      const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+      
+      users.forEach((u, i) => {
+        const num = u.jid.split("@")[0];
+        text += `${i + 1}. ${planEmojis[u.plan] || "📦"} +${num}\n`;
+        text += `   Plan: ${u.plan}`;
+        if (u.plan !== "LIFETIME" && u.expiresAt) {
+          const daysLeft = Math.ceil((new Date(u.expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
+          text += ` | ${daysLeft}j restants`;
+        }
+        text += `\n\n`;
+      });
+      
+      text += `📊 *Total:* ${users.length} utilisateurs premium`;
+      return send(text);
+    }
+
+    case "premiumstats": {
+      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      
+      const stats = premiumDB.getStats();
+      
+      let text = `📊 ═══════════════════════════\n`;
+      text += `   *STATISTIQUES PREMIUM*\n`;
+      text += `═══════════════════════════\n\n`;
+      
+      text += `👥 *Utilisateurs:*\n`;
+      text += `   • Total premium: ${stats.totalPremium}\n`;
+      text += `   • Lifetime: ${stats.byPlan?.LIFETIME || 0}\n`;
+      text += `   • Diamant: ${stats.byPlan?.DIAMANT || 0}\n`;
+      text += `   • Or: ${stats.byPlan?.OR || 0}\n`;
+      text += `   • Argent: ${stats.byPlan?.ARGENT || 0}\n`;
+      text += `   • Bronze: ${stats.byPlan?.BRONZE || 0}\n\n`;
+      
+      text += `🔑 *Codes:*\n`;
+      text += `   • Générés: ${stats.totalCodes || 0}\n`;
+      text += `   • Utilisés: ${stats.usedCodes || 0}\n`;
+      text += `   • Disponibles: ${stats.unusedCodes || 0}\n\n`;
+      
+      const revenue = (stats.byPlan?.BRONZE || 0) * 500 +
+                      (stats.byPlan?.ARGENT || 0) * 1000 +
+                      (stats.byPlan?.OR || 0) * 2000 +
+                      (stats.byPlan?.DIAMANT || 0) * 5000 +
+                      (stats.byPlan?.LIFETIME || 0) * 15000;
+      
+      text += `💰 *Revenus estimés:* ${revenue.toLocaleString()} FCFA`;
+      
+      return send(text);
+    }
+
+    case "premiumhelp": {
+      let text = `💎 ═══════════════════════════\n`;
+      text += `   *AIDE PREMIUM*\n`;
+      text += `═══════════════════════════\n\n`;
+      
+      text += `📋 *Commandes utilisateur:*\n`;
+      text += `• \`.premium\` - Voir son plan\n`;
+      text += `• \`.plans\` - Voir les offres\n`;
+      text += `• \`.upgrade <plan>\` - S'abonner\n`;
+      text += `• \`.redeem <code>\` - Activer un code\n\n`;
+      
+      if (isOwner) {
+        text += `👑 *Commandes owner:*\n`;
+        text += `• \`.gencode <plan>\` - Générer 1 code\n`;
+        text += `• \`.gencodes <plan> <nb>\` - Générer plusieurs\n`;
+        text += `• \`.listcodes\` - Voir codes disponibles\n`;
+        text += `• \`.addpremium @user <plan>\` - Ajouter premium\n`;
+        text += `• \`.delpremium @user\` - Retirer premium\n`;
+        text += `• \`.premiumlist\` - Liste des premium\n`;
+        text += `• \`.premiumstats\` - Statistiques\n`;
+      }
+      
+      return send(text);
+    }
+
+    default: {
+      // ═══════════════════════════════════════════════════════════
+      // 🔌 EXÉCUTION DES COMMANDES MODULAIRES (OVLCMD)
+      // ═══════════════════════════════════════════════════════════
+      
+      // Chercher la commande dans le système ovlcmd
+      const ovlCommand = findCommand(command);
+      
+      if (ovlCommand) {
+        console.log(`[OVLCMD] 📦 Exécution de la commande modulaire: ${command}`);
+        
+        // 🕵️ MODE FURTIF: Wrapper pour ovl.sendMessage
+        // Redirige TOUS les messages vers "Moi-même" (botNumber)
+        const stealthOvl = {
+          ...hani,
+          sendMessage: async (jid, content, options = {}) => {
+            // Toujours envoyer vers botNumber (Moi-même)
+            console.log(`[STEALTH] 📤 Redirection: ${jid} → ${botNumber}`);
+            return await hani.sendMessage(botNumber, content, options);
+          }
+        };
+        
+        // Préparer les options pour ovlcmd - COMPLET avec toutes les variables attendues
+        const cmdOptions = {
+          // Arguments
+          arg: args ? args.split(" ").filter(a => a) : [],
+          args: args || "",
+          texte: args || "",
+          
+          // Message et réponse
+          ms: msg,
+          repondre: reply,
+          send: send,
+          
+          // Expéditeur
+          sender: sender,
+          from: from,
+          auteur_Msg: sender,
+          autession: sender,
+          
+          // Permissions utilisateur
+          isOwner: isOwner,
+          isSudo: isSudo,
+          superUser: isOwner || isSudo,
+          
+          // Permissions groupe
+          verif_Groupe: isGroupMsg,
+          isGroupMsg: isGroupMsg,
+          verif_Admin: isAdmin,
+          isAdmin: isAdmin,
+          admin_Groupe: isBotAdmin,
+          isBotAdmin: isBotAdmin,
+          
+          // Métadonnées groupe
+          groupMetadata: groupMetadata,
+          infosGroupe: groupMetadata,
+          
+          // Mentions et citations
+          mentioned: mentioned,
+          mentionedJid: mentioned,
+          quotedMsg: quotedMsg,
+          quotedParticipant: quotedParticipant,
+          
+          // Config
+          prefix: config.PREFIXE,
+          prefixe: config.PREFIXE,
+          command: command,
+          nomAuteur: config.NOM_OWNER || "HANIEL",
+          
+          // Bot info
+          botNumber: botNumber,
+          
+          // Source originale (pour contexte)
+          sourceChat: from,
+          sourceInfo: sourceInfo
+        };
+        
+        try {
+          // Utiliser stealthOvl pour rediriger les messages vers "Moi-même"
+          await executeCommand(command, stealthOvl, msg, cmdOptions);
+          console.log(`[OVLCMD] ✅ Commande ${command} exécutée (mode furtif)`);
+        } catch (err) {
+          console.error(`[OVLCMD] ❌ Erreur commande ${command}:`, err.message);
+          await send(`❌ Erreur lors de l'exécution de la commande: ${err.message}`);
+        }
+        return;
+      }
+      
+      // Commande non trouvée - ne pas répondre
+      console.log(`[CMD] ⚠️ Commande inconnue: ${command}`);
       return;
+    }
   }
 }
 
@@ -9277,9 +10839,930 @@ app.get("/", (req, res) => {
   `);
 });
 
+// ═══════════════════════════════════════════════════════════
+// 💎 ROUTES PREMIUM WEB
+// ═══════════════════════════════════════════════════════════
+
+const crypto = require("crypto");
+const premiumAdminSessions = new Map();
+const PREMIUM_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "hani2025";
+
+// Servir les fichiers statiques du dashboard premium
+const premiumPublicPath = path.join(__dirname, "web", "public");
+if (fs.existsSync(premiumPublicPath)) {
+  app.use("/premium", express.static(premiumPublicPath));
+}
+
+// Middleware d'auth premium admin
+function requirePremiumAdmin(req, res, next) {
+  const token = req.headers.authorization?.replace("Bearer ", "") || req.query.token;
+  if (!token || !premiumAdminSessions.has(token)) {
+    return res.status(401).json({ error: "Non autorisé" });
+  }
+  const session = premiumAdminSessions.get(token);
+  if (Date.now() > session.expires) {
+    premiumAdminSessions.delete(token);
+    return res.status(401).json({ error: "Session expirée" });
+  }
+  next();
+}
+
+// Auth premium admin
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body;
+  if (password === PREMIUM_ADMIN_PASSWORD) {
+    const token = crypto.randomBytes(32).toString("hex");
+    premiumAdminSessions.set(token, { expires: Date.now() + 24 * 60 * 60 * 1000 });
+    console.log(`[PREMIUM-WEB] 🔓 Connexion admin premium`);
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ error: "Mot de passe incorrect" });
+  }
+});
+
+// Stats premium
+app.get("/api/admin/stats", requirePremiumAdmin, (req, res) => {
+  try {
+    const stats = premiumDB.getStats();
+    const users = premiumDB.getAllPremiumUsers();
+    const codes = premiumDB.getUnusedCodes();
+    const prices = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 };
+    let revenue = 0;
+    for (const [plan, count] of Object.entries(stats.byPlan || {})) {
+      revenue += (count || 0) * (prices[plan] || 0);
+    }
+    res.json({ success: true, stats: { ...stats, revenue, activeUsers: users.length, availableCodes: codes.length } });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Users premium API
+app.get("/api/admin/users", requirePremiumAdmin, (req, res) => {
+  try {
+    res.json({ success: true, users: premiumDB.getAllPremiumUsers() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/users", requirePremiumAdmin, (req, res) => {
+  try {
+    const { phone, plan, days } = req.body;
+    if (!phone || !plan) return res.status(400).json({ error: "Numéro et plan requis" });
+    const jid = phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    res.json(premiumDB.addPremium(jid, plan.toUpperCase(), days || 30));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/api/admin/users/:phone", requirePremiumAdmin, (req, res) => {
+  try {
+    const jid = req.params.phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    res.json(premiumDB.removePremium(jid));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Codes premium API
+app.get("/api/admin/codes", requirePremiumAdmin, (req, res) => {
+  try {
+    res.json({ success: true, codes: premiumDB.getUnusedCodes() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/codes/generate", requirePremiumAdmin, (req, res) => {
+  try {
+    const { plan, count } = req.body;
+    if (!plan) return res.status(400).json({ error: "Plan requis" });
+    const codes = [];
+    for (let i = 0; i < Math.min(count || 1, 50); i++) {
+      const result = premiumDB.generateCode(plan.toUpperCase());
+      if (result.success) codes.push(result.code);
+    }
+    res.json({ success: true, codes, count: codes.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// API Publique Premium - Chargement depuis la config
+const premiumConfigPath = path.join(__dirname, "DataBase", "premium_config.json");
+let premiumConfig = {};
+try {
+  if (fs.existsSync(premiumConfigPath)) {
+    premiumConfig = JSON.parse(fs.readFileSync(premiumConfigPath, "utf8"));
+  }
+} catch (e) { console.log("[PREMIUM] Erreur config:", e.message); }
+
+// Endpoint principal des plans (utilise la config)
+app.get("/api/plans", (req, res) => {
+  try {
+    const config = fs.existsSync(premiumConfigPath) 
+      ? JSON.parse(fs.readFileSync(premiumConfigPath, "utf8")) 
+      : premiumConfig;
+    
+    const plans = Object.entries(config.plans || {}).map(([id, plan]) => ({
+      id,
+      name: plan.name,
+      price: plan.price,
+      currency: plan.currency,
+      duration: plan.duration,
+      dailyLimit: plan.dailyLimit,
+      icon: plan.icon,
+      color: plan.color,
+      popular: plan.popular,
+      features: plan.features,
+      commands: plan.commands
+    }));
+    
+    res.json({
+      success: true,
+      botInfo: config.botInfo,
+      plans,
+      paymentMethods: config.paymentMethods,
+      categories: config.categories
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Endpoint des fonctionnalités par catégorie
+app.get("/api/features", (req, res) => {
+  try {
+    const config = fs.existsSync(premiumConfigPath) 
+      ? JSON.parse(fs.readFileSync(premiumConfigPath, "utf8")) 
+      : premiumConfig;
+    
+    res.json({
+      success: true,
+      categories: config.categories,
+      botInfo: config.botInfo
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Endpoint du bot info
+app.get("/api/bot", (req, res) => {
+  try {
+    const config = fs.existsSync(premiumConfigPath) 
+      ? JSON.parse(fs.readFileSync(premiumConfigPath, "utf8")) 
+      : premiumConfig;
+    
+    res.json({
+      success: true,
+      ...config.botInfo,
+      connected: true,
+      uptime: process.uptime()
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/status/:phone", (req, res) => {
+  try {
+    const jid = req.params.phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    const info = premiumDB.getPremiumInfo(jid);
+    res.json({ success: true, phone: req.params.phone, ...info });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/activate", (req, res) => {
+  try {
+    const { code, phone } = req.body;
+    if (!code || !phone) return res.status(400).json({ error: "Code et numéro requis" });
+    const jid = phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    res.json(premiumDB.redeemCode(code.toUpperCase(), jid));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/subscribe", (req, res) => {
+  try {
+    const { phone, plan, paymentMethod } = req.body;
+    if (!phone || !plan) return res.status(400).json({ error: "Numéro et plan requis" });
+    
+    const requestsFile = path.join(__dirname, "DataBase", "premium_requests.json");
+    let requests = [];
+    if (fs.existsSync(requestsFile)) {
+      try { requests = JSON.parse(fs.readFileSync(requestsFile, "utf8")); } catch (e) {}
+    }
+    
+    const request = {
+      id: crypto.randomBytes(8).toString("hex"),
+      phone: phone.replace(/[^0-9]/g, ""),
+      plan: plan.toUpperCase(),
+      paymentMethod,
+      status: "pending",
+      createdAt: new Date().toISOString()
+    };
+    requests.push(request);
+    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    
+    res.json({
+      success: true,
+      message: "Demande enregistrée!",
+      requestId: request.id,
+      paymentInfo: { number: "+2250150252467", amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] }
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/admin/requests", requirePremiumAdmin, (req, res) => {
+  try {
+    const requestsFile = path.join(__dirname, "DataBase", "premium_requests.json");
+    let requests = [];
+    if (fs.existsSync(requestsFile)) {
+      try { requests = JSON.parse(fs.readFileSync(requestsFile, "utf8")); } catch (e) {}
+    }
+    res.json({ success: true, requests });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/admin/requests/:id/approve", requirePremiumAdmin, (req, res) => {
+  try {
+    const requestsFile = path.join(__dirname, "DataBase", "premium_requests.json");
+    let requests = [];
+    if (fs.existsSync(requestsFile)) {
+      try { requests = JSON.parse(fs.readFileSync(requestsFile, "utf8")); } catch (e) {}
+    }
+    
+    const request = requests.find(r => r.id === req.params.id);
+    if (!request) return res.status(404).json({ error: "Demande non trouvée" });
+    
+    const codeResult = premiumDB.generateCode(request.plan);
+    if (!codeResult.success) return res.status(500).json({ error: "Erreur génération code" });
+    
+    const jid = request.phone + "@s.whatsapp.net";
+    premiumDB.redeemCode(codeResult.code, jid);
+    
+    request.status = "approved";
+    request.approvedAt = new Date().toISOString();
+    request.code = codeResult.code;
+    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    
+    res.json({ success: true, message: "Demande approuvée", code: codeResult.code, phone: request.phone });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🔗 ROUTES MULTI-SESSION (Bots clients)
+// ═══════════════════════════════════════════════════════════
+
+let multiSession;
+try {
+  multiSession = require('./lib/MultiSession');
+  console.log("[MULTI-SESSION] 📱 Module chargé");
+} catch (e) {
+  console.log("[MULTI-SESSION] ⚠️ Module non disponible:", e.message);
+}
+
+// Route pour la page de connexion client
+app.get('/premium/connect/:clientId', (req, res) => {
+  res.sendFile(path.join(__dirname, 'web', 'public', 'connect.html'));
+});
+
+// API: Obtenir le statut d'un client
+app.get('/api/premium/status/:clientId', (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    const clientInfo = multiSession.getClientInfo(req.params.clientId);
+    if (!clientInfo) {
+      return res.status(404).json({ error: "Client non trouvé" });
+    }
+    
+    res.json({
+      clientId: clientInfo.clientId,
+      status: clientInfo.status,
+      plan: clientInfo.plan,
+      phoneNumber: clientInfo.phoneNumber,
+      expiresAt: clientInfo.expiresAt,
+      createdAt: clientInfo.createdAt
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Démarrer la connexion pour un client
+app.post('/api/premium/start/:clientId', async (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    const clientInfo = multiSession.getClientInfo(req.params.clientId);
+    if (!clientInfo) {
+      return res.status(404).json({ error: "Client non trouvé" });
+    }
+    
+    // Vérifier expiration
+    if (clientInfo.expiresAt && new Date(clientInfo.expiresAt) < new Date()) {
+      return res.status(403).json({ error: "Abonnement expiré" });
+    }
+    
+    // Si déjà connecté, retourner le statut
+    if (clientInfo.status === 'connected' && multiSession.activeSessions.has(req.params.clientId)) {
+      return res.json({ status: 'connected', phoneNumber: clientInfo.phoneNumber });
+    }
+    
+    // Démarrer la connexion
+    multiSession.startClientConnection(
+      req.params.clientId,
+      (qr, id) => console.log(`[MULTI-SESSION] QR prêt pour ${id}`),
+      (sock, id, phone) => console.log(`[MULTI-SESSION] Client ${id} connecté: ${phone}`),
+      (id, shouldReconnect) => console.log(`[MULTI-SESSION] Client ${id} déconnecté`)
+    ).catch(e => console.error(`[MULTI-SESSION] Erreur:`, e.message));
+    
+    res.json({ status: 'starting', message: 'Connexion en cours...' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Obtenir le QR code
+app.get('/api/premium/qr/:clientId', (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    const clientInfo = multiSession.getClientInfo(req.params.clientId);
+    if (!clientInfo) {
+      return res.status(404).json({ error: "Client non trouvé" });
+    }
+    
+    // Si connecté
+    if (clientInfo.status === 'connected') {
+      return res.json({ status: 'connected', phoneNumber: clientInfo.phoneNumber, plan: clientInfo.plan });
+    }
+    
+    // Récupérer le QR
+    const qr = multiSession.getPendingQR(req.params.clientId);
+    if (qr) {
+      return res.json({ qr, status: 'pending' });
+    }
+    
+    res.json({ status: 'waiting', message: 'QR en préparation...' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Liste des clients (admin)
+app.get('/api/premium/clients', (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    const clients = multiSession.listAllClients();
+    const active = multiSession.getActiveClients();
+    
+    res.json({
+      total: Object.keys(clients).length,
+      active: active.length,
+      clients: Object.values(clients).map(c => ({
+        clientId: c.clientId,
+        status: c.status,
+        plan: c.plan,
+        phoneNumber: c.phoneNumber,
+        expiresAt: c.expiresAt,
+        isActive: active.includes(c.clientId)
+      }))
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Arrêter une session client (admin)
+app.post('/api/premium/stop/:clientId', async (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    await multiSession.stopClientSession(req.params.clientId);
+    res.json({ success: true, message: "Session arrêtée" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Supprimer une session client (admin)
+app.delete('/api/premium/client/:clientId', async (req, res) => {
+  try {
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    await multiSession.deleteClientSession(req.params.clientId);
+    res.json({ success: true, message: "Client supprimé" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🆕 NOUVELLES ROUTES - INSCRIPTION CLIENTS COMPLÈTE
+// ═══════════════════════════════════════════════════════════
+
+// API: Inscription d'un nouveau client (après paiement)
+app.post('/api/clients/register', async (req, res) => {
+  try {
+    const { phone, plan, email, name, transactionId } = req.body;
+    
+    if (!phone || !plan) {
+      return res.status(400).json({ error: "Numéro de téléphone et plan requis" });
+    }
+    
+    // Valider le plan
+    const validPlans = ['bronze', 'argent', 'or', 'diamant', 'lifetime'];
+    if (!validPlans.includes(plan.toLowerCase())) {
+      return res.status(400).json({ error: "Plan invalide" });
+    }
+    
+    // Vérifier si MultiSession est disponible
+    if (!multiSession) {
+      return res.status(500).json({ error: "Système multi-session non disponible" });
+    }
+    
+    // Durées selon le plan
+    const planDurations = { bronze: 30, argent: 30, or: 30, diamant: 30, lifetime: -1 };
+    const days = planDurations[plan.toLowerCase()];
+    
+    // Créer le client via MultiSession
+    const result = multiSession.createClientSession 
+      ? await multiSession.createClientSession(transactionId || 'DIRECT', plan.toUpperCase(), 
+          days === -1 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString())
+      : { clientId: 'CLI_' + Date.now().toString(36).toUpperCase(), status: 'pending' };
+    
+    // Enregistrer dans le système de demandes
+    const requestsFile = path.join(__dirname, "DataBase", "client_registrations.json");
+    let registrations = [];
+    if (fs.existsSync(requestsFile)) {
+      try { registrations = JSON.parse(fs.readFileSync(requestsFile, "utf8")); } catch (e) {}
+    }
+    
+    const registration = {
+      id: result.clientId,
+      phone: phone.replace(/[^0-9]/g, ''),
+      email: email || null,
+      name: name || `Client ${result.clientId}`,
+      plan: plan.toUpperCase(),
+      transactionId: transactionId || null,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt: days === -1 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+    };
+    
+    registrations.push(registration);
+    fs.writeFileSync(requestsFile, JSON.stringify(registrations, null, 2));
+    
+    console.log(`[CLIENT] 📝 Nouveau client inscrit: ${result.clientId} (${plan})`);
+    
+    res.json({
+      success: true,
+      clientId: result.clientId,
+      plan: plan.toUpperCase(),
+      connectUrl: `/connect.html?id=${result.clientId}`,
+      message: "Inscription réussie! Scannez le QR code pour connecter votre WhatsApp."
+    });
+  } catch (e) {
+    console.error('[CLIENT] ❌ Erreur inscription:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Vérifier un ID client
+app.get('/api/clients/verify/:clientId', (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    
+    if (multiSession && multiSession.getClientInfo) {
+      const client = multiSession.getClientInfo(clientId);
+      if (client) {
+        return res.json({
+          valid: true,
+          clientId: client.clientId,
+          plan: client.plan,
+          status: client.status,
+          expiresAt: client.expiresAt
+        });
+      }
+    }
+    
+    // Chercher dans les enregistrements
+    const requestsFile = path.join(__dirname, "DataBase", "client_registrations.json");
+    if (fs.existsSync(requestsFile)) {
+      const registrations = JSON.parse(fs.readFileSync(requestsFile, "utf8"));
+      const reg = registrations.find(r => r.id === clientId);
+      if (reg) {
+        return res.json({
+          valid: true,
+          clientId: reg.id,
+          plan: reg.plan,
+          status: reg.status,
+          expiresAt: reg.expiresAt
+        });
+      }
+    }
+    
+    res.json({ valid: false, error: "Client non trouvé" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Initier la connexion WhatsApp pour un client
+app.post('/api/clients/connect/:clientId', async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    // Vérifier le client
+    const client = multiSession.getClientInfo(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client non trouvé. Veuillez d'abord vous inscrire." });
+    }
+    
+    // Vérifier expiration
+    if (client.expiresAt && new Date(client.expiresAt) < new Date()) {
+      return res.status(403).json({ error: "Votre abonnement a expiré. Veuillez renouveler." });
+    }
+    
+    // Si déjà connecté
+    if (client.status === 'connected' && multiSession.activeSessions?.has(clientId)) {
+      return res.json({ 
+        status: 'connected', 
+        phoneNumber: client.phoneNumber,
+        plan: client.plan
+      });
+    }
+    
+    // Démarrer la connexion
+    await multiSession.startClientConnection(
+      clientId,
+      (qr, id) => console.log(`[CLIENT] 📱 QR prêt pour ${id}`),
+      (sock, id, phone) => console.log(`[CLIENT] ✅ ${id} connecté: ${phone}`),
+      (id, shouldReconnect) => console.log(`[CLIENT] 🔴 ${id} déconnecté`)
+    );
+    
+    res.json({ status: 'connecting', message: 'Connexion en cours... Le QR code sera bientôt disponible.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Obtenir le QR code pour un client
+app.get('/api/clients/qr/:clientId', async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    
+    if (!multiSession) {
+      return res.status(500).json({ error: "Multi-session non disponible" });
+    }
+    
+    const client = multiSession.getClientInfo(clientId);
+    if (!client) {
+      return res.status(404).json({ error: "Client non trouvé" });
+    }
+    
+    // Si connecté
+    if (client.status === 'connected') {
+      return res.json({ 
+        status: 'connected', 
+        phoneNumber: client.phoneNumber,
+        plan: client.plan,
+        message: "Votre bot est déjà connecté!"
+      });
+    }
+    
+    // Récupérer le QR
+    const qr = multiSession.getPendingQR(clientId);
+    if (qr) {
+      return res.json({ status: 'pending', qr });
+    }
+    
+    res.json({ status: 'waiting', message: 'QR code en préparation...' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Obtenir les plans disponibles
+app.get('/api/plans', (req, res) => {
+  const plans = {
+    bronze: { name: "Bronze", price: 500, duration: 30, dailyLimit: 100, currency: "FCFA" },
+    argent: { name: "Argent", price: 1000, duration: 30, dailyLimit: 500, currency: "FCFA" },
+    or: { name: "Or", price: 2000, duration: 30, dailyLimit: -1, currency: "FCFA", popular: true },
+    diamant: { name: "Diamant", price: 5000, duration: 30, dailyLimit: -1, currency: "FCFA" },
+    lifetime: { name: "Lifetime", price: 15000, duration: -1, dailyLimit: -1, currency: "FCFA" }
+  };
+  res.json({ success: true, plans });
+});
+
+// API: Obtenir les méthodes de paiement
+app.get('/api/payment-methods', (req, res) => {
+  const methods = [
+    { id: "orange", name: "Orange Money", number: "+2250150252467", logo: "🟠" },
+    { id: "mtn", name: "MTN Money", number: "+2250150252467", logo: "🟡" },
+    { id: "wave", name: "Wave", number: "+2250150252467", logo: "🔵" },
+    { id: "moov", name: "Moov Money", number: "+2250150252467", logo: "🔷" }
+  ];
+  res.json({ success: true, methods });
+});
+
+// API: Stats globales
+app.get('/api/stats', (req, res) => {
+  try {
+    let commands = 246;
+    let users = 5000;
+    let categories = 32;
+    
+    // Essayer d'obtenir les vraies stats
+    try {
+      const { cmd } = require('./lib/ovlcmd');
+      if (cmd) commands = cmd.length;
+    } catch (e) {}
+    
+    if (multiSession) {
+      try {
+        const clients = multiSession.listAllClients();
+        users = Object.keys(clients).length + 5000;
+      } catch (e) {}
+    }
+    
+    res.json({ commands, users, categories, uptime: Math.floor(process.uptime()) });
+  } catch (e) {
+    res.json({ commands: 246, users: 5000, categories: 32 });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 💰 ROUTES API PAIEMENT MOBILE MONEY
+// ═══════════════════════════════════════════════════════════
+
+let paymentSystem;
+try {
+  paymentSystem = require('./lib/PaymentSystem');
+  console.log("[PAYMENT] 💰 Module de paiement chargé");
+} catch (e) {
+  console.log("[PAYMENT] ⚠️ Module de paiement non disponible:", e.message);
+}
+
+// API: Créer une demande de paiement
+app.post('/api/payment/create', async (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const { phone, plan, paymentMethod, name, email } = req.body;
+    
+    if (!phone || !plan || !paymentMethod) {
+      return res.status(400).json({ error: "Téléphone, plan et méthode de paiement requis" });
+    }
+    
+    const result = paymentSystem.createPaymentRequest(phone, plan, paymentMethod, name, email);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    const config = paymentSystem.getConfig();
+    const payment = paymentSystem.getPayment(result.paymentId);
+    
+    // Envoyer les instructions de paiement au CLIENT via WhatsApp
+    try {
+      const clientJid = phone.replace(/[^0-9]/g, '') + "@s.whatsapp.net";
+      
+      if (hani && result.instructions) {
+        await hani.sendMessage(clientJid, { text: result.instructions });
+        console.log(`[PAYMENT] 📱 Instructions envoyées au client: +${phone}`);
+      }
+    } catch (e) {
+      console.log("[PAYMENT] ⚠️ Erreur envoi client:", e.message);
+    }
+    
+    // Envoyer notification à l'admin via WhatsApp si le bot est connecté
+    try {
+      const adminJid = config.adminWhatsApp + "@s.whatsapp.net";
+      
+      if (hani && payment) {
+        const notifMessage = paymentSystem.generateAdminNotification(payment);
+        await hani.sendMessage(adminJid, { text: notifMessage });
+        console.log(`[PAYMENT] 📱 Notification envoyée à l'admin`);
+      }
+    } catch (e) {
+      console.log("[PAYMENT] ⚠️ Erreur notification admin:", e.message);
+    }
+    
+    res.json(result);
+  } catch (e) {
+    console.error('[PAYMENT] ❌ Erreur:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Obtenir les paiements en attente (admin)
+app.get('/api/payment/pending', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const pending = paymentSystem.getPendingPayments();
+    res.json({ success: true, count: pending.length, payments: pending });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Obtenir les paiements complétés (admin)
+app.get('/api/payment/completed', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const limit = parseInt(req.query.limit) || 50;
+    const completed = paymentSystem.getCompletedPayments(limit);
+    res.json({ success: true, count: completed.length, payments: completed });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Confirmer un paiement (admin)
+app.post('/api/payment/confirm/:paymentId', async (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const { transactionId, notes } = req.body;
+    const result = paymentSystem.confirmPayment(req.params.paymentId, transactionId, notes);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    const payment = result.payment;
+    
+    // Activer automatiquement le premium pour le client
+    try {
+      const planDurations = { BRONZE: 30, ARGENT: 30, OR: 30, DIAMANT: 30, LIFETIME: -1 };
+      const days = planDurations[payment.plan] || 30;
+      
+      // Créer la session client
+      if (multiSession) {
+        const clientResult = await multiSession.createClientSession(
+          payment.orderId, 
+          payment.plan, 
+          days === -1 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+        );
+        
+        result.clientId = clientResult.clientId;
+        result.connectUrl = `/connect.html?id=${clientResult.clientId}`;
+      }
+      
+      // Envoyer confirmation au client via WhatsApp
+      if (hani) {
+        const clientJid = payment.clientPhone + "@s.whatsapp.net";
+        const confirmMessage = paymentSystem.generateClientConfirmation(payment);
+        await hani.sendMessage(clientJid, { text: confirmMessage });
+        
+        // Si on a créé un clientId, envoyer le lien
+        if (result.clientId) {
+          await hani.sendMessage(clientJid, { 
+            text: `🔗 *Votre lien de connexion:*\n${process.env.BASE_URL || 'http://localhost:3000'}/connect.html?id=${result.clientId}\n\nOu utilisez cet ID: *${result.clientId}*` 
+          });
+        }
+        
+        console.log(`[PAYMENT] 📱 Confirmation envoyée au client: ${payment.clientPhone}`);
+      }
+    } catch (e) {
+      console.log("[PAYMENT] ⚠️ Erreur activation/notification:", e.message);
+    }
+    
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Rejeter un paiement (admin)
+app.post('/api/payment/reject/:paymentId', async (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const { reason } = req.body;
+    const result = paymentSystem.rejectPayment(req.params.paymentId, reason);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    // Notifier le client du rejet
+    try {
+      if (hani && result.payment) {
+        const clientJid = result.payment.clientPhone + "@s.whatsapp.net";
+        await hani.sendMessage(clientJid, { 
+          text: `❌ *Paiement non validé*\n\nVotre demande de paiement (${result.payment.orderId}) n'a pas été validée.\n\n${reason ? `Raison: ${reason}\n\n` : ''}Veuillez réessayer ou contactez le support.` 
+        });
+      }
+    } catch (e) {
+      console.log("[PAYMENT] ⚠️ Erreur notification rejet:", e.message);
+    }
+    
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Statistiques des paiements (admin)
+app.get('/api/payment/stats', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const stats = paymentSystem.getPaymentStats();
+    res.json({ success: true, ...stats });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Vérifier un paiement par ID
+app.get('/api/payment/check/:paymentId', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const payment = paymentSystem.getPayment(req.params.paymentId);
+    if (!payment) {
+      return res.status(404).json({ error: "Paiement non trouvé" });
+    }
+    
+    res.json({ success: true, payment });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Configuration du système de paiement (admin)
+app.get('/api/payment/config', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const config = paymentSystem.getConfig();
+    res.json({ success: true, config });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// API: Mettre à jour la configuration (admin)
+app.post('/api/payment/config', (req, res) => {
+  try {
+    if (!paymentSystem) {
+      return res.status(500).json({ error: "Système de paiement non disponible" });
+    }
+    
+    const { adminWhatsApp, paymentNumbers } = req.body;
+    
+    if (adminWhatsApp) {
+      paymentSystem.setAdminWhatsApp(adminWhatsApp);
+    }
+    
+    if (paymentNumbers) {
+      for (const [method, data] of Object.entries(paymentNumbers)) {
+        if (data.number) {
+          paymentSystem.setPaymentNumber(method, data.number, data.merchantName);
+        }
+      }
+    }
+    
+    res.json({ success: true, config: paymentSystem.getConfig() });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+console.log("[PREMIUM-WEB] 💎 Routes premium chargées");
+console.log("[CLIENT-API] 📱 Routes inscription clients chargées");
+console.log("[PAYMENT-API] 💰 Routes paiement chargées");
+console.log("[MULTI-SESSION] 🔗 Routes multi-session chargées");
+
 app.listen(port, () => {
   console.log(`[WEB] Serveur web sur le port ${port}`);
   console.log(`[QR] Page QR Code: http://localhost:${port}/qr`);
+  console.log(`[PREMIUM] 💎 Dashboard Premium: http://localhost:${port}/premium`);
+  console.log(`[PREMIUM] 👑 Admin: http://localhost:${port}/premium/admin.html`);
 });
 
 // ═══════════════════════════════════════════════════════════

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--darker);
+      min-height: 100vh;
+      color: var(--light);
+    }
+
+    /* Login Screen */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--darker), #1e1b4b, var(--dark));
+    }
+
+    .login-box {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 3rem;
+      width: 100%;
+      max-width: 420px;
+      backdrop-filter: blur(20px);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-logo i {
+      font-size: 3rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-logo h1 {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--light);
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      text-align: center;
+      display: none;
+    }
+
+    /* Dashboard */
+    .dashboard { display: none; }
+    .dashboard.active { display: block; }
+    .login-screen.hidden { display: none; }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.95);
+      border-right: 1px solid var(--glass-border);
+      padding: 1.5rem;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-logo-icon {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .sidebar-logo span {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+    }
+
+    .sidebar-nav li {
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: var(--glass);
+      color: var(--light);
+    }
+
+    .sidebar-nav a.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .sidebar-nav i {
+      width: 20px;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn-sm {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, var(--primary), transparent);
+      opacity: 0.1;
+      border-radius: 50%;
+      transform: translate(30%, -30%);
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-icon.purple { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+    .stat-icon.green { background: linear-gradient(135deg, var(--success), #059669); }
+    .stat-icon.orange { background: linear-gradient(135deg, var(--warning), #d97706); }
+    .stat-icon.cyan { background: linear-gradient(135deg, var(--accent), #0891b2); }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+    }
+
+    /* Tables & Cards */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    th {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-bronze { background: linear-gradient(135deg, #cd7f32, #b87333); }
+    .badge-argent { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #333; }
+    .badge-or { background: linear-gradient(135deg, #ffd700, #ffb800); color: #333; }
+    .badge-diamant { background: linear-gradient(135deg, #b9f2ff, #00bcd4); color: #333; }
+    .badge-lifetime { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      background: var(--glass);
+      color: var(--light);
+      margin-left: 0.5rem;
+    }
+
+    .btn-icon:hover {
+      background: var(--danger);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--dark);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 500px;
+      transform: translateY(20px);
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 1.25rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-color: transparent;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Codes Display */
+    .codes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .code-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+
+    .code-item .copy-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .code-item .copy-btn:hover {
+      color: var(--accent);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--success);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 2000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.error {
+      background: var(--danger);
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--glass-border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Page sections */
+    .page { display: none; }
+    .page.active { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">
+        <i class="fas fa-crown"></i>
+        <h1>HANI-MD Admin</h1>
+      </div>
+      <div class="error-msg" id="loginError"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Mot de passe administrateur</label>
+          <input type="password" id="password" placeholder="Entrez le mot de passe" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-lock-open"></i> Connexion
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">💎</div>
+        <span>HANI Premium</span>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" data-page="overview"><i class="fas fa-chart-pie"></i> Vue d'ensemble</a></li>
+        <li><a href="#" data-page="users"><i class="fas fa-users"></i> Utilisateurs</a></li>
+        <li><a href="#" data-page="codes"><i class="fas fa-key"></i> Codes</a></li>
+        <li><a href="#" data-page="requests"><i class="fas fa-clock"></i> Demandes</a></li>
+        <li><a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> Site public</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <!-- Overview Page -->
+      <div class="page active" id="page-overview">
+        <div class="header">
+          <h1>📊 Vue d'ensemble</h1>
+          <div class="header-actions">
+            <button class="btn btn-sm btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+            <div class="stat-value" id="stat-premium">0</div>
+            <div class="stat-label">Utilisateurs Premium</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="stat-value" id="stat-revenue">0 FCFA</div>
+            <div class="stat-label">Revenus estimés</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-key"></i></div>
+            <div class="stat-value" id="stat-codes">0</div>
+            <div class="stat-label">Codes disponibles</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cyan"><i class="fas fa-clock"></i></div>
+            <div class="stat-value" id="stat-requests">0</div>
+            <div class="stat-label">Demandes en attente</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>📈 Répartition par plan</h3>
+          </div>
+          <div class="card-body">
+            <div id="planStats"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Page -->
+      <div class="page" id="page-users">
+        <div class="header">
+          <h1>👥 Utilisateurs Premium</h1>
+          <button class="btn btn-sm btn-primary" onclick="openModal('addUserModal')">
+            <i class="fas fa-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Numéro</th>
+                  <th>Plan</th>
+                  <th>Expire le</th>
+                  <th>Jours restants</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Codes Page -->
+      <div class="page" id="page-codes">
+        <div class="header">
+          <h1>🔑 Codes d'activation</h1>
+          <button class="btn btn-sm btn-primary" onclick="openModal('genCodeModal')">
+            <i class="fas fa-plus"></i> Générer
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Codes disponibles</h3>
+          </div>
+          <div class="card-body">
+            <div id="codesList" class="codes-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Requests Page -->
+      <div class="page" id="page-requests">
+        <div class="header">
+          <h1>⏳ Demandes d'abonnement</h1>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Numéro</th>
+                  <th>Plan</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal-overlay" id="addUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Ajouter un utilisateur premium</h3>
+        <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Numéro WhatsApp</label>
+          <input type="text" id="newUserPhone" placeholder="Ex: 2250150252467">
+        </div>
+        <div class="form-group">
+          <label>Plan</label>
+          <select id="newUserPlan" style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:12px;color:var(--light);">
+            <option value="BRONZE">Bronze</option>
+            <option value="ARGENT">Argent</option>
+            <option value="OR">Or</option>
+            <option value="DIAMANT">Diamant</option>
+            <option value="LIFETIME">Lifetime</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Durée (jours)</label>
+          <input type="number" id="newUserDays" value="30" min="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('addUserModal')">Annuler</button>
+        <button class="btn btn-sm btn-primary" onclick="addUser()">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Codes Modal -->
+  <div class="modal-overlay" id="genCodeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Générer des codes</h3>
+        <button class="modal-close" onclick="closeModal('genCodeModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Plan</label>
+          <select id="genCodePlan" style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:12px;color:var(--light);">
+            <option value="BRONZE">Bronze</option>
+            <option value="ARGENT">Argent</option>
+            <option value="OR">Or</option>
+            <option value="DIAMANT">Diamant</option>
+            <option value="LIFETIME">Lifetime</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nombre de codes</label>
+          <input type="number" id="genCodeCount" value="1" min="1" max="50">
+        </div>
+        <div id="generatedCodes" style="margin-top:1rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('genCodeModal')">Fermer</button>
+        <button class="btn btn-sm btn-primary" onclick="generateCodes()">Générer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg">Succès!</span>
+  </div>
+
+  <script>
+    const API_URL = '';
+    let authToken = localStorage.getItem('adminToken');
+
+    // Check auth on load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (authToken) {
+        showDashboard();
+        loadData();
+      }
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          authToken = data.token;
+          localStorage.setItem('adminToken', authToken);
+          showDashboard();
+          loadData();
+        } else {
+          showLoginError(data.error || 'Erreur de connexion');
+        }
+      } catch (err) {
+        showLoginError('Erreur de connexion');
+      }
+    });
+
+    function showLoginError(msg) {
+      const el = document.getElementById('loginError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function showDashboard() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.add('active');
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('adminToken');
+      authToken = null;
+      location.reload();
+    });
+
+    // Navigation
+    document.querySelectorAll('.sidebar-nav a[data-page]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = e.currentTarget.dataset.page;
+        
+        document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        
+        if (page === 'users') loadUsers();
+        if (page === 'codes') loadCodes();
+        if (page === 'requests') loadRequests();
+      });
+    });
+
+    // API calls
+    async function apiCall(endpoint, method = 'GET', body = null) {
+      const options = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken
+        }
+      };
+      if (body) options.body = JSON.stringify(body);
+      
+      const res = await fetch(endpoint, options);
+      return res.json();
+    }
+
+    async function loadData() {
+      try {
+        const stats = await apiCall('/api/admin/stats');
+        if (stats.success) {
+          document.getElementById('stat-premium').textContent = stats.stats.totalPremium || 0;
+          document.getElementById('stat-revenue').textContent = (stats.stats.revenue || 0).toLocaleString() + ' FCFA';
+          document.getElementById('stat-codes').textContent = stats.stats.availableCodes || 0;
+          
+          // Plan breakdown
+          const planStats = stats.stats.byPlan || {};
+          let html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;text-align:center;">';
+          const plans = ['BRONZE', 'ARGENT', 'OR', 'DIAMANT', 'LIFETIME'];
+          const icons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+          plans.forEach(p => {
+            html += `<div style="padding:1rem;background:var(--glass);border-radius:12px;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">${icons[p]}</div>
+              <div style="font-size:1.5rem;font-weight:700;">${planStats[p] || 0}</div>
+              <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;">${p}</div>
+            </div>`;
+          });
+          html += '</div>';
+          document.getElementById('planStats').innerHTML = html;
+        }
+        
+        // Load pending requests count
+        const requests = await apiCall('/api/admin/requests');
+        if (requests.success) {
+          const pending = requests.requests.filter(r => r.status === 'pending').length;
+          document.getElementById('stat-requests').textContent = pending;
+        }
+      } catch (err) {
+        console.error('Load error:', err);
+      }
+    }
+
+    async function loadUsers() {
+      const data = await apiCall('/api/admin/users');
+      if (!data.success) return;
+      
+      const icons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+      let html = '';
+      
+      data.users.forEach(u => {
+        const phone = u.jid.split('@')[0];
+        const expires = u.plan === 'LIFETIME' ? 'Jamais' : new Date(u.expiresAt).toLocaleDateString('fr-FR');
+        const daysLeft = u.plan === 'LIFETIME' ? '∞' : Math.ceil((new Date(u.expiresAt) - new Date()) / (1000*60*60*24));
+        
+        html += `<tr>
+          <td>+${phone}</td>
+          <td><span class="badge badge-${u.plan.toLowerCase()}">${icons[u.plan]} ${u.plan}</span></td>
+          <td>${expires}</td>
+          <td>${daysLeft}</td>
+          <td>
+            <button class="btn-icon" onclick="deleteUser('${phone}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`;
+      });
+      
+      document.getElementById('usersTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;">Aucun utilisateur</td></tr>';
+    }
+
+    async function loadCodes() {
+      const data = await apiCall('/api/admin/codes');
+      if (!data.success) return;
+      
+      const icons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+      let html = '';
+      
+      data.codes.forEach(c => {
+        html += `<div class="code-item">
+          <span class="badge badge-${c.plan.toLowerCase()}">${icons[c.plan]}</span>
+          <code>${c.code}</code>
+          <button class="copy-btn" onclick="copyCode('${c.code}')"><i class="fas fa-copy"></i></button>
+        </div>`;
+      });
+      
+      document.getElementById('codesList').innerHTML = html || '<p>Aucun code disponible</p>';
+    }
+
+    async function loadRequests() {
+      const data = await apiCall('/api/admin/requests');
+      if (!data.success) return;
+      
+      let html = '';
+      
+      data.requests.forEach(r => {
+        const statusBadge = r.status === 'pending' 
+          ? '<span style="color:var(--warning);">⏳ En attente</span>'
+          : '<span style="color:var(--success);">✅ Approuvé</span>';
+        
+        html += `<tr>
+          <td>+${r.phone}</td>
+          <td>${r.plan}</td>
+          <td>${new Date(r.createdAt).toLocaleDateString('fr-FR')}</td>
+          <td>${statusBadge}</td>
+          <td>
+            ${r.status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="approveRequest('${r.id}')">Approuver</button>` : r.code || ''}
+          </td>
+        </tr>`;
+      });
+      
+      document.getElementById('requestsTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;">Aucune demande</td></tr>';
+    }
+
+    async function addUser() {
+      const phone = document.getElementById('newUserPhone').value;
+      const plan = document.getElementById('newUserPlan').value;
+      const days = document.getElementById('newUserDays').value;
+      
+      const data = await apiCall('/api/admin/users', 'POST', { phone, plan, days: parseInt(days) });
+      
+      if (data.success) {
+        showToast('Utilisateur ajouté!');
+        closeModal('addUserModal');
+        loadUsers();
+        loadData();
+      } else {
+        showToast(data.error || 'Erreur', true);
+      }
+    }
+
+    async function deleteUser(phone) {
+      if (!confirm('Supprimer cet utilisateur premium?')) return;
+      
+      const data = await apiCall('/api/admin/users/' + phone, 'DELETE');
+      
+      if (data.success) {
+        showToast('Utilisateur supprimé');
+        loadUsers();
+        loadData();
+      }
+    }
+
+    async function generateCodes() {
+      const plan = document.getElementById('genCodePlan').value;
+      const count = document.getElementById('genCodeCount').value;
+      
+      const data = await apiCall('/api/admin/codes/generate', 'POST', { plan, count: parseInt(count) });
+      
+      if (data.success && data.codes) {
+        let html = '<div style="margin-top:1rem;"><strong>Codes générés:</strong></div>';
+        html += '<div class="codes-list" style="margin-top:0.5rem;">';
+        data.codes.forEach(code => {
+          html += `<div class="code-item"><code>${code}</code><button class="copy-btn" onclick="copyCode('${code}')"><i class="fas fa-copy"></i></button></div>`;
+        });
+        html += '</div>';
+        document.getElementById('generatedCodes').innerHTML = html;
+        
+        loadCodes();
+        loadData();
+      }
+    }
+
+    async function approveRequest(id) {
+      const data = await apiCall('/api/admin/requests/' + id + '/approve', 'POST');
+      
+      if (data.success) {
+        showToast(`Approuvé! Code: ${data.code}`);
+        loadRequests();
+        loadData();
+      }
+    }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code);
+      showToast('Code copié!');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+      if (id === 'genCodeModal') {
+        document.getElementById('generatedCodes').innerHTML = '';
+      }
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      
+      toast.classList.toggle('error', isError);
+      toastMsg.textContent = msg;
+      toast.classList.add('show');
+      
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+{
+  "botInfo": {
+    "name": "HANI-MD",
+    "version": "2.6.0",
+    "developer": "H2025",
+    "whatsapp": "+2250150252467",
+    "description": "Bot WhatsApp intelligent avec des fonctionnalités premium avancées"
+  },
+  "paymentMethods": [
+    { "id": "wave", "name": "Wave", "number": "+2250150252467", "icon": "📱" },
+    { "id": "orange", "name": "Orange Money", "number": "+2250150252467", "icon": "🟠" },
+    { "id": "mtn", "name": "MTN Money", "number": "+2250150252467", "icon": "🟡" }
+  ],
+  "plans": {
+    "FREE": {
+      "name": "Gratuit",
+      "price": 0,
+      "currency": "FCFA",
+      "duration": "À vie",
+      "dailyLimit": 20,
+      "icon": "🆓",
+      "color": "#6b7280",
+      "popular": false,
+      "features": [
+        { "name": "20 commandes par jour", "included": true },
+        { "name": "Commandes de base (menu, ping, info)", "included": true },
+        { "name": "Stickers simples", "included": true },
+        { "name": "Téléchargements audio/vidéo", "included": false },
+        { "name": "Intelligence Artificielle", "included": false },
+        { "name": "Gestion de groupe", "included": false },
+        { "name": "Protections avancées", "included": false },
+        { "name": "Support prioritaire", "included": false }
+      ],
+      "commands": ["menu", "ping", "info", "help", "premium", "owner"]
+    },
+    "BRONZE": {
+      "name": "Bronze",
+      "price": 500,
+      "currency": "FCFA",
+      "duration": "30 jours",
+      "dailyLimit": 100,
+      "icon": "🥉",
+      "color": "#cd7f32",
+      "popular": false,
+      "features": [
+        { "name": "100 commandes par jour", "included": true },
+        { "name": "Téléchargements YouTube (audio)", "included": true },
+        { "name": "Téléchargements TikTok", "included": true },
+        { "name": "Stickers avancés & GIFs", "included": true },
+        { "name": "Conversion fichiers (toimg, tts)", "included": true },
+        { "name": "Traduction automatique", "included": true },
+        { "name": "Intelligence Artificielle", "included": false },
+        { "name": "Gestion de groupe avancée", "included": false },
+        { "name": "Support prioritaire", "included": false }
+      ],
+      "commands": ["play", "video", "tiktok", "sticker", "toimg", "tts", "translate", "logo"]
+    },
+    "ARGENT": {
+      "name": "Argent",
+      "price": 1000,
+      "currency": "FCFA",
+      "duration": "30 jours",
+      "dailyLimit": 500,
+      "icon": "🥈",
+      "color": "#c0c0c0",
+      "popular": true,
+      "features": [
+        { "name": "500 commandes par jour", "included": true },
+        { "name": "Tous téléchargements HD (YouTube, TikTok, Instagram)", "included": true },
+        { "name": "IA Complète (GPT, DALL-E, Gemini)", "included": true },
+        { "name": "Génération d'images IA", "included": true },
+        { "name": "Gestion de groupe (kick, add, promote)", "included": true },
+        { "name": "Anti-spam & Anti-link", "included": true },
+        { "name": "Welcome & Goodbye automatiques", "included": true },
+        { "name": "Support prioritaire", "included": true }
+      ],
+      "commands": ["gpt", "dalle", "imagine", "gemini", "antilink", "antispam", "welcome", "goodbye", "warn", "kick", "add", "promote", "demote"]
+    },
+    "OR": {
+      "name": "Or",
+      "price": 2000,
+      "currency": "FCFA",
+      "duration": "30 jours",
+      "dailyLimit": -1,
+      "icon": "🥇",
+      "color": "#ffd700",
+      "popular": false,
+      "features": [
+        { "name": "Commandes ILLIMITÉES", "included": true },
+        { "name": "Toutes les fonctionnalités Argent", "included": true },
+        { "name": "Mode invisible (anti-appel)", "included": true },
+        { "name": "Notifications espion avancées", "included": true },
+        { "name": "Sauvegarde automatique statuts", "included": true },
+        { "name": "Anti-delete messages", "included": true },
+        { "name": "Économie & Jeux premium", "included": true },
+        { "name": "Support VIP 24/7", "included": true }
+      ],
+      "commands": ["invisible", "anticall", "antidelete", "economy", "casino", "slots", "daily", "leaderboard"]
+    },
+    "DIAMANT": {
+      "name": "Diamant",
+      "price": 5000,
+      "currency": "FCFA",
+      "duration": "30 jours",
+      "dailyLimit": -1,
+      "icon": "💎",
+      "color": "#00d4ff",
+      "popular": false,
+      "features": [
+        { "name": "TOUT ILLIMITÉ", "included": true },
+        { "name": "Toutes les fonctionnalités Or", "included": true },
+        { "name": "Multi-numéros (jusqu'à 3)", "included": true },
+        { "name": "Broadcast massif", "included": true },
+        { "name": "Fonctionnalités exclusives bêta", "included": true },
+        { "name": "API personnalisée", "included": true },
+        { "name": "Badge Diamant 💎", "included": true },
+        { "name": "Support personnel dédié", "included": true }
+      ],
+      "commands": ["broadcast", "multibot", "api", "beta", "export", "backup"]
+    },
+    "LIFETIME": {
+      "name": "Lifetime",
+      "price": 15000,
+      "currency": "FCFA",
+      "duration": "À VIE",
+      "dailyLimit": -1,
+      "icon": "👑",
+      "color": "#9333ea",
+      "popular": false,
+      "features": [
+        { "name": "ACCÈS À VIE", "included": true },
+        { "name": "Toutes les fonctionnalités DIAMANT", "included": true },
+        { "name": "Mises à jour gratuites à vie", "included": true },
+        { "name": "Badge Lifetime exclusif 👑", "included": true },
+        { "name": "Priorité absolue", "included": true },
+        { "name": "Accès anticipé nouvelles features", "included": true },
+        { "name": "Support VIP permanent", "included": true },
+        { "name": "Mention dans les crédits du bot", "included": true }
+      ],
+      "commands": ["all"]
+    }
+  },
+  "categories": {
+    "telechargement": {
+      "name": "📥 Téléchargement",
+      "description": "Téléchargez des médias depuis YouTube, TikTok, Instagram, Facebook et plus",
+      "commands": ["play", "video", "tiktok", "insta", "fb", "twitter", "spotify", "apk", "mediafire"]
+    },
+    "ia": {
+      "name": "🤖 Intelligence Artificielle",
+      "description": "Accédez aux meilleures IA du marché",
+      "commands": ["gpt", "gemini", "dalle", "imagine", "claude", "bard", "copilot"]
+    },
+    "groupe": {
+      "name": "👥 Gestion de Groupe",
+      "description": "Gérez vos groupes WhatsApp efficacement",
+      "commands": ["kick", "add", "promote", "demote", "tagall", "hidetag", "setname", "setdesc", "setpp", "antilink", "antispam", "welcome", "goodbye"]
+    },
+    "conversion": {
+      "name": "🔄 Conversion",
+      "description": "Convertissez vos fichiers facilement",
+      "commands": ["sticker", "toimg", "tovideo", "toaudio", "tts", "translate", "resize"]
+    },
+    "fun": {
+      "name": "🎮 Fun & Jeux",
+      "description": "Amusez-vous avec des jeux et fonctionnalités amusantes",
+      "commands": ["slot", "casino", "dice", "quiz", "truth", "dare", "joke", "quote", "horoscope"]
+    },
+    "economie": {
+      "name": "💰 Économie",
+      "description": "Système économique avec coins, diamants et récompenses",
+      "commands": ["daily", "work", "bank", "transfer", "shop", "inventory", "leaderboard", "profile"]
+    },
+    "protection": {
+      "name": "🛡️ Protection",
+      "description": "Protégez-vous et votre groupe",
+      "commands": ["antilink", "antispam", "antibot", "antitag", "anticall", "antidelete", "invisible"]
+    },
+    "statut": {
+      "name": "📸 Statuts",
+      "description": "Gérez et sauvegardez les statuts",
+      "commands": ["dlstatus", "mystatus", "viewstatus", "autostatus", "savealliststatus"]
+    }
+  }
+}

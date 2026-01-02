@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Paiements - HANI-MD Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, #1e1b4b 50%, var(--dark) 100%);
+      min-height: 100vh;
+      color: var(--light);
+      padding: 1.5rem;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 800; }
+    .logo-icon { font-size: 2rem; }
+
+    nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+    nav a {
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      padding: 8px 16px; border-radius: 8px; transition: all 0.3s;
+    }
+    nav a:hover, nav a.active { background: var(--glass); color: var(--light); }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem; margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(20px);
+    }
+    .stat-card .label { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; }
+    .stat-card .value.success { color: var(--success); }
+    .stat-card .value.warning { color: var(--warning); }
+    .stat-card .value.primary { color: var(--primary); }
+
+    .card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 20px; padding: 1.5rem; backdrop-filter: blur(20px);
+      margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .card-header h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+    .card-header .badge {
+      background: var(--warning); color: #000; padding: 4px 12px;
+      border-radius: 20px; font-size: 0.85rem; font-weight: 700;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border: none; border-radius: 10px;
+      font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s;
+    }
+    .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+    .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+    .btn-danger { background: linear-gradient(135deg, var(--error), #dc2626); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--light); }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+    th { color: rgba(255,255,255,0.6); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+    tr:hover { background: rgba(255,255,255,0.03); }
+
+    .status-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    }
+    .status-pending { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+    .status-completed { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .status-rejected { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+    .plan-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    }
+    .plan-bronze { background: rgba(217, 119, 6, 0.2); color: #f59e0b; }
+    .plan-argent { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+    .plan-or { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+    .plan-diamant { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+    .plan-lifetime { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+
+    .actions { display: flex; gap: 8px; }
+
+    .empty-state {
+      text-align: center; padding: 3rem; color: rgba(255,255,255,0.5);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--dark); border: 1px solid var(--glass-border);
+      border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h3 { font-size: 1.3rem; }
+    .modal-close { background: none; border: none; color: var(--light); font-size: 1.5rem; cursor: pointer; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 500; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 12px; background: var(--glass);
+      border: 1px solid var(--glass-border); border-radius: 10px;
+      color: var(--light); font-size: 1rem;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none; border-color: var(--primary);
+    }
+
+    .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .config-item {
+      background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px;
+    }
+    .config-item h4 { font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem; }
+    .config-item .value { font-size: 1.1rem; font-weight: 600; word-break: break-all; }
+
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab {
+      padding: 10px 20px; background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 10px; color: var(--light); cursor: pointer; transition: all 0.3s;
+    }
+    .tab:hover, .tab.active { background: var(--primary); border-color: var(--primary); }
+
+    .refresh-indicator { display: none; margin-left: 10px; }
+    .refresh-indicator.active { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert {
+      padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .alert-warning { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); color: var(--warning); }
+    .alert-success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); }
+
+    @media (max-width: 768px) {
+      table { font-size: 0.85rem; }
+      th, td { padding: 8px 4px; }
+      .actions { flex-direction: column; }
+      .responsive-hide { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-icon">💰</span>
+        <span>HANI-MD Paiements</span>
+      </div>
+      <nav>
+        <a href="index.html">Accueil</a>
+        <a href="subscribe.html">Inscription</a>
+        <a href="payments.html" class="active">Paiements</a>
+      </nav>
+    </header>
+
+    <!-- Alert -->
+    <div class="alert alert-warning" id="notification-alert" style="display: none;">
+      <i class="fas fa-bell"></i>
+      <span id="notification-text">Nouveau paiement en attente!</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-container">
+      <div class="stat-card">
+        <div class="label">💰 Revenus Aujourd'hui</div>
+        <div class="value success" id="stat-today">0 FCFA</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">📅 Revenus ce Mois</div>
+        <div class="value primary" id="stat-month">0 FCFA</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">⏳ En Attente</div>
+        <div class="value warning" id="stat-pending">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">✅ Total Complétés</div>
+        <div class="value" id="stat-completed">0</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('pending')">
+        ⏳ En Attente <span class="badge" id="pending-count" style="background: var(--warning); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-left: 5px;">0</span>
+      </div>
+      <div class="tab" onclick="showTab('completed')">✅ Complétés</div>
+      <div class="tab" onclick="showTab('config')">⚙️ Configuration</div>
+    </div>
+
+    <!-- Paiements en attente -->
+    <div class="card tab-content" id="tab-pending">
+      <div class="card-header">
+        <h2>
+          <i class="fas fa-clock"></i> Paiements en Attente
+          <i class="fas fa-sync refresh-indicator" id="refresh-pending"></i>
+        </h2>
+        <button class="btn btn-outline" onclick="loadPendingPayments()">
+          <i class="fas fa-refresh"></i> Actualiser
+        </button>
+      </div>
+
+      <div id="pending-list">
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Chargement...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paiements complétés -->
+    <div class="card tab-content" id="tab-completed" style="display: none;">
+      <div class="card-header">
+        <h2><i class="fas fa-check-circle"></i> Paiements Complétés</h2>
+      </div>
+
+      <div id="completed-list">
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Chargement...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration -->
+    <div class="card tab-content" id="tab-config" style="display: none;">
+      <div class="card-header">
+        <h2><i class="fas fa-cog"></i> Configuration des Paiements</h2>
+        <button class="btn btn-primary" onclick="saveConfig()">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>📱 Numéro WhatsApp Admin (pour recevoir les notifications)</label>
+        <input type="tel" id="config-admin" placeholder="2250150252467">
+      </div>
+
+      <h3 style="margin: 1.5rem 0 1rem;">💳 Numéros de Réception des Paiements</h3>
+      
+      <div class="config-grid">
+        <div class="config-item">
+          <h4>🟢 Wave</h4>
+          <input type="tel" id="config-wave" placeholder="+2250XXXXXXXXX">
+        </div>
+        <div class="config-item">
+          <h4>🟡 Moov Money</h4>
+          <input type="tel" id="config-moov" placeholder="+2250XXXXXXXXX">
+        </div>
+      </div>
+
+      <h3 style="margin: 1.5rem 0 1rem;">💎 Tarifs des Plans</h3>
+      
+      <div class="config-grid">
+        <div class="config-item">
+          <h4>🥉 Bronze (7 jours)</h4>
+          <input type="number" id="config-price-bronze" placeholder="500">
+        </div>
+        <div class="config-item">
+          <h4>🥈 Argent (15 jours)</h4>
+          <input type="number" id="config-price-argent" placeholder="1000">
+        </div>
+        <div class="config-item">
+          <h4>🥇 Or (30 jours)</h4>
+          <input type="number" id="config-price-or" placeholder="2000">
+        </div>
+        <div class="config-item">
+          <h4>💎 Diamant (90 jours)</h4>
+          <input type="number" id="config-price-diamant" placeholder="5000">
+        </div>
+        <div class="config-item">
+          <h4>👑 Lifetime (À vie)</h4>
+          <input type="number" id="config-price-lifetime" placeholder="15000">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmation -->
+  <div class="modal" id="modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>✅ Confirmer le Paiement</h3>
+        <button class="modal-close" onclick="closeModal('confirm')">&times;</button>
+      </div>
+      
+      <div id="confirm-details"></div>
+      
+      <div class="form-group">
+        <label>ID Transaction (optionnel)</label>
+        <input type="text" id="confirm-transaction" placeholder="Ex: TXN123456">
+      </div>
+      
+      <div class="form-group">
+        <label>Notes (optionnel)</label>
+        <textarea id="confirm-notes" rows="2" placeholder="Notes sur ce paiement..."></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button class="btn btn-outline" onclick="closeModal('confirm')" style="flex: 1;">Annuler</button>
+        <button class="btn btn-success" id="btn-confirm" style="flex: 1;">
+          <i class="fas fa-check"></i> Confirmer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Rejet -->
+  <div class="modal" id="modal-reject">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>❌ Rejeter le Paiement</h3>
+        <button class="modal-close" onclick="closeModal('reject')">&times;</button>
+      </div>
+      
+      <div id="reject-details"></div>
+      
+      <div class="form-group">
+        <label>Raison du rejet</label>
+        <textarea id="reject-reason" rows="3" placeholder="Expliquez pourquoi ce paiement est rejeté..."></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button class="btn btn-outline" onclick="closeModal('reject')" style="flex: 1;">Annuler</button>
+        <button class="btn btn-danger" id="btn-reject" style="flex: 1;">
+          <i class="fas fa-times"></i> Rejeter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPaymentId = null;
+    let previousPendingCount = 0;
+
+    // Afficher un onglet
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      
+      document.querySelector(`.tab:nth-child(${tab === 'pending' ? 1 : tab === 'completed' ? 2 : 3})`).classList.add('active');
+      document.getElementById('tab-' + tab).style.display = 'block';
+      
+      if (tab === 'pending') loadPendingPayments();
+      else if (tab === 'completed') loadCompletedPayments();
+      else if (tab === 'config') loadConfig();
+    }
+
+    // Charger les stats
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/payment/stats');
+        const data = await res.json();
+        
+        if (data.success !== false) {
+          document.getElementById('stat-today').textContent = (data.todayRevenue || 0).toLocaleString() + ' ' + (data.currency || 'FCFA');
+          document.getElementById('stat-month').textContent = (data.monthRevenue || 0).toLocaleString() + ' ' + (data.currency || 'FCFA');
+          document.getElementById('stat-pending').textContent = data.pendingPayments || 0;
+          document.getElementById('stat-completed').textContent = data.totalPayments || 0;
+          document.getElementById('pending-count').textContent = data.pendingPayments || 0;
+          
+          // Notification nouveau paiement
+          if (data.pendingPayments > previousPendingCount && previousPendingCount > 0) {
+            showNotification('🔔 Nouveau paiement en attente!');
+            playNotificationSound();
+          }
+          previousPendingCount = data.pendingPayments || 0;
+        }
+      } catch (e) {
+        console.error('Erreur stats:', e);
+      }
+    }
+
+    // Jouer un son de notification
+    function playNotificationSound() {
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleVNcl9rVp2dCKlKGs87Aq5FoXl6Zu9OrhU8tO4fBvc64n4BmbpCtuNKylWYuMGGMt9DOvKKFY2KItM/Lxq2Sb1pYgKvR0M69nXtjY4Ksy9TMs5JoUFqBsMzOwa6JaFlmhrvR1ciwj2ZTVoK0zs7BooluWmF5sNLQwaqMc11aeq/O08Okh3FdW4O3z9HBqI1zWlZ7sc3UwaSKc1tYgbTPz8OrimxaWH+zzdTCqI5zWlR6scnWwKGKdFxZgLTM0cGlh3VdWXuyy9PDqIdxXFl/s8rRw6mJdF1WfbHKz8SmhXNgWny0y8/Dp4l0XliAs8vQw6iJdF5YfrLKz8OoiHNfWH+yys/EqYl0XleBscrPw6iJdF5XgLLKz8Sph3VfV4Cxys/EqYh0X1mCssrPw6mIdF5Yf7HJzsSoiHVfV4Gxys7DqYl0XliCssrOxKiIdF9YgbLKz8OoiXReV4Cxys/DqIl0X1iBscnOw6iJdF5XgLHKzsOpinRfWIGxys3EqIl0X1iBscrOxKiIdF9XgLDJzcSoiXRfWH+wycvCqIl0XliBr8nLwqiKdF9YgbDIy8KninRfWIGvyMvCqIp0XliAr8jLwqiKdF9YgK/Iy8KoinRfWH+vyMvCqIp0XliAr8fLwqiKdF9Yf6/HysCninRfWICuyMq/qYp0X1d+rsfJv6mLdV9Xfa3Gyb+pi3VfVn2sxsi/qYt1YFZ9rMbHv6iKdWBXfqzFxr6oinVgV36sxcW+qIl0YFd+q8TEvqiKdGBXfqvEw76niXVgVn6qw8O9p4l0YFZ+qsPCvaeLdWBWfanCwbyliXVhVn2owsC8pYh1YVZ9qMG/u6SHdGFXfafBvrqjh3RiV3yowb26oot0YVZ8p8C8uaGKdGJXfKe/u7igi3RiV3ynvru5oIt0Y1h8p727uKCLc2NYfKa8urigin Nj');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    // Afficher notification
+    function showNotification(text) {
+      const alert = document.getElementById('notification-alert');
+      document.getElementById('notification-text').textContent = text;
+      alert.style.display = 'flex';
+      setTimeout(() => { alert.style.display = 'none'; }, 5000);
+    }
+
+    // Charger les paiements en attente
+    async function loadPendingPayments() {
+      document.getElementById('refresh-pending').classList.add('active');
+      
+      try {
+        const res = await fetch('/api/payment/pending');
+        const data = await res.json();
+        
+        if (data.payments && data.payments.length > 0) {
+          document.getElementById('pending-list').innerHTML = `
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Référence</th>
+                    <th>Client</th>
+                    <th>Plan</th>
+                    <th>Montant</th>
+                    <th class="responsive-hide">Méthode</th>
+                    <th class="responsive-hide">Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.payments.map(p => `
+                    <tr>
+                      <td><strong>${p.orderId}</strong></td>
+                      <td>
+                        <div>+${p.clientPhone}</div>
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5);">${p.clientName || '-'}</div>
+                      </td>
+                      <td><span class="plan-badge plan-${p.plan.toLowerCase()}">${p.planEmoji || '💎'} ${p.planName}</span></td>
+                      <td><strong>${p.amount.toLocaleString()} ${p.currency}</strong></td>
+                      <td class="responsive-hide">${p.paymentMethodName || p.paymentMethod}</td>
+                      <td class="responsive-hide">${new Date(p.createdAt).toLocaleString('fr-FR')}</td>
+                      <td class="actions">
+                        <button class="btn btn-success btn-sm" onclick="openConfirmModal('${p.paymentId}', '${p.orderId}', '${p.clientPhone}', '${p.planName}', ${p.amount})" title="Confirmer">
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="openRejectModal('${p.paymentId}', '${p.orderId}')" title="Rejeter">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          document.getElementById('pending-list').innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>Aucun paiement en attente</p>
+              <p style="font-size: 0.9rem; margin-top: 0.5rem;">Les nouveaux paiements apparaîtront ici</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        console.error('Erreur:', e);
+        document.getElementById('pending-list').innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Erreur de chargement</p>
+            <button class="btn btn-outline" onclick="loadPendingPayments()" style="margin-top: 1rem;">Réessayer</button>
+          </div>
+        `;
+      }
+      
+      document.getElementById('refresh-pending').classList.remove('active');
+      loadStats();
+    }
+
+    // Charger les paiements complétés
+    async function loadCompletedPayments() {
+      try {
+        const res = await fetch('/api/payment/completed?limit=50');
+        const data = await res.json();
+        
+        if (data.payments && data.payments.length > 0) {
+          document.getElementById('completed-list').innerHTML = `
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Référence</th>
+                    <th>Client</th>
+                    <th>Plan</th>
+                    <th>Montant</th>
+                    <th class="responsive-hide">Méthode</th>
+                    <th>Confirmé le</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.payments.map(p => `
+                    <tr>
+                      <td><strong>${p.orderId}</strong></td>
+                      <td>+${p.clientPhone}</td>
+                      <td><span class="plan-badge plan-${p.plan.toLowerCase()}">${p.planEmoji || '💎'} ${p.planName}</span></td>
+                      <td><strong>${p.amount.toLocaleString()} ${p.currency}</strong></td>
+                      <td class="responsive-hide">${p.paymentMethodName || p.paymentMethod}</td>
+                      <td>${p.completedAt ? new Date(p.completedAt).toLocaleString('fr-FR') : '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          document.getElementById('completed-list').innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-history"></i>
+              <p>Aucun paiement complété</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        console.error('Erreur:', e);
+      }
+    }
+
+    // Charger la configuration
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/payment/config');
+        const data = await res.json();
+        
+        if (data.config) {
+          document.getElementById('config-admin').value = data.config.adminWhatsApp || '';
+          document.getElementById('config-wave').value = data.config.paymentNumbers?.wave?.number || '';
+          document.getElementById('config-moov').value = data.config.paymentNumbers?.moov?.number || '';
+          
+          // Prix des plans
+          if (data.config.plans) {
+            document.getElementById('config-price-bronze').value = data.config.plans.bronze?.price || '';
+            document.getElementById('config-price-argent').value = data.config.plans.argent?.price || '';
+            document.getElementById('config-price-or').value = data.config.plans.or?.price || '';
+            document.getElementById('config-price-diamant').value = data.config.plans.diamant?.price || '';
+            document.getElementById('config-price-lifetime').value = data.config.plans.lifetime?.price || '';
+          }
+        }
+      } catch (e) {
+        console.error('Erreur config:', e);
+      }
+    }
+
+    // Sauvegarder la configuration
+    async function saveConfig() {
+      try {
+        const res = await fetch('/api/payment/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminWhatsApp: document.getElementById('config-admin').value,
+            paymentNumbers: {
+              wave: { number: document.getElementById('config-wave').value },
+              moov: { number: document.getElementById('config-moov').value }
+            },
+            plans: {
+              bronze: { price: parseInt(document.getElementById('config-price-bronze').value) || 500 },
+              argent: { price: parseInt(document.getElementById('config-price-argent').value) || 1000 },
+              or: { price: parseInt(document.getElementById('config-price-or').value) || 2000 },
+              diamant: { price: parseInt(document.getElementById('config-price-diamant').value) || 5000 },
+              lifetime: { price: parseInt(document.getElementById('config-price-lifetime').value) || 15000 }
+            }
+          })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          showNotification('✅ Configuration sauvegardée!');
+        } else {
+          alert('❌ Erreur: ' + data.error);
+        }
+      } catch (e) {
+        alert('❌ Erreur: ' + e.message);
+      }
+    }
+
+    // Modals
+    function openConfirmModal(paymentId, orderId, phone, plan, amount) {
+      currentPaymentId = paymentId;
+      document.getElementById('confirm-details').innerHTML = `
+        <div style="background: rgba(16,185,129,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+          <p><strong>Référence:</strong> ${orderId}</p>
+          <p><strong>Client:</strong> +${phone}</p>
+          <p><strong>Plan:</strong> ${plan}</p>
+          <p><strong>Montant:</strong> ${amount.toLocaleString()} FCFA</p>
+        </div>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+          ⚠️ Cette action va activer le compte du client et lui envoyer une notification WhatsApp.
+        </p>
+      `;
+      document.getElementById('confirm-transaction').value = '';
+      document.getElementById('confirm-notes').value = '';
+      document.getElementById('modal-confirm').classList.add('active');
+    }
+
+    function openRejectModal(paymentId, orderId) {
+      currentPaymentId = paymentId;
+      document.getElementById('reject-details').innerHTML = `
+        <div style="background: rgba(239,68,68,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+          <p><strong>Référence:</strong> ${orderId}</p>
+        </div>
+      `;
+      document.getElementById('reject-reason').value = '';
+      document.getElementById('modal-reject').classList.add('active');
+    }
+
+    function closeModal(type) {
+      document.getElementById('modal-' + type).classList.remove('active');
+      currentPaymentId = null;
+    }
+
+    // Confirmer le paiement
+    document.getElementById('btn-confirm').addEventListener('click', async () => {
+      if (!currentPaymentId) return;
+      
+      const btn = document.getElementById('btn-confirm');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirmation...';
+      
+      try {
+        const res = await fetch('/api/payment/confirm/' + currentPaymentId, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transactionId: document.getElementById('confirm-transaction').value,
+            notes: document.getElementById('confirm-notes').value
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showNotification('✅ Paiement confirmé! Client notifié par WhatsApp.');
+          closeModal('confirm');
+          loadPendingPayments();
+        } else {
+          alert('❌ Erreur: ' + data.error);
+        }
+      } catch (e) {
+        alert('❌ Erreur: ' + e.message);
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Confirmer';
+    });
+
+    // Rejeter le paiement
+    document.getElementById('btn-reject').addEventListener('click', async () => {
+      if (!currentPaymentId) return;
+      
+      const reason = document.getElementById('reject-reason').value;
+      if (!reason.trim()) {
+        alert('Veuillez indiquer une raison de rejet');
+        return;
+      }
+      
+      const btn = document.getElementById('btn-reject');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejet...';
+      
+      try {
+        const res = await fetch('/api/payment/reject/' + currentPaymentId, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showNotification('Paiement rejeté');
+          closeModal('reject');
+          loadPendingPayments();
+        } else {
+          alert('❌ Erreur: ' + data.error);
+        }
+      } catch (e) {
+        alert('❌ Erreur: ' + e.message);
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-times"></i> Rejeter';
+    });
+
+    // Fermer modal avec Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal('confirm');
+        closeModal('reject');
+      }
+    });
+
+    // Initialisation
+    loadStats();
+    loadPendingPayments();
+    
+    // Auto-refresh toutes les 15 secondes
+    setInterval(() => {
+      loadStats();
+      if (document.getElementById('tab-pending').style.display !== 'none') {
+        loadPendingPayments();
+      }
+    }, 15000);
+  </script>
+</body>
+</html>

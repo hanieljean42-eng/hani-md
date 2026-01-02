@@ -1,0 +1,29 @@
+{
+  "pending": [
+    {
+      "paymentId": "PAY-MJWU0DXH-66B816",
+      "orderId": "ORD-20260102-7355",
+      "clientPhone": "2250556625811",
+      "clientName": "Client PAY-MJWU0DXH-66B816",
+      "clientEmail": null,
+      "plan": "BRONZE",
+      "planName": "Bronze",
+      "planEmoji": "🥉",
+      "amount": 500,
+      "currency": "FCFA",
+      "duration": 30,
+      "paymentMethod": "wave",
+      "paymentMethodName": "Wave",
+      "paymentNumber": "+2250150252467",
+      "status": "pending",
+      "createdAt": "2026-01-02T12:09:58.773Z",
+      "expiresAt": "2026-01-03T12:09:58.773Z",
+      "transactionId": null,
+      "completedAt": null,
+      "completedBy": null,
+      "notes": null
+    }
+  ],
+  "completed": [],
+  "rejected": []
+}
