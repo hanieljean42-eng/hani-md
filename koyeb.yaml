@@ -1,0 +1,43 @@
+name: hani-md
+type: web
+git:
+  repository: github.com/hanieljean42-eng/hani-md
+  branch: main
+  builder: buildpack
+  buildpack:
+    build_command: npm install --legacy-peer-deps
+    run_command: node start.js
+instance_types:
+  - type: free
+ports:
+  - port: 3000
+    protocol: http
+env:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: PREFIXE
+    value: "."
+  - key: NOM_OWNER
+    value: "H2025"
+  - key: NUMERO_OWNER
+    value: "2250150252467"
+  - key: MODE
+    value: "public"
+  - key: STICKER_PACK_NAME
+    value: "HANI-MD"
+  - key: STICKER_AUTHOR_NAME
+    value: "H2025"
+scaling:
+  min: 1
+  max: 1
+regions:
+  - fra
+health_checks:
+  - path: /api/status
+    port: 3000
+    protocol: http
+    grace_period: 60
+    interval: 30
+    timeout: 10
