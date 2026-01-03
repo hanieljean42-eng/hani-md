@@ -56,7 +56,8 @@ const commandModules = [
   "./cmd/Ovl-game",
   "./cmd/Advanced",
   "./cmd/Menu",
-  "./cmd/Payments"
+  "./cmd/Payments",
+  "./cmd/WavePayments"
 ];
 
 let loadedModules = 0;
@@ -172,7 +173,8 @@ async function handleCommand(ovl, msg) {
 
   const [cmd, ...rest] = body.slice(config.PREFIXE.length).trim().split(/\s+/);
   const command = (cmd || "").toLowerCase();
-  const args = rest.join(" ");
+  const args = rest; // Garder comme tableau pour accès par index
+  const argsText = rest.join(" "); // Version texte pour les commandes qui en ont besoin
 
   // Numéro du bot (pour envoyer en privé)
   const botNumber = ovl.user?.id?.split(":")[0] + "@s.whatsapp.net";
@@ -553,7 +555,7 @@ async function handleCommand(ovl, msg) {
     case "antitag":
     case "antidelete": {
       const key = command;
-      const param = args.toLowerCase();
+      const param = (args[0] || "").toLowerCase();
       if (param === "on") protectionState[key] = true;
       else if (param === "off") protectionState[key] = false;
       else protectionState[key] = toggle(key);
@@ -585,7 +587,7 @@ async function handleCommand(ovl, msg) {
           // Préparer le message structuré pour les commandes
           const ms = msg;
           const arg = rest;
-          const texte = args;
+          const texte = argsText;
           
           // Options passées au handler
           const options = {
@@ -1258,6 +1260,165 @@ app.get("/api/status", (req, res) => {
     version: 'V2.6.0',
     uptime: process.uptime()
   });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 💳 API WAVE PAYMENT - PAIEMENT AUTOMATIQUE
+// ═══════════════════════════════════════════════════════════
+
+let wavePayments;
+try {
+  wavePayments = require('./DataBase/wave_payments');
+  console.log('[WAVE] ✅ Module Wave Payment chargé');
+} catch (e) {
+  console.log('[WAVE] ⚠️ Module Wave non disponible:', e.message);
+}
+
+// Servir la page d'abonnement
+app.use('/subscribe', express.static(path.join(__dirname, 'web', 'public')));
+app.get('/subscribe', (req, res) => {
+  res.sendFile(path.join(__dirname, 'web', 'public', 'subscribe.html'));
+});
+
+// Créer un nouvel abonné
+app.post('/api/wave/subscribe', (req, res) => {
+  try {
+    if (!wavePayments) {
+      return res.status(500).json({ error: 'Système Wave non disponible' });
+    }
+    
+    const { name, phone, plan } = req.body;
+    
+    if (!name || name.length < 3) {
+      return res.status(400).json({ error: 'Nom requis (min 3 caractères)' });
+    }
+    if (!phone || phone.length < 8) {
+      return res.status(400).json({ error: 'Numéro WhatsApp invalide' });
+    }
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan requis' });
+    }
+    
+    const result = wavePayments.createSubscriber(name, phone, plan);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Vérifier statut d'un abonné
+app.get('/api/wave/status/:id', (req, res) => {
+  try {
+    if (!wavePayments) {
+      return res.status(500).json({ error: 'Système Wave non disponible' });
+    }
+    
+    const subscribers = wavePayments.getAllSubscribers();
+    const subscriber = subscribers.find(s => 
+      s.id === req.params.id || 
+      s.phone === req.params.id.replace(/[^0-9]/g, '') ||
+      s.paymentRef === req.params.id
+    );
+    
+    if (!subscriber) {
+      return res.status(404).json({ error: 'Abonné non trouvé' });
+    }
+    
+    res.json({ success: true, subscriber });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirmer paiement et générer code AUTOMATIQUEMENT
+app.post('/api/wave/confirm-payment', (req, res) => {
+  try {
+    if (!wavePayments) {
+      return res.status(500).json({ error: 'Système Wave non disponible' });
+    }
+    
+    const { subscriberId, transactionId, waveNumber, paymentRef } = req.body;
+    
+    if (!subscriberId && !paymentRef) {
+      return res.status(400).json({ error: 'ID abonné ou référence requis' });
+    }
+    if (!transactionId) {
+      return res.status(400).json({ error: 'Numéro de transaction Wave requis' });
+    }
+    if (!waveNumber || waveNumber.length < 8) {
+      return res.status(400).json({ error: 'Numéro Wave invalide' });
+    }
+    
+    // Rechercher l'abonné
+    const subscribers = wavePayments.getAllSubscribers();
+    const subscriber = subscribers.find(s => 
+      s.id === subscriberId || 
+      s.paymentRef === paymentRef
+    );
+    
+    if (!subscriber) {
+      return res.status(404).json({ error: 'Demande d\'abonnement non trouvée' });
+    }
+    
+    if (subscriber.status === 'active' || subscriber.status === 'paid') {
+      return res.json({ 
+        success: true,
+        activationCode: subscriber.activationCode,
+        message: 'Votre code a déjà été généré'
+      });
+    }
+    
+    // Confirmer le paiement et générer le code automatiquement
+    const result = wavePayments.confirmPayment(subscriber.id, `Auto-confirmé via site. TXN: ${transactionId}, Wave: ${waveNumber}`);
+    
+    if (result.success) {
+      // Log la transaction pour l'owner
+      console.log(`\n[WAVE] 💰 ═══════════════════════════════════════════`);
+      console.log(`[WAVE] 💳 NOUVEAU PAIEMENT AUTO-CONFIRMÉ !`);
+      console.log(`[WAVE]    📱 ${subscriber.name} (${subscriber.phone})`);
+      console.log(`[WAVE]    💎 Plan: ${subscriber.plan} - ${subscriber.amount} FCFA`);
+      console.log(`[WAVE]    🔑 Code: ${result.activationCode}`);
+      console.log(`[WAVE]    📝 TXN Wave: ${transactionId} depuis ${waveNumber}`);
+      console.log(`[WAVE] ═══════════════════════════════════════════\n`);
+      
+      res.json({
+        success: true,
+        activationCode: result.activationCode,
+        message: 'Paiement confirmé ! Voici votre code d\'activation.',
+        subscriber: {
+          name: result.subscriber.name,
+          plan: result.subscriber.plan,
+          amount: result.subscriber.amount,
+          expiresAt: result.subscriber.expiresAt
+        }
+      });
+    } else {
+      res.status(400).json({ error: result.error || 'Erreur lors de la confirmation' });
+    }
+  } catch (e) {
+    console.error('[WAVE] Erreur confirmation:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Activer avec un code
+app.post('/api/wave/activate', (req, res) => {
+  try {
+    if (!wavePayments) {
+      return res.status(500).json({ error: 'Système Wave non disponible' });
+    }
+    
+    const { code, whatsappJid } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'Code d\'activation requis' });
+    }
+    
+    const result = wavePayments.activateWithCode(code, whatsappJid || 'web');
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.listen(port, '0.0.0.0', () => {

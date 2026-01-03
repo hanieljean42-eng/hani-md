@@ -30,7 +30,8 @@ const modules = [
   "Premium",
   "Ovl-economy",
   "Ovl-game",
-  "Advanced"
+  "Advanced",
+  "WavePayments"
 ];
 
 // Charger tous les modules

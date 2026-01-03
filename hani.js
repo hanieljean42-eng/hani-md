@@ -59,7 +59,8 @@ const commandModules = [
   "./cmd/Ovl-game",
   "./cmd/Advanced",
   "./cmd/Menu",
-  "./cmd/Payments"
+  "./cmd/Payments",
+  "./cmd/WavePayments"
 ];
 
 let loadedModules = 0;
@@ -4377,13 +4378,40 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
     case "menu":
     case "help":
     case "aide": {
-      console.log(`[MENU] Génération du menu pour rôle: ${userRole}`);
-      const menuText = getMainMenu(config.PREFIXE, userRole);
-      console.log(`[MENU] Menu généré (${menuText.length} caractères)`);
-      console.log(`[MENU] Envoi vers: ${from}`);
-      await send(menuText);
-      console.log(`[MENU] Envoi terminé`);
-      return;
+      // Utiliser le nouveau système de menu stylisé
+      try {
+        const menuSystem = require('./lib/MenuSystem');
+        const ownerNumber = (config.NUMERO_OWNER || '').replace(/[^0-9]/g, '');
+        const senderClean = senderNumber.replace(/[^0-9]/g, '');
+        
+        const userInfo = {
+          name: pushName || 'Utilisateur',
+          phone: senderClean,
+          plan: isOwner ? 'OWNER' : (isSudo ? 'PREMIUM' : 'FREE'),
+          isOwner: isOwner,
+          isPremium: isOwner || isSudo,
+          commandsToday: 0,
+          dailyLimit: isOwner ? -1 : 30,
+          theme: 'elegant'
+        };
+        
+        // Si une catégorie est spécifiée
+        if (args) {
+          const categoryMenu = menuSystem.generateCategoryMenu(args.toLowerCase(), userInfo);
+          return send(categoryMenu);
+        }
+        
+        // Menu principal
+        const mainMenu = menuSystem.generateMainMenu(userInfo);
+        await send(mainMenu);
+        return;
+      } catch (e) {
+        console.error("[MENU ERROR]", e);
+        // Fallback vers l'ancien menu si erreur
+        const menuText = getMainMenu(config.PREFIXE, userRole);
+        await send(menuText);
+        return;
+      }
     }
 
     case "info": {

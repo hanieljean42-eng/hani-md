@@ -2,8 +2,8 @@
  * ═══════════════════════════════════════════════════════════
  * 🎵 HANI-MD - Effets Audio
  * ═══════════════════════════════════════════════════════════
- * Effets sonores, modification de voix
- * Version désobfusquée et optimisée
+ * Effets sonores, modification de voix avec FFmpeg
+ * Version avec effets réels fonctionnels
  * ═══════════════════════════════════════════════════════════
  */
 
@@ -11,9 +11,28 @@ const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+const os = require("os");
+
+// Vérifier si FFmpeg est disponible
+let ffmpegAvailable = false;
+
+exec("ffmpeg -version", (error) => {
+  ffmpegAvailable = !error;
+  if (ffmpegAvailable) {
+    console.log("[AUDIO FX] ✅ FFmpeg détecté - Effets audio activés");
+  } else {
+    console.log("[AUDIO FX] ⚠️ FFmpeg non détecté - Effets audio limités");
+  }
+});
+
+// Créer un dossier temp s'il n'existe pas
+const tempDir = path.join(os.tmpdir(), "hani-audio");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
 
 // Fonction utilitaire pour appliquer un effet audio avec ffmpeg
-async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter) {
+async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter, description) {
   try {
     const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     
@@ -32,13 +51,53 @@ async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter
       return repondre("❌ Impossible de télécharger l'audio");
     }
 
-    // Pour l'instant, renvoyer l'audio original
-    // Note: FFmpeg serait nécessaire pour les effets réels
+    // Si FFmpeg n'est pas disponible, informer l'utilisateur
+    if (!ffmpegAvailable) {
+      return repondre(`❌ L'effet ${effectName} nécessite FFmpeg.\n\n💡 Installez FFmpeg pour utiliser les effets audio:\n• Windows: choco install ffmpeg\n• Linux: apt install ffmpeg\n• Heroku/Koyeb: ajoutez le buildpack ffmpeg`);
+    }
+
+    // Créer les fichiers temporaires
+    const timestamp = Date.now();
+    const inputPath = path.join(tempDir, `input_${timestamp}.mp3`);
+    const outputPath = path.join(tempDir, `output_${timestamp}.mp3`);
+
+    // Sauvegarder l'audio d'entrée
+    fs.writeFileSync(inputPath, audioBuffer);
+
+    // Appliquer l'effet avec FFmpeg
+    const ffmpegCmd = `ffmpeg -i "${inputPath}" -af "${ffmpegFilter}" -y "${outputPath}"`;
+    
+    await new Promise((resolve, reject) => {
+      exec(ffmpegCmd, { timeout: 60000 }, (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(`FFmpeg: ${error.message}`));
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Lire le fichier de sortie
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Le fichier traité n'a pas été créé");
+    }
+
+    const processedBuffer = fs.readFileSync(outputPath);
+
+    // Nettoyer les fichiers temporaires
+    try {
+      fs.unlinkSync(inputPath);
+      fs.unlinkSync(outputPath);
+    } catch (e) {}
+
+    // Envoyer l'audio traité
     await ovl.sendMessage(msg.key.remoteJid, {
-      audio: audioBuffer,
-      mimetype: "audio/mp4",
+      audio: processedBuffer,
+      mimetype: "audio/mpeg",
       ptt: false
     }, { quoted: ms });
+
+    await repondre(`✅ Effet ${effectName} appliqué!\n${description}\n🔥 HANI-MD`);
 
   } catch (error) {
     console.error(`[${effectName.toUpperCase()}]`, error);
@@ -59,7 +118,12 @@ ovlcmd(
     alias: ["bassboost", "boost"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "bass", "bass=g=10");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "bass", 
+      "bass=g=10,equalizer=f=40:width_type=h:width=50:g=5",
+      "🔊 Basses amplifiées +10dB"
+    );
   }
 );
 
@@ -76,7 +140,12 @@ ovlcmd(
     alias: ["slowmo", "slowed"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "slow", "atempo=0.8");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "slow", 
+      "atempo=0.8",
+      "🐌 Vitesse réduite à 80%"
+    );
   }
 );
 
@@ -93,7 +162,12 @@ ovlcmd(
     alias: ["speed", "faster", "nightcore"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "fast", "atempo=1.5");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "fast", 
+      "atempo=1.5,asetrate=44100*1.1,aresample=44100",
+      "⚡ Vitesse x1.5 + pitch légèrement augmenté"
+    );
   }
 );
 
@@ -110,7 +184,12 @@ ovlcmd(
     alias: ["high", "alvin"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "chipmunk", "asetrate=44100*1.5,aresample=44100");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "chipmunk", 
+      "asetrate=44100*1.6,aresample=44100,atempo=0.65",
+      "🐿️ Voix aiguë style Alvin"
+    );
   }
 );
 
@@ -127,7 +206,12 @@ ovlcmd(
     alias: ["low", "demon"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "deep", "asetrate=44100*0.7,aresample=44100");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "deep", 
+      "asetrate=44100*0.6,aresample=44100,atempo=1.4",
+      "🎸 Voix grave et profonde"
+    );
   }
 );
 
@@ -144,7 +228,12 @@ ovlcmd(
     alias: ["echo", "cave"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "reverb", "aecho=0.8:0.88:60:0.4");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "reverb", 
+      "aecho=0.8:0.88:60:0.4",
+      "🏛️ Effet d'écho/réverbération"
+    );
   }
 );
 
@@ -161,7 +250,12 @@ ovlcmd(
     alias: ["8daudio", "surround"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "8d", "apulsator=hz=0.125");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "8d", 
+      "apulsator=hz=0.125",
+      "🎧 Audio 8D - Mettez vos écouteurs!"
+    );
   }
 );
 
@@ -178,7 +272,12 @@ ovlcmd(
     alias: ["robotic", "vocoder"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "robot", "afftfilt=real='hypot(re,im)*sin(0)':imag='hypot(re,im)*cos(0)'");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "robot", 
+      "afftfilt=real='hypot(re,im)*sin(0)':imag='hypot(re,im)*cos(0)',aecho=0.8:0.88:6:0.4",
+      "🤖 Voix robotique"
+    );
   }
 );
 
@@ -195,7 +294,12 @@ ovlcmd(
     alias: ["vocals", "instrumental"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "karaoke", "stereotools=mlev=0.015625");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "karaoke", 
+      "stereotools=mlev=0.015625",
+      "🎤 Tentative de suppression des voix"
+    );
   }
 );
 
@@ -212,8 +316,138 @@ ovlcmd(
     alias: ["louder", "volumeup"]
   },
   async (ovl, msg, { ms, repondre }) => {
-    await applyAudioEffect(ovl, msg, ms, repondre, "loud", "volume=2");
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "loud", 
+      "volume=2.5",
+      "🔊 Volume augmenté x2.5"
+    );
   }
 );
 
-console.log("[CMD] ✅ Fx_audio.js chargé - Commandes: bass, slow, fast, chipmunk, deep, reverb, 8d, robot, karaoke, loud");
+// ═══════════════════════════════════════════════════════════
+// 🎵 TELEPHONE (Voix téléphone)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "telephone",
+    classe: "Audio FX",
+    react: "📞",
+    desc: "Effet voix de téléphone",
+    alias: ["phone", "call"]
+  },
+  async (ovl, msg, { ms, repondre }) => {
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "telephone", 
+      "highpass=f=300,lowpass=f=3400,volume=1.5",
+      "📞 Effet voix de téléphone"
+    );
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎵 UNDERWATER (Sous l'eau)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "underwater",
+    classe: "Audio FX",
+    react: "🌊",
+    desc: "Effet sous l'eau",
+    alias: ["water", "sousleau"]
+  },
+  async (ovl, msg, { ms, repondre }) => {
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "underwater", 
+      "lowpass=f=500,aecho=0.8:0.9:1000:0.3",
+      "🌊 Effet audio sous l'eau"
+    );
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎵 VIBRATO
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "vibrato",
+    classe: "Audio FX",
+    react: "〰️",
+    desc: "Effet vibrato",
+    alias: ["vibrate", "wobble"]
+  },
+  async (ovl, msg, { ms, repondre }) => {
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "vibrato", 
+      "vibrato=f=7:d=0.5",
+      "〰️ Effet vibrato appliqué"
+    );
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎵 TREBLE (Aigus)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "treble",
+    classe: "Audio FX",
+    react: "🔔",
+    desc: "Augmenter les aigus",
+    alias: ["highs", "aigus"]
+  },
+  async (ovl, msg, { ms, repondre }) => {
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "treble", 
+      "treble=g=8,equalizer=f=8000:width_type=h:width=2000:g=5",
+      "🔔 Aigus amplifiés"
+    );
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🎵 REVERSE (Inverser)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "reverse",
+    classe: "Audio FX",
+    react: "⏪",
+    desc: "Inverser l'audio",
+    alias: ["backwards", "inverser"]
+  },
+  async (ovl, msg, { ms, repondre }) => {
+    await applyAudioEffect(
+      ovl, msg, ms, repondre, 
+      "reverse", 
+      "areverse",
+      "⏪ Audio inversé"
+    );
+  }
+);
+
+// Nettoyer le dossier temp au démarrage
+setTimeout(() => {
+  try {
+    const files = fs.readdirSync(tempDir);
+    for (const file of files) {
+      const filePath = path.join(tempDir, file);
+      const stats = fs.statSync(filePath);
+      // Supprimer les fichiers de plus de 1 heure
+      if (Date.now() - stats.mtime.getTime() > 3600000) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (e) {}
+}, 5000);
+
+console.log("[CMD] ✅ Fx_audio.js chargé - Commandes: bass, slow, fast, chipmunk, deep, reverb, 8d, robot, karaoke, loud, telephone, underwater, vibrato, treble, reverse");

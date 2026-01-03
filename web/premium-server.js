@@ -19,6 +19,14 @@ try {
   console.error('[WEB] Erreur chargement premium:', e.message);
 }
 
+// Import du module Wave
+let wavePayments;
+try {
+  wavePayments = require('../DataBase/wave_payments');
+} catch (e) {
+  console.error('[WEB] Erreur chargement wave_payments:', e.message);
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -382,6 +390,219 @@ app.post('/api/admin/requests/:id/approve', requireAdmin, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// � API WAVE PAYMENTS (NOUVELLE)
+// ═══════════════════════════════════════════════════════════
+
+// Inscription + création lien Wave
+app.post('/api/wave/subscribe', (req, res) => {
+  try {
+    const { name, phone, plan } = req.body;
+    
+    if (!name || name.length < 3) {
+      return res.status(400).json({ error: 'Nom requis (min 3 caractères)' });
+    }
+    if (!phone || phone.length < 8) {
+      return res.status(400).json({ error: 'Numéro WhatsApp invalide' });
+    }
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan requis' });
+    }
+    
+    const result = wavePayments.createSubscriber(name, phone, plan);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Vérifier statut d'un abonné
+app.get('/api/wave/status/:id', (req, res) => {
+  try {
+    const subscribers = wavePayments.getAllSubscribers();
+    const subscriber = subscribers.find(s => 
+      s.id === req.params.id || 
+      s.phone === req.params.id.replace(/[^0-9]/g, '') ||
+      s.paymentRef === req.params.id
+    );
+    
+    if (!subscriber) {
+      return res.status(404).json({ error: 'Abonné non trouvé' });
+    }
+    
+    res.json({ success: true, subscriber });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Activer avec un code (public)
+app.post('/api/wave/activate', (req, res) => {
+  try {
+    const { code, whatsappJid } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'Code d\'activation requis' });
+    }
+    
+    const result = wavePayments.activateWithCode(code, whatsappJid || 'web');
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 💳 CONFIRMATION AUTOMATIQUE DU PAIEMENT
+// ═══════════════════════════════════════════════════════════
+
+// Confirmer paiement et générer code automatiquement
+app.post('/api/wave/confirm-payment', (req, res) => {
+  try {
+    const { subscriberId, transactionId, waveNumber, paymentRef } = req.body;
+    
+    if (!subscriberId && !paymentRef) {
+      return res.status(400).json({ error: 'ID abonné ou référence requis' });
+    }
+    if (!transactionId) {
+      return res.status(400).json({ error: 'Numéro de transaction Wave requis' });
+    }
+    if (!waveNumber || waveNumber.length < 8) {
+      return res.status(400).json({ error: 'Numéro Wave invalide' });
+    }
+    
+    // Rechercher l'abonné
+    const subscribers = wavePayments.getAllSubscribers();
+    const subscriber = subscribers.find(s => 
+      s.id === subscriberId || 
+      s.paymentRef === paymentRef
+    );
+    
+    if (!subscriber) {
+      return res.status(404).json({ error: 'Demande d\'abonnement non trouvée' });
+    }
+    
+    if (subscriber.status === 'active' || subscriber.status === 'paid') {
+      return res.status(400).json({ 
+        error: 'Cet abonnement a déjà été confirmé',
+        activationCode: subscriber.activationCode 
+      });
+    }
+    
+    // Confirmer le paiement et générer le code automatiquement
+    const result = wavePayments.confirmPayment(subscriber.id, `Auto-confirmé. TXN: ${transactionId}, Wave: ${waveNumber}`);
+    
+    if (result.success) {
+      // Aussi activer dans le système premium existant
+      try {
+        const jid = result.subscriber.phone + '@s.whatsapp.net';
+        const planDays = result.subscriber.planDetails?.duration || 30;
+        if (premiumDB && premiumDB.addPremium) {
+          premiumDB.addPremium(jid, result.subscriber.plan, planDays);
+        }
+      } catch (e) {
+        console.error('[WAVE] Erreur sync premium:', e.message);
+      }
+      
+      // Log la transaction pour l'owner
+      console.log(`[WAVE] 💰 NOUVEAU PAIEMENT AUTO-CONFIRMÉ:`);
+      console.log(`   📱 ${subscriber.name} (${subscriber.phone})`);
+      console.log(`   💳 Plan: ${subscriber.plan} - ${subscriber.amount} FCFA`);
+      console.log(`   🔑 Code: ${result.activationCode}`);
+      console.log(`   📝 TXN Wave: ${transactionId} depuis ${waveNumber}`);
+      
+      res.json({
+        success: true,
+        activationCode: result.activationCode,
+        message: 'Paiement confirmé ! Voici votre code d\'activation.',
+        subscriber: {
+          name: result.subscriber.name,
+          plan: result.subscriber.plan,
+          amount: result.subscriber.amount,
+          expiresAt: result.subscriber.expiresAt
+        }
+      });
+    } else {
+      res.status(400).json({ error: result.error || 'Erreur lors de la confirmation' });
+    }
+  } catch (e) {
+    console.error('[WAVE] Erreur confirmation:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 👑 API WAVE ADMIN (OWNER)
+// ═══════════════════════════════════════════════════════════
+
+// Liste tous les abonnés Wave
+app.get('/api/admin/wave/subscribers', requireAdmin, (req, res) => {
+  try {
+    const status = req.query.status || null;
+    const subscribers = wavePayments.getAllSubscribers(status);
+    res.json({ success: true, subscribers, count: subscribers.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Stats Wave
+app.get('/api/admin/wave/stats', requireAdmin, (req, res) => {
+  try {
+    const stats = wavePayments.getStats();
+    res.json({ success: true, stats });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirmer paiement (génère le code)
+app.post('/api/admin/wave/confirm/:id', requireAdmin, (req, res) => {
+  try {
+    const { adminNote } = req.body;
+    const result = wavePayments.confirmPayment(req.params.id, adminNote);
+    
+    if (result.success) {
+      // Aussi activer dans le système premium existant
+      try {
+        const jid = result.subscriber.phone + '@s.whatsapp.net';
+        const planDays = result.subscriber.planDetails?.duration || 30;
+        premiumDB.addPremium(jid, result.subscriber.plan, planDays);
+      } catch (e) {
+        console.error('[WAVE] Erreur sync premium:', e.message);
+      }
+    }
+    
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Rechercher un abonné
+app.get('/api/admin/wave/search', requireAdmin, (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ error: 'Paramètre de recherche requis' });
+    }
+    const results = wavePayments.findSubscriber(q);
+    res.json({ success: true, results, count: results.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Vérifier abonnement actif par téléphone
+app.get('/api/admin/wave/check/:phone', requireAdmin, (req, res) => {
+  try {
+    const result = wavePayments.checkActiveSubscription(req.params.phone);
+    res.json({ success: true, ...result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // 🚀 EXPORT
 // ═══════════════════════════════════════════════════════════
 
@@ -390,7 +611,7 @@ function startPremiumServer(port = 3001) {
     const server = app.listen(port, () => {
       console.log(`[PREMIUM-WEB] 🌐 Dashboard Premium: http://localhost:${port}`);
       console.log(`[PREMIUM-WEB] 👑 Admin Panel: http://localhost:${port}/admin`);
-      console.log(`[PREMIUM-WEB] 💳 Page Abonnement: http://localhost:${port}/subscribe`);
+      console.log(`[PREMIUM-WEB] 💳 Page Abonnement Wave: http://localhost:${port}/subscribe`);
       resolve(server);
     }).on('error', reject);
   });
