@@ -15,12 +15,17 @@ const PAYMENTS_FILE = path.join(__dirname, 'wave_transactions.json');
 const SUBSCRIBERS_FILE = path.join(__dirname, 'subscribers.json');
 const ACTIVATION_CODES_FILE = path.join(__dirname, 'activation_codes.json');
 
-// Configuration Wave
+// Configuration Wave API
 const WAVE_CONFIG = {
-  merchantNumber: process.env.WAVE_NUMBER || '225150252467',
+  apiKey: process.env.WAVE_API_KEY || '', // Clé API Wave (wave_sn_prod_XXX ou wave_ci_prod_XXX)
+  apiUrl: 'https://api.wave.com/v1',
+  merchantNumber: process.env.WAVE_NUMBER || '0150252467',
   merchantName: 'HANI-MD Bot',
   currency: 'XOF',
-  country: 'CI' // Côte d'Ivoire
+  country: 'CI', // Côte d'Ivoire
+  // URLs de redirection après paiement
+  successUrl: process.env.WAVE_SUCCESS_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-success',
+  errorUrl: process.env.WAVE_ERROR_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-error'
 };
 
 // Plans disponibles
@@ -59,29 +64,108 @@ function writeJSON(file, data) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// 💳 GÉNÉRATION LIEN WAVE
+// 💳 API WAVE OFFICIELLE - CHECKOUT SESSION
 // ═══════════════════════════════════════════════════════════
 
 /**
- * Génère un lien de paiement Wave
+ * Crée une session de paiement Wave via l'API officielle
+ * Retourne une URL de paiement sécurisée
+ */
+async function createWaveCheckoutSession(amount, clientReference, clientPhone = null) {
+  const apiKey = WAVE_CONFIG.apiKey;
+  
+  if (!apiKey) {
+    console.log('[WAVE] ⚠️ Clé API Wave non configurée, utilisation du mode manuel');
+    return {
+      success: false,
+      mode: 'manual',
+      error: 'API Wave non configurée',
+      manualInstructions: generateManualInstructions(amount, clientReference)
+    };
+  }
+  
+  try {
+    const response = await fetch(`${WAVE_CONFIG.apiUrl}/checkout/sessions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: amount.toString(),
+        currency: WAVE_CONFIG.currency,
+        error_url: `${WAVE_CONFIG.errorUrl}?ref=${clientReference}`,
+        success_url: `${WAVE_CONFIG.successUrl}?ref=${clientReference}`,
+        client_reference: clientReference
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.wave_launch_url) {
+      console.log(`[WAVE] ✅ Session checkout créée: ${clientReference}`);
+      return {
+        success: true,
+        mode: 'api',
+        checkoutUrl: data.wave_launch_url,
+        sessionId: data.id,
+        expiresAt: data.when_expires,
+        clientReference: clientReference
+      };
+    } else {
+      console.error('[WAVE] ❌ Erreur API:', data);
+      return {
+        success: false,
+        mode: 'manual',
+        error: data.message || 'Erreur Wave API',
+        manualInstructions: generateManualInstructions(amount, clientReference)
+      };
+    }
+  } catch (error) {
+    console.error('[WAVE] ❌ Erreur connexion API:', error.message);
+    return {
+      success: false,
+      mode: 'manual',
+      error: error.message,
+      manualInstructions: generateManualInstructions(amount, clientReference)
+    };
+  }
+}
+
+/**
+ * Génère les instructions de paiement manuel (fallback)
+ */
+function generateManualInstructions(amount, reference) {
+  const localNumber = WAVE_CONFIG.merchantNumber;
+  return {
+    ussdCode: `*171*1*${localNumber}*${amount}#`,
+    merchantNumber: localNumber,
+    amount: amount,
+    reference: reference,
+    instructions: [
+      `1. Ouvrez l'app Wave`,
+      `2. Appuyez sur "Envoyer"`,
+      `3. Entrez le numéro: ${localNumber}`,
+      `4. Montant: ${amount} FCFA`,
+      `5. Motif: ${reference}`
+    ]
+  };
+}
+
+/**
+ * Génère un lien de paiement Wave (mode manuel/fallback)
  */
 function generateWavePaymentLink(amount, reference) {
   const merchantNumber = WAVE_CONFIG.merchantNumber;
   
-  // Lien Wave universel (fonctionne sur mobile et web)
-  // Format: https://pay.wave.com/m/NUMERO?amount=MONTANT&reference=REF
-  const waveLink = `https://pay.wave.com/m/${merchantNumber}?amount=${amount}&currency=XOF`;
-  
-  // Lien USSD pour ceux sans smartphone
+  // Code USSD pour paiement manuel
   const ussdCode = `*171*1*${merchantNumber}*${amount}#`;
   
   return {
-    webLink: waveLink,
-    mobileLink: `wave://send?recipient=${merchantNumber}&amount=${amount}`,
     ussdCode: ussdCode,
-    qrData: waveLink,
     merchantNumber: merchantNumber,
-    amount: amount
+    amount: amount,
+    reference: reference
   };
 }
 
@@ -408,6 +492,8 @@ module.exports = {
   PLANS,
   WAVE_CONFIG,
   generateWavePaymentLink,
+  generateManualInstructions,
+  createWaveCheckoutSession,
   createSubscriber,
   confirmPayment,
   activateWithCode,

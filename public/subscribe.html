@@ -592,57 +592,61 @@
         const data = await response.json();
         
         if (data.success) {
-          // Numéro de réception pour les paiements
-          const WAVE_NUMBER = '225150252467'; // Numéro Wave pour recevoir les paiements
-          const MOOV_NUMBER = '225150252467'; // Numéro Moov Money
+          // Numéro de réception pour les paiements (format local pour Wave)
+          const WAVE_NUMBER_LOCAL = '0150252467'; // Format local pour affichage
+          const WAVE_NUMBER_INTL = '225150252467'; // Format international
           const amount = prices[selectedPlan];
           const orderId = data.payment.orderId;
           
-          // Redirection vers l'app de paiement
-          if (selectedMethod === 'wave') {
-            // Lien Wave avec montant pré-rempli
-            // Format: wave://send?phone=NUMERO&amount=MONTANT&note=MESSAGE
-            const waveLink = `https://pay.wave.com/m/${WAVE_NUMBER}/${amount}?note=HANI-MD-${orderId}`;
-            
-            // Afficher le modal puis rediriger
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('modalMessage').innerHTML = `
-              <strong>✅ Commande créée!</strong><br><br>
-              <strong>Numéro de commande:</strong> ${orderId}<br>
-              <strong>Montant:</strong> ${amount} FCFA<br><br>
-              <p>Vous allez être redirigé vers Wave...</p>
-              <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 15px;">
-                Si la redirection ne fonctionne pas, envoyez <strong>${amount} FCFA</strong> au <strong>${WAVE_NUMBER}</strong> avec le message: <strong>HANI-MD-${orderId}</strong>
-              </p>
-            `;
-            document.getElementById('successModal').classList.add('show');
-            
-            // Rediriger après 2 secondes
-            setTimeout(() => {
-              window.location.href = waveLink;
-            }, 2000);
-            
-          } else if (selectedMethod === 'moov') {
-            // Pour Moov Money, on affiche les instructions
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('modalMessage').innerHTML = `
-              <strong>✅ Commande créée!</strong><br><br>
-              <strong>Numéro de commande:</strong> ${orderId}<br>
-              <strong>Montant:</strong> ${amount} FCFA<br><br>
-              <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 10px; margin-top: 10px;">
-                <p><strong>📱 Instructions Moov Money:</strong></p>
-                <ol style="text-align: left; margin-top: 10px;">
-                  <li>Composez <strong>*155#</strong></li>
-                  <li>Choisissez "Transfert d'argent"</li>
-                  <li>Entrez le numéro: <strong>${MOOV_NUMBER}</strong></li>
+          // Code USSD Wave pour transfert
+          const ussdCode = `*171*1*${WAVE_NUMBER_LOCAL}*${amount}#`;
+          
+          // Afficher les instructions de paiement Wave
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('modalMessage').innerHTML = `
+            <div style="text-align: left;">
+              <h3 style="color: #25D366; margin-bottom: 15px;">📱 Paiement Wave</h3>
+              
+              <div style="background: rgba(37,211,102,0.15); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <p style="font-size: 1.1rem; margin-bottom: 10px;"><strong>📋 Votre commande:</strong></p>
+                <p>🆔 ID: <strong>${orderId}</strong></p>
+                <p>📦 Plan: <strong>${planNames[selectedPlan]}</strong></p>
+                <p>💰 Montant: <strong>${amount} FCFA</strong></p>
+              </div>
+              
+              <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <p style="font-weight: bold; margin-bottom: 15px;">📲 Option 1: Code USSD</p>
+                <p style="margin-bottom: 10px;">Composez ce code sur votre téléphone:</p>
+                <div style="background: #000; color: #0f0; padding: 15px; border-radius: 10px; font-family: monospace; font-size: 1.2rem; text-align: center; margin-bottom: 10px;">
+                  ${ussdCode}
+                </div>
+                <button onclick="navigator.clipboard.writeText('${ussdCode}'); this.textContent='✅ Copié!'" style="width: 100%; padding: 10px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+                  📋 Copier le code USSD
+                </button>
+              </div>
+              
+              <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <p style="font-weight: bold; margin-bottom: 15px;">📱 Option 2: Via l'app Wave</p>
+                <ol style="margin-left: 20px;">
+                  <li>Ouvrez l'app <strong>Wave</strong></li>
+                  <li>Appuyez sur <strong>Envoyer</strong></li>
+                  <li>Entrez le numéro: <strong style="color: #25D366;">${WAVE_NUMBER_LOCAL}</strong></li>
                   <li>Montant: <strong>${amount} FCFA</strong></li>
                   <li>Motif: <strong>HANI-MD-${orderId}</strong></li>
                 </ol>
               </div>
-              <p style="margin-top: 15px;">Vous recevrez une confirmation WhatsApp après validation.</p>
-            `;
-            document.getElementById('successModal').classList.add('show');
-          }
+              
+              <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <p>⚠️ <strong>Important:</strong> Après le paiement, envoyez une capture d'écran de la confirmation Wave sur WhatsApp pour recevoir votre code d'activation.</p>
+              </div>
+              
+              <a href="https://wa.me/${WAVE_NUMBER_INTL}?text=${encodeURIComponent('✅ J\\'ai payé ' + amount + ' FCFA pour HANI-MD\\n🆔 Commande: ' + orderId + '\\n📦 Plan: ' + planNames[selectedPlan] + '\\n\\n[J\\'envoie ma capture d\\'écran Wave ci-dessous]')}" 
+                 style="display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 10px;" target="_blank">
+                <i class="fab fa-whatsapp"></i> 📲 Envoyer la capture sur WhatsApp
+              </a>
+            </div>
+          `;
+          document.getElementById('successModal').classList.add('show');
         } else {
           throw new Error(data.error || 'Erreur lors de la création');
         }

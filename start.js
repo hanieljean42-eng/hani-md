@@ -1501,6 +1501,130 @@ app.post('/api/wave/activate', (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════
+// 💳 API WAVE CHECKOUT - PAIEMENT AUTOMATIQUE
+// ═══════════════════════════════════════════════════════════
+
+// Créer une session de paiement Wave (API officielle)
+app.post('/api/wave/checkout', async (req, res) => {
+  try {
+    if (!wavePayments) {
+      return res.status(500).json({ error: 'Système Wave non disponible' });
+    }
+    
+    const { plan, phone, name } = req.body;
+    
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan requis' });
+    }
+    
+    // Créer d'abord l'abonné
+    const subscriber = wavePayments.createSubscriber(name || 'Client', phone || '', plan);
+    
+    if (!subscriber.success) {
+      return res.status(400).json({ error: subscriber.error });
+    }
+    
+    const amount = subscriber.subscriber.amount;
+    const reference = subscriber.subscriber.paymentRef;
+    
+    // Créer la session Wave
+    const checkoutResult = await wavePayments.createWaveCheckoutSession(amount, reference, phone);
+    
+    res.json({
+      success: true,
+      subscriber: subscriber.subscriber,
+      checkout: checkoutResult
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Page de succès après paiement Wave
+app.get('/payment-success', (req, res) => {
+  const ref = req.query.ref || '';
+  res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paiement Réussi - HANI-MD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: white; }
+    .card { background: rgba(255,255,255,0.05); border-radius: 25px; padding: 50px 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); max-width: 500px; }
+    .icon { font-size: 5rem; margin-bottom: 20px; }
+    h1 { color: #25D366; margin-bottom: 15px; }
+    p { opacity: 0.8; margin-bottom: 25px; }
+    .ref { background: rgba(37,211,102,0.15); padding: 15px; border-radius: 10px; margin-bottom: 25px; font-family: monospace; font-size: 1.1rem; }
+    .btn { display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; }
+    .info { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-top: 25px; text-align: left; }
+    .info h3 { margin-bottom: 15px; color: #25D366; }
+    .info ol { margin-left: 20px; }
+    .info li { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">✅</div>
+    <h1>Paiement Réussi !</h1>
+    <p>Votre paiement a été reçu avec succès.</p>
+    ${ref ? `<div class="ref">Référence: ${ref}</div>` : ''}
+    <div class="info">
+      <h3>📱 Prochaines étapes</h3>
+      <ol>
+        <li>Vous allez recevoir un <strong>code d'activation</strong> par WhatsApp</li>
+        <li>Sur WhatsApp, tapez: <code style="background:#000;padding:3px 8px;border-radius:5px;">.activer VOTRE-CODE</code></li>
+        <li>Profitez de toutes les fonctionnalités premium !</li>
+      </ol>
+    </div>
+    <a href="/" class="btn" style="margin-top: 25px;">Retour à l'accueil</a>
+  </div>
+</body>
+</html>
+  `);
+});
+
+// Page d'erreur après paiement Wave
+app.get('/payment-error', (req, res) => {
+  const ref = req.query.ref || '';
+  res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erreur de Paiement - HANI-MD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: white; }
+    .card { background: rgba(255,255,255,0.05); border-radius: 25px; padding: 50px 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); max-width: 500px; }
+    .icon { font-size: 5rem; margin-bottom: 20px; }
+    h1 { color: #ef4444; margin-bottom: 15px; }
+    p { opacity: 0.8; margin-bottom: 25px; }
+    .btn { display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; margin: 10px; }
+    .btn-secondary { background: rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">❌</div>
+    <h1>Paiement Échoué</h1>
+    <p>Le paiement n'a pas pu être complété. Aucun montant n'a été débité.</p>
+    <div>
+      <a href="/subscribe.html" class="btn">Réessayer</a>
+      <a href="https://wa.me/225150252467" class="btn btn-secondary" target="_blank">Contacter le support</a>
+    </div>
+  </div>
+</body>
+</html>
+  `);
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);
   console.log(`📱 Site accessible: http://localhost:${port}`);

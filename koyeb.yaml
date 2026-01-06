@@ -30,7 +30,13 @@ env:
   - key: STICKER_AUTHOR_NAME
     value: "H2025"
   - key: WAVE_NUMBER
-    value: "225150252467"
+    value: "0150252467"
+  - key: WAVE_API_KEY
+    value: ""
+  - key: WAVE_SUCCESS_URL
+    value: "https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-success"
+  - key: WAVE_ERROR_URL
+    value: "https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-error"
   - key: MYSQL_ADDON_HOST
     value: "bbrgjiyodrpxpjz1dtix-mysql.services.clever-cloud.com"
   - key: MYSQL_ADDON_PORT

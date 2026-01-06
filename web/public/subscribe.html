@@ -238,15 +238,15 @@
             <p style="font-size: 0.85rem; margin-top: 8px;">Réf: <span id="displayRef" style="color: #25D366; font-family: monospace;"></span></p>
           </div>
           
-          <a href="#" id="wavePayButton" class="wave-pay-button" target="_blank">
-            <i class="fas fa-mobile-alt"></i> Ouvrir Wave pour payer
+          <a href="#" id="wavePayButton" class="wave-pay-button" onclick="copyUSSD(); return false;">
+            <i class="fas fa-copy"></i> Copier le code USSD
           </a>
           
           <div class="divider"><span>ou code USSD</span></div>
           
           <div class="ussd-box">
             <p style="margin-bottom: 8px; font-size: 0.9rem;">Composez ce code sur votre téléphone :</p>
-            <div class="ussd-code" id="ussdCode">*171*1*225150252467*2000#</div>
+            <div class="ussd-code" id="ussdCode">*171*1*0150252467*2000#</div>
           </div>
           
           <div class="info-box">
@@ -342,7 +342,8 @@
   <script>
     let currentStep = 1;
     let subscriberData = null;
-    const MERCHANT_NUMBER = '225150252467';
+    const MERCHANT_NUMBER = '0150252467'; // Format local Wave
+    const MERCHANT_INTL = '225150252467'; // Format international
     
     const planOptions = document.querySelectorAll('.plan-option');
     const form = document.getElementById('subscribeForm');
@@ -494,9 +495,6 @@
       document.getElementById('displayPlan').textContent = planNames[plan] || plan;
       document.getElementById('displayRef').textContent = paymentRef;
       document.getElementById('ussdCode').textContent = `*171*1*${MERCHANT_NUMBER}*${amount}#`;
-      
-      const waveLink = data.paymentLinks?.webLink || `https://pay.wave.com/m/${MERCHANT_NUMBER}?amount=${amount}`;
-      document.getElementById('wavePayButton').href = waveLink;
     }
     
     function showSuccessScreen(code) {
@@ -525,6 +523,17 @@
     
     function hideConfirmError() {
       document.getElementById('confirmError').classList.add('hidden');
+    }
+    
+    function copyUSSD() {
+      const ussdCode = document.getElementById('ussdCode').textContent;
+      navigator.clipboard.writeText(ussdCode).then(() => {
+        const btn = document.getElementById('wavePayButton');
+        btn.innerHTML = '<i class="fas fa-check"></i> Code copié !';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fas fa-copy"></i> Copier le code USSD';
+        }, 2000);
+      });
     }
   </script>
 </body>
