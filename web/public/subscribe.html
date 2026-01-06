@@ -238,15 +238,12 @@
             <p style="font-size: 0.85rem; margin-top: 8px;">Réf: <span id="displayRef" style="color: #25D366; font-family: monospace;"></span></p>
           </div>
           
-          <button type="button" id="wavePayButton" class="wave-pay-button" onclick="copyUSSD();">
-            <i class="fas fa-copy"></i> Copier le code USSD
+          <button type="button" id="wavePayButton" class="wave-pay-button" onclick="openWavePayment();">
+            <i class="fas fa-mobile-alt"></i> Payer avec Wave
           </button>
           
-          <div class="divider"><span>ou code USSD</span></div>
-          
-          <div class="ussd-box">
-            <p style="margin-bottom: 8px; font-size: 0.9rem;">Composez ce code sur votre téléphone :</p>
-            <div class="ussd-code" id="ussdCode">Compte: CI 58 32 12 09</div>
+          <div class="info-box" style="margin-top: 15px;">
+            <p><i class="fas fa-shield-alt"></i> <strong>Paiement sécurisé</strong> via Wave. Vous serez redirigé vers l'application Wave.</p>
           </div>
           
           <div class="info-box">
@@ -321,7 +318,7 @@
             <div class="whatsapp-command" id="whatsappCommand">.activer HANI-OR-XXXXXXXX</div>
           </div>
           
-          <a href="https://wa.me/225150252467" class="wave-pay-button" style="background: #25D366; margin-top: 25px;" target="_blank">
+          <a href="https://wa.me/2250150252467" class="wave-pay-button" style="background: #25D366; margin-top: 25px;" target="_blank">
             <i class="fab fa-whatsapp"></i> Ouvrir WhatsApp
           </a>
           
@@ -342,10 +339,11 @@
   <script>
     let currentStep = 1;
     let subscriberData = null;
-    const MERCHANT_NUMBER = 'CI58321209'; // Compte Marchand Wave Business
-    const MERCHANT_DISPLAY = 'CI 58 32 12 09'; // Format affichage
-    const MERCHANT_NAME = 'Boutique H';
-    const WHATSAPP_INTL = '225150252467'; // Format international
+    // Configuration sécurisée - informations masquées
+    const MERCHANT_NUMBER = 'HANI-MD'; // Référence interne
+    const MERCHANT_DISPLAY = 'HANI-MD Premium'; // Nom affiché
+    const MERCHANT_NAME = 'HANI-MD';
+    const WHATSAPP_INTL = '2250150252467'; // Format international
     
     const planOptions = document.querySelectorAll('.plan-option');
     const form = document.getElementById('subscribeForm');
@@ -533,14 +531,15 @@
       document.getElementById('confirmError').classList.add('hidden');
     }
     
-    function copyUSSD() {
-      navigator.clipboard.writeText('CI58321209').then(() => {
-        const btn = document.getElementById('wavePayButton');
-        btn.innerHTML = '<i class="fas fa-check"></i> Numéro copié !';
-        setTimeout(() => {
-          btn.innerHTML = '<i class="fas fa-copy"></i> Copier le numéro marchand';
-        }, 2000);
-      });
+    function openWavePayment() {
+      // Ouvrir Wave avec le montant pré-rempli
+      if (subscriberData && subscriberData.waveUrl) {
+        window.open(subscriberData.waveUrl, '_blank');
+      } else {
+        // Fallback: ouvrir Wave app
+        const amount = document.getElementById('paymentAmount').textContent.replace(/\s/g, '');
+        window.open('https://wave.com/app', '_blank');
+      }
     }
   </script>
 </body>

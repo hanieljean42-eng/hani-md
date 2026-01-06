@@ -19,11 +19,11 @@ const ACTIVATION_CODES_FILE = path.join(__dirname, 'activation_codes.json');
 const WAVE_CONFIG = {
   apiKey: process.env.WAVE_API_KEY || '', // Clé API Wave Business
   apiUrl: 'https://api.wave.com/v1',
-  // Compte Marchand Wave Business
-  merchantId: process.env.WAVE_MERCHANT_ID || 'M_ci_AGzCkYkPdoan', // Ancien ID B2B
-  merchantAccount: process.env.WAVE_ACCOUNT || 'CI58321209', // Nouveau numéro de compte B2B
-  merchantName: 'Boutique H',
-  ownerName: 'DJEBLE HANIEL JEAN HENOC',
+  // Compte Marchand Wave Business - informations sécurisées
+  merchantId: process.env.WAVE_MERCHANT_ID || '',
+  merchantAccount: process.env.WAVE_ACCOUNT || '',
+  merchantName: 'HANI-MD Premium',
+  ownerName: 'HANI-MD',
   currency: 'XOF',
   country: 'CI', // Côte d'Ivoire
   // URLs de redirection après paiement
@@ -139,19 +139,18 @@ async function createWaveCheckoutSession(amount, clientReference, clientPhone = 
  * Génère les instructions de paiement manuel (fallback)
  */
 function generateManualInstructions(amount, reference) {
-  const merchantAccount = WAVE_CONFIG.merchantAccount; // CI58321209
-  const merchantName = WAVE_CONFIG.merchantName; // Boutique H
+  const merchantAccount = WAVE_CONFIG.merchantAccount;
+  const merchantName = WAVE_CONFIG.merchantName;
   return {
-    merchantAccount: merchantAccount,
+    merchantAccount: 'HANI-MD',
     merchantName: merchantName,
     amount: amount,
     reference: reference,
     instructions: [
-      `1. Ouvrez l'app Wave`,
-      `2. Appuyez sur "Envoyer"`,
-      `3. Entrez le numéro marchand: ${merchantAccount.replace(/(.{2})(.{2})(.{2})(.{2})(.{2})/, '$1 $2 $3 $4 $5')}`,
-      `4. Montant: ${amount} FCFA`,
-      `5. Motif: HANI-MD ${reference}`
+      `1. Cliquez sur le bouton "Payer avec Wave"`,
+      `2. Vous serez redirigé vers Wave`,
+      `3. Montant: ${amount} FCFA`,
+      `4. Référence: HANI-MD ${reference}`
     ]
   };
 }

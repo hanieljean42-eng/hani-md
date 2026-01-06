@@ -237,7 +237,7 @@ async function handleCommand(ovl, msg) {
   // Fonction pour obtenir les infos utilisateur
   const getUserInfo = async (jid) => {
     const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
-    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '225150252467');
+    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '2250150252467');
     
     let plan = 'FREE';
     let dailyLimit = 30;
@@ -1617,7 +1617,7 @@ app.get('/payment-error', (req, res) => {
     <p>Le paiement n'a pas pu être complété. Aucun montant n'a été débité.</p>
     <div>
       <a href="/subscribe.html" class="btn">Réessayer</a>
-      <a href="https://wa.me/225150252467" class="btn btn-secondary" target="_blank">Contacter le support</a>
+      <a href="https://wa.me/2250150252467" class="btn btn-secondary" target="_blank">Contacter le support</a>
     </div>
   </div>
 </body>
