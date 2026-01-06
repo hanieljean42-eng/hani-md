@@ -237,7 +237,7 @@ async function handleCommand(ovl, msg) {
   // Fonction pour obtenir les infos utilisateur
   const getUserInfo = async (jid) => {
     const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
-    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '22550252467');
+    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '225150252467');
     
     let plan = 'FREE';
     let dailyLimit = 30;

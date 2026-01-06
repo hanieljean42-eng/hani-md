@@ -368,7 +368,7 @@
         <!-- Phone Number -->
         <div class="form-group">
           <label><i class="fab fa-whatsapp"></i> Numéro WhatsApp</label>
-          <input type="tel" id="phone" class="form-control" placeholder="Ex: 22550252467" required>
+          <input type="tel" id="phone" class="form-control" placeholder="Ex: 225XXXXXXXX" required>
         </div>
         
         <!-- Plan Selection -->
@@ -575,8 +575,8 @@
       document.getElementById('loading').style.display = 'block';
       alertDiv.style.display = 'none';
       
-      // URL du backend
-      const API_URL = 'https://hani-md-api.loca.lt';
+      // URL du backend - Koyeb
+      const API_URL = '';
       
       try {
         const response = await fetch(API_URL + '/api/payment/create', {
@@ -593,8 +593,8 @@
         
         if (data.success) {
           // Numéro de réception pour les paiements
-          const WAVE_NUMBER = '0150252467'; // Numéro Wave pour recevoir les paiements
-          const MOOV_NUMBER = '0150252467'; // Numéro Moov Money
+          const WAVE_NUMBER = '225150252467'; // Numéro Wave pour recevoir les paiements
+          const MOOV_NUMBER = '225150252467'; // Numéro Moov Money
           const amount = prices[selectedPlan];
           const orderId = data.payment.orderId;
           
