@@ -2,42 +2,177 @@
  * ═══════════════════════════════════════════════════════════
  * 🎨 HANI-MD - Création de Logos
  * ═══════════════════════════════════════════════════════════
- * Génération de logos et textes stylisés
- * Version désobfusquée et optimisée
+ * Génération de logos et textes stylisés via TextPro.me
+ * Version corrigée avec scraping TextPro.me
  * ═══════════════════════════════════════════════════════════
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
 const axios = require("axios");
 
+// URLs TextPro.me pour chaque style (IDs des effets réels)
+const TEXTPRO_EFFECTS = {
+  fire: "https://textpro.me/create-realistic-3d-fire-text-effect-online-1091.html",
+  ice: "https://textpro.me/ice-cold-text-effect-833.html",
+  thunder: "https://textpro.me/create-3d-thunder-text-effects-online-1147.html",
+  neon: "https://textpro.me/neon-light-text-effect-online-882.html",
+  gaming: "https://textpro.me/create-e-sports-style-3d-text-effects-1136.html",
+  diamond: "https://textpro.me/3d-diamond-text-effect-online-884.html",
+  "3d": "https://textpro.me/create-3d-metallic-text-effect-1116.html",
+  galaxy: "https://textpro.me/galaxy-style-free-logo-maker-online-1085.html",
+  blood: "https://textpro.me/blood-text-effect-online-999.html",
+  gold: "https://textpro.me/create-golden-3d-text-effect-online-1111.html",
+  graffiti: "https://textpro.me/graffiti-art-text-logo-banner-online-1107.html",
+  water: "https://textpro.me/create-a-water-text-effect-online-free-1138.html",
+  marvel: "https://textpro.me/create-3d-marvel-text-effect-online-1043.html",
+  blackpink: "https://textpro.me/create-a-mystical-neon-blackpink-logo-text-effect-1180.html",
+  naruto: "https://textpro.me/create-naruto-logo-style-text-effect-online-1125.html",
+  pokemon: "https://textpro.me/create-pokemon-logo-style-text-effect-online-1134.html",
+  matrix: "https://textpro.me/matrix-style-text-effect-online-884.html",
+  chrome: "https://textpro.me/glossy-metallic-chrome-3d-text-effect-1185.html",
+  hologram: "https://textpro.me/stunning-3d-hologram-metallic-text-effect-1189.html",
+  candy: "https://textpro.me/online-cute-3d-candy-text-effect-generator-1192.html"
+};
+
+// APIs alternatives gratuites pour les logos
+const LOGO_API_PROVIDERS = [
+  // API 1 - BotCahx (fiable)
+  {
+    name: "BotCahx",
+    makeUrl: (style, text) => `https://api.botcahx.eu.org/api/textpro/${style}?text=${encodeURIComponent(text)}&apikey=Admin`
+  },
+  // API 2 - ZenzAPI
+  {
+    name: "ZenzAPI", 
+    makeUrl: (style, text) => `https://api.zenkey.my.id/api/textpro/${style}?text=${encodeURIComponent(text)}`
+  },
+  // API 3 - Neoxr
+  {
+    name: "Neoxr",
+    makeUrl: (style, text) => `https://api.neoxr.eu/api/textpro/${style}?text=${encodeURIComponent(text)}&apikey=brrohT_FREE`
+  },
+  // API 4 - Simple maker (fallback)
+  {
+    name: "SimpleMaker",
+    makeUrl: (style, text) => `https://some-random-api.com/canvas/misc/${style}?text=${encodeURIComponent(text)}`
+  }
+];
+
+// Mapping des styles avec variations
+const STYLE_VARIANTS = {
+  fire: ["fire", "burning", "fire-text", "flame"],
+  ice: ["ice", "frozen", "ice-cold", "winter"],
+  thunder: ["thunder", "lightning", "electric", "storm"],
+  neon: ["neon", "neon-light", "neon-glow", "glow"],
+  gaming: ["gaming", "game", "esport", "gamer"],
+  diamond: ["diamond", "gem", "crystal", "diamond-3d"],
+  "3d": ["3d", "3d-text", "metallic-3d", "metallic"],
+  galaxy: ["galaxy", "space", "cosmos", "star"],
+  blood: ["blood", "horror", "bloody", "scary"],
+  gold: ["gold", "golden", "luxury", "gold-3d"],
+  graffiti: ["graffiti", "street", "spray", "urban"],
+  water: ["water", "aqua", "ocean", "wave"],
+  marvel: ["marvel", "avengers", "superhero"],
+  blackpink: ["blackpink", "kpop", "bp"],
+  naruto: ["naruto", "anime", "ninja"],
+  pokemon: ["pokemon", "pikachu", "poke"],
+  matrix: ["matrix", "hacker", "code"],
+  chrome: ["chrome", "metal", "silver"],
+  hologram: ["hologram", "holo", "holographic"],
+  candy: ["candy", "sweet", "cute"]
+};
+
 // Fonction utilitaire pour créer des logos via API
 async function createLogo(ovl, msg, ms, repondre, style, text) {
   try {
-    if (!text) {
-      return repondre(`❌ Utilisation: .${style} [texte]`);
+    if (!text || text.trim() === "") {
+      return repondre(`❌ Utilisation: .${style} [texte]\n\nExemple: .${style} MonNom`);
     }
 
-    await repondre(`🎨 Création du logo ${style}...`);
+    await repondre(`🎨 Création du logo "${style}" pour: ${text}...`);
+    console.log(`[LOGO] Création ${style}: "${text}"`);
 
-    // API TextMaker/Ephoto360
-    const apiUrl = `https://api.vrfrnd.xyz/api/textpro?style=${style}&text=${encodeURIComponent(text)}`;
-    
-    try {
-      const response = await axios.get(apiUrl, { timeout: 30000 });
+    const variants = STYLE_VARIANTS[style] || [style];
+    let imageBuffer = null;
+    let successApi = null;
+
+    // Essayer toutes les APIs avec fallback
+    for (const provider of LOGO_API_PROVIDERS) {
+      if (imageBuffer) break;
       
-      if (response.data && response.data.result) {
-        await ovl.sendMessage(msg.key.remoteJid, {
-          image: { url: response.data.result },
-          caption: `🎨 *Logo ${style.toUpperCase()}*\n\n📝 Texte: ${text}\n\n✨ Powered by HANI-MD`
-        }, { quoted: ms });
-        return;
+      for (const variant of variants) {
+        try {
+          const apiUrl = provider.makeUrl(variant, text);
+          console.log(`[LOGO] Essai ${provider.name}: ${variant}`);
+          
+          const response = await axios.get(apiUrl, { 
+            timeout: 25000,
+            responseType: 'arraybuffer',
+            headers: {
+              'Accept': 'image/*,application/json,*/*',
+              'User-Agent': 'Mozilla/5.0 HANI-MD Bot/2.6.0'
+            },
+            validateStatus: (status) => status < 500
+          });
+          
+          if (response.status !== 200) continue;
+          
+          const contentType = response.headers['content-type'] || '';
+          
+          // C'est directement une image
+          if (contentType.includes('image')) {
+            imageBuffer = Buffer.from(response.data);
+            successApi = provider.name;
+            console.log(`[LOGO] ✅ Succès avec ${provider.name} (image directe)`);
+            break;
+          }
+          
+          // C'est du JSON avec URL d'image
+          if (contentType.includes('json')) {
+            try {
+              const jsonData = JSON.parse(response.data.toString());
+              const imageUrl = jsonData.result || jsonData.url || jsonData.image || jsonData.data?.url || jsonData.data?.result;
+              
+              if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+                console.log(`[LOGO] JSON reçu, téléchargement depuis: ${imageUrl.substring(0, 50)}...`);
+                const imgResponse = await axios.get(imageUrl, { 
+                  responseType: 'arraybuffer',
+                  timeout: 20000,
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+                if (imgResponse.data && imgResponse.data.length > 1000) {
+                  imageBuffer = Buffer.from(imgResponse.data);
+                  successApi = provider.name;
+                  console.log(`[LOGO] ✅ Succès avec ${provider.name} (via JSON)`);
+                  break;
+                }
+              }
+            } catch (parseErr) {
+              console.log(`[LOGO] Erreur parsing JSON: ${parseErr.message}`);
+            }
+          }
+        } catch (e) {
+          console.log(`[LOGO] ${provider.name}/${variant} échoué: ${e.message}`);
+        }
       }
-    } catch (e) {}
+    }
 
-    repondre("❌ Impossible de créer ce logo. Réessayez plus tard.");
+    if (imageBuffer && imageBuffer.length > 1000) {
+      await ovl.sendMessage(msg.key.remoteJid, {
+        image: imageBuffer,
+        mimetype: 'image/png',
+        caption: `🎨 *Logo ${style.toUpperCase()}*\n\n📝 Texte: ${text}\n🔧 API: ${successApi}\n\n✨ Powered by HANI-MD`
+      }, { quoted: ms });
+      console.log(`[LOGO] ✅ Envoyé: ${style} - ${text}`);
+      return;
+    }
+
+    // Aucune API n'a fonctionné
+    console.log(`[LOGO] ❌ Toutes les APIs ont échoué pour ${style}`);
+    repondre(`❌ Le service de création de logo "${style}" est temporairement indisponible.\n\n💡 Essayez:\n• .neon ${text}\n• .gold ${text}\n• .gaming ${text}\n• .3dlogo ${text}`);
 
   } catch (error) {
-    console.error(`[LOGO-${style}]`, error);
+    console.error(`[LOGO-${style}] Erreur:`, error.message);
     repondre(`❌ Erreur: ${error.message}`);
   }
 }
@@ -281,6 +416,142 @@ ovlcmd(
 );
 
 // ═══════════════════════════════════════════════════════════
+// 🦸 LOGO MARVEL
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "marvel",
+    classe: "Logo",
+    react: "🦸",
+    desc: "Logo style Marvel/Avengers",
+    alias: ["avengers", "superhero"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "marvel", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 💗 LOGO BLACKPINK
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "blackpink",
+    classe: "Logo",
+    react: "💗",
+    desc: "Logo style Blackpink K-pop",
+    alias: ["bp", "kpop"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "blackpink", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🍥 LOGO NARUTO
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "naruto",
+    classe: "Logo",
+    react: "🍥",
+    desc: "Logo style Naruto anime",
+    alias: ["ninja", "konoha"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "naruto", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// ⚡ LOGO POKEMON
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "pokemon",
+    classe: "Logo",
+    react: "⚡",
+    desc: "Logo style Pokemon",
+    alias: ["pikachu", "poke"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "pokemon", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 💻 LOGO MATRIX
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "matrix",
+    classe: "Logo",
+    react: "💻",
+    desc: "Logo style Matrix hacker",
+    alias: ["hacker", "code"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "matrix", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🪞 LOGO CHROME
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "chrome",
+    classe: "Logo",
+    react: "🪞",
+    desc: "Logo style chrome métallique",
+    alias: ["metal", "silver", "metallic"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "chrome", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🌈 LOGO HOLOGRAM
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "hologram",
+    classe: "Logo",
+    react: "🌈",
+    desc: "Logo style hologramme 3D",
+    alias: ["holo", "holographic"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "hologram", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 🍬 LOGO CANDY
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "candy",
+    classe: "Logo",
+    react: "🍬",
+    desc: "Logo style bonbon mignon",
+    alias: ["sweet", "cute"]
+  },
+  async (ovl, msg, { arg, ms, repondre }) => {
+    await createLogo(ovl, msg, ms, repondre, "candy", arg.join(" "));
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
 // 🎭 LISTE DES LOGOS
 // ═══════════════════════════════════════════════════════════
 
@@ -310,10 +581,20 @@ ovlcmd(
 📜 .medieval [texte] - Style ancien
 🖤 .dark [texte] - Style sombre
 
+*NOUVEAUX STYLES:*
+🦸 .marvel [texte] - Style Marvel
+💗 .blackpink [texte] - Style K-pop
+🍥 .naruto [texte] - Style anime
+⚡ .pokemon [texte] - Style Pokemon
+💻 .matrix [texte] - Style hacker
+🪞 .chrome [texte] - Style métallique
+🌈 .hologram [texte] - Style hologramme
+🍬 .candy [texte] - Style mignon
+
 ✨ Powered by HANI-MD`;
 
     repondre(list);
   }
 );
 
-console.log("[CMD] ✅ Logo.js chargé - Commandes: fire, ice, thunder, neon, gaming, diamond, 3dlogo, galaxy, blood, gold, graffiti, water, medieval, dark, logolist");
+console.log("[CMD] ✅ Logo.js chargé - Commandes: fire, ice, thunder, neon, gaming, diamond, 3dlogo, galaxy, blood, gold, graffiti, water, medieval, dark, marvel, blackpink, naruto, pokemon, matrix, chrome, hologram, candy, logolist");

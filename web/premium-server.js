@@ -235,9 +235,9 @@ app.get('/api/plans', (req, res) => {
       { id: 'LIFETIME', name: 'Lifetime', price: 15000, currency: 'FCFA', duration: 'À vie', commands: 'Illimité', features: ['Tout inclus', 'À vie'], icon: '👑' }
     ],
     paymentMethods: [
-      { id: 'wave', name: 'Wave', number: '+2250150252467', icon: '📱' },
-      { id: 'orange', name: 'Orange Money', number: '+2250150252467', icon: '🟠' },
-      { id: 'mtn', name: 'MTN Money', number: '+2250150252467', icon: '🟡' }
+      { id: 'wave', name: 'Wave', number: '+22550252467', icon: '📱' },
+      { id: 'orange', name: 'Orange Money', number: '+22550252467', icon: '🟠' },
+      { id: 'mtn', name: 'MTN Money', number: '+22550252467', icon: '🟡' }
     ]
   });
 });
@@ -309,7 +309,7 @@ app.post('/api/subscribe', (req, res) => {
     fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
     
     // Générer le lien Wave pour compatibilité frontend
-    const paymentNumber = '+2250150252467';
+    const paymentNumber = '+22550252467';
     const cleanNumber = paymentNumber.replace(/[^0-9]/g, '');
     const paymentAmount = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()];
     res.json({

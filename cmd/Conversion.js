@@ -8,6 +8,7 @@
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
+const { downloadMedia, downloadSticker, downloadVideo, downloadAudio, downloadImage } = require("../lib/mediaDownloader");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
@@ -41,20 +42,11 @@ ovlcmd(
       await repondre("🖼️ Création du sticker...");
 
       // Télécharger le média
-      let mediaBuffer;
       const messageToDownload = quotedMessage || msg.message;
-      
-      try {
-        mediaBuffer = await ovl.downloadMediaMessage({ 
-          key: msg.key, 
-          message: messageToDownload 
-        });
-      } catch (e) {
-        return repondre("❌ Impossible de télécharger le média");
-      }
+      const mediaBuffer = await downloadMedia(messageToDownload);
 
       if (!mediaBuffer) {
-        return repondre("❌ Échec du téléchargement");
+        return repondre("❌ Impossible de télécharger le média");
       }
 
       // Créer et envoyer le sticker
@@ -93,10 +85,7 @@ ovlcmd(
 
       await repondre("🔄 Conversion en cours...");
 
-      const stickerBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const stickerBuffer = await downloadSticker(quotedMessage);
 
       if (!stickerBuffer) {
         return repondre("❌ Impossible de télécharger le sticker");
@@ -136,10 +125,7 @@ ovlcmd(
 
       await repondre("🎵 Extraction audio en cours...");
 
-      const videoBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const videoBuffer = await downloadVideo(quotedMessage);
 
       if (!videoBuffer) {
         return repondre("❌ Impossible de télécharger la vidéo");
@@ -179,10 +165,7 @@ ovlcmd(
         return repondre("❌ Répondez à un audio avec .tovn");
       }
 
-      const audioBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const audioBuffer = await downloadAudio(quotedMessage);
 
       if (!audioBuffer) {
         return repondre("❌ Impossible de télécharger l'audio");
@@ -225,10 +208,7 @@ ovlcmd(
         return repondre("❌ Répondez à une image, vidéo ou audio avec .todoc");
       }
 
-      const mediaBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const mediaBuffer = await downloadMedia(quotedMessage);
 
       if (!mediaBuffer) {
         return repondre("❌ Impossible de télécharger le média");
@@ -281,10 +261,7 @@ ovlcmd(
         return repondre("❌ Répondez à un sticker animé ou GIF avec .tovideo");
       }
 
-      const mediaBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const mediaBuffer = await downloadMedia(quotedMessage);
 
       if (!mediaBuffer) {
         return repondre("❌ Impossible de télécharger le média");

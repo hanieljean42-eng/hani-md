@@ -300,7 +300,7 @@ ovlcmd(
     classe: "Owner",
     react: "🚫",
     desc: "Bannir un utilisateur du bot",
-    alias: ["block", "banuser"]
+    alias: ["banuser", "bannir"]
   },
   async (ovl, msg, { arg, repondre, superUser }) => {
     try {

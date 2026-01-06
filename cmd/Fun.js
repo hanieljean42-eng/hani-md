@@ -2,59 +2,15 @@
  * ═══════════════════════════════════════════════════════════
  * 🎭 HANI-MD - Commandes Fun
  * ═══════════════════════════════════════════════════════════
- * Blagues, jeux, divertissement
- * Version désobfusquée et optimisée
+ * Blagues, divertissement, citations
+ * Version nettoyée (jeux dans Ovl-game.js)
  * ═══════════════════════════════════════════════════════════
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
 const axios = require("axios");
 
-// ═══════════════════════════════════════════════════════════
-// 🎲 DÉ
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "dice",
-    classe: "Fun",
-    react: "🎲",
-    desc: "Lancer un dé",
-    alias: ["de", "roll"]
-  },
-  async (ovl, msg, { arg, repondre }) => {
-    try {
-      const sides = parseInt(arg[0]) || 6;
-      const result = Math.floor(Math.random() * sides) + 1;
-      
-      repondre(`🎲 *Lancer de dé*\n\n🎯 Dé à ${sides} faces\n✨ Résultat: *${result}*`);
-    } catch (error) {
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
-
-// ═══════════════════════════════════════════════════════════
-// 🪙 PILE OU FACE
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "coinflip",
-    classe: "Fun",
-    react: "🪙",
-    desc: "Pile ou Face",
-    alias: ["flip", "coin", "pileouface"]
-  },
-  async (ovl, msg, { repondre }) => {
-    try {
-      const result = Math.random() < 0.5 ? "🪙 PILE" : "🪙 FACE";
-      repondre(`🪙 *Pile ou Face*\n\n✨ Résultat: *${result}*`);
-    } catch (error) {
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
+// NOTE: dice, coinflip sont dans Ovl-game.js
 
 // ═══════════════════════════════════════════════════════════
 // 🎱 MAGIC 8 BALL
@@ -275,109 +231,7 @@ ovlcmd(
   }
 );
 
-// ═══════════════════════════════════════════════════════════
-// 🎰 SLOT MACHINE
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "slot",
-    classe: "Fun",
-    react: "🎰",
-    desc: "Jouer à la machine à sous",
-    alias: ["slots", "casino"]
-  },
-  async (ovl, msg, { repondre }) => {
-    try {
-      const symbols = ["🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "🍀"];
-      
-      const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-      const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-      const s3 = symbols[Math.floor(Math.random() * symbols.length)];
-
-      let result;
-      let prize;
-      
-      if (s1 === s2 && s2 === s3) {
-        if (s1 === "7️⃣") {
-          result = "🎉 JACKPOT! TRIPLE 7!";
-          prize = "💰 +10000 pièces";
-        } else if (s1 === "💎") {
-          result = "💎 TRIPLE DIAMANT!";
-          prize = "💰 +5000 pièces";
-        } else {
-          result = "🎊 TRIPLE VICTOIRE!";
-          prize = "💰 +1000 pièces";
-        }
-      } else if (s1 === s2 || s2 === s3 || s1 === s3) {
-        result = "✨ Double symbole!";
-        prize = "💰 +100 pièces";
-      } else {
-        result = "😅 Pas de chance...";
-        prize = "💸 -50 pièces";
-      }
-
-      repondre(`🎰 *Machine à Sous*\n\n╔════════╗\n║ ${s1} │ ${s2} │ ${s3} ║\n╚════════╝\n\n${result}\n${prize}`);
-    } catch (error) {
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
-
-// ═══════════════════════════════════════════════════════════
-// ✊ PIERRE PAPIER CISEAUX
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "ppc",
-    classe: "Fun",
-    react: "✊",
-    desc: "Jouer à Pierre Papier Ciseaux",
-    alias: ["rps", "chifoumi"]
-  },
-  async (ovl, msg, { arg, repondre }) => {
-    try {
-      const choices = {
-        pierre: "✊", papier: "✋", ciseaux: "✌️",
-        p: "✊", f: "✋", c: "✌️"
-      };
-      
-      const playerChoice = arg[0]?.toLowerCase();
-      
-      if (!playerChoice || !choices[playerChoice]) {
-        return repondre("❌ Utilisation: .ppc [pierre/papier/ciseaux]");
-      }
-
-      const botChoices = ["pierre", "papier", "ciseaux"];
-      const botChoice = botChoices[Math.floor(Math.random() * 3)];
-
-      const playerEmoji = choices[playerChoice];
-      const botEmoji = choices[botChoice];
-
-      let result;
-      const playerKey = playerChoice.length === 1 ? 
-        (playerChoice === "p" ? "pierre" : playerChoice === "f" ? "papier" : "ciseaux") : 
-        playerChoice;
-
-      if (playerKey === botChoice) {
-        result = "🤝 Égalité!";
-      } else if (
-        (playerKey === "pierre" && botChoice === "ciseaux") ||
-        (playerKey === "papier" && botChoice === "pierre") ||
-        (playerKey === "ciseaux" && botChoice === "papier")
-      ) {
-        result = "🎉 Tu as gagné!";
-      } else {
-        result = "😢 Tu as perdu!";
-      }
-
-      repondre(`✊ *Pierre Papier Ciseaux*\n\n👤 Toi: ${playerEmoji}\n🤖 Bot: ${botEmoji}\n\n${result}`);
-    } catch (error) {
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
+// NOTE: slot et ppc sont dans Ovl-game.js
 
 // ═══════════════════════════════════════════════════════════
 // 📝 VÉRITÉ OU DÉFI
@@ -443,4 +297,4 @@ ovlcmd(
   }
 );
 
-console.log("[CMD] ✅ Fun.js chargé - Commandes: dice, coinflip, 8ball, love, blague, citation, horoscope, slot, ppc, vod");
+console.log("[CMD] ✅ Fun.js chargé - Commandes: 8ball, love, blague, citation, horoscope, vod");

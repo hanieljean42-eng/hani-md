@@ -2,8 +2,8 @@
  * ═══════════════════════════════════════════════════════════
  * 🛠️ HANI-MD - Commandes Outils
  * ═══════════════════════════════════════════════════════════
- * Stickers, conversion, calcul, TTS, etc.
- * Version désobfusquée et optimisée
+ * Calcul, QR Code, raccourcisseur, etc.
+ * NOTE: Stickers dans Conversion.js
  * ═══════════════════════════════════════════════════════════
  */
 
@@ -13,99 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-// ═══════════════════════════════════════════════════════════
-// 🖼️ STICKER
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "sticker2",
-    classe: "Outils",
-    react: "🖼️",
-    desc: "Créer un sticker à partir d'une image/vidéo",
-    alias: ["s2", "stick2"]
-  },
-  async (ovl, msg, { ms, repondre }) => {
-    try {
-      const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-      
-      if (!quotedMessage?.imageMessage && !quotedMessage?.videoMessage) {
-        return repondre("❌ Répondez à une image ou vidéo avec .sticker2");
-      }
-
-      await repondre("🖼️ Création du sticker...");
-
-      // Télécharger le média
-      let mediaBuffer;
-      let mediaType;
-      
-      if (quotedMessage.imageMessage) {
-        mediaBuffer = await ovl.downloadMediaMessage({ key: msg.key, message: quotedMessage });
-        mediaType = "image";
-      } else if (quotedMessage.videoMessage) {
-        mediaBuffer = await ovl.downloadMediaMessage({ key: msg.key, message: quotedMessage });
-        mediaType = "video";
-      }
-
-      if (!mediaBuffer) {
-        return repondre("❌ Impossible de télécharger le média");
-      }
-
-      // Créer le sticker
-      await ovl.sendMessage(msg.key.remoteJid, {
-        sticker: mediaBuffer,
-        packname: "HANI-MD",
-        author: "Bot Premium"
-      }, { quoted: ms });
-
-    } catch (error) {
-      console.error("[STICKER2]", error);
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
-
-// ═══════════════════════════════════════════════════════════
-// 🖼️ TOIMG (Sticker vers Image)
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "toimg2",
-    classe: "Outils",
-    react: "🖼️",
-    desc: "Convertir un sticker en image",
-    alias: ["stickertoimg", "stimg"]
-  },
-  async (ovl, msg, { ms, repondre }) => {
-    try {
-      const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-      
-      if (!quotedMessage?.stickerMessage) {
-        return repondre("❌ Répondez à un sticker avec .toimg2");
-      }
-
-      await repondre("🖼️ Conversion en cours...");
-
-      // Télécharger le sticker
-      const stickerBuffer = await ovl.downloadMediaMessage({ key: msg.key, message: quotedMessage });
-
-      if (!stickerBuffer) {
-        return repondre("❌ Impossible de télécharger le sticker");
-      }
-
-      // Envoyer comme image
-      await ovl.sendMessage(msg.key.remoteJid, {
-        image: stickerBuffer,
-        caption: "✅ Sticker converti en image\n🔥 Powered by HANI-MD"
-      }, { quoted: ms });
-
-    } catch (error) {
-      console.error("[TOIMG2]", error);
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
+// NOTE: sticker et toimg sont dans Conversion.js
 
 // ═══════════════════════════════════════════════════════════
 // 🧮 CALCULATRICE
@@ -154,57 +62,7 @@ ovlcmd(
   }
 );
 
-// ═══════════════════════════════════════════════════════════
-// 🔊 TEXT TO SPEECH
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd(
-  {
-    nom_cmd: "tts2",
-    classe: "Outils",
-    react: "🔊",
-    desc: "Convertir du texte en audio",
-    alias: ["parle", "speak"]
-  },
-  async (ovl, msg, { arg, ms, repondre }) => {
-    try {
-      const text = arg.join(" ");
-      if (!text) {
-        return repondre("❌ Utilisation: .tts2 [texte à prononcer]");
-      }
-
-      if (text.length > 500) {
-        return repondre("❌ Le texte est trop long (max 500 caractères)");
-      }
-
-      await repondre("🔊 Génération audio en cours...");
-
-      // Utiliser une API TTS gratuite
-      const lang = "fr"; // Français par défaut
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-
-      // Télécharger l'audio
-      const audioResp = await axios.get(ttsUrl, { 
-        responseType: "arraybuffer",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-      });
-      const audioBuffer = Buffer.from(audioResp.data);
-
-      // Envoyer comme message vocal
-      await ovl.sendMessage(msg.key.remoteJid, {
-        audio: audioBuffer,
-        mimetype: "audio/mp4",
-        ptt: true // Push to talk = message vocal
-      }, { quoted: ms });
-
-    } catch (error) {
-      console.error("[TTS2]", error);
-      repondre(`❌ Erreur: ${error.message}`);
-    }
-  }
-);
+// NOTE: TTS supprimé (API Google cassée)
 
 // ═══════════════════════════════════════════════════════════
 // 📊 QR CODE

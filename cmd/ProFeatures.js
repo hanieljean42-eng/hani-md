@@ -8,6 +8,7 @@
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
+const { downloadImage } = require("../lib/mediaDownloader");
 const axios = require("axios");
 
 // ═══════════════════════════════════════════════════════════
@@ -79,10 +80,7 @@ ovlcmd(
         return repondre("❌ Répondez à une image avec .setpp");
       }
 
-      const imageBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const imageBuffer = await downloadImage(quotedMessage);
 
       if (!imageBuffer) {
         return repondre("❌ Impossible de télécharger l'image");
@@ -383,10 +381,7 @@ ovlcmd(
         return repondre("❌ Répondez à une image avec .setgrouppp");
       }
 
-      const imageBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const imageBuffer = await downloadImage(quotedMessage);
 
       if (!imageBuffer) {
         return repondre("❌ Impossible de télécharger l'image");

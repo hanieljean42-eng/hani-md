@@ -17,7 +17,7 @@ const ACTIVATION_CODES_FILE = path.join(__dirname, 'activation_codes.json');
 
 // Configuration Wave
 const WAVE_CONFIG = {
-  merchantNumber: process.env.WAVE_NUMBER || '2250150252467',
+  merchantNumber: process.env.WAVE_NUMBER || '22550252467',
   merchantName: 'HANI-MD Bot',
   currency: 'XOF',
   country: 'CI' // Côte d'Ivoire

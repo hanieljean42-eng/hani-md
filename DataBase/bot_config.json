@@ -1,0 +1,21 @@
+{
+  "prefix": ".",
+  "mode": "public",
+  "language": "fr",
+  "showTyping": true,
+  "readReceipts": true,
+  "autoViewStatus": false,
+  "autoReactStatus": false,
+  "statusReactEmoji": "❤️",
+  "antilink": false,
+  "antispam": false,
+  "antibot": false,
+  "anticall": true,
+  "antitag": false,
+  "autoReplyEnabled": true,
+  "welcomeEnabled": true,
+  "awayEnabled": false,
+  "premiumEnabled": true,
+  "lastModified": null,
+  "modifiedBy": null
+}

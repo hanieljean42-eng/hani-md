@@ -8,6 +8,7 @@
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
+const { downloadImage, downloadVideo, downloadAudio, downloadMedia } = require("../lib/mediaDownloader");
 const fs = require("fs");
 const path = require("path");
 
@@ -68,10 +69,7 @@ ovlcmd(
 
       const caption = arg.join(" ") || "";
       
-      const imageBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const imageBuffer = await downloadImage(quotedMessage);
 
       if (!imageBuffer) {
         return repondre("❌ Impossible de télécharger l'image");
@@ -113,10 +111,7 @@ ovlcmd(
 
       const caption = arg.join(" ") || "";
       
-      const videoBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const videoBuffer = await downloadVideo(quotedMessage);
 
       if (!videoBuffer) {
         return repondre("❌ Impossible de télécharger la vidéo");
@@ -156,10 +151,7 @@ ovlcmd(
         return repondre("❌ Répondez à un audio avec .statusaudio");
       }
       
-      const audioBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const audioBuffer = await downloadAudio(quotedMessage);
 
       if (!audioBuffer) {
         return repondre("❌ Impossible de télécharger l'audio");
@@ -184,6 +176,21 @@ ovlcmd(
 // 👁️ ACTIVER AUTO-VUE STATUS
 // ═══════════════════════════════════════════════════════════
 
+const statusConfigPath = path.join(__dirname, "../DataBase/status_config.json");
+
+function loadStatusConfig() {
+  try {
+    if (fs.existsSync(statusConfigPath)) {
+      return JSON.parse(fs.readFileSync(statusConfigPath, "utf8"));
+    }
+  } catch (e) {}
+  return { autoView: false, autoReact: false, reactEmoji: "❤️" };
+}
+
+function saveStatusConfig(config) {
+  fs.writeFileSync(statusConfigPath, JSON.stringify(config, null, 2));
+}
+
 ovlcmd(
   {
     nom_cmd: "autoview",
@@ -195,16 +202,18 @@ ovlcmd(
   async (ovl, msg, { arg, repondre }) => {
     try {
       const action = arg[0]?.toLowerCase();
+      const config = loadStatusConfig();
       
       if (action === "on" || action === "1") {
-        // Activer la vue auto (à implémenter avec DB)
-        process.env.AUTO_VIEW_STATUS = "true";
-        repondre("👁️ *Auto-vue des statuts activée!*\n\nLe bot verra automatiquement les statuts de vos contacts.");
+        config.autoView = true;
+        saveStatusConfig(config);
+        repondre("👁️ *Auto-vue des statuts activée!*\n\nLe bot verra automatiquement les statuts de vos contacts.\n💾 Configuration sauvegardée.");
       } else if (action === "off" || action === "0") {
-        process.env.AUTO_VIEW_STATUS = "false";
-        repondre("👁️ *Auto-vue des statuts désactivée!*");
+        config.autoView = false;
+        saveStatusConfig(config);
+        repondre("👁️ *Auto-vue des statuts désactivée!*\n💾 Configuration sauvegardée.");
       } else {
-        repondre("❌ Utilisation: .autoview on/off");
+        repondre(`👁️ *Auto-vue des statuts*\n\nStatut actuel: ${config.autoView ? "✅ Activé" : "❌ Désactivé"}\n\nUtilisation: .autoview on/off`);
       }
 
     } catch (error) {
@@ -230,16 +239,19 @@ ovlcmd(
     try {
       const action = arg[0]?.toLowerCase();
       const emoji = arg[1] || "❤️";
+      const config = loadStatusConfig();
       
       if (action === "on" || action === "1") {
-        process.env.AUTO_REACT_STATUS = "true";
-        process.env.STATUS_REACT_EMOJI = emoji;
-        repondre(`❤️ *Auto-réaction aux statuts activée!*\n\nEmoji: ${emoji}`);
+        config.autoReact = true;
+        config.reactEmoji = emoji;
+        saveStatusConfig(config);
+        repondre(`❤️ *Auto-réaction aux statuts activée!*\n\nEmoji: ${emoji}\n💾 Configuration sauvegardée.`);
       } else if (action === "off" || action === "0") {
-        process.env.AUTO_REACT_STATUS = "false";
-        repondre("❤️ *Auto-réaction aux statuts désactivée!*");
+        config.autoReact = false;
+        saveStatusConfig(config);
+        repondre("❤️ *Auto-réaction aux statuts désactivée!*\n💾 Configuration sauvegardée.");
       } else {
-        repondre("❌ Utilisation: .autoreact on/off [emoji]\nExemple: .autoreact on 🔥");
+        repondre(`❤️ *Auto-réaction aux statuts*\n\nStatut: ${config.autoReact ? "✅ Activé" : "❌ Désactivé"}\nEmoji: ${config.reactEmoji}\n\nUtilisation: .autoreact on/off [emoji]`);
       }
 
     } catch (error) {
@@ -270,10 +282,7 @@ ovlcmd(
         return repondre("❌ Répondez à un statut pour le télécharger");
       }
 
-      const mediaBuffer = await ovl.downloadMediaMessage({ 
-        key: msg.key, 
-        message: quotedMessage 
-      });
+      const mediaBuffer = await downloadMedia(quotedMessage);
 
       if (!mediaBuffer) {
         return repondre("❌ Impossible de télécharger le statut");

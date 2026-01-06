@@ -52,8 +52,8 @@ ovlcmd(
               `Pour activer votre abonnement premium, utilisez:\n\n` +
               `*.activer VOTRE-CODE*\n\n` +
               `Exemple: *.activer HANI-OR-A1B2C3D4*\n\n` +
-              `📱 Obtenez un code sur:\n` +
-              `https://votre-site.com/subscribe`
+              `📱 Obtenez un code en contactant:\n` +
+              `wa.me/22550252467`
       });
     }
     
@@ -398,7 +398,7 @@ ovlcmd(
       `3️⃣ Payez avec Wave\n` +
       `4️⃣ Recevez votre code\n` +
       `5️⃣ Activez avec: *.activer CODE*\n\n` +
-      `📞 *Support:* wa.me/2250150252467`;
+      `📞 *Support:* wa.me/22550252467`;
     
     return await ovl.sendMessage(ms_org, { text: message });
   }

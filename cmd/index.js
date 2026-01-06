@@ -31,7 +31,19 @@ const modules = [
   "Ovl-economy",
   "Ovl-game",
   "Advanced",
-  "WavePayments"
+  "WavePayments",
+  // Nouveaux modules d'engagement et croissance
+  "Newsletter",
+  "Autoreply",
+  "Contacts",
+  "Engagement",
+  // Modules commerciaux et support client
+  "Support",
+  "Feedback",
+  "Tutorial",
+  "Referral",
+  // Configuration centralisée
+  "Config"
 ];
 
 // Charger tous les modules

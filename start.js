@@ -13,6 +13,9 @@ const QRCode = require("qrcode"); // Pour générer QR en image web
 // Variable globale pour stocker le QR code actuel
 let currentQR = null;
 let connectionStatus = 'disconnected';
+let connectionFailureCount = 0; // Compteur pour détecter les boucles de connexion échouées
+const MAX_CONNECTION_FAILURES = 3; // Après 3 échecs, on supprime la session
+
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -224,7 +227,7 @@ async function handleCommand(ovl, msg) {
   // Fonction pour obtenir les infos utilisateur
   const getUserInfo = async (jid) => {
     const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
-    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '2250150252467');
+    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '22550252467');
     
     let plan = 'FREE';
     let dailyLimit = 30;
@@ -723,17 +726,54 @@ async function startBot() {
 
       console.log(`\n⚠️ Connexion fermée (code: ${statusCode}, raison: ${reason})`);
 
-      // Reconnexion immédiate pour tous les cas sauf loggedOut explicite
-      if (statusCode === DisconnectReason.loggedOut) {
-        // Déconnexion manuelle - supprimer la session et redemander un QR
+      // Vérifier si c'est un conflit ou erreur temporaire (NE PAS supprimer la session)
+      const isConflict = reason?.toLowerCase().includes("conflict");
+      const isConnectionFailure = reason?.toLowerCase().includes("connection failure");
+      const isStreamError = reason?.toLowerCase().includes("stream errored");
+      const isTemporaryError = isConflict || isConnectionFailure || isStreamError;
+      
+      // SEUL CAS de suppression de session: code 401 avec message "logged out" explicite
+      const isRealLogout = statusCode === DisconnectReason.loggedOut && 
+                           reason?.toLowerCase().includes("logged out");
+      
+      // Détecter les boucles de "Connection Failure" répétées
+      if (isConnectionFailure && statusCode === 401) {
+        connectionFailureCount++;
+        console.log(`⚠️ Échec de connexion ${connectionFailureCount}/${MAX_CONNECTION_FAILURES}`);
+        
+        if (connectionFailureCount >= MAX_CONNECTION_FAILURES) {
+          console.log("❌ Trop d'échecs de connexion - session corrompue détectée");
+          console.log("🔄 Suppression de la session et nouveau QR dans 3 secondes...");
+          connectionFailureCount = 0;
+          
+          if (fs.existsSync(SESSION_FOLDER)) {
+            fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+          }
+          
+          await delay(3000);
+          startBot();
+          return;
+        }
+      } else {
+        // Réinitialiser le compteur si c'est une autre erreur
+        connectionFailureCount = 0;
+      }
+      
+      if (isRealLogout) {
+        // Déconnexion manuelle VRAIE depuis WhatsApp - supprimer la session
         console.log("❌ Déconnexion manuelle détectée depuis WhatsApp.");
         console.log("🔄 Suppression de la session et nouveau QR dans 3 secondes...");
+        connectionFailureCount = 0;
         
-        // Supprimer la session
         if (fs.existsSync(SESSION_FOLDER)) {
           fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
         }
         
+        await delay(3000);
+        startBot();
+      } else if (isTemporaryError) {
+        // Erreur temporaire (conflit, connection failure, stream error) - garder la session
+        console.log("⚡ Erreur temporaire détectée - reconnexion avec session existante...");
         await delay(3000);
         startBot();
       } else if (statusCode === DisconnectReason.connectionClosed || 
@@ -745,11 +785,16 @@ async function startBot() {
         await delay(1000);
         startBot();
       } else {
-        // Autres erreurs - reconnexion standard
-        console.log("🔄 Reconnexion dans 2 secondes...");
-        await delay(2000);
+        // Autres erreurs - reconnexion standard (garder la session)
+        console.log("🔄 Reconnexion dans 3 secondes...");
+        await delay(3000);
         startBot();
       }
+    }
+
+    // Réinitialiser le compteur en cas de connexion réussie
+    if (connection === "open") {
+      connectionFailureCount = 0;
     }
   });
 

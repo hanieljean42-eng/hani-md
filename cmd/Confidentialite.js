@@ -137,7 +137,7 @@ ovlcmd(
     nom_cmd: "lastseen",
     classe: "Confidentialité",
     react: "👁️",
-    desc: "Masquer/afficher 'vu récemment'",
+    desc: "Info sur 'vu récemment' (non modifiable via bot)",
     alias: ["vurecemment", "online"]
   },
   async (ovl, msg, { arg, repondre, superUser }) => {
@@ -146,15 +146,7 @@ ovlcmd(
         return repondre("❌ Cette commande est réservée au propriétaire");
       }
 
-      const action = arg[0]?.toLowerCase();
-      
-      if (action === "hide" || action === "masquer") {
-        repondre("👁️ *Vu récemment masqué!*\n\n⚠️ Note: Cette fonctionnalité dépend des paramètres WhatsApp.");
-      } else if (action === "show" || action === "afficher") {
-        repondre("👁️ *Vu récemment visible!*");
-      } else {
-        repondre("❌ Utilisation: .lastseen hide/show");
-      }
+      repondre(`👁️ *Paramètre "Vu récemment"*\n\n⚠️ Ce paramètre ne peut être modifié que dans:\n📱 WhatsApp > Paramètres > Confidentialité > Vu à\n\n💡 Le bot ne peut pas changer ce réglage WhatsApp.`);
 
     } catch (error) {
       console.error("[LASTSEEN]", error);

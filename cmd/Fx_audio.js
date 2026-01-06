@@ -8,28 +8,102 @@
  */
 
 const { ovlcmd } = require("../lib/ovlcmd");
+const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
+const { exec, execSync } = require("child_process");
 const os = require("os");
 
-// Vérifier si FFmpeg est disponible
-let ffmpegAvailable = false;
-
-exec("ffmpeg -version", (error) => {
-  ffmpegAvailable = !error;
-  if (ffmpegAvailable) {
-    console.log("[AUDIO FX] ✅ FFmpeg détecté - Effets audio activés");
-  } else {
-    console.log("[AUDIO FX] ⚠️ FFmpeg non détecté - Effets audio limités");
+// Fonction pour télécharger un média audio
+async function downloadAudioBuffer(quotedMessage) {
+  try {
+    const stream = await downloadContentFromMessage(
+      quotedMessage.audioMessage,
+      'audio'
+    );
+    
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+  } catch (e) {
+    console.error("[AUDIO] Erreur téléchargement:", e.message);
+    return null;
   }
-});
+}
+
+// Chemins possibles pour FFmpeg sur Windows
+const FFMPEG_PATHS = [
+  "ffmpeg", // PATH système
+  "C:\\Users\\davis\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe",
+  "C:\\ffmpeg\\bin\\ffmpeg.exe",
+  "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe",
+  "C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe"
+];
+
+// Variable pour stocker le chemin FFmpeg trouvé
+let FFMPEG_PATH = null;
+
+// Fonction pour trouver FFmpeg
+function findFFmpeg() {
+  for (const ffmpegPath of FFMPEG_PATHS) {
+    try {
+      execSync(`"${ffmpegPath}" -version`, { stdio: 'pipe' });
+      return ffmpegPath;
+    } catch (e) {
+      // Essayer le prochain chemin
+    }
+  }
+  return null;
+}
+
+// Fonction pour vérifier FFmpeg à chaque appel
+function checkFFmpeg() {
+  if (FFMPEG_PATH) return true;
+  FFMPEG_PATH = findFFmpeg();
+  return FFMPEG_PATH !== null;
+}
+
+// Obtenir la commande FFmpeg
+function getFFmpegCommand() {
+  if (!FFMPEG_PATH) FFMPEG_PATH = findFFmpeg();
+  return FFMPEG_PATH ? `"${FFMPEG_PATH}"` : "ffmpeg";
+}
+
+// Vérification initiale
+FFMPEG_PATH = findFFmpeg();
+if (FFMPEG_PATH) {
+  console.log("[AUDIO FX] ✅ FFmpeg détecté:", FFMPEG_PATH);
+} else {
+  console.log("[AUDIO FX] ⚠️ FFmpeg non détecté - Effets audio limités");
+}
 
 // Créer un dossier temp s'il n'existe pas
 const tempDir = path.join(os.tmpdir(), "hani-audio");
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
+
+// Commande pour vérifier l'état des effets audio
+ovlcmd(
+  {
+    nom_cmd: "fxstatus",
+    classe: "Audio FX",
+    react: "🎵",
+    desc: "Vérifier si les effets audio sont disponibles",
+    alias: ["audiofx", "ffmpegcheck"]
+  },
+  async (ovl, msg, { repondre }) => {
+    const ffmpegOk = checkFFmpeg();
+    if (ffmpegOk) {
+      const ffmpegPath = FFMPEG_PATH || "ffmpeg";
+      repondre(`🎵 *Effets Audio - HANI-MD*\n\n✅ FFmpeg est installé!\n📂 Chemin: ${ffmpegPath.length > 50 ? '...' + ffmpegPath.slice(-40) : ffmpegPath}\n\n📝 *Effets disponibles (15):*\n• .bass - Amplifier les basses\n• .slow - Ralentir l'audio\n• .fast - Accélérer l'audio\n• .chipmunk - Voix aiguë\n• .deep - Voix grave\n• .reverb - Effet réverbération\n• .8d - Effet 8D\n• .robot - Voix robotique\n• .karaoke - Supprimer voix\n• .loud - Augmenter volume\n• .telephone - Effet téléphone\n• .underwater - Effet sous l'eau\n• .vibrato - Effet vibrato\n• .treble - Augmenter aigus\n• .reverse - Inverser audio\n\n💡 Répondez à un audio avec la commande\n📋 Voir: .menu audio`);
+    } else {
+      repondre(`🎵 *Effets Audio - HANI-MD*\n\n❌ FFmpeg n'est pas installé!\n\n💡 Installation:\n• Windows: winget install ffmpeg\n• Linux: sudo apt install ffmpeg\n\n⚠️ Après installation, redémarrez le bot.`);
+    }
+  }
+);
 
 // Fonction utilitaire pour appliquer un effet audio avec ffmpeg
 async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter, description) {
@@ -40,20 +114,20 @@ async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter
       return repondre(`❌ Répondez à un audio avec .${effectName}`);
     }
 
+    // Vérifier FFmpeg à chaque appel
+    const ffmpegAvailable = checkFFmpeg();
+    
+    if (!ffmpegAvailable) {
+      return repondre(`❌ L'effet ${effectName} nécessite FFmpeg.\n\n💡 Installation:\n• Windows: winget install ffmpeg\n• Linux: sudo apt install ffmpeg\n\n📝 Utilisez .fxstatus pour vérifier`);
+    }
+
     await repondre(`🎵 Application de l'effet ${effectName}...`);
 
-    const audioBuffer = await ovl.downloadMediaMessage({ 
-      key: msg.key, 
-      message: quotedMessage 
-    });
+    // Télécharger l'audio avec la bonne méthode
+    const audioBuffer = await downloadAudioBuffer(quotedMessage);
 
     if (!audioBuffer) {
       return repondre("❌ Impossible de télécharger l'audio");
-    }
-
-    // Si FFmpeg n'est pas disponible, informer l'utilisateur
-    if (!ffmpegAvailable) {
-      return repondre(`❌ L'effet ${effectName} nécessite FFmpeg.\n\n💡 Installez FFmpeg pour utiliser les effets audio:\n• Windows: choco install ffmpeg\n• Linux: apt install ffmpeg\n• Heroku/Koyeb: ajoutez le buildpack ffmpeg`);
     }
 
     // Créer les fichiers temporaires
@@ -64,8 +138,9 @@ async function applyAudioEffect(ovl, msg, ms, repondre, effectName, ffmpegFilter
     // Sauvegarder l'audio d'entrée
     fs.writeFileSync(inputPath, audioBuffer);
 
-    // Appliquer l'effet avec FFmpeg
-    const ffmpegCmd = `ffmpeg -i "${inputPath}" -af "${ffmpegFilter}" -y "${outputPath}"`;
+    // Appliquer l'effet avec FFmpeg (utiliser le chemin trouvé)
+    const ffmpegBin = getFFmpegCommand();
+    const ffmpegCmd = `${ffmpegBin} -i "${inputPath}" -af "${ffmpegFilter}" -y "${outputPath}"`;
     
     await new Promise((resolve, reject) => {
       exec(ffmpegCmd, { timeout: 60000 }, (error, stdout, stderr) => {

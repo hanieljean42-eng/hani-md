@@ -254,43 +254,11 @@ ovlcmd({
   }
 });
 
-// ═══════════════════════════════════════════════════════════
-// 📢 DIFFUSION & ANNONCES
-// ═══════════════════════════════════════════════════════════
+// NOTE: broadcast est dans Owner.js
 
-ovlcmd({
-  nom_cmd: "broadcast",
-  classe: "📢 Diffusion",
-  react: "📢",
-  desc: "Envoie un message à tous les groupes. Usage: .broadcast message",
-  alias: ["bc", "diffusion"]
-}, async (hani, ms, { repondre, arg, superUser }) => {
-  if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  if (!arg[0]) return repondre("❌ Usage: .broadcast votre message");
-  
-  const message = arg.join(' ');
-  const groups = await hani.groupFetchAllParticipating();
-  const groupIds = Object.keys(groups);
-  
-  await repondre(`📢 Diffusion en cours vers ${groupIds.length} groupes...`);
-  
-  let success = 0;
-  let failed = 0;
-  
-  for (const groupId of groupIds) {
-    try {
-      await hani.sendMessage(groupId, { 
-        text: `📢 *ANNONCE*\n\n${message}\n\n_Envoyé par HANI-MD_` 
-      });
-      success++;
-      await new Promise(r => setTimeout(r, 1000)); // Anti-spam
-    } catch (e) {
-      failed++;
-    }
-  }
-  
-  await repondre(`✅ Diffusion terminée!\n📨 Envoyés: ${success}\n❌ Échecs: ${failed}`);
-});
+// ═══════════════════════════════════════════════════════════
+// 📢 ANNONCES
+// ═══════════════════════════════════════════════════════════
 
 ovlcmd({
   nom_cmd: "announce",
@@ -325,62 +293,7 @@ ${content}
   await hani.sendMessage(ms.key.remoteJid, { text: announcement });
 });
 
-// ═══════════════════════════════════════════════════════════
-// 🎮 JEUX AVANCÉS
-// ═══════════════════════════════════════════════════════════
-
-ovlcmd({
-  nom_cmd: "roulette",
-  classe: "🎮 Jeux",
-  react: "🎰",
-  desc: "Roulette russe - Teste ta chance !",
-  alias: ["russianroulette"]
-}, async (hani, ms, { repondre, auteurMessage }) => {
-  const chamber = Math.floor(Math.random() * 6) + 1;
-  const bullet = Math.floor(Math.random() * 6) + 1;
-  
-  await repondre("🔫 Tu charges le pistolet et tournes le barillet...");
-  await new Promise(r => setTimeout(r, 2000));
-  
-  if (chamber === bullet) {
-    await repondre("💥 *BANG!* Tu as perdu! 💀");
-  } else {
-    await repondre("😅 *Click!* Tu as survécu! Continue à jouer si tu oses...");
-  }
-});
-
-ovlcmd({
-  nom_cmd: "duel",
-  classe: "🎮 Jeux",
-  react: "⚔️",
-  desc: "Défie quelqu'un en duel. Usage: .duel @user",
-  alias: ["fight", "combat"]
-}, async (hani, ms, { repondre, arg, verifGroupe, auteurMessage }) => {
-  if (!verifGroupe) return repondre("❌ Réservé aux groupes.");
-  
-  const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-  if (!mentioned || mentioned.length === 0) {
-    return repondre("❌ Mentionne quelqu'un pour le défier! .duel @user");
-  }
-  
-  const opponent = mentioned[0];
-  const challenger = auteurMessage;
-  
-  await repondre(`⚔️ *DUEL!*\n\n🟦 @${challenger.split('@')[0]}\n    VS\n🟥 @${opponent.split('@')[0]}\n\n⏳ Combat en cours...`, {
-    mentions: [challenger, opponent]
-  });
-  
-  await new Promise(r => setTimeout(r, 3000));
-  
-  const winner = Math.random() > 0.5 ? challenger : opponent;
-  const loser = winner === challenger ? opponent : challenger;
-  
-  const damage = Math.floor(Math.random() * 50) + 50;
-  
-  await repondre(`🏆 *VICTOIRE!*\n\n👑 @${winner.split('@')[0]} a gagné!\n💀 @${loser.split('@')[0]} a perdu!\n\n💥 Dégâts infligés: ${damage} HP`, {
-    mentions: [winner, loser]
-  });
-});
+// NOTE: roulette et duel sont dans Ovl-game.js
 
 // ═══════════════════════════════════════════════════════════
 // 🔧 UTILITAIRES AVANCÉS

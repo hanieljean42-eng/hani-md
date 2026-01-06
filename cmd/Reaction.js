@@ -62,7 +62,7 @@ ovlcmd(
     classe: "Réaction",
     react: "❤️",
     desc: "Aimer un message (❤️)",
-    alias: ["love", "coeur"]
+    alias: ["coeur", "heart"]
   },
   async (ovl, msg, { repondre }) => {
     try {
