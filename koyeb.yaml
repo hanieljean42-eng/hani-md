@@ -29,6 +29,16 @@ env:
     value: "HANI-MD"
   - key: STICKER_AUTHOR_NAME
     value: "H2025"
+  - key: MYSQL_ADDON_HOST
+    value: "bbrgjiyodrpxpjz1dtix-mysql.services.clever-cloud.com"
+  - key: MYSQL_ADDON_PORT
+    value: "3306"
+  - key: MYSQL_ADDON_USER
+    value: "ux7kdg3qwu0w0sls"
+  - key: MYSQL_ADDON_PASSWORD
+    value: "umPLlTsEI0jR7pNRNIly"
+  - key: MYSQL_ADDON_DB
+    value: "bbrgjiyodrpxpjz1dtix"
 scaling:
   min: 1
   max: 1
