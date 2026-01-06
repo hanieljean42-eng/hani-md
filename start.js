@@ -60,7 +60,17 @@ const commandModules = [
   "./cmd/Advanced",
   "./cmd/Menu",
   "./cmd/Payments",
-  "./cmd/WavePayments"
+  "./cmd/WavePayments",
+  // Nouveaux modules commerciaux
+  "./cmd/Newsletter",
+  "./cmd/Contacts",
+  "./cmd/Engagement",
+  "./cmd/Feedback",
+  "./cmd/Referral",
+  "./cmd/Support",
+  "./cmd/Tutorial",
+  "./cmd/Config",
+  "./cmd/Autoreply"
 ];
 
 let loadedModules = 0;
@@ -985,6 +995,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // Servir les fichiers statiques (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ═══════════════════════════════════════════════════════════
+// 🏥 HEALTH CHECK ENDPOINT (REQUIS PAR RENDER)
+// ═══════════════════════════════════════════════════════════
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    bot: "HANI-MD",
+    version: "2.6.1",
+    connection: connectionStatus,
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
 
 // ═══════════════════════════════════════════════════════════
 // 📱 PAGE QR CODE POUR CONNEXION WHATSAPP
