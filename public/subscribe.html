@@ -31,10 +31,7 @@
       text-decoration: none;
       margin-bottom: 30px;
       opacity: 0.8;
-      transition: opacity 0.3s;
     }
-    
-    .back-link:hover { opacity: 1; }
     
     .form-card {
       background: rgba(255,255,255,0.05);
@@ -76,7 +73,6 @@
       color: white;
       font-size: 1rem;
       font-family: inherit;
-      transition: all 0.3s;
     }
     
     .form-control:focus {
@@ -88,16 +84,7 @@
     .form-control::placeholder {
       color: rgba(255,255,255,0.5);
     }
-    
-    select.form-control {
-      cursor: pointer;
-    }
-    
-    select.form-control option {
-      background: #1a1a2e;
-      color: white;
-    }
-    
+
     /* Plan Cards */
     .plan-options {
       display: grid;
@@ -114,6 +101,7 @@
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.3s;
+      user-select: none;
     }
     
     .plan-option:hover {
@@ -124,10 +112,6 @@
     .plan-option.selected {
       border-color: #25D366;
       background: rgba(37,211,102,0.1);
-    }
-    
-    .plan-option input {
-      display: none;
     }
     
     .plan-icon {
@@ -153,50 +137,7 @@
       font-weight: 700;
       color: #25D366;
     }
-    
-    /* Payment Methods */
-    .payment-methods {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 25px;
-    }
-    
-    .payment-method {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 15px;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .payment-method:hover {
-      border-color: rgba(37,211,102,0.5);
-    }
-    
-    .payment-method.selected {
-      border-color: #25D366;
-      background: rgba(37,211,102,0.1);
-    }
-    
-    .payment-method input {
-      display: none;
-    }
-    
-    .payment-icon {
-      font-size: 2rem;
-      margin-bottom: 8px;
-    }
-    
-    .payment-name {
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-    
+
     /* Submit Button */
     .btn-submit {
       width: 100%;
@@ -208,7 +149,6 @@
       font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -261,12 +201,6 @@
       display: none;
     }
     
-    .alert-success {
-      background: rgba(37,211,102,0.2);
-      border: 1px solid #25D366;
-      color: #25D366;
-    }
-    
     .alert-error {
       background: rgba(239,68,68,0.2);
       border: 1px solid #ef4444;
@@ -316,10 +250,13 @@
     .modal-content {
       background: linear-gradient(135deg, #1a1a2e, #16213e);
       border-radius: 25px;
-      padding: 40px;
+      padding: 30px;
       text-align: center;
-      max-width: 400px;
+      max-width: 450px;
+      width: 100%;
       border: 1px solid rgba(37,211,102,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
     }
     
     .modal-icon {
@@ -329,11 +266,6 @@
     
     .modal h2 {
       margin-bottom: 15px;
-    }
-    
-    .modal p {
-      opacity: 0.8;
-      margin-bottom: 25px;
     }
     
     .modal .btn {
@@ -347,6 +279,13 @@
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
+      margin-top: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .form-card { padding: 25px 20px; }
+      .form-header h1 { font-size: 1.5rem; }
     }
   </style>
 </head>
@@ -362,86 +301,63 @@
         <p>Débloquez toutes les fonctionnalités</p>
       </div>
       
-      <div id="alert" class="alert"></div>
+      <div id="alert" class="alert alert-error"></div>
       
-      <form id="subscribeForm">
+      <div id="formContainer">
         <!-- Phone Number -->
         <div class="form-group">
           <label><i class="fab fa-whatsapp"></i> Numéro WhatsApp</label>
-          <input type="tel" id="phone" class="form-control" placeholder="Ex: 225XXXXXXXX" required>
+          <input type="tel" id="phone" class="form-control" placeholder="Ex: 0150252467">
         </div>
         
         <!-- Plan Selection -->
         <div class="form-group">
           <label>📦 Choisir votre plan</label>
-          <div class="plan-options">
-            <label class="plan-option" data-plan="bronze" data-price="500">
-              <input type="radio" name="plan" value="bronze">
+          <div class="plan-options" id="planOptions">
+            <div class="plan-option" data-plan="bronze" data-price="500">
               <span class="plan-icon">🥉</span>
               <div class="plan-info">
                 <div class="plan-name">Bronze</div>
                 <div class="plan-desc">100 cmd/jour • 1 mois</div>
               </div>
               <span class="plan-price">500 F</span>
-            </label>
+            </div>
             
-            <label class="plan-option" data-plan="argent" data-price="1000">
-              <input type="radio" name="plan" value="argent">
+            <div class="plan-option" data-plan="argent" data-price="1000">
               <span class="plan-icon">🥈</span>
               <div class="plan-info">
                 <div class="plan-name">Argent</div>
                 <div class="plan-desc">200 cmd/jour • 1 mois</div>
               </div>
               <span class="plan-price">1000 F</span>
-            </label>
+            </div>
             
-            <label class="plan-option selected" data-plan="or" data-price="2000">
-              <input type="radio" name="plan" value="or" checked>
+            <div class="plan-option selected" data-plan="or" data-price="2000">
               <span class="plan-icon">🥇</span>
               <div class="plan-info">
                 <div class="plan-name">Or ⭐</div>
                 <div class="plan-desc">500 cmd/jour • 1 mois</div>
               </div>
               <span class="plan-price">2000 F</span>
-            </label>
+            </div>
             
-            <label class="plan-option" data-plan="diamant" data-price="5000">
-              <input type="radio" name="plan" value="diamant">
+            <div class="plan-option" data-plan="diamant" data-price="5000">
               <span class="plan-icon">💎</span>
               <div class="plan-info">
                 <div class="plan-name">Diamant</div>
                 <div class="plan-desc">Illimité • 1 mois</div>
               </div>
               <span class="plan-price">5000 F</span>
-            </label>
+            </div>
             
-            <label class="plan-option" data-plan="lifetime" data-price="15000">
-              <input type="radio" name="plan" value="lifetime">
+            <div class="plan-option" data-plan="lifetime" data-price="15000">
               <span class="plan-icon">👑</span>
               <div class="plan-info">
                 <div class="plan-name">Lifetime</div>
                 <div class="plan-desc">Illimité • À vie</div>
               </div>
               <span class="plan-price">15000 F</span>
-            </label>
-          </div>
-        </div>
-        
-        <!-- Payment Method -->
-        <div class="form-group">
-          <label>💳 Mode de paiement</label>
-          <div class="payment-methods">
-            <label class="payment-method selected" data-method="wave">
-              <input type="radio" name="method" value="wave" checked>
-              <span class="payment-icon">🟢</span>
-              <span class="payment-name">Wave</span>
-            </label>
-            
-            <label class="payment-method" data-method="moov">
-              <input type="radio" name="method" value="moov">
-              <span class="payment-icon">🟡</span>
-              <span class="payment-name">Moov Money</span>
-            </label>
+            </div>
           </div>
         </div>
         
@@ -449,11 +365,7 @@
         <div class="summary">
           <div class="summary-row">
             <span>Plan sélectionné</span>
-            <span id="summaryPlan">Or</span>
-          </div>
-          <div class="summary-row">
-            <span>Mode de paiement</span>
-            <span id="summaryMethod">Wave</span>
+            <span id="summaryPlan">Or 🥇</span>
           </div>
           <div class="summary-row">
             <span>Total à payer</span>
@@ -462,10 +374,10 @@
         </div>
         
         <!-- Submit -->
-        <button type="submit" class="btn-submit">
-          <i class="fas fa-lock"></i> Procéder au paiement
+        <button type="button" class="btn-submit" id="submitBtn">
+          <i class="fas fa-lock"></i> Procéder au paiement Wave
         </button>
-      </form>
+      </div>
       
       <div id="loading" class="loading">
         <div class="spinner"></div>
@@ -479,185 +391,195 @@
     <div class="modal-content">
       <div class="modal-icon">✅</div>
       <h2>Commande créée!</h2>
-      <p id="modalMessage">Suivez les instructions de paiement envoyées sur WhatsApp.</p>
+      <div id="modalMessage"></div>
       <a href="/" class="btn">Retour à l'accueil</a>
     </div>
   </div>
   
   <script>
-    // Plan selection
-    const planOptions = document.querySelectorAll('.plan-option');
-    const paymentMethods = document.querySelectorAll('.payment-method');
-    
-    const prices = {
-      bronze: 500,
-      argent: 1000,
-      or: 2000,
-      diamant: 5000,
-      lifetime: 15000
-    };
-    
-    const planNames = {
-      bronze: 'Bronze 🥉',
-      argent: 'Argent 🥈',
-      or: 'Or 🥇',
-      diamant: 'Diamant 💎',
-      lifetime: 'Lifetime 👑'
-    };
-    
-    const methodNames = {
-      wave: 'Wave 🟢',
-      moov: 'Moov Money 🟡'
-    };
-    
-    let selectedPlan = 'or';
-    let selectedMethod = 'wave';
-    
-    // URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const planParam = urlParams.get('plan');
-    if (planParam && prices[planParam]) {
-      selectedPlan = planParam;
-      planOptions.forEach(opt => {
-        opt.classList.remove('selected');
-        if (opt.dataset.plan === planParam) {
-          opt.classList.add('selected');
-          opt.querySelector('input').checked = true;
-        }
-      });
-    }
-    
-    function updateSummary() {
-      document.getElementById('summaryPlan').textContent = planNames[selectedPlan];
-      document.getElementById('summaryMethod').textContent = methodNames[selectedMethod];
-      document.getElementById('summaryTotal').textContent = prices[selectedPlan] + ' FCFA';
-    }
-    
-    planOptions.forEach(option => {
-      option.addEventListener('click', () => {
-        planOptions.forEach(o => o.classList.remove('selected'));
-        option.classList.add('selected');
-        option.querySelector('input').checked = true;
-        selectedPlan = option.dataset.plan;
-        updateSummary();
-      });
-    });
-    
-    paymentMethods.forEach(method => {
-      method.addEventListener('click', () => {
-        paymentMethods.forEach(m => m.classList.remove('selected'));
-        method.classList.add('selected');
-        method.querySelector('input').checked = true;
-        selectedMethod = method.dataset.method;
-        updateSummary();
-      });
-    });
-    
-    updateSummary();
-    
-    // Form submission
-    document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    (function() {
+      // Configuration Wave Business
+      var WAVE_MERCHANT = 'CI 58 32 12 09';
+      var WAVE_MERCHANT_CLEAN = 'CI58321209';
+      var MERCHANT_NAME = 'Boutique H';
+      var WHATSAPP_NUMBER = '225150252467';
       
-      const phone = document.getElementById('phone').value.trim();
-      const alertDiv = document.getElementById('alert');
+      // Prix des plans
+      var prices = {
+        bronze: 500,
+        argent: 1000,
+        or: 2000,
+        diamant: 5000,
+        lifetime: 15000
+      };
       
-      // Validation
-      if (!phone || phone.length < 10) {
-        alertDiv.className = 'alert alert-error';
-        alertDiv.style.display = 'block';
-        alertDiv.textContent = '❌ Veuillez entrer un numéro WhatsApp valide';
-        return;
-      }
+      var planNames = {
+        bronze: 'Bronze 🥉',
+        argent: 'Argent 🥈',
+        or: 'Or 🥇',
+        diamant: 'Diamant 💎',
+        lifetime: 'Lifetime 👑'
+      };
       
-      // Show loading
-      document.getElementById('subscribeForm').style.display = 'none';
-      document.getElementById('loading').style.display = 'block';
-      alertDiv.style.display = 'none';
+      var selectedPlan = 'or';
       
-      // URL du backend - Koyeb
-      const API_URL = '';
-      
-      try {
-        const response = await fetch(API_URL + '/api/payment/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: phone,
-            plan: selectedPlan,
-            method: selectedMethod
-          })
+      // Attendre que le DOM soit prêt
+      document.addEventListener('DOMContentLoaded', function() {
+        
+        // Sélection des plans
+        var planOptions = document.querySelectorAll('.plan-option');
+        planOptions.forEach(function(option) {
+          option.onclick = function(e) {
+            if (e) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            
+            // Retirer la classe selected de tous
+            planOptions.forEach(function(o) {
+              o.classList.remove('selected');
+            });
+            
+            // Ajouter au plan cliqué
+            this.classList.add('selected');
+            selectedPlan = this.getAttribute('data-plan');
+            
+            // Mettre à jour le résumé
+            document.getElementById('summaryPlan').textContent = planNames[selectedPlan];
+            document.getElementById('summaryTotal').textContent = prices[selectedPlan] + ' FCFA';
+            
+            return false;
+          };
         });
         
-        const data = await response.json();
-        
-        if (data.success) {
-          // Compte Marchand Wave Business
-          const WAVE_MERCHANT = 'CI 58 32 12 09'; // Format affichage
-          const WAVE_MERCHANT_CLEAN = 'CI58321209'; // Format technique
-          const MERCHANT_NAME = 'Boutique H';
-          const WHATSAPP_NUMBER = '225150252467';
-          const amount = prices[selectedPlan];
-          const orderId = data.payment.orderId;
+        // Bouton de soumission
+        document.getElementById('submitBtn').onclick = function(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
           
-          // Afficher les instructions de paiement Wave Business
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('modalMessage').innerHTML = `
-            <div style="text-align: left;">
-              <h3 style="color: #25D366; margin-bottom: 15px;">💳 Paiement Wave Business</h3>
-              
-              <div style="background: rgba(37,211,102,0.15); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <p style="font-size: 1.1rem; margin-bottom: 10px;"><strong>📋 Votre commande:</strong></p>
-                <p>🆔 ID: <strong>${orderId}</strong></p>
-                <p>📦 Plan: <strong>${planNames[selectedPlan]}</strong></p>
-                <p>💰 Montant: <strong>${amount} FCFA</strong></p>
-              </div>
-              
-              <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <p style="font-weight: bold; margin-bottom: 15px; color: #25D366;">🏢 Compte Marchand Wave</p>
-                <div style="background: #000; color: #25D366; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 15px;">
-                  <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Numéro de compte:</p>
-                  <p style="font-size: 1.8rem; font-weight: bold; font-family: monospace; letter-spacing: 3px;">${WAVE_MERCHANT}</p>
-                  <p style="font-size: 0.9rem; margin-top: 10px;">Marchand: <strong>${MERCHANT_NAME}</strong></p>
-                </div>
-                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${WAVE_MERCHANT_CLEAN}'); this.textContent='✅ Copié!'; setTimeout(()=>this.textContent='📋 Copier le numéro',2000);" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold;">
-                  📋 Copier le numéro
-                </button>
-              </div>
-              
-              <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <p style="font-weight: bold; margin-bottom: 15px;">📱 Comment payer:</p>
-                <ol style="margin-left: 20px;">
-                  <li>Ouvrez l'app <strong>Wave</strong></li>
-                  <li>Appuyez sur <strong>Envoyer</strong></li>
-                  <li>Entrez: <strong style="color: #25D366;">${WAVE_MERCHANT}</strong></li>
-                  <li>Montant: <strong>${amount} FCFA</strong></li>
-                  <li>Motif: <strong>HANI-MD-${orderId}</strong></li>
-                </ol>
-              </div>
-              
-              <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <p>⚠️ <strong>Important:</strong> Après le paiement, envoyez une capture d'écran sur WhatsApp pour recevoir votre code d'activation.</p>
-              </div>
-              
-              <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('✅ J\\'ai payé ' + amount + ' FCFA sur le compte ' + WAVE_MERCHANT + '\\n🆔 Commande: ' + orderId + '\\n📦 Plan: ' + planNames[selectedPlan] + '\\n\\n[J\\'envoie ma capture d\\'écran Wave ci-dessous]')}" 
-                 style="display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 10px;" target="_blank">
-                📲 Envoyer la capture sur WhatsApp
-              </a>
-            </div>
-          `;
+          var phone = document.getElementById('phone').value.trim();
+          var alertDiv = document.getElementById('alert');
+          
+          // Validation
+          if (!phone || phone.length < 8) {
+            alertDiv.style.display = 'block';
+            alertDiv.textContent = '❌ Veuillez entrer un numéro WhatsApp valide';
+            return false;
+          }
+          
+          // Masquer l'erreur
+          alertDiv.style.display = 'none';
+          
+          // Afficher loading
+          document.getElementById('formContainer').style.display = 'none';
+          document.getElementById('loading').style.display = 'block';
+          
+          // Créer la commande
+          var amount = prices[selectedPlan];
+          var orderId = 'ORD-' + Date.now();
+          
+          // Appeler l'API
+          fetch('/api/payment/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: phone,
+              plan: selectedPlan,
+              method: 'wave'
+            })
+          })
+          .then(function(response) { return response.json(); })
+          .then(function(data) {
+            document.getElementById('loading').style.display = 'none';
+            
+            if (data.success && data.payment) {
+              orderId = data.payment.orderId;
+            }
+            
+            showPaymentModal(orderId, amount);
+          })
+          .catch(function(error) {
+            // Même en cas d'erreur, afficher le modal de paiement
+            document.getElementById('loading').style.display = 'none';
+            showPaymentModal(orderId, amount);
+          });
+          
+          return false;
+        };
+        
+        function showPaymentModal(orderId, amount) {
+          // Afficher les instructions de paiement
+          document.getElementById('modalMessage').innerHTML = 
+            '<div style="text-align: left;">' +
+            '<h3 style="color: #25D366; margin-bottom: 15px;">💳 Paiement Wave Business</h3>' +
+            
+            '<div style="background: rgba(37,211,102,0.15); padding: 15px; border-radius: 15px; margin-bottom: 15px;">' +
+            '<p style="margin-bottom: 10px;"><strong>📋 Votre commande:</strong></p>' +
+            '<p>🆔 ID: <strong>' + orderId + '</strong></p>' +
+            '<p>📦 Plan: <strong>' + planNames[selectedPlan] + '</strong></p>' +
+            '<p>💰 Montant: <strong>' + amount + ' FCFA</strong></p>' +
+            '</div>' +
+            
+            '<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-bottom: 15px;">' +
+            '<p style="font-weight: bold; margin-bottom: 10px; color: #25D366;">🏢 Compte Marchand Wave</p>' +
+            '<div style="background: #000; color: #25D366; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px;">' +
+            '<p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Numéro de compte:</p>' +
+            '<p style="font-size: 1.5rem; font-weight: bold; font-family: monospace; letter-spacing: 2px;">' + WAVE_MERCHANT + '</p>' +
+            '<p style="font-size: 0.9rem; margin-top: 8px;">Marchand: <strong>' + MERCHANT_NAME + '</strong></p>' +
+            '</div>' +
+            '<button type="button" id="copyBtn" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">' +
+            '📋 Copier le numéro' +
+            '</button>' +
+            '</div>' +
+            
+            '<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-bottom: 15px;">' +
+            '<p style="font-weight: bold; margin-bottom: 10px;">📱 Comment payer:</p>' +
+            '<ol style="margin-left: 20px; font-size: 0.9rem;">' +
+            '<li>Ouvrez l\'app <strong>Wave</strong></li>' +
+            '<li>Appuyez sur <strong>Envoyer</strong></li>' +
+            '<li>Entrez: <strong style="color: #25D366;">' + WAVE_MERCHANT + '</strong></li>' +
+            '<li>Montant: <strong>' + amount + ' FCFA</strong></li>' +
+            '<li>Motif: <strong>HANI-' + orderId + '</strong></li>' +
+            '</ol>' +
+            '</div>' +
+            
+            '<div style="background: rgba(255,193,7,0.2); padding: 12px; border-radius: 10px; margin-bottom: 15px;">' +
+            '<p style="font-size: 0.9rem;">⚠️ Après le paiement, envoyez une capture d\'écran sur WhatsApp.</p>' +
+            '</div>' +
+            
+            '<a href="https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent('✅ J\'ai payé ' + amount + ' FCFA\n🆔 Commande: ' + orderId + '\n📦 Plan: ' + planNames[selectedPlan]) + '" ' +
+            'style="display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-weight: bold;" target="_blank">' +
+            '📲 Confirmer sur WhatsApp' +
+            '</a>' +
+            '</div>';
+          
           document.getElementById('successModal').classList.add('show');
-        } else {
-          throw new Error(data.error || 'Erreur lors de la création');
+          
+          // Ajouter l'événement de copie après que le bouton soit créé
+          setTimeout(function() {
+            var copyBtn = document.getElementById('copyBtn');
+            if (copyBtn) {
+              copyBtn.onclick = function(e) {
+                if (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                navigator.clipboard.writeText(WAVE_MERCHANT_CLEAN).then(function() {
+                  copyBtn.textContent = '✅ Copié!';
+                  setTimeout(function() {
+                    copyBtn.textContent = '📋 Copier le numéro';
+                  }, 2000);
+                });
+                return false;
+              };
+            }
+          }, 100);
         }
-      } catch (error) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('subscribeForm').style.display = 'block';
-        alertDiv.className = 'alert alert-error';
-        alertDiv.style.display = 'block';
-        alertDiv.textContent = '❌ ' + error.message;
-      }
-    });
+        
+      });
+    })();
   </script>
 </body>
 </html>
