@@ -29,8 +29,10 @@ env:
     value: "HANI-MD"
   - key: STICKER_AUTHOR_NAME
     value: "H2025"
-  - key: WAVE_NUMBER
-    value: "0150252467"
+  - key: WAVE_MERCHANT_ID
+    value: "M_ci_AGzCkYkPdoan"
+  - key: WAVE_ACCOUNT
+    value: "CI58321209"
   - key: WAVE_API_KEY
     value: ""
   - key: WAVE_SUCCESS_URL

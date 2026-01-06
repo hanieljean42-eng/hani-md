@@ -15,12 +15,15 @@ const PAYMENTS_FILE = path.join(__dirname, 'wave_transactions.json');
 const SUBSCRIBERS_FILE = path.join(__dirname, 'subscribers.json');
 const ACTIVATION_CODES_FILE = path.join(__dirname, 'activation_codes.json');
 
-// Configuration Wave API
+// Configuration Wave API Business
 const WAVE_CONFIG = {
-  apiKey: process.env.WAVE_API_KEY || '', // Clé API Wave (wave_sn_prod_XXX ou wave_ci_prod_XXX)
+  apiKey: process.env.WAVE_API_KEY || '', // Clé API Wave Business
   apiUrl: 'https://api.wave.com/v1',
-  merchantNumber: process.env.WAVE_NUMBER || '0150252467',
-  merchantName: 'HANI-MD Bot',
+  // Compte Marchand Wave Business
+  merchantId: process.env.WAVE_MERCHANT_ID || 'M_ci_AGzCkYkPdoan', // Ancien ID B2B
+  merchantAccount: process.env.WAVE_ACCOUNT || 'CI58321209', // Nouveau numéro de compte B2B
+  merchantName: 'Boutique H',
+  ownerName: 'DJEBLE HANIEL JEAN HENOC',
   currency: 'XOF',
   country: 'CI', // Côte d'Ivoire
   // URLs de redirection après paiement
@@ -136,18 +139,19 @@ async function createWaveCheckoutSession(amount, clientReference, clientPhone = 
  * Génère les instructions de paiement manuel (fallback)
  */
 function generateManualInstructions(amount, reference) {
-  const localNumber = WAVE_CONFIG.merchantNumber;
+  const merchantAccount = WAVE_CONFIG.merchantAccount; // CI58321209
+  const merchantName = WAVE_CONFIG.merchantName; // Boutique H
   return {
-    ussdCode: `*171*1*${localNumber}*${amount}#`,
-    merchantNumber: localNumber,
+    merchantAccount: merchantAccount,
+    merchantName: merchantName,
     amount: amount,
     reference: reference,
     instructions: [
       `1. Ouvrez l'app Wave`,
       `2. Appuyez sur "Envoyer"`,
-      `3. Entrez le numéro: ${localNumber}`,
+      `3. Entrez le numéro marchand: ${merchantAccount.replace(/(.{2})(.{2})(.{2})(.{2})(.{2})/, '$1 $2 $3 $4 $5')}`,
       `4. Montant: ${amount} FCFA`,
-      `5. Motif: ${reference}`
+      `5. Motif: HANI-MD ${reference}`
     ]
   };
 }
@@ -156,14 +160,11 @@ function generateManualInstructions(amount, reference) {
  * Génère un lien de paiement Wave (mode manuel/fallback)
  */
 function generateWavePaymentLink(amount, reference) {
-  const merchantNumber = WAVE_CONFIG.merchantNumber;
-  
-  // Code USSD pour paiement manuel
-  const ussdCode = `*171*1*${merchantNumber}*${amount}#`;
+  const merchantAccount = WAVE_CONFIG.merchantAccount;
   
   return {
-    ussdCode: ussdCode,
-    merchantNumber: merchantNumber,
+    merchantAccount: merchantAccount,
+    merchantName: WAVE_CONFIG.merchantName,
     amount: amount,
     reference: reference
   };

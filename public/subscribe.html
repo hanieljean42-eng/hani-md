@@ -592,20 +592,19 @@
         const data = await response.json();
         
         if (data.success) {
-          // Numéro de réception pour les paiements (format local pour Wave)
-          const WAVE_NUMBER_LOCAL = '0150252467'; // Format local pour affichage
-          const WAVE_NUMBER_INTL = '225150252467'; // Format international
+          // Compte Marchand Wave Business
+          const WAVE_MERCHANT = 'CI 58 32 12 09'; // Format affichage
+          const WAVE_MERCHANT_CLEAN = 'CI58321209'; // Format technique
+          const MERCHANT_NAME = 'Boutique H';
+          const WHATSAPP_NUMBER = '225150252467';
           const amount = prices[selectedPlan];
           const orderId = data.payment.orderId;
           
-          // Code USSD Wave pour transfert
-          const ussdCode = `*171*1*${WAVE_NUMBER_LOCAL}*${amount}#`;
-          
-          // Afficher les instructions de paiement Wave
+          // Afficher les instructions de paiement Wave Business
           document.getElementById('loading').style.display = 'none';
           document.getElementById('modalMessage').innerHTML = `
             <div style="text-align: left;">
-              <h3 style="color: #25D366; margin-bottom: 15px;">📱 Paiement Wave</h3>
+              <h3 style="color: #25D366; margin-bottom: 15px;">💳 Paiement Wave Business</h3>
               
               <div style="background: rgba(37,211,102,0.15); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
                 <p style="font-size: 1.1rem; margin-bottom: 10px;"><strong>📋 Votre commande:</strong></p>
@@ -615,34 +614,35 @@
               </div>
               
               <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <p style="font-weight: bold; margin-bottom: 15px;">📲 Option 1: Code USSD</p>
-                <p style="margin-bottom: 10px;">Composez ce code sur votre téléphone:</p>
-                <div style="background: #000; color: #0f0; padding: 15px; border-radius: 10px; font-family: monospace; font-size: 1.2rem; text-align: center; margin-bottom: 10px;">
-                  ${ussdCode}
+                <p style="font-weight: bold; margin-bottom: 15px; color: #25D366;">🏢 Compte Marchand Wave</p>
+                <div style="background: #000; color: #25D366; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 15px;">
+                  <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Numéro de compte:</p>
+                  <p style="font-size: 1.8rem; font-weight: bold; font-family: monospace; letter-spacing: 3px;">${WAVE_MERCHANT}</p>
+                  <p style="font-size: 0.9rem; margin-top: 10px;">Marchand: <strong>${MERCHANT_NAME}</strong></p>
                 </div>
-                <button onclick="navigator.clipboard.writeText('${ussdCode}'); this.textContent='✅ Copié!'" style="width: 100%; padding: 10px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
-                  📋 Copier le code USSD
+                <button onclick="navigator.clipboard.writeText('${WAVE_MERCHANT_CLEAN}'); this.textContent='✅ Copié!'; setTimeout(()=>this.textContent='📋 Copier le numéro',2000);" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold;">
+                  📋 Copier le numéro
                 </button>
               </div>
               
               <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <p style="font-weight: bold; margin-bottom: 15px;">📱 Option 2: Via l'app Wave</p>
+                <p style="font-weight: bold; margin-bottom: 15px;">📱 Comment payer:</p>
                 <ol style="margin-left: 20px;">
                   <li>Ouvrez l'app <strong>Wave</strong></li>
                   <li>Appuyez sur <strong>Envoyer</strong></li>
-                  <li>Entrez le numéro: <strong style="color: #25D366;">${WAVE_NUMBER_LOCAL}</strong></li>
+                  <li>Entrez: <strong style="color: #25D366;">${WAVE_MERCHANT}</strong></li>
                   <li>Montant: <strong>${amount} FCFA</strong></li>
                   <li>Motif: <strong>HANI-MD-${orderId}</strong></li>
                 </ol>
               </div>
               
               <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <p>⚠️ <strong>Important:</strong> Après le paiement, envoyez une capture d'écran de la confirmation Wave sur WhatsApp pour recevoir votre code d'activation.</p>
+                <p>⚠️ <strong>Important:</strong> Après le paiement, envoyez une capture d'écran sur WhatsApp pour recevoir votre code d'activation.</p>
               </div>
               
-              <a href="https://wa.me/${WAVE_NUMBER_INTL}?text=${encodeURIComponent('✅ J\\'ai payé ' + amount + ' FCFA pour HANI-MD\\n🆔 Commande: ' + orderId + '\\n📦 Plan: ' + planNames[selectedPlan] + '\\n\\n[J\\'envoie ma capture d\\'écran Wave ci-dessous]')}" 
+              <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('✅ J\\'ai payé ' + amount + ' FCFA sur le compte ' + WAVE_MERCHANT + '\\n🆔 Commande: ' + orderId + '\\n📦 Plan: ' + planNames[selectedPlan] + '\\n\\n[J\\'envoie ma capture d\\'écran Wave ci-dessous]')}" 
                  style="display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, #25D366, #128C7E); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; margin-top: 10px;" target="_blank">
-                <i class="fab fa-whatsapp"></i> 📲 Envoyer la capture sur WhatsApp
+                📲 Envoyer la capture sur WhatsApp
               </a>
             </div>
           `;

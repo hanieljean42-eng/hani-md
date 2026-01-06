@@ -246,7 +246,7 @@
           
           <div class="ussd-box">
             <p style="margin-bottom: 8px; font-size: 0.9rem;">Composez ce code sur votre téléphone :</p>
-            <div class="ussd-code" id="ussdCode">*171*1*0150252467*2000#</div>
+            <div class="ussd-code" id="ussdCode">Compte: CI 58 32 12 09</div>
           </div>
           
           <div class="info-box">
@@ -342,8 +342,10 @@
   <script>
     let currentStep = 1;
     let subscriberData = null;
-    const MERCHANT_NUMBER = '0150252467'; // Format local Wave
-    const MERCHANT_INTL = '225150252467'; // Format international
+    const MERCHANT_NUMBER = 'CI58321209'; // Compte Marchand Wave Business
+    const MERCHANT_DISPLAY = 'CI 58 32 12 09'; // Format affichage
+    const MERCHANT_NAME = 'Boutique H';
+    const WHATSAPP_INTL = '225150252467'; // Format international
     
     const planOptions = document.querySelectorAll('.plan-option');
     const form = document.getElementById('subscribeForm');
@@ -494,7 +496,7 @@
       document.getElementById('displayName').textContent = data.subscriber?.name || '';
       document.getElementById('displayPlan').textContent = planNames[plan] || plan;
       document.getElementById('displayRef').textContent = paymentRef;
-      document.getElementById('ussdCode').textContent = `*171*1*${MERCHANT_NUMBER}*${amount}#`;
+      document.getElementById('ussdCode').textContent = `Compte: CI 58 32 12 09 - ${amount} FCFA`;
     }
     
     function showSuccessScreen(code) {
@@ -526,12 +528,11 @@
     }
     
     function copyUSSD() {
-      const ussdCode = document.getElementById('ussdCode').textContent;
-      navigator.clipboard.writeText(ussdCode).then(() => {
+      navigator.clipboard.writeText('CI58321209').then(() => {
         const btn = document.getElementById('wavePayButton');
-        btn.innerHTML = '<i class="fas fa-check"></i> Code copié !';
+        btn.innerHTML = '<i class="fas fa-check"></i> Numéro copié !';
         setTimeout(() => {
-          btn.innerHTML = '<i class="fas fa-copy"></i> Copier le code USSD';
+          btn.innerHTML = '<i class="fas fa-copy"></i> Copier le numéro marchand';
         }, 2000);
       });
     }
