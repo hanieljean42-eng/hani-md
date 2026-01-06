@@ -620,7 +620,7 @@
                   <p style="font-size: 1.8rem; font-weight: bold; font-family: monospace; letter-spacing: 3px;">${WAVE_MERCHANT}</p>
                   <p style="font-size: 0.9rem; margin-top: 10px;">Marchand: <strong>${MERCHANT_NAME}</strong></p>
                 </div>
-                <button onclick="navigator.clipboard.writeText('${WAVE_MERCHANT_CLEAN}'); this.textContent='✅ Copié!'; setTimeout(()=>this.textContent='📋 Copier le numéro',2000);" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold;">
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${WAVE_MERCHANT_CLEAN}'); this.textContent='✅ Copié!'; setTimeout(()=>this.textContent='📋 Copier le numéro',2000);" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold;">
                   📋 Copier le numéro
                 </button>
               </div>

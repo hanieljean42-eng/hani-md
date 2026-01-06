@@ -238,9 +238,9 @@
             <p style="font-size: 0.85rem; margin-top: 8px;">Réf: <span id="displayRef" style="color: #25D366; font-family: monospace;"></span></p>
           </div>
           
-          <a href="#" id="wavePayButton" class="wave-pay-button" onclick="copyUSSD(); return false;">
+          <button type="button" id="wavePayButton" class="wave-pay-button" onclick="copyUSSD();">
             <i class="fas fa-copy"></i> Copier le code USSD
-          </a>
+          </button>
           
           <div class="divider"><span>ou code USSD</span></div>
           
@@ -253,7 +253,7 @@
             <p><i class="fas fa-info-circle"></i> Après le paiement Wave, notez le <strong>numéro de transaction</strong> qui s'affiche dans Wave (ex: TXN123456)</p>
           </div>
           
-          <button id="goToConfirmBtn" class="btn-submit" style="margin-top: 20px;">
+          <button type="button" id="goToConfirmBtn" class="btn-submit" style="margin-top: 20px;">
             <i class="fas fa-check"></i> J'ai payé, confirmer mon paiement
           </button>
         </div>
@@ -289,7 +289,7 @@
           <p><i class="fas fa-shield-alt"></i> <strong>Sécurité:</strong> Ces informations nous permettent de vérifier votre paiement. Votre code sera généré instantanément après confirmation.</p>
         </div>
         
-        <button id="confirmPaymentBtn" class="btn-submit">
+        <button type="button" id="confirmPaymentBtn" class="btn-submit">
           <i class="fas fa-check-circle"></i> Confirmer et recevoir mon code
         </button>
         
@@ -310,7 +310,7 @@
           <div class="activation-code-box">
             <h3>Votre code d'activation</h3>
             <div class="activation-code" id="activationCode">HANI-OR-XXXXXXXX</div>
-            <button class="copy-btn" id="copyCodeBtn">
+            <button type="button" class="copy-btn" id="copyCodeBtn">
               <i class="fas fa-copy"></i> Copier le code
             </button>
           </div>
@@ -395,7 +395,9 @@
     });
     
     // Étape 2: Aller à la confirmation
-    document.getElementById('goToConfirmBtn').addEventListener('click', () => {
+    document.getElementById('goToConfirmBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       goToStep(3);
     });
     
@@ -406,7 +408,9 @@
     });
     
     // Étape 3: Confirmer le paiement
-    document.getElementById('confirmPaymentBtn').addEventListener('click', async () => {
+    document.getElementById('confirmPaymentBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const transactionId = document.getElementById('transactionId').value.trim();
       const waveNumber = document.getElementById('waveNumber').value.trim();
       
@@ -449,7 +453,9 @@
     });
     
     // Copier code
-    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+    document.getElementById('copyCodeBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const code = document.getElementById('activationCode').textContent;
       navigator.clipboard.writeText(code).then(() => {
         const btn = document.getElementById('copyCodeBtn');

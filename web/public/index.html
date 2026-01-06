@@ -725,12 +725,12 @@
 
     <div class="commands-section">
       <div class="commands-tabs">
-        <button class="tab-btn active" onclick="showCommands('download')">📥 Téléchargement</button>
-        <button class="tab-btn" onclick="showCommands('ai')">🤖 IA</button>
-        <button class="tab-btn" onclick="showCommands('group')">👥 Groupe</button>
-        <button class="tab-btn" onclick="showCommands('fun')">🎮 Jeux</button>
-        <button class="tab-btn" onclick="showCommands('tools')">🛠️ Outils</button>
-        <button class="tab-btn" onclick="showCommands('economy')">💰 Économie</button>
+        <button type="button" class="tab-btn active" onclick="showCommands('download'); return false;">📥 Téléchargement</button>
+        <button type="button" class="tab-btn" onclick="showCommands('ai'); return false;">🤖 IA</button>
+        <button type="button" class="tab-btn" onclick="showCommands('group'); return false;">👥 Groupe</button>
+        <button type="button" class="tab-btn" onclick="showCommands('fun'); return false;">🎮 Jeux</button>
+        <button type="button" class="tab-btn" onclick="showCommands('tools'); return false;">🛠️ Outils</button>
+        <button type="button" class="tab-btn" onclick="showCommands('economy'); return false;">💰 Économie</button>
       </div>
 
       <div id="commands-container" class="commands-grid"></div>
