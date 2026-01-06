@@ -55,18 +55,26 @@ async function connect() {
     };
 
     // Support pour URL complète ou variables séparées
-    if (process.env.MYSQL_URL) {
+    // Support Clever Cloud (MYSQL_ADDON_*) et format standard (MYSQL_*)
+    const mysqlUrl = process.env.MYSQL_URL || process.env.MYSQL_ADDON_URI;
+    const mysqlHost = process.env.MYSQL_HOST || process.env.MYSQL_ADDON_HOST;
+    const mysqlPort = process.env.MYSQL_PORT || process.env.MYSQL_ADDON_PORT || '3306';
+    const mysqlUser = process.env.MYSQL_USER || process.env.MYSQL_ADDON_USER;
+    const mysqlPassword = process.env.MYSQL_PASSWORD || process.env.MYSQL_ADDON_PASSWORD;
+    const mysqlDatabase = process.env.MYSQL_DATABASE || process.env.MYSQL_ADDON_DB;
+
+    if (mysqlUrl) {
       pool = mysql.createPool({
-        uri: process.env.MYSQL_URL,
+        uri: mysqlUrl,
         ...config
       });
-    } else if (process.env.MYSQL_HOST) {
+    } else if (mysqlHost) {
       pool = mysql.createPool({
-        host: process.env.MYSQL_HOST,
-        port: parseInt(process.env.MYSQL_PORT) || 3306,
-        user: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        database: process.env.MYSQL_DATABASE,
+        host: mysqlHost,
+        port: parseInt(mysqlPort) || 3306,
+        user: mysqlUser,
+        password: mysqlPassword,
+        database: mysqlDatabase,
         ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
         ...config
       });
