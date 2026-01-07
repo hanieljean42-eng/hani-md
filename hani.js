@@ -7298,9 +7298,9 @@ C'est ton identifiant WhatsApp.
         };
         
         try {
-          // Utiliser stealthOvl pour rediriger les messages vers "Moi-mÃªme"
-          await executeCommand(command, stealthOvl, msg, cmdOptions);
-          console.log(`[OVLCMD] âœ… Commande ${command} exÃ©cutÃ©e (mode furtif)`);
+          // Utiliser directement hani pour préserver les méthodes WhatsApp
+          await executeCommand(command, hani, msg, cmdOptions);
+          console.log(`[OVLCMD] âœ… Commande ${command} exÃ©cutÃ©e`);
         } catch (err) {
           console.error(`[OVLCMD] âŒ Erreur commande ${command}:`, err.message);
           await send(`âŒ Erreur lors de l'exÃ©cution de la commande: ${err.message}`);
