@@ -742,21 +742,21 @@ function startGhostMode(hani) {
     console.log("ðŸ‘» [GHOST] Erreur activation:", e.message);
   }
   
-  // Maintenir la prÃ©sence invisible toutes les 10 secondes
+  // Maintenir la présence invisible toutes les 60 secondes (réduit pour stabilité)
   ghostModeInterval = setInterval(async () => {
     if (!spyConfig.ghostMode) {
       stopGhostMode();
       return;
     }
+    // Vérifier que la connexion est active
+    if (!hani || !hani.user) return;
     try {
       await hani.sendPresenceUpdate("unavailable");
     } catch (e) {
       // Ignorer les erreurs silencieusement
     }
-  }, 10000); // Toutes les 10 secondes
+  }, 60000); // Toutes les 60 secondes
 }
-
-// ðŸ‘» Fonction pour arrÃªter le mode ghost
 function stopGhostMode(hani) {
   if (ghostModeInterval) {
     clearInterval(ghostModeInterval);
