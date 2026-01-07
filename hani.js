@@ -5468,8 +5468,8 @@ Si la personne a masquÃ© sa photo pour tous,
       
       const param = args?.toLowerCase();
       
-      if (param === "off" || param === "invisible" || param === "hide") {
-        // Activer le mode ghost complet
+      if (param === "on") {
+        // Activer le mode invisible (ON = devenir invisible)
         spyConfig.ghostMode = true;
         spyConfig.ghostModeAdvanced.hideOnline = true;
         spyConfig.ghostModeAdvanced.hideTyping = true;
@@ -5490,9 +5490,9 @@ Si la personne a masquÃ© sa photo pour tous,
 
 âš ï¸ Tu peux toujours voir les activitÃ©s des autres!
 
-ðŸ’¡ Utilise \`.invisible on\` pour redevenir visible.`);
-      } else if (param === "on" || param === "visible" || param === "show") {
-        // DÃ©sactiver le mode ghost
+ðŸ’¡ Utilise \`.invisible off\` pour redevenir visible.`);
+      } else if (param === "off") {
+        // Désactiver le mode invisible (OFF = redevenir visible)
         spyConfig.ghostMode = false;
         spyConfig.ghostModeAdvanced.hideOnline = false;
         spyConfig.ghostModeAdvanced.hideTyping = false;
@@ -5510,7 +5510,7 @@ Si la personne a masquÃ© sa photo pour tous,
 â€¢ âœï¸ "Ã‰crit..." est visible
 â€¢ âœ… Confirmations de lecture envoyÃ©es
 
-ðŸ’¡ Utilise \`.invisible off\` pour devenir invisible.`);
+ðŸ’¡ Utilise \`.invisible on\` pour devenir invisible.`);
       } else {
         const status = spyConfig.ghostMode ? "ðŸ‘» INVISIBLE" : "ðŸ‘ï¸ VISIBLE";
         const intervalStatus = ghostModeInterval ? "ðŸŸ¢ Actif" : "âšª Inactif";
@@ -5520,8 +5520,8 @@ Si la personne a masquÃ© sa photo pour tous,
 ðŸ”„ *SystÃ¨me:* ${intervalStatus}
 
 *Usage:*
-â€¢ \`.invisible off\` - Devenir invisible
-â€¢ \`.invisible on\` - Redevenir visible
+â€¢ \`.invisible on\` - Devenir invisible
+â€¢ \`.invisible off\` - Redevenir visible
 
 *Ce que fait le mode invisible:*
 â€¢ Personne ne te voit "en ligne"
