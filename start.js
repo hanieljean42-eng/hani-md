@@ -1455,8 +1455,8 @@ app.post('/api/wave/subscribe', (req, res) => {
   }
 });
 
-// Confirmation du paiement manuel avec génération de code instantanée
-app.post('/api/wave/confirm', (req, res) => {
+// Confirmation du paiement - SYSTÈME SÉCURISÉ avec validation owner
+app.post('/api/wave/confirm', async (req, res) => {
   try {
     const { transactionId, waveNumber, reference, phone, plan, amount, name } = req.body;
     const crypto = require('crypto');
@@ -1468,27 +1468,19 @@ app.post('/api/wave/confirm', (req, res) => {
       return res.status(400).json({ error: 'Numéro Wave invalide' });
     }
     
-    // Générer un code d'activation unique
     const planUpper = (plan || 'OR').toUpperCase();
-    const codeRandom = crypto.randomBytes(4).toString('hex').toUpperCase();
-    const activationCode = `HANI-${planUpper}-${codeRandom}`;
+    const requestId = crypto.randomBytes(6).toString('hex').toUpperCase();
     
-    // Calculer la date d'expiration
-    const planDays = planUpper === 'LIFETIME' ? 36500 : 30;
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + planDays);
+    // Sauvegarder la demande EN ATTENTE de validation owner
+    const pendingFile = path.join(__dirname, 'DataBase', 'pending_validations.json');
+    let pending = [];
     
-    // Sauvegarder la transaction confirmée
-    const transactionsFile = path.join(__dirname, 'DataBase', 'confirmed_payments.json');
-    let transactions = [];
-    
-    if (fs.existsSync(transactionsFile)) {
-      try { transactions = JSON.parse(fs.readFileSync(transactionsFile, 'utf8')); } catch(e) { transactions = []; }
+    if (fs.existsSync(pendingFile)) {
+      try { pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8')); } catch(e) { pending = []; }
     }
     
-    const transaction = {
-      id: crypto.randomBytes(8).toString('hex'),
-      activationCode,
+    const request = {
+      id: requestId,
       transactionId,
       waveNumber: waveNumber.replace(/[^0-9]/g, ''),
       reference: reference || 'DIRECT',
@@ -1496,97 +1488,63 @@ app.post('/api/wave/confirm', (req, res) => {
       phone: (phone || '').replace(/[^0-9]/g, ''),
       plan: planUpper,
       amount: amount || { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[planUpper] || 2000,
-      status: 'confirmed',
-      expiresAt: expiresAt.toISOString(),
-      confirmedAt: new Date().toISOString()
+      status: 'pending_validation',
+      createdAt: new Date().toISOString()
     };
     
-    transactions.push(transaction);
-    fs.writeFileSync(transactionsFile, JSON.stringify(transactions, null, 2));
+    pending.push(request);
+    fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
     
-    // Sauvegarder le code d'activation pour la commande .activer
-    const codesFile = path.join(__dirname, 'DataBase', 'activation_codes.json');
-    let codes = {};
-    
-    if (fs.existsSync(codesFile)) {
-      try { codes = JSON.parse(fs.readFileSync(codesFile, 'utf8')); } catch(e) { codes = {}; }
-    }
-    
-    codes[activationCode] = {
-      plan: planUpper,
-      days: planDays,
-      createdAt: new Date().toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      used: false,
-      usedBy: null,
-      transactionId: transaction.id
-    };
-    
-    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
-    
-    // Aussi enregistrer dans premium_codes.json pour compatibilité avec .upgrade
-    const premiumCodesFile = path.join(__dirname, 'DataBase', 'premium_codes.json');
-    let premiumCodes = {};
-    if (fs.existsSync(premiumCodesFile)) {
-      try { premiumCodes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8')); } catch(e) { premiumCodes = {}; }
-    }
-    premiumCodes[activationCode] = {
-      plan: planUpper,
-      days: planDays,
-      createdAt: new Date().toISOString(),
-      used: false,
-      usedBy: null,
-      usedAt: null
-    };
-    fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
-    
-    // Logger le paiement
-    console.log(`\n[WAVE] 💰 ═══════════════════════════════════════════`);
-    console.log(`[WAVE] 💳 PAIEMENT CONFIRMÉ (MANUEL)`);
+    // Logger la demande
+    console.log(`\n[WAVE] 🔔 ═══════════════════════════════════════════`);
+    console.log(`[WAVE] 📝 NOUVELLE DEMANDE DE PAIEMENT (EN ATTENTE)`);
+    console.log(`[WAVE]    🆔 ID: ${requestId}`);
     console.log(`[WAVE]    👤 ${name || 'Client'} (${phone || waveNumber})`);
-    console.log(`[WAVE]    💎 Plan: ${planUpper} - ${transaction.amount} FCFA`);
+    console.log(`[WAVE]    💎 Plan: ${planUpper} - ${request.amount} FCFA`);
     console.log(`[WAVE]    📝 Transaction Wave: ${transactionId}`);
-    console.log(`[WAVE]    🔑 Code généré: ${activationCode}`);
+    console.log(`[WAVE]    ⚠️ EN ATTENTE DE VALIDATION OWNER`);
     console.log(`[WAVE] ═══════════════════════════════════════════\n`);
     
-    // 🔔 NOTIFICATION À L'OWNER VIA WHATSAPP
+    // 🔔 ENVOYER NOTIFICATION À L'OWNER
     try {
       const ownerNumber = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
       const ownerJid = ownerNumber + '@s.whatsapp.net';
       
       if (sock && sock.user) {
         const notifMessage = 
-          `💰 *NOUVEAU PAIEMENT WAVE*\n` +
+          `🔔 *NOUVELLE DEMANDE DE PAIEMENT*\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `🆔 *ID:* \`${requestId}\`\n` +
           `👤 *Client:* ${name || 'Non renseigné'}\n` +
           `📱 *Téléphone:* ${phone || waveNumber}\n` +
           `💎 *Plan:* ${planUpper}\n` +
-          `💵 *Montant:* ${transaction.amount} FCFA\n` +
-          `📝 *N° Transaction:* ${transactionId}\n\n` +
-          `🔑 *Code généré:* \`${activationCode}\`\n\n` +
+          `💵 *Montant:* ${request.amount} FCFA\n` +
+          `📝 *N° Transaction Wave:* ${transactionId}\n\n` +
           `⏰ *Date:* ${new Date().toLocaleString('fr-FR')}\n` +
-          `━━━━━━━━━━━━━━━━━━━━━\n` +
-          `✅ Le client peut maintenant utiliser:\n` +
-          `*.activer ${activationCode}*`;
+          `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `⚠️ *VÉRIFIEZ dans votre historique Wave* si vous avez reçu ce paiement !\n\n` +
+          `✅ Si OK: *.validatepay ${requestId}*\n` +
+          `❌ Si faux: *.rejectpay ${requestId}*\n\n` +
+          `📋 Voir tout: *.pendingpay*`;
         
         await sock.sendMessage(ownerJid, { text: notifMessage });
         console.log(`[WAVE] ✅ Notification envoyée à l'owner: ${ownerNumber}`);
       } else {
-        console.log(`[WAVE] ⚠️ Bot non connecté - notification sauvegardée pour envoi ultérieur`);
-        // Sauvegarder la notification pour envoi ultérieur
+        console.log(`[WAVE] ⚠️ Bot non connecté - notification sauvegardée`);
+        // Sauvegarder pour envoi ultérieur
         const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
         let notifications = [];
         if (fs.existsSync(notifFile)) {
           try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch(e) { notifications = []; }
         }
         notifications.push({
-          type: 'payment',
+          type: 'payment_request',
+          requestId,
           name: name || 'Client',
           phone: phone || waveNumber,
           plan: planUpper,
-          amount: transaction.amount,
+          amount: request.amount,
           transactionId: transactionId,
-          activationCode: activationCode,
           createdAt: new Date().toISOString(),
           sent: false
         });
@@ -1598,10 +1556,10 @@ app.post('/api/wave/confirm', (req, res) => {
     
     res.json({
       success: true,
-      code: activationCode,
-      message: 'Paiement confirmé ! Voici votre code.',
-      expiresAt: expiresAt.toISOString()
-    });
+      pending: true,
+      requestId: requestId,
+      message: 'Demande enregistrée ! Votre paiement est en cours de vérification. Vous recevrez votre code par WhatsApp une fois validé.',
+      info: 'L\'owner va vérifier votre paiement dans son historique Wave. Si tout est OK, vous recevrez votre code d\'activation par WhatsApp.'
   } catch (e) {
     console.error('[WAVE] Erreur confirmation:', e);
     res.status(500).json({ error: e.message });

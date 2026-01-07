@@ -325,34 +325,38 @@
       </div>
     </div>
     
-    <!-- Step 4: Code d'activation -->
+    <!-- Step 4: Demande en attente de validation -->
     <div class="step-content" id="step4">
       <div class="form-card">
         <div class="success-screen">
-          <div class="success-icon"><i class="fas fa-check"></i></div>
-          <h2>🎉 Paiement confirmé !</h2>
-          <p style="opacity: 0.8;">Voici votre code d'activation</p>
+          <div class="success-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);"><i class="fas fa-clock"></i></div>
+          <h2>⏳ Demande enregistrée !</h2>
+          <p style="opacity: 0.8;">Votre paiement est en cours de vérification</p>
           
-          <div class="activation-code-box">
-            <h3>Votre code d'activation</h3>
-            <div class="activation-code" id="activationCode">HANI-OR-XXXXXXXX</div>
-            <button type="button" class="copy-btn" onclick="copyCode()">
-              <i class="fas fa-copy"></i> Copier le code
-            </button>
+          <div class="activation-code-box" style="border-color: #f59e0b; background: rgba(245,158,11,0.1);">
+            <h3 style="color: #f59e0b;">🆔 Votre numéro de demande</h3>
+            <div class="activation-code" id="activationCode" style="color: #f59e0b;">EN ATTENTE</div>
+          </div>
+          
+          <div class="warning-box" style="margin: 20px 0;">
+            <p><i class="fas fa-shield-alt"></i> <strong>Processus sécurisé:</strong></p>
+            <p style="margin-top: 10px;">1. L'owner vérifie votre paiement dans son historique Wave</p>
+            <p>2. Si le paiement est confirmé, vous recevrez votre code par WhatsApp</p>
+            <p>3. Utilisez le code reçu avec la commande <strong>.activer CODE</strong></p>
           </div>
           
           <div class="whatsapp-box">
-            <h4>📱 Comment activer sur WhatsApp :</h4>
-            <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 10px;">Envoyez cette commande au bot :</p>
-            <div class="whatsapp-command" id="whatsappCommand">.activer HANI-OR-XXXXXXXX</div>
+            <h4>📱 Vous recevrez votre code sur ce numéro:</h4>
+            <p style="font-size: 1.2rem; font-weight: 700; color: #25D366; margin: 10px 0;" id="displayClientPhone">+225 XX XX XX XX</p>
+            <p style="font-size: 0.85rem; opacity: 0.7;">Assurez-vous que votre numéro WhatsApp est correct</p>
           </div>
           
-          <a href="https://wa.me/2250150252467" class="wave-pay-button" style="background: #25D366; margin-top: 25px;" target="_blank">
-            <i class="fab fa-whatsapp"></i> Ouvrir WhatsApp
+          <a href="https://wa.me/2250150252467?text=Bonjour,%20j'ai%20fait%20un%20paiement%20Wave%20et%20j'attends%20mon%20code" class="wave-pay-button" style="background: #25D366; margin-top: 25px;" target="_blank">
+            <i class="fab fa-whatsapp"></i> Contacter le support
           </a>
           
           <div class="info-box" style="margin-top: 20px;">
-            <p><i class="fas fa-save"></i> <strong>Important:</strong> Conservez ce code !</p>
+            <p><i class="fas fa-info-circle"></i> <strong>Délai:</strong> Validation généralement en moins de 30 minutes pendant les heures ouvrables.</p>
           </div>
         </div>
       </div>
@@ -481,8 +485,14 @@
         });
         const data = await res.json();
         
-        if (data.success && data.code) {
-          displayActivationCode(data.code);
+        if (data.success) {
+          // Nouveau système sécurisé - demande en attente
+          if (data.pending) {
+            displayPendingRequest(data.requestId);
+          } else if (data.code) {
+            // Ancien système (compatibilité)
+            displayActivationCode(data.code);
+          }
           goToStep(4);
         } else {
           showConfirmError(data.error || 'Erreur lors de la confirmation');
@@ -493,9 +503,23 @@
       showLoading(false);
     });
     
+    function displayPendingRequest(requestId) {
+      document.getElementById('activationCode').textContent = requestId || 'EN ATTENTE';
+      document.getElementById('displayClientPhone').textContent = subscriberData.phone;
+      
+      // Sauvegarder la demande en attente
+      const pending = JSON.parse(localStorage.getItem('pendingRequests') || '[]');
+      pending.unshift({ 
+        requestId, 
+        plan: subscriberData.plan, 
+        phone: subscriberData.phone,
+        date: new Date().toISOString() 
+      });
+      localStorage.setItem('pendingRequests', JSON.stringify(pending.slice(0, 10)));
+    }
+    
     function displayActivationCode(code) {
       document.getElementById('activationCode').textContent = code;
-      document.getElementById('whatsappCommand').textContent = `.activer ${code}`;
       
       const history = JSON.parse(localStorage.getItem('activationHistory') || '[]');
       history.unshift({ code, plan: subscriberData.plan, date: new Date().toISOString() });

@@ -466,3 +466,306 @@ ovlcmd(
     });
   }
 );
+// ═══════════════════════════════════════════════════════════
+// 🔒 SYSTÈME SÉCURISÉ - VALIDATION OWNER
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "pendingpay",
+    classe: "Owner",
+    react: "📋",
+    desc: "Voir les paiements en attente de validation",
+    alias: ["pp", "attente"]
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { superUser } = cmd_options;
+    
+    if (!superUser) {
+      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    }
+    
+    try {
+      const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
+      let pending = [];
+      
+      if (fs.existsSync(pendingFile)) {
+        pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+      }
+      
+      // Filtrer les demandes non validées
+      const awaiting = pending.filter(p => p.status === 'pending_validation');
+      
+      if (awaiting.length === 0) {
+        return await ovl.sendMessage(ms_org, {
+          text: `📋 *PAIEMENTS EN ATTENTE*\n\n` +
+                `✅ Aucun paiement en attente de validation.\n\n` +
+                `Les nouvelles demandes apparaîtront ici.`
+        });
+      }
+      
+      let message = `📋 *PAIEMENTS EN ATTENTE* (${awaiting.length})\n`;
+      message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      
+      const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+      
+      awaiting.forEach((req, i) => {
+        message += `*${i + 1}. ${req.name}*\n`;
+        message += `   🆔 ID: \`${req.id}\`\n`;
+        message += `   📱 Tel: ${req.phone}\n`;
+        message += `   📱 Wave: ${req.waveNumber}\n`;
+        message += `   ${planEmoji[req.plan] || '💎'} Plan: ${req.plan}\n`;
+        message += `   💵 Montant: ${req.amount} FCFA\n`;
+        message += `   📝 Transaction: ${req.transactionId}\n`;
+        message += `   ⏰ ${new Date(req.createdAt).toLocaleString('fr-FR')}\n\n`;
+      });
+      
+      message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      message += `✅ Valider: *.validatepay ID*\n`;
+      message += `❌ Rejeter: *.rejectpay ID*`;
+      
+      return await ovl.sendMessage(ms_org, { text: message });
+      
+    } catch (e) {
+      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "validatepay",
+    classe: "Owner",
+    react: "✅",
+    desc: "Valider un paiement et envoyer le code au client",
+    alias: ["vp", "valider"]
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { arg, superUser } = cmd_options;
+    
+    if (!superUser) {
+      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    }
+    
+    if (!arg || arg.length === 0) {
+      return await ovl.sendMessage(ms_org, {
+        text: `✅ *VALIDER UN PAIEMENT*\n\n` +
+              `Usage: *.validatepay ID*\n\n` +
+              `Exemple: *.validatepay A1B2C3D4E5F6*\n\n` +
+              `📋 Utilisez *.pendingpay* pour voir les ID en attente.`
+      });
+    }
+    
+    const requestId = arg[0].toUpperCase();
+    
+    try {
+      const crypto = require('crypto');
+      const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
+      let pending = [];
+      
+      if (fs.existsSync(pendingFile)) {
+        pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+      }
+      
+      const reqIndex = pending.findIndex(p => p.id === requestId && p.status === 'pending_validation');
+      
+      if (reqIndex === -1) {
+        return await ovl.sendMessage(ms_org, {
+          text: `❌ Demande *${requestId}* non trouvée ou déjà traitée.\n\n📋 Utilisez *.pendingpay* pour voir les demandes en attente.`
+        });
+      }
+      
+      const request = pending[reqIndex];
+      
+      // Générer le code d'activation
+      const planUpper = request.plan.toUpperCase();
+      const codeRandom = crypto.randomBytes(4).toString('hex').toUpperCase();
+      const activationCode = `HANI-${planUpper}-${codeRandom}`;
+      
+      // Calculer expiration
+      const planDays = planUpper === 'LIFETIME' ? 36500 : 30;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + planDays);
+      
+      // Sauvegarder le code d'activation
+      const codesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
+      let codes = {};
+      if (fs.existsSync(codesFile)) {
+        try { codes = JSON.parse(fs.readFileSync(codesFile, 'utf8')); } catch(e) { codes = {}; }
+      }
+      
+      codes[activationCode] = {
+        plan: planUpper,
+        days: planDays,
+        createdAt: new Date().toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        used: false,
+        usedBy: null,
+        requestId: requestId,
+        clientPhone: request.phone
+      };
+      fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+      
+      // Aussi dans premium_codes.json
+      const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
+      let premiumCodes = {};
+      if (fs.existsSync(premiumCodesFile)) {
+        try { premiumCodes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8')); } catch(e) { premiumCodes = {}; }
+      }
+      premiumCodes[activationCode] = {
+        plan: planUpper,
+        days: planDays,
+        createdAt: new Date().toISOString(),
+        used: false,
+        usedBy: null
+      };
+      fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
+      
+      // Marquer comme validé
+      pending[reqIndex].status = 'validated';
+      pending[reqIndex].validatedAt = new Date().toISOString();
+      pending[reqIndex].activationCode = activationCode;
+      fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
+      
+      // Sauvegarder dans confirmed_payments
+      const confirmedFile = path.join(__dirname, '..', 'DataBase', 'confirmed_payments.json');
+      let confirmed = [];
+      if (fs.existsSync(confirmedFile)) {
+        try { confirmed = JSON.parse(fs.readFileSync(confirmedFile, 'utf8')); } catch(e) { confirmed = []; }
+      }
+      confirmed.push({
+        ...request,
+        activationCode,
+        status: 'validated',
+        validatedAt: new Date().toISOString()
+      });
+      fs.writeFileSync(confirmedFile, JSON.stringify(confirmed, null, 2));
+      
+      // Envoyer le code au client par WhatsApp
+      const clientPhone = request.phone.replace(/[^0-9]/g, '');
+      const clientJid = clientPhone.startsWith('225') ? `${clientPhone}@s.whatsapp.net` : `225${clientPhone}@s.whatsapp.net`;
+      
+      const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+      
+      const clientMessage = 
+        `🎉 *PAIEMENT VALIDÉ !*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `Bonjour ${request.name},\n\n` +
+        `Votre paiement Wave a été vérifié et validé !\n\n` +
+        `${planEmoji[planUpper] || '💎'} *Plan:* ${planUpper}\n` +
+        `💵 *Montant:* ${request.amount} FCFA\n\n` +
+        `🔑 *Votre code d'activation:*\n` +
+        `\`${activationCode}\`\n\n` +
+        `📱 *Pour activer:*\n` +
+        `Envoyez: *.activer ${activationCode}*\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        `Merci pour votre confiance ! 🙏`;
+      
+      try {
+        await ovl.sendMessage(clientJid, { text: clientMessage });
+        console.log(`[WAVE] ✅ Code envoyé au client: ${clientPhone}`);
+      } catch (e) {
+        console.error('[WAVE] Erreur envoi client:', e.message);
+      }
+      
+      return await ovl.sendMessage(ms_org, {
+        text: `✅ *PAIEMENT VALIDÉ !*\n\n` +
+              `👤 Client: ${request.name}\n` +
+              `📱 Tel: ${request.phone}\n` +
+              `${planEmoji[planUpper] || '💎'} Plan: ${planUpper}\n` +
+              `💵 Montant: ${request.amount} FCFA\n\n` +
+              `🔑 Code généré: \`${activationCode}\`\n\n` +
+              `📤 Le code a été envoyé au client par WhatsApp.`
+      });
+      
+    } catch (e) {
+      console.error('[VALIDATEPAY]', e);
+      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "rejectpay",
+    classe: "Owner",
+    react: "❌",
+    desc: "Rejeter un paiement frauduleux",
+    alias: ["rp", "rejeter"]
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { arg, superUser } = cmd_options;
+    
+    if (!superUser) {
+      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    }
+    
+    if (!arg || arg.length === 0) {
+      return await ovl.sendMessage(ms_org, {
+        text: `❌ *REJETER UN PAIEMENT*\n\n` +
+              `Usage: *.rejectpay ID [raison]*\n\n` +
+              `Exemple: *.rejectpay A1B2C3 Paiement non reçu*`
+      });
+    }
+    
+    const requestId = arg[0].toUpperCase();
+    const reason = arg.slice(1).join(' ') || 'Paiement non vérifié dans l\'historique Wave';
+    
+    try {
+      const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
+      let pending = [];
+      
+      if (fs.existsSync(pendingFile)) {
+        pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+      }
+      
+      const reqIndex = pending.findIndex(p => p.id === requestId && p.status === 'pending_validation');
+      
+      if (reqIndex === -1) {
+        return await ovl.sendMessage(ms_org, {
+          text: `❌ Demande *${requestId}* non trouvée ou déjà traitée.`
+        });
+      }
+      
+      const request = pending[reqIndex];
+      
+      // Marquer comme rejeté
+      pending[reqIndex].status = 'rejected';
+      pending[reqIndex].rejectedAt = new Date().toISOString();
+      pending[reqIndex].rejectReason = reason;
+      fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
+      
+      // Informer le client
+      const clientPhone = request.phone.replace(/[^0-9]/g, '');
+      const clientJid = clientPhone.startsWith('225') ? `${clientPhone}@s.whatsapp.net` : `225${clientPhone}@s.whatsapp.net`;
+      
+      const clientMessage = 
+        `❌ *DEMANDE REJETÉE*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `Bonjour ${request.name},\n\n` +
+        `Votre demande de paiement n'a pas pu être validée.\n\n` +
+        `📝 *Raison:* ${reason}\n\n` +
+        `Si vous avez effectué le paiement, veuillez:\n` +
+        `1. Vérifier l'historique Wave\n` +
+        `2. Contacter le support avec une capture d'écran\n\n` +
+        `📞 Support: wa.me/2250150252467`;
+      
+      try {
+        await ovl.sendMessage(clientJid, { text: clientMessage });
+      } catch (e) {
+        console.error('[WAVE] Erreur envoi client:', e.message);
+      }
+      
+      return await ovl.sendMessage(ms_org, {
+        text: `❌ *PAIEMENT REJETÉ*\n\n` +
+              `👤 Client: ${request.name}\n` +
+              `📱 Tel: ${request.phone}\n` +
+              `📝 Raison: ${reason}\n\n` +
+              `Le client a été notifié.`
+      });
+      
+    } catch (e) {
+      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+    }
+  }
+);
