@@ -26,6 +26,22 @@ try {
   console.error('[WAVE CMD] Erreur chargement premium:', e.message);
 }
 
+/**
+ * Helper pour extraire les bons paramètres depuis les arguments du handler
+ * Les handlers reçoivent: (socket, message, options)
+ */
+function getContext(sock, msg, options) {
+  return {
+    sock: sock,
+    from: msg.key?.remoteJid || options.from,
+    auteur_msg: options.auteurMessage || msg.key?.participant || msg.key?.remoteJid,
+    arg: options.arg || [],
+    superUser: options.superUser || false,
+    isGroup: options.isGroup || false,
+    send: async (text) => await sock.sendMessage(msg.key?.remoteJid || options.from, { text })
+  };
+}
+
 // ═══════════════════════════════════════════════════════════
 // 🔑 COMMANDE ACTIVATION (UTILISATEUR)
 // ═══════════════════════════════════════════════════════════
@@ -37,59 +53,160 @@ ovlcmd(
     react: "🔑",
     desc: "Activer un abonnement avec un code Wave"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, auteur_msg } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const { arg, auteurMessage } = cmd_options;
+    const from = msg.key.remoteJid;
+    const auteur_msg = auteurMessage || msg.key.participant || from;
     
-    if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, {
-        text: "❌ Système de paiement non disponible."
-      });
-    }
+    console.log(`[ACTIVER] 🔑 Tentative d'activation par ${auteur_msg} dans ${from}`);
     
     if (!arg || arg.length === 0) {
-      return await ovl.sendMessage(ms_org, {
+      return await sock.sendMessage(from, {
         text: `🔑 *ACTIVATION D'ABONNEMENT*\n\n` +
               `Pour activer votre abonnement premium, utilisez:\n\n` +
               `*.activer VOTRE-CODE*\n\n` +
               `Exemple: *.activer HANI-OR-A1B2C3D4*\n\n` +
-              `📱 Obtenez un code en contactant:\n` +
-              `wa.me/2250150252467`
+              `📱 Obtenez un code sur:\n` +
+              `https://hani-md-1hanieljean1-f1e1290c.koyeb.app/subscribe.html`
       });
     }
     
     const code = arg[0].toUpperCase();
+    console.log(`[ACTIVER] 🔍 Recherche du code: ${code}`);
     
-    // Activer avec le code
-    const result = wavePayments.activateWithCode(code, auteur_msg);
+    // Chercher dans tous les fichiers de codes
+    let codeData = null;
+    let codeSource = null;
     
-    if (result.success) {
-      const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
-      const expireText = result.expiresAt 
-        ? `📅 Expire le: ${new Date(result.expiresAt).toLocaleDateString('fr-FR')}`
-        : `📅 Durée: À VIE ♾️`;
-      
-      // Sync avec le système premium existant
-      try {
-        if (premiumDB) {
-          const days = result.plan?.duration || 30;
-          premiumDB.addPremium(auteur_msg, result.subscriber?.plan?.toLowerCase() || 'or', days);
+    try {
+      // 1. Vérifier activation_codes.json
+      const activationCodesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
+      if (fs.existsSync(activationCodesFile)) {
+        const activationCodes = JSON.parse(fs.readFileSync(activationCodesFile, 'utf8') || '{}');
+        if (activationCodes[code]) {
+          codeData = activationCodes[code];
+          codeSource = 'activation_codes';
+          console.log(`[ACTIVER] ✅ Code trouvé dans activation_codes.json`);
         }
-      } catch (e) {
-        console.error('[WAVE] Erreur sync premium:', e.message);
       }
       
-      return await ovl.sendMessage(ms_org, {
+      // 2. Vérifier premium_codes.json
+      if (!codeData) {
+        const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
+        if (fs.existsSync(premiumCodesFile)) {
+          const premiumCodes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8') || '{}');
+          if (premiumCodes[code]) {
+            codeData = premiumCodes[code];
+            codeSource = 'premium_codes';
+            console.log(`[ACTIVER] ✅ Code trouvé dans premium_codes.json`);
+          }
+        }
+      }
+      
+      if (!codeData) {
+        console.log(`[ACTIVER] ❌ Code non trouvé: ${code}`);
+        return await sock.sendMessage(from, {
+          text: `❌ *Code invalide*\n\n` +
+                `Le code \`${code}\` n'existe pas.\n\n` +
+                `Vérifiez que vous avez copié le code correctement.`
+        });
+      }
+      
+      // Vérifier si déjà utilisé
+      if (codeData.used || codeData.usedBy) {
+        console.log(`[ACTIVER] ⚠️ Code déjà utilisé: ${code}`);
+        return await sock.sendMessage(from, {
+          text: `❌ *Code déjà utilisé*\n\n` +
+                `Ce code a déjà été activé.\n\n` +
+                `Chaque code ne peut être utilisé qu'une seule fois.`
+        });
+      }
+      
+      // Activer le code
+      const planName = codeData.plan || 'OR';
+      const days = codeData.days || 30;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + days);
+      
+      // Marquer comme utilisé
+      codeData.used = true;
+      codeData.usedBy = auteur_msg;
+      codeData.usedAt = new Date().toISOString();
+      
+      // Sauvegarder dans le bon fichier
+      if (codeSource === 'activation_codes') {
+        const activationCodesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
+        const codes = JSON.parse(fs.readFileSync(activationCodesFile, 'utf8') || '{}');
+        codes[code] = codeData;
+        fs.writeFileSync(activationCodesFile, JSON.stringify(codes, null, 2));
+      } else {
+        const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
+        const codes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8') || '{}');
+        codes[code] = codeData;
+        fs.writeFileSync(premiumCodesFile, JSON.stringify(codes, null, 2));
+      }
+      
+      // Sync avec le système premium
+      try {
+        if (premiumDB) {
+          premiumDB.addPremium(auteur_msg, planName.toLowerCase(), days);
+          console.log(`[ACTIVER] ✅ Sync premium OK pour ${auteur_msg}`);
+        }
+      } catch (e) {
+        console.error('[ACTIVER] Erreur sync premium:', e.message);
+      }
+      
+      // Sauvegarder dans subscribers
+      try {
+        const subscribersFile = path.join(__dirname, '..', 'DataBase', 'subscribers.json');
+        let subscribers = { subscribers: [] };
+        if (fs.existsSync(subscribersFile)) {
+          subscribers = JSON.parse(fs.readFileSync(subscribersFile, 'utf8') || '{"subscribers":[]}');
+        }
+        
+        const phone = auteur_msg.replace('@s.whatsapp.net', '').replace('@lid', '');
+        const existingIndex = subscribers.subscribers.findIndex(s => s.phone === phone);
+        
+        const subscriberData = {
+          phone: phone,
+          whatsappJid: auteur_msg,
+          plan: planName.toUpperCase(),
+          status: 'active',
+          activatedAt: new Date().toISOString(),
+          expiresAt: expiresAt.toISOString(),
+          activationCode: code
+        };
+        
+        if (existingIndex >= 0) {
+          subscribers.subscribers[existingIndex] = { ...subscribers.subscribers[existingIndex], ...subscriberData };
+        } else {
+          subscribers.subscribers.push(subscriberData);
+        }
+        
+        fs.writeFileSync(subscribersFile, JSON.stringify(subscribers, null, 2));
+      } catch (e) {
+        console.error('[ACTIVER] Erreur subscribers:', e.message);
+      }
+      
+      const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+      const expireText = days >= 36500 
+        ? `📅 Durée: À VIE ♾️`
+        : `📅 Expire le: ${expiresAt.toLocaleDateString('fr-FR')}`;
+      
+      console.log(`[ACTIVER] 🎉 Activation réussie: ${planName} pour ${auteur_msg}`);
+      
+      return await sock.sendMessage(from, {
         text: `🎉 *ABONNEMENT ACTIVÉ !*\n\n` +
-              `${planEmoji[result.subscriber?.plan] || '💎'} *Plan:* ${result.subscriber?.plan || 'Premium'}\n` +
-              `👤 *Nom:* ${result.subscriber?.name || 'Utilisateur'}\n` +
+              `${planEmoji[planName.toUpperCase()] || '💎'} *Plan:* ${planName.toUpperCase()}\n` +
               `${expireText}\n\n` +
               `✅ Vous avez maintenant accès à toutes les fonctionnalités premium !\n\n` +
               `Tapez *.menu* pour voir les commandes disponibles.`
       });
-    } else {
-      return await ovl.sendMessage(ms_org, {
-        text: `❌ *Erreur d'activation*\n\n${result.error || 'Code invalide'}\n\n` +
-              `Vérifiez votre code et réessayez.`
+      
+    } catch (e) {
+      console.error('[ACTIVER] Erreur:', e);
+      return await sock.sendMessage(from, {
+        text: `❌ *Erreur système*\n\n${e.message}\n\nContactez le support.`
       });
     }
   }
@@ -106,25 +223,23 @@ ovlcmd(
     react: "⏳",
     desc: "Voir les paiements Wave en attente"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Module Wave non disponible." });
+      return await ctx.send("❌ Module Wave non disponible.");
     }
     
     const pending = wavePayments.getAllSubscribers('pending');
     
     if (pending.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `⏳ *PAIEMENTS EN ATTENTE*\n\n` +
+      return await ctx.send(`⏳ *PAIEMENTS EN ATTENTE*\n\n` +
               `Aucun paiement en attente de validation.\n\n` +
-              `Les clients doivent d'abord s'inscrire sur le site web.`
-      });
+              `Les clients doivent d'abord s'inscrire sur le site web.`);
     }
     
     let message = `⏳ *PAIEMENTS EN ATTENTE* (${pending.length})\n\n`;
@@ -140,7 +255,7 @@ ovlcmd(
     
     message += `\n💡 Pour confirmer un paiement:\n*.waveconfirm <ref>*\n\nExemple: *.waveconfirm HANI-A1B2C3D4*`;
     
-    return await ovl.sendMessage(ms_org, { text: message });
+    return await ctx.send(message);
   }
 );
 
@@ -151,27 +266,25 @@ ovlcmd(
     react: "✅",
     desc: "Confirmer un paiement Wave et générer le code"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, superUser, auteur_msg } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Module Wave non disponible." });
+      return await ctx.send("❌ Module Wave non disponible.");
     }
     
-    if (!arg || arg.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `✅ *CONFIRMER UN PAIEMENT*\n\n` +
+    if (!ctx.arg || ctx.arg.length === 0) {
+      return await ctx.send(`✅ *CONFIRMER UN PAIEMENT*\n\n` +
               `Usage: *.waveconfirm <référence>*\n\n` +
               `Exemple: *.waveconfirm HANI-A1B2C3D4*\n\n` +
-              `Utilisez *.wavepending* pour voir les paiements en attente.`
-      });
+              `Utilisez *.wavepending* pour voir les paiements en attente.`);
     }
     
-    const ref = arg[0].toUpperCase();
+    const ref = ctx.arg[0].toUpperCase();
     const result = wavePayments.confirmPayment(ref);
     
     if (result.success) {
@@ -188,8 +301,7 @@ ovlcmd(
       
       const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
       
-      return await ovl.sendMessage(ms_org, {
-        text: `✅ *PAIEMENT CONFIRMÉ !*\n\n` +
+      return await ctx.send(`✅ *PAIEMENT CONFIRMÉ !*\n\n` +
               `👤 *Client:* ${result.subscriber?.name}\n` +
               `📱 *Téléphone:* ${result.subscriber?.phone}\n` +
               `${planEmoji[result.subscriber?.plan] || '💎'} *Plan:* ${result.subscriber?.plan}\n` +
@@ -197,12 +309,9 @@ ovlcmd(
               `🔑 *CODE D'ACTIVATION:*\n` +
               `\`\`\`${result.activationCode}\`\`\`\n\n` +
               `Le client peut maintenant activer son abonnement avec:\n` +
-              `*.activer ${result.activationCode}*`
-      });
+              `*.activer ${result.activationCode}*`);
     } else {
-      return await ovl.sendMessage(ms_org, {
-        text: `❌ *Erreur*\n\n${result.error || 'Impossible de confirmer ce paiement'}`
-      });
+      return await ctx.send(`❌ *Erreur*\n\n${result.error || 'Impossible de confirmer ce paiement'}`);
     }
   }
 );
@@ -214,15 +323,15 @@ ovlcmd(
     react: "📊",
     desc: "Statistiques des paiements Wave"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Module Wave non disponible." });
+      return await ctx.send("❌ Module Wave non disponible.");
     }
     
     const stats = wavePayments.getStats();
@@ -242,7 +351,7 @@ ovlcmd(
       `   👑 Lifetime: ${stats.byPlan.LIFETIME || 0}\n\n` +
       `🔑 *Codes:* ${stats.codesUsed}/${stats.codesGenerated} utilisés`;
     
-    return await ovl.sendMessage(ms_org, { text: message });
+    return await ctx.send(message);
   }
 );
 
@@ -253,34 +362,30 @@ ovlcmd(
     react: "🔍",
     desc: "Rechercher un abonné Wave"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Module Wave non disponible." });
+      return await ctx.send("❌ Module Wave non disponible.");
     }
     
-    if (!arg || arg.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `🔍 *RECHERCHER UN ABONNÉ*\n\n` +
+    if (!ctx.arg || ctx.arg.length === 0) {
+      return await ctx.send(`🔍 *RECHERCHER UN ABONNÉ*\n\n` +
               `Usage: *.wavesearch <nom/téléphone/ref>*\n\n` +
               `Exemple:\n` +
               `*.wavesearch Jean*\n` +
-              `*.wavesearch 0150252467*`
-      });
+              `*.wavesearch 0150252467*`);
     }
     
-    const query = arg.join(' ');
+    const query = ctx.arg.join(' ');
     const results = wavePayments.findSubscriber(query);
     
     if (results.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `🔍 *Aucun résultat pour:* "${query}"`
-      });
+      return await ctx.send(`🔍 *Aucun résultat pour:* "${query}"`);
     }
     
     let message = `🔍 *RÉSULTATS* (${results.length})\n\n`;
@@ -299,7 +404,7 @@ ovlcmd(
       message += `   🆔 Réf: ${sub.paymentRef}\n\n`;
     });
     
-    return await ovl.sendMessage(ms_org, { text: message });
+    return await ctx.send(message);
   }
 );
 
@@ -310,24 +415,22 @@ ovlcmd(
     react: "📋",
     desc: "Liste tous les abonnés Wave"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     if (!wavePayments) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Module Wave non disponible." });
+      return await ctx.send("❌ Module Wave non disponible.");
     }
     
-    const status = arg[0] || null; // pending, paid, active, expired
+    const status = ctx.arg[0] || null; // pending, paid, active, expired
     const subscribers = wavePayments.getAllSubscribers(status);
     
     if (subscribers.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `📋 *ABONNÉS WAVE*\n\nAucun abonné ${status ? `avec le statut "${status}"` : ''}.`
-      });
+      return await ctx.send(`📋 *ABONNÉS WAVE*\n\nAucun abonné ${status ? `avec le statut "${status}"` : ''}.`);
     }
     
     let message = `📋 *ABONNÉS WAVE* (${subscribers.length})\n`;
@@ -347,7 +450,7 @@ ovlcmd(
     
     message += `\n\n💡 Filtrer par statut:\n*.waveall pending/paid/active/expired*`;
     
-    return await ovl.sendMessage(ms_org, { text: message });
+    return await ctx.send(message);
   }
 );
 
@@ -362,14 +465,14 @@ ovlcmd(
     react: "💳",
     desc: "Obtenir les infos pour s'abonner"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { auteur_msg } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
     // Vérifier si déjà abonné
     let currentPlan = null;
     if (premiumDB) {
       try {
-        const status = premiumDB.getPremiumStatus(auteur_msg);
+        const status = premiumDB.getPremiumStatus(ctx.auteur_msg);
         if (status.isPremium) {
           currentPlan = status;
         }
@@ -400,7 +503,7 @@ ovlcmd(
       `5️⃣ Activez avec: *.activer CODE*\n\n` +
       `📞 *Support:* wa.me/2250150252467`;
     
-    return await ovl.sendMessage(ms_org, { text: message });
+    return await ctx.send(message);
   }
 );
 
@@ -411,8 +514,8 @@ ovlcmd(
     react: "💎",
     desc: "Voir votre abonnement actuel"
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { auteur_msg } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
     let premiumStatus = null;
     let waveStatus = null;
@@ -420,14 +523,14 @@ ovlcmd(
     // Vérifier dans premium.js
     if (premiumDB) {
       try {
-        premiumStatus = premiumDB.getPremiumStatus(auteur_msg);
+        premiumStatus = premiumDB.getPremiumStatus(ctx.auteur_msg);
       } catch (e) {}
     }
     
     // Vérifier dans wave_payments.js
     if (wavePayments) {
       try {
-        const phone = auteur_msg.replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '');
+        const phone = ctx.auteur_msg.replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '');
         waveStatus = wavePayments.checkActiveSubscription(phone);
       } catch (e) {}
     }
@@ -435,14 +538,12 @@ ovlcmd(
     const isPremium = premiumStatus?.isPremium || waveStatus?.hasSubscription;
     
     if (!isPremium) {
-      return await ovl.sendMessage(ms_org, {
-        text: `💎 *VOTRE ABONNEMENT*\n\n` +
+      return await ctx.send(`💎 *VOTRE ABONNEMENT*\n\n` +
               `🆓 Vous êtes actuellement en mode *GRATUIT*\n\n` +
               `Limites du mode gratuit:\n` +
               `• 20 commandes par jour\n` +
               `• Fonctionnalités de base uniquement\n\n` +
-              `Tapez *.abonnement* pour voir nos offres premium !`
-      });
+              `Tapez *.abonnement* pour voir nos offres premium !`);
     }
     
     const plan = premiumStatus?.planInfo || waveStatus?.plan;
@@ -457,13 +558,11 @@ ovlcmd(
       expiresText += `\n   Expire le: ${new Date(premiumStatus.expiresAt).toLocaleDateString('fr-FR')}`;
     }
     
-    return await ovl.sendMessage(ms_org, {
-      text: `💎 *VOTRE ABONNEMENT*\n\n` +
+    return await ctx.send(`💎 *VOTRE ABONNEMENT*\n\n` +
             `${planEmoji[plan?.name?.toUpperCase()] || plan?.color || '💎'} *Plan:* ${plan?.name || 'Premium'}\n` +
             `${expiresText}\n\n` +
             `✅ Vous avez accès à toutes les fonctionnalités premium !\n\n` +
-            `Tapez *.menu* pour voir les commandes.`
-    });
+            `Tapez *.menu* pour voir les commandes.`);
   }
 );
 // ═══════════════════════════════════════════════════════════
@@ -478,11 +577,11 @@ ovlcmd(
     desc: "Voir les paiements en attente de validation",
     alias: ["pp", "attente"]
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
     try {
@@ -497,11 +596,9 @@ ovlcmd(
       const awaiting = pending.filter(p => p.status === 'pending_validation');
       
       if (awaiting.length === 0) {
-        return await ovl.sendMessage(ms_org, {
-          text: `📋 *PAIEMENTS EN ATTENTE*\n\n` +
+        return await ctx.send(`📋 *PAIEMENTS EN ATTENTE*\n\n` +
                 `✅ Aucun paiement en attente de validation.\n\n` +
-                `Les nouvelles demandes apparaîtront ici.`
-        });
+                `Les nouvelles demandes apparaîtront ici.`);
       }
       
       let message = `📋 *PAIEMENTS EN ATTENTE* (${awaiting.length})\n`;
@@ -524,10 +621,10 @@ ovlcmd(
       message += `✅ Valider: *.validatepay ID*\n`;
       message += `❌ Rejeter: *.rejectpay ID*`;
       
-      return await ovl.sendMessage(ms_org, { text: message });
+      return await ctx.send(message);
       
     } catch (e) {
-      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+      return await ctx.send(`❌ Erreur: ${e.message}`);
     }
   }
 );
@@ -540,23 +637,21 @@ ovlcmd(
     desc: "Valider un paiement et envoyer le code au client",
     alias: ["vp", "valider"]
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
-    if (!arg || arg.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `✅ *VALIDER UN PAIEMENT*\n\n` +
+    if (!ctx.arg || ctx.arg.length === 0) {
+      return await ctx.send(`✅ *VALIDER UN PAIEMENT*\n\n` +
               `Usage: *.validatepay ID*\n\n` +
               `Exemple: *.validatepay A1B2C3D4E5F6*\n\n` +
-              `📋 Utilisez *.pendingpay* pour voir les ID en attente.`
-      });
+              `📋 Utilisez *.pendingpay* pour voir les ID en attente.`);
     }
     
-    const requestId = arg[0].toUpperCase();
+    const requestId = ctx.arg[0].toUpperCase();
     
     try {
       const crypto = require('crypto');
@@ -570,9 +665,7 @@ ovlcmd(
       const reqIndex = pending.findIndex(p => p.id === requestId && p.status === 'pending_validation');
       
       if (reqIndex === -1) {
-        return await ovl.sendMessage(ms_org, {
-          text: `❌ Demande *${requestId}* non trouvée ou déjà traitée.\n\n📋 Utilisez *.pendingpay* pour voir les demandes en attente.`
-        });
+        return await ctx.send(`❌ Demande *${requestId}* non trouvée ou déjà traitée.\n\n📋 Utilisez *.pendingpay* pour voir les demandes en attente.`);
       }
       
       const request = pending[reqIndex];
@@ -662,25 +755,23 @@ ovlcmd(
         `Merci pour votre confiance ! 🙏`;
       
       try {
-        await ovl.sendMessage(clientJid, { text: clientMessage });
+        await sock.sendMessage(clientJid, { text: clientMessage });
         console.log(`[WAVE] ✅ Code envoyé au client: ${clientPhone}`);
       } catch (e) {
         console.error('[WAVE] Erreur envoi client:', e.message);
       }
       
-      return await ovl.sendMessage(ms_org, {
-        text: `✅ *PAIEMENT VALIDÉ !*\n\n` +
+      return await ctx.send(`✅ *PAIEMENT VALIDÉ !*\n\n` +
               `👤 Client: ${request.name}\n` +
               `📱 Tel: ${request.phone}\n` +
               `${planEmoji[planUpper] || '💎'} Plan: ${planUpper}\n` +
               `💵 Montant: ${request.amount} FCFA\n\n` +
               `🔑 Code généré: \`${activationCode}\`\n\n` +
-              `📤 Le code a été envoyé au client par WhatsApp.`
-      });
+              `📤 Le code a été envoyé au client par WhatsApp.`);
       
     } catch (e) {
       console.error('[VALIDATEPAY]', e);
-      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+      return await ctx.send(`❌ Erreur: ${e.message}`);
     }
   }
 );
@@ -693,23 +784,21 @@ ovlcmd(
     desc: "Rejeter un paiement frauduleux",
     alias: ["rp", "rejeter"]
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, superUser } = cmd_options;
+  async (sock, msg, cmd_options) => {
+    const ctx = getContext(sock, msg, cmd_options);
     
-    if (!superUser) {
-      return await ovl.sendMessage(ms_org, { text: "❌ Commande réservée à l'owner." });
+    if (!ctx.superUser) {
+      return await ctx.send("❌ Commande réservée à l'owner.");
     }
     
-    if (!arg || arg.length === 0) {
-      return await ovl.sendMessage(ms_org, {
-        text: `❌ *REJETER UN PAIEMENT*\n\n` +
+    if (!ctx.arg || ctx.arg.length === 0) {
+      return await ctx.send(`❌ *REJETER UN PAIEMENT*\n\n` +
               `Usage: *.rejectpay ID [raison]*\n\n` +
-              `Exemple: *.rejectpay A1B2C3 Paiement non reçu*`
-      });
+              `Exemple: *.rejectpay A1B2C3 Paiement non reçu*`);
     }
     
-    const requestId = arg[0].toUpperCase();
-    const reason = arg.slice(1).join(' ') || 'Paiement non vérifié dans l\'historique Wave';
+    const requestId = ctx.arg[0].toUpperCase();
+    const reason = ctx.arg.slice(1).join(' ') || 'Paiement non vérifié dans l\'historique Wave';
     
     try {
       const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
@@ -722,9 +811,7 @@ ovlcmd(
       const reqIndex = pending.findIndex(p => p.id === requestId && p.status === 'pending_validation');
       
       if (reqIndex === -1) {
-        return await ovl.sendMessage(ms_org, {
-          text: `❌ Demande *${requestId}* non trouvée ou déjà traitée.`
-        });
+        return await ctx.send(`❌ Demande *${requestId}* non trouvée ou déjà traitée.`);
       }
       
       const request = pending[reqIndex];
@@ -751,21 +838,19 @@ ovlcmd(
         `📞 Support: wa.me/2250150252467`;
       
       try {
-        await ovl.sendMessage(clientJid, { text: clientMessage });
+        await sock.sendMessage(clientJid, { text: clientMessage });
       } catch (e) {
         console.error('[WAVE] Erreur envoi client:', e.message);
       }
       
-      return await ovl.sendMessage(ms_org, {
-        text: `❌ *PAIEMENT REJETÉ*\n\n` +
+      return await ctx.send(`❌ *PAIEMENT REJETÉ*\n\n` +
               `👤 Client: ${request.name}\n` +
               `📱 Tel: ${request.phone}\n` +
               `📝 Raison: ${reason}\n\n` +
-              `Le client a été notifié.`
-      });
+              `Le client a été notifié.`);
       
     } catch (e) {
-      return await ovl.sendMessage(ms_org, { text: `❌ Erreur: ${e.message}` });
+      return await ctx.send(`❌ Erreur: ${e.message}`);
     }
   }
 );
