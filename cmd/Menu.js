@@ -68,8 +68,8 @@ function getUserInfo(phone, isOwner = false) {
       // DÃ©finir la limite selon le plan
       switch (plan.toUpperCase()) {
         case 'BRONZE': dailyLimit = 100; break;
-        case 'ARGENT': dailyLimit = 200; break;
-        case 'OR': dailyLimit = 500; break;
+        case 'ARGENT': dailyLimit = 300; break;
+        case 'OR': dailyLimit = -1; break;
         case 'DIAMANT': 
         case 'LIFETIME': 
         case 'PREMIUM': dailyLimit = -1; break;

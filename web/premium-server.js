@@ -504,13 +504,31 @@ app.post('/api/wave/confirm', (req, res) => {
     
     codes[activationCode] = {
       plan: planUpper,
+      days: planDays,
       createdAt: new Date().toISOString(),
       expiresAt: expiresAt.toISOString(),
+      used: false,
       usedBy: null,
       transactionId: transaction.id
     };
     
     fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+    
+    // Aussi enregistrer dans premium_codes.json pour compatibilité avec .upgrade
+    const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
+    let premiumCodes = {};
+    if (fs.existsSync(premiumCodesFile)) {
+      try { premiumCodes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8')); } catch(e) { premiumCodes = {}; }
+    }
+    premiumCodes[activationCode] = {
+      plan: planUpper,
+      days: planDays,
+      createdAt: new Date().toISOString(),
+      used: false,
+      usedBy: null,
+      usedAt: null
+    };
+    fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
     
     // Logger le paiement
     console.log(`[WAVE] 💰 PAIEMENT CONFIRMÉ:`);

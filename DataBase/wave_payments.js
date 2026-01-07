@@ -305,54 +305,112 @@ function confirmPayment(subscriberIdOrPhone, adminNote = '') {
  */
 function activateWithCode(code, whatsappJid) {
   const subscribers = readJSON(SUBSCRIBERS_FILE, { subscribers: [] });
-  const activationCodes = readJSON(ACTIVATION_CODES_FILE, { codes: [] });
+  const activationCodes = readJSON(ACTIVATION_CODES_FILE, {});
+  const codeUpper = code.toUpperCase();
   
-  // Trouver le code
-  const codeIndex = activationCodes.codes.findIndex(c => c.code === code.toUpperCase());
+  // Support des deux formats de stockage
+  // Format 1: { codes: [...] } (ancien format tableau)
+  // Format 2: { "HANI-OR-XXX": {...} } (nouveau format objet)
   
-  if (codeIndex < 0) {
+  let codeData = null;
+  let isObjectFormat = false;
+  
+  // Vérifier le nouveau format (objet)
+  if (activationCodes[codeUpper]) {
+    codeData = activationCodes[codeUpper];
+    isObjectFormat = true;
+  } else if (activationCodes.codes && Array.isArray(activationCodes.codes)) {
+    // Ancien format (tableau)
+    const codeIndex = activationCodes.codes.findIndex(c => c.code === codeUpper);
+    if (codeIndex >= 0) {
+      codeData = activationCodes.codes[codeIndex];
+      codeData._index = codeIndex;
+    }
+  }
+  
+  // Vérifier aussi dans le système premium standard
+  if (!codeData) {
+    try {
+      const premiumCodesFile = path.join(__dirname, 'premium_codes.json');
+      const premiumCodes = readJSON(premiumCodesFile, {});
+      if (premiumCodes[codeUpper]) {
+        codeData = premiumCodes[codeUpper];
+        codeData._fromPremium = true;
+      }
+    } catch (e) {}
+  }
+  
+  if (!codeData) {
     return { success: false, error: 'Code d\'activation invalide' };
   }
   
-  const codeData = activationCodes.codes[codeIndex];
-  
-  if (codeData.used) {
+  // Vérifier si déjà utilisé
+  if (codeData.used || codeData.usedBy) {
     return { success: false, error: 'Ce code a déjà été utilisé' };
   }
   
-  // Trouver l'abonné
-  const subscriberIndex = subscribers.subscribers.findIndex(s => s.id === codeData.subscriberId);
-  
-  if (subscriberIndex < 0) {
-    return { success: false, error: 'Abonné non trouvé' };
-  }
-  
-  const subscriber = subscribers.subscribers[subscriberIndex];
-  const planData = PLANS[subscriber.plan];
+  // Récupérer les infos du plan
+  const planName = codeData.plan || 'OR';
+  const planData = PLANS[planName.toUpperCase()] || PLANS.OR;
   
   // Calculer la date d'expiration
+  const days = codeData.days || planData.duration || 30;
   let expiresAt = null;
-  if (planData.duration > 0) {
-    expiresAt = new Date(Date.now() + planData.duration * 24 * 60 * 60 * 1000).toISOString();
+  if (days > 0) {
+    expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   }
   
-  // Mettre à jour l'abonné
-  subscriber.status = 'active';
-  subscriber.activatedAt = new Date().toISOString();
-  subscriber.expiresAt = expiresAt;
-  subscriber.whatsappJid = whatsappJid;
+  // Marquer le code comme utilisé
+  if (isObjectFormat) {
+    activationCodes[codeUpper].usedBy = whatsappJid;
+    activationCodes[codeUpper].usedAt = new Date().toISOString();
+    writeJSON(ACTIVATION_CODES_FILE, activationCodes);
+  } else if (codeData._index !== undefined) {
+    activationCodes.codes[codeData._index].used = true;
+    activationCodes.codes[codeData._index].usedAt = new Date().toISOString();
+    activationCodes.codes[codeData._index].usedByJid = whatsappJid;
+    writeJSON(ACTIVATION_CODES_FILE, activationCodes);
+  } else if (codeData._fromPremium) {
+    try {
+      const premiumCodesFile = path.join(__dirname, 'premium_codes.json');
+      const premiumCodes = readJSON(premiumCodesFile, {});
+      premiumCodes[codeUpper].used = true;
+      premiumCodes[codeUpper].usedBy = whatsappJid;
+      premiumCodes[codeUpper].usedAt = new Date().toISOString();
+      writeJSON(premiumCodesFile, premiumCodes);
+    } catch (e) {}
+  }
   
-  subscribers.subscribers[subscriberIndex] = subscriber;
+  // Créer/mettre à jour l'abonné
+  const phone = whatsappJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+  let subscriber = subscribers.subscribers.find(s => s.phone === phone);
+  
+  if (!subscriber) {
+    subscriber = {
+      id: crypto.randomBytes(8).toString('hex').toUpperCase(),
+      name: 'Utilisateur',
+      phone: phone,
+      plan: planName.toUpperCase(),
+      planDetails: planData,
+      amount: planData.price,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      activatedAt: new Date().toISOString(),
+      expiresAt: expiresAt,
+      whatsappJid: whatsappJid,
+      activationCode: codeUpper
+    };
+    subscribers.subscribers.push(subscriber);
+  } else {
+    subscriber.status = 'active';
+    subscriber.plan = planName.toUpperCase();
+    subscriber.activatedAt = new Date().toISOString();
+    subscriber.expiresAt = expiresAt;
+  }
+  
   writeJSON(SUBSCRIBERS_FILE, subscribers);
   
-  // Marquer le code comme utilisé
-  activationCodes.codes[codeIndex].used = true;
-  activationCodes.codes[codeIndex].usedAt = new Date().toISOString();
-  activationCodes.codes[codeIndex].usedByJid = whatsappJid;
-  
-  writeJSON(ACTIVATION_CODES_FILE, activationCodes);
-  
-  console.log(`[WAVE] 🎉 Abonnement activé: ${subscriber.name} (${subscriber.plan}) via ${whatsappJid}`);
+  console.log(`[WAVE] 🎉 Abonnement activé: ${subscriber.name} (${planName}) via ${whatsappJid}`);
   
   return {
     success: true,

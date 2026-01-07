@@ -52,10 +52,10 @@ const PLANS = {
   argent: {
     name: "🥈 Argent",
     price: 1000,
-    dailyLimit: 500,
+    dailyLimit: 300,
     duration: 30,
     features: [
-      "✅ 500 commandes/jour",
+      "✅ 300 commandes/jour",
       "✅ Tous les téléchargements HD",
       "✅ IA complète (GPT, DALL-E)",
       "✅ Gestion de groupe",
