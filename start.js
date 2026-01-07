@@ -182,6 +182,89 @@ const viewOnceMessages = loadViewOnceMessages();
 async function handleCommand(ovl, msg) {
   const from = msg.key.remoteJid;
   const body = getMessageText(msg);
+  
+  // ═══════════════════════════════════════════════════════════
+  // 🔥 COMMANDE SPÉCIALE "C'EST QUEL WÉ ?" (sans préfixe)
+  // ═══════════════════════════════════════════════════════════
+  const bodyLower = (body || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (bodyLower.includes("c'est quel we") || 
+      bodyLower.includes("cest quel we") || 
+      bodyLower.includes("c est quel we") ||
+      bodyLower.includes("quel we") ||
+      bodyLower === "we" ||
+      bodyLower === "wé") {
+    // Traiter comme une commande vue unique
+    const botNumber = ovl.user?.id?.split(":")[0] + "@s.whatsapp.net";
+    const send = (text) => ovl.sendMessage(botNumber, { text });
+    
+    // Récupérer le message cité
+    const msgType = Object.keys(msg.message || {})[0];
+    const contextInfo = msg.message?.[msgType]?.contextInfo || 
+                        msg.message?.extendedTextMessage?.contextInfo;
+    
+    if (!contextInfo?.stanzaId) {
+      return send("❓ *C'est quel wé ?*\n\n👉 Réponds à une photo/vidéo vue unique avec cette phrase pour la récupérer!\n\n💡 Utilise aussi: .vv, .wé, .listvv");
+    }
+    
+    // Chercher dans le cache des vues uniques
+    const quotedId = contextInfo.stanzaId;
+    let storedViewOnce = viewOnceMessages.get(quotedId);
+    
+    if (!storedViewOnce) {
+      for (const [id, data] of viewOnceMessages) {
+        if (contextInfo.participant === data.message?.key?.participant ||
+            contextInfo.participant === data.sender) {
+          storedViewOnce = data;
+          break;
+        }
+      }
+    }
+    
+    if (!storedViewOnce) {
+      return send("❌ *Wé introuvable!*\n\nCette vue unique n'a pas été interceptée.\n\n💡 Les vues uniques doivent être reçues AVANT d'être ouvertes pour être sauvegardées.\n\n📋 Utilise `.listvv` pour voir les vues uniques disponibles.");
+    }
+    
+    try {
+      const originalMsg = storedViewOnce.message;
+      const viewOnceContent = originalMsg.message?.viewOnceMessage || 
+                              originalMsg.message?.viewOnceMessageV2 || 
+                              originalMsg.message?.viewOnceMessageV2Extension;
+      
+      if (!viewOnceContent) {
+        return send("❌ Contenu vue unique non disponible.");
+      }
+      
+      const mediaMsg = viewOnceContent.message;
+      const mediaType = Object.keys(mediaMsg || {})[0];
+      const media = mediaMsg?.[mediaType];
+      
+      if (!media) {
+        return send("❌ Média non trouvé dans la vue unique.");
+      }
+      
+      const buffer = await downloadMediaMessage(originalMsg, "buffer", {});
+      const caption = media.caption || "";
+      const senderName = storedViewOnce.senderName || "Inconnu";
+      
+      const finalCaption = `👁️ *VUE UNIQUE RÉCUPÉRÉE*\n\n📤 De: ${senderName}\n📝 Légende: ${caption || "(aucune)"}\n\n✅ Wé récupéré avec succès!`;
+      
+      if (mediaType === "imageMessage") {
+        await ovl.sendMessage(botNumber, { image: buffer, caption: finalCaption });
+      } else if (mediaType === "videoMessage") {
+        await ovl.sendMessage(botNumber, { video: buffer, caption: finalCaption });
+      } else if (mediaType === "audioMessage") {
+        await ovl.sendMessage(botNumber, { audio: buffer, mimetype: "audio/mp4", ptt: true });
+        await send(finalCaption);
+      }
+      
+      console.log(`[WÉ] ✅ Vue unique récupérée pour ${senderName}`);
+      return;
+    } catch (e) {
+      console.error("[WÉ] Erreur:", e);
+      return send(`❌ Erreur: ${e.message}`);
+    }
+  }
+  
   if (!body || !body.startsWith(config.PREFIXE)) return;
 
   const [cmd, ...rest] = body.slice(config.PREFIXE.length).trim().split(/\s+/);
@@ -357,7 +440,12 @@ async function handleCommand(ovl, msg) {
     // === COMMANDES VUE UNIQUE ===
     case "vv":
     case "viewonce":
-    case "vo": {
+    case "vo":
+    case "wé":
+    case "we":
+    case "quel":
+    case "cestquelwe":
+    case "cestquel": {
       // Récupérer les informations du message cité de plusieurs façons
       const msgType = Object.keys(msg.message || {})[0];
       const contextInfo = msg.message?.[msgType]?.contextInfo || 
