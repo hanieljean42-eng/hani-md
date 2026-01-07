@@ -537,6 +537,29 @@ app.post('/api/wave/confirm', (req, res) => {
     console.log(`   📝 Transaction Wave: ${transactionId}`);
     console.log(`   🔑 Code généré: ${activationCode}`);
     
+    // 🔔 Sauvegarder notification pour l'owner (sera lue par le bot)
+    try {
+      const notifFile = path.join(__dirname, '..', 'DataBase', 'pending_owner_notifications.json');
+      let notifications = [];
+      if (fs.existsSync(notifFile)) {
+        try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch(e) { notifications = []; }
+      }
+      notifications.push({
+        type: 'payment',
+        name: name || 'Client',
+        phone: phone || waveNumber,
+        plan: planUpper,
+        amount: transaction.amount,
+        transactionId: transactionId,
+        activationCode: activationCode,
+        createdAt: new Date().toISOString(),
+        sent: false
+      });
+      fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+    } catch (e) {
+      console.error('[NOTIF] Erreur sauvegarde notification:', e.message);
+    }
+    
     res.json({
       success: true,
       code: activationCode,

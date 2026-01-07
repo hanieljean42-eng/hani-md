@@ -723,6 +723,47 @@ async function startBot() {
       console.log("\n");
       console.log("💡 Tape " + config.PREFIXE + "menu sur WhatsApp pour voir toutes les commandes");
       console.log("\n");
+      
+      // 🔔 Envoyer les notifications de paiement en attente à l'owner
+      setTimeout(async () => {
+        try {
+          const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+          if (fs.existsSync(notifFile)) {
+            let notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8') || '[]');
+            const pending = notifications.filter(n => !n.sent);
+            
+            if (pending.length > 0) {
+              const ownerNumber = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+              const ownerJid = ownerNumber + '@s.whatsapp.net';
+              
+              for (const notif of pending) {
+                if (notif.type === 'payment') {
+                  const msg = 
+                    `💰 *PAIEMENT WAVE REÇU*\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                    `👤 *Client:* ${notif.name}\n` +
+                    `📱 *Téléphone:* ${notif.phone}\n` +
+                    `💎 *Plan:* ${notif.plan}\n` +
+                    `💵 *Montant:* ${notif.amount} FCFA\n` +
+                    `📝 *Transaction:* ${notif.transactionId}\n\n` +
+                    `🔑 *Code:* \`${notif.activationCode}\`\n\n` +
+                    `⏰ *Date:* ${new Date(notif.createdAt).toLocaleString('fr-FR')}\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━`;
+                  
+                  await sock.sendMessage(ownerJid, { text: msg });
+                  notif.sent = true;
+                  await delay(1000);
+                }
+              }
+              
+              fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+              console.log(`[NOTIF] ✅ ${pending.length} notification(s) envoyée(s) à l'owner`);
+            }
+          }
+        } catch (e) {
+          console.error('[NOTIF] Erreur envoi notifications:', e.message);
+        }
+      }, 5000); // Attendre 5 secondes après connexion
 
       // On ne charge plus les modules obfusqués pour éviter les erreurs (ex: sharp).
       console.log(
@@ -1507,6 +1548,53 @@ app.post('/api/wave/confirm', (req, res) => {
     console.log(`[WAVE]    📝 Transaction Wave: ${transactionId}`);
     console.log(`[WAVE]    🔑 Code généré: ${activationCode}`);
     console.log(`[WAVE] ═══════════════════════════════════════════\n`);
+    
+    // 🔔 NOTIFICATION À L'OWNER VIA WHATSAPP
+    try {
+      const ownerNumber = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+      const ownerJid = ownerNumber + '@s.whatsapp.net';
+      
+      if (sock && sock.user) {
+        const notifMessage = 
+          `💰 *NOUVEAU PAIEMENT WAVE*\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `👤 *Client:* ${name || 'Non renseigné'}\n` +
+          `📱 *Téléphone:* ${phone || waveNumber}\n` +
+          `💎 *Plan:* ${planUpper}\n` +
+          `💵 *Montant:* ${transaction.amount} FCFA\n` +
+          `📝 *N° Transaction:* ${transactionId}\n\n` +
+          `🔑 *Code généré:* \`${activationCode}\`\n\n` +
+          `⏰ *Date:* ${new Date().toLocaleString('fr-FR')}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `✅ Le client peut maintenant utiliser:\n` +
+          `*.activer ${activationCode}*`;
+        
+        await sock.sendMessage(ownerJid, { text: notifMessage });
+        console.log(`[WAVE] ✅ Notification envoyée à l'owner: ${ownerNumber}`);
+      } else {
+        console.log(`[WAVE] ⚠️ Bot non connecté - notification sauvegardée pour envoi ultérieur`);
+        // Sauvegarder la notification pour envoi ultérieur
+        const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+        let notifications = [];
+        if (fs.existsSync(notifFile)) {
+          try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch(e) { notifications = []; }
+        }
+        notifications.push({
+          type: 'payment',
+          name: name || 'Client',
+          phone: phone || waveNumber,
+          plan: planUpper,
+          amount: transaction.amount,
+          transactionId: transactionId,
+          activationCode: activationCode,
+          createdAt: new Date().toISOString(),
+          sent: false
+        });
+        fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+      }
+    } catch (notifError) {
+      console.error('[WAVE] Erreur notification owner:', notifError.message);
+    }
     
     res.json({
       success: true,
