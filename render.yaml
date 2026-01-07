@@ -27,15 +27,11 @@ services:
         value: "H2025"
       - key: WAVE_NUMBER
         value: ""  # Configurer dans le dashboard Render
-      - key: MYSQL_HOST
-        value: "mainline.proxy.rlwy.net"
-      - key: MYSQL_PORT
-        value: "14579"
-      - key: MYSQL_USER
-        value: "root"
-      - key: MYSQL_PASSWORD
-        value: "HjaFazWgJyqNlLQyWaAsazQpMnjdEdga"
-      - key: MYSQL_DATABASE
-        value: "railway"
-      - key: MYSQL_URL
-        value: "mysql://root:HjaFazWgJyqNlLQyWaAsazQpMnjdEdga@mainline.proxy.rlwy.net:14579/railway"
+      # MySQL - Configurer ces valeurs dans le dashboard Render (pas dans le code)
+      # - key: MYSQL_HOST
+      # - key: MYSQL_PORT
+      # - key: MYSQL_USER
+      # - key: MYSQL_PASSWORD
+      # - key: MYSQL_DATABASE
+      # - key: MYSQL_URL
+      # NOTE: Configure MySQL variables in the Render dashboard for security

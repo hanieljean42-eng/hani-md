@@ -39,16 +39,12 @@ env:
     value: "https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-success"
   - key: WAVE_ERROR_URL
     value: "https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-error"
-  - key: MYSQL_ADDON_HOST
-    value: "bbrgjiyodrpxpjz1dtix-mysql.services.clever-cloud.com"
-  - key: MYSQL_ADDON_PORT
-    value: "3306"
-  - key: MYSQL_ADDON_USER
-    value: "ux7kdg3qwu0w0sls"
-  - key: MYSQL_ADDON_PASSWORD
-    value: "umPLlTsEI0jR7pNRNIly"
-  - key: MYSQL_ADDON_DB
-    value: "bbrgjiyodrpxpjz1dtix"
+  # MySQL - Configurer ces valeurs dans le dashboard Koyeb (pas dans le code)
+  # - key: MYSQL_ADDON_HOST
+  # - key: MYSQL_ADDON_PORT
+  # - key: MYSQL_ADDON_USER
+  # - key: MYSQL_ADDON_PASSWORD
+  # - key: MYSQL_ADDON_DB
 scaling:
   min: 1
   max: 1
