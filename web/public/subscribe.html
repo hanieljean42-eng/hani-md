@@ -268,17 +268,12 @@
             
             <div class="payment-step">
               <div class="payment-step-num">5</div>
-              <div class="payment-step-text">Dans le motif, écrivez: <strong id="paymentMotif">HANI-ABC123</strong></div>
-            </div>
-            
-            <div class="payment-step">
-              <div class="payment-step-num">6</div>
-              <div class="payment-step-text">Validez et <strong>notez le N° de transaction</strong></div>
+              <div class="payment-step-text">Validez le paiement et <strong>notez le N° de transaction</strong></div>
             </div>
           </div>
           
           <div class="warning-box">
-            <p><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Notez le numéro de transaction Wave qui s'affiche après le paiement. Vous en aurez besoin à l'étape suivante.</p>
+            <p><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Après le paiement, Wave affiche un <strong>numéro de transaction</strong> (dans le reçu ou l'historique). Notez-le, vous en aurez besoin pour confirmer.</p>
           </div>
           
           <button type="button" id="goToConfirmBtn" class="btn-submit" style="margin-top: 20px;">
@@ -446,7 +441,6 @@
       document.getElementById('displayRef').textContent = subscriberData.reference;
       document.getElementById('paymentAmount').textContent = subscriberData.price.toLocaleString('fr-FR');
       document.getElementById('amountToPay').textContent = subscriberData.price.toLocaleString('fr-FR') + ' FCFA';
-      document.getElementById('paymentMotif').textContent = subscriberData.reference;
     }
     
     document.getElementById('goToConfirmBtn').addEventListener('click', (e) => {
