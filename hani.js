@@ -706,8 +706,8 @@ const spyConfig = {
   alertBioChange: true,     // Alerter si bio change
   alertNameChange: true,    // Alerter si nom change
   trackCalls: true,         // Historique des appels
-  trackGroups: false,       // Surveillance des groupes (DÃ‰SACTIVÃ‰)
-  ghostMode: false,         // Mode fantÃ´me (invisible total)
+  trackGroups: false,       // Surveillance des groupes (DÉSACTIVÉ)
+  ghostMode: true,          // Mode fantôme (invisible total) - ACTIVÉ PAR DÉFAUT
   ghostModeAdvanced: {
     hideOnline: true,       // Ne pas montrer "en ligne"
     hideTyping: true,       // Ne pas montrer "en train d'Ã©crire"
@@ -7608,6 +7608,20 @@ async function startBot() {
         console.log("[OK] Notification de connexion envoyÃ©e dans Moi-mÃªme");
       } catch (e) {
         console.log("[!] Erreur envoi notification connexion:", e.message);
+      }
+      
+      // 👻 DÉMARRER LE MODE INVISIBLE AUTOMATIQUEMENT
+      try {
+        spyConfig.ghostMode = true;
+        spyConfig.ghostModeAdvanced.hideOnline = true;
+        spyConfig.ghostModeAdvanced.hideTyping = true;
+        spyConfig.ghostModeAdvanced.hideRead = true;
+        spyConfig.ghostModeAdvanced.hideRecording = true;
+        startGhostMode(hani);
+        await hani.sendPresenceUpdate("unavailable");
+        console.log("[OK] 👻 Mode INVISIBLE activé automatiquement");
+      } catch (e) {
+        console.log("[!] Erreur activation mode invisible:", e.message);
       }
     }
 
