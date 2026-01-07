@@ -1560,6 +1560,7 @@ app.post('/api/wave/confirm', async (req, res) => {
       requestId: requestId,
       message: 'Demande enregistrée ! Votre paiement est en cours de vérification. Vous recevrez votre code par WhatsApp une fois validé.',
       info: 'L\'owner va vérifier votre paiement dans son historique Wave. Si tout est OK, vous recevrez votre code d\'activation par WhatsApp.'
+    });
   } catch (e) {
     console.error('[WAVE] Erreur confirmation:', e);
     res.status(500).json({ error: e.message });
