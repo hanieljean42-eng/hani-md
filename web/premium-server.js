@@ -390,13 +390,13 @@ app.post('/api/admin/requests/:id/approve', requireAdmin, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// � API WAVE PAYMENTS (NOUVELLE)
+// 💳 API WAVE PAYMENTS (SYSTÈME MANUEL)
 // ═══════════════════════════════════════════════════════════
 
-// Inscription + création lien Wave
+// Inscription + enregistrement de la demande
 app.post('/api/wave/subscribe', (req, res) => {
   try {
-    const { name, phone, plan } = req.body;
+    const { name, phone, plan, reference } = req.body;
     
     if (!name || name.length < 3) {
       return res.status(400).json({ error: 'Nom requis (min 3 caractères)' });
@@ -408,9 +408,125 @@ app.post('/api/wave/subscribe', (req, res) => {
       return res.status(400).json({ error: 'Plan requis' });
     }
     
-    const result = wavePayments.createSubscriber(name, phone, plan);
-    res.json(result);
+    // Générer ou utiliser la référence fournie
+    const paymentRef = reference || 'HANI-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+    
+    // Sauvegarder la demande
+    const requestsFile = path.join(__dirname, '..', 'DataBase', 'pending_payments.json');
+    let requests = [];
+    
+    if (fs.existsSync(requestsFile)) {
+      try { requests = JSON.parse(fs.readFileSync(requestsFile, 'utf8')); } catch(e) { requests = []; }
+    }
+    
+    const request = {
+      id: crypto.randomBytes(8).toString('hex'),
+      reference: paymentRef,
+      name,
+      phone: phone.replace(/[^0-9]/g, ''),
+      plan: plan.toUpperCase(),
+      amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] || 2000,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    
+    requests.push(request);
+    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    
+    console.log(`[WAVE] 📝 Nouvelle demande: ${name} - ${plan} - Réf: ${paymentRef}`);
+    
+    res.json({
+      success: true,
+      requestId: request.id,
+      reference: paymentRef,
+      message: 'Demande enregistrée'
+    });
   } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirmation du paiement manuel avec génération de code
+app.post('/api/wave/confirm', (req, res) => {
+  try {
+    const { transactionId, waveNumber, reference, phone, plan, amount, name } = req.body;
+    
+    if (!transactionId || transactionId.length < 4) {
+      return res.status(400).json({ error: 'Numéro de transaction invalide' });
+    }
+    if (!waveNumber || waveNumber.length < 8) {
+      return res.status(400).json({ error: 'Numéro Wave invalide' });
+    }
+    
+    // Générer un code d'activation unique
+    const planUpper = (plan || 'OR').toUpperCase();
+    const codeRandom = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const activationCode = `HANI-${planUpper}-${codeRandom}`;
+    
+    // Calculer la date d'expiration
+    const planDays = planUpper === 'LIFETIME' ? 36500 : 30;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + planDays);
+    
+    // Sauvegarder la transaction confirmée
+    const transactionsFile = path.join(__dirname, '..', 'DataBase', 'confirmed_payments.json');
+    let transactions = [];
+    
+    if (fs.existsSync(transactionsFile)) {
+      try { transactions = JSON.parse(fs.readFileSync(transactionsFile, 'utf8')); } catch(e) { transactions = []; }
+    }
+    
+    const transaction = {
+      id: crypto.randomBytes(8).toString('hex'),
+      activationCode,
+      transactionId,
+      waveNumber: waveNumber.replace(/[^0-9]/g, ''),
+      reference: reference || 'DIRECT',
+      name: name || 'Client',
+      phone: (phone || '').replace(/[^0-9]/g, ''),
+      plan: planUpper,
+      amount: amount || { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[planUpper] || 2000,
+      status: 'confirmed',
+      expiresAt: expiresAt.toISOString(),
+      confirmedAt: new Date().toISOString()
+    };
+    
+    transactions.push(transaction);
+    fs.writeFileSync(transactionsFile, JSON.stringify(transactions, null, 2));
+    
+    // Sauvegarder le code d'activation
+    const codesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
+    let codes = {};
+    
+    if (fs.existsSync(codesFile)) {
+      try { codes = JSON.parse(fs.readFileSync(codesFile, 'utf8')); } catch(e) { codes = {}; }
+    }
+    
+    codes[activationCode] = {
+      plan: planUpper,
+      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      usedBy: null,
+      transactionId: transaction.id
+    };
+    
+    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+    
+    // Logger le paiement
+    console.log(`[WAVE] 💰 PAIEMENT CONFIRMÉ:`);
+    console.log(`   👤 ${name || 'Client'} (${phone || waveNumber})`);
+    console.log(`   💳 Plan: ${planUpper} - ${transaction.amount} FCFA`);
+    console.log(`   📝 Transaction Wave: ${transactionId}`);
+    console.log(`   🔑 Code généré: ${activationCode}`);
+    
+    res.json({
+      success: true,
+      code: activationCode,
+      message: 'Paiement confirmé ! Voici votre code.',
+      expiresAt: expiresAt.toISOString()
+    });
+  } catch (e) {
+    console.error('[WAVE] Erreur confirmation:', e);
     res.status(500).json({ error: e.message });
   }
 });

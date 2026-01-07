@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>S'abonner avec Wave - HANI-MD Premium</title>
+  <title>S'abonner - HANI-MD Premium</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -57,40 +57,42 @@
     .payment-screen { text-align: center; }
     .payment-amount { font-size: 2.8rem; font-weight: 800; color: #25D366; margin: 15px 0; }
     .payment-amount span { font-size: 1rem; opacity: 0.7; }
-    .wave-pay-button { display: inline-flex; align-items: center; gap: 12px; padding: 18px 45px; background: linear-gradient(135deg, #1abc54, #25D366); border-radius: 50px; color: white; font-size: 1.2rem; font-weight: 700; text-decoration: none; transition: all 0.3s; margin: 15px 0; }
+    .wave-pay-button { display: inline-flex; align-items: center; gap: 12px; padding: 18px 45px; background: linear-gradient(135deg, #1abc54, #25D366); border-radius: 50px; color: white; font-size: 1.2rem; font-weight: 700; text-decoration: none; transition: all 0.3s; margin: 15px 0; border: none; cursor: pointer; }
     .wave-pay-button:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(37,211,102,0.4); }
     .wave-pay-button i { font-size: 1.4rem; }
-    .ussd-box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; margin: 20px 0; }
-    .ussd-code { font-family: monospace; font-size: 1.3rem; color: #25D366; background: rgba(37,211,102,0.1); padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 10px 0; letter-spacing: 1px; }
-    .divider { display: flex; align-items: center; margin: 20px 0; }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.2); }
-    .divider span { padding: 0 15px; opacity: 0.7; font-size: 0.85rem; }
+    .payment-box { background: rgba(37,211,102,0.1); border: 2px solid rgba(37,211,102,0.3); border-radius: 15px; padding: 20px; margin: 20px 0; text-align: left; }
+    .payment-box h3 { margin-bottom: 15px; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+    .payment-step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+    .payment-step-num { width: 28px; height: 28px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+    .payment-step-text { font-size: 0.9rem; line-height: 1.4; }
+    .payment-step-text strong { color: #25D366; }
+    .highlight-box { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
+    .highlight-box .number { font-size: 1.8rem; font-weight: 800; color: #25D366; font-family: monospace; letter-spacing: 2px; }
+    .highlight-box .label { font-size: 0.8rem; opacity: 0.7; margin-top: 5px; }
+    .copy-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; margin-top: 8px; }
+    .copy-btn:hover { background: rgba(255,255,255,0.2); }
     .success-screen { text-align: center; padding: 30px 15px; }
     .success-icon { width: 90px; height: 90px; background: linear-gradient(135deg, #1abc54, #25D366); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 2.5rem; }
     .activation-code-box { background: linear-gradient(135deg, rgba(37,211,102,0.15), rgba(37,211,102,0.08)); border: 2px solid #25D366; border-radius: 15px; padding: 25px 20px; margin: 25px 0; }
     .activation-code-box h3 { font-size: 0.9rem; opacity: 0.8; margin-bottom: 10px; font-weight: 500; }
     .activation-code { font-size: 1.5rem; font-weight: 800; font-family: monospace; color: #25D366; letter-spacing: 2px; word-break: break-all; }
-    .copy-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; }
-    .copy-btn:hover { background: rgba(255,255,255,0.2); }
     .whatsapp-box { background: rgba(37,211,102,0.1); border-radius: 12px; padding: 20px; margin-top: 25px; }
     .whatsapp-box h4 { margin-bottom: 12px; font-size: 0.95rem; }
     .whatsapp-command { display: inline-block; background: rgba(37,211,102,0.2); padding: 12px 20px; border-radius: 10px; font-family: monospace; font-size: 1rem; color: #25D366; margin: 10px 0; }
-    .confirm-payment-section { background: rgba(37,211,102,0.08); border: 2px solid rgba(37,211,102,0.3); border-radius: 15px; padding: 25px; margin-top: 25px; }
-    .confirm-payment-section h3 { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
-    .confirm-payment-section p { font-size: 0.9rem; opacity: 0.8; margin-bottom: 15px; }
     .transaction-input { margin-bottom: 15px; }
     .transaction-input label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 500; }
     .transaction-input input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 1rem; font-family: inherit; }
     .transaction-input input:focus { outline: none; border-color: #25D366; }
     .transaction-input small { display: block; margin-top: 8px; font-size: 0.8rem; opacity: 0.7; }
-    .loading { display: none; text-align: center; padding: 40px; }
-    .loading.active { display: block; }
-    .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #25D366; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    .loading { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
+    .loading.active { display: flex; }
+    .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #25D366; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .info-box { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 15px; margin: 15px 0; }
     .info-box p { font-size: 0.85rem; opacity: 0.9; line-height: 1.5; }
     .info-box i { color: #3b82f6; }
-    .timer { font-size: 0.85rem; color: #f59e0b; margin-top: 10px; }
+    .warning-box { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 15px; margin: 15px 0; }
+    .warning-box p { font-size: 0.85rem; color: #f59e0b; line-height: 1.5; }
     @media (max-width: 480px) {
       .container { padding: 10px; }
       .form-card { padding: 25px 18px; }
@@ -99,8 +101,7 @@
       .plan-price .amount { font-size: 1.1rem; }
       .payment-amount { font-size: 2.2rem; }
       .wave-pay-button { padding: 15px 30px; font-size: 1rem; }
-      .activation-code { font-size: 1.2rem; }
-      .step-label { font-size: 0.65rem; }
+      .highlight-box .number { font-size: 1.4rem; }
     }
   </style>
 </head>
@@ -109,21 +110,21 @@
     <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
     
     <div class="progress-steps">
-      <div class="step active" data-step="1">
+      <div class="step active" id="stepIndicator1">
         <div class="step-number">1</div>
-        <span class="step-label">Inscription</span>
+        <div class="step-label">Inscription</div>
       </div>
-      <div class="step" data-step="2">
+      <div class="step" id="stepIndicator2">
         <div class="step-number">2</div>
-        <span class="step-label">Payer Wave</span>
+        <div class="step-label">Paiement</div>
       </div>
-      <div class="step" data-step="3">
+      <div class="step" id="stepIndicator3">
         <div class="step-number">3</div>
-        <span class="step-label">Confirmer</span>
+        <div class="step-label">Confirmation</div>
       </div>
-      <div class="step" data-step="4">
+      <div class="step" id="stepIndicator4">
         <div class="step-number">4</div>
-        <span class="step-label">Code</span>
+        <div class="step-label">Activation</div>
       </div>
     </div>
     
@@ -131,37 +132,35 @@
     <div class="step-content active" id="step1">
       <div class="form-card">
         <div class="wave-badge">
-          <i class="fas fa-mobile-alt"></i>
-          <span>Paiement Wave uniquement</span>
+          <i class="fas fa-crown"></i>
+          <span>HANI-MD Premium</span>
         </div>
         
         <div class="form-header">
-          <h1>💎 S'abonner à HANI-MD</h1>
-          <p>Payez avec Wave et recevez votre code instantanément</p>
+          <h1>Devenir Premium</h1>
+          <p>Accédez à toutes les fonctionnalités exclusives</p>
         </div>
         
-        <div id="errorAlert" class="alert alert-error hidden">
+        <div id="formError" class="alert alert-error hidden">
           <i class="fas fa-exclamation-circle"></i>
-          <span id="errorMessage"></span>
+          <span id="formErrorMessage"></span>
         </div>
         
         <form id="subscribeForm">
           <div class="form-group">
-            <label>Votre nom complet <span class="required">*</span></label>
-            <input type="text" class="form-control" id="userName" placeholder="Ex: Jean Kouassi" required minlength="3">
+            <label>Votre nom <span class="required">*</span></label>
+            <input type="text" class="form-control" id="userName" placeholder="Votre prénom ou pseudo" required minlength="3">
           </div>
           
           <div class="form-group">
             <label>Numéro WhatsApp <span class="required">*</span></label>
-            <input type="tel" class="form-control" id="userPhone" placeholder="Ex: 0150252467" required minlength="8">
-            <small style="opacity: 0.6; margin-top: 5px; display: block; font-size: 0.8rem;">
-              <i class="fas fa-info-circle"></i> Numéro sur lequel vous utiliserez le bot
-            </small>
+            <input type="tel" class="form-control" id="userPhone" placeholder="Ex: 0778901234" required minlength="8">
+            <small style="opacity: 0.6; font-size: 0.8rem;">Le numéro sur lequel vous utilisez le bot</small>
           </div>
           
           <div class="form-group">
-            <label>Choisissez votre plan <span class="required">*</span></label>
-            <div class="plan-options" id="planOptions">
+            <label>Choisissez votre plan</label>
+            <div class="plan-options">
               <label class="plan-option" data-plan="BRONZE" data-price="500">
                 <input type="radio" name="plan" value="BRONZE">
                 <span class="plan-icon">🥉</span>
@@ -215,44 +214,80 @@
           </div>
           
           <button type="submit" class="btn-submit">
-            <i class="fas fa-arrow-right"></i> Continuer vers Wave
+            <i class="fas fa-arrow-right"></i> Continuer vers le paiement
           </button>
         </form>
       </div>
     </div>
     
-    <!-- Step 2: Paiement Wave -->
+    <!-- Step 2: Instructions de paiement Wave -->
     <div class="step-content" id="step2">
       <div class="form-card">
         <div class="payment-screen">
-          <h2>💳 Payez avec Wave</h2>
-          <p style="opacity: 0.8; margin-top: 5px;">Cliquez sur le bouton pour ouvrir Wave</p>
+          <h2>💳 Paiement Wave</h2>
           
           <div class="payment-amount">
             <span id="paymentAmount">2 000</span> <span>FCFA</span>
           </div>
           
-          <div style="opacity: 0.8; margin-bottom: 15px;">
-            <p><strong id="displayName"></strong></p>
-            <p>Plan: <strong id="displayPlan"></strong></p>
-            <p style="font-size: 0.85rem; margin-top: 8px;">Réf: <span id="displayRef" style="color: #25D366; font-family: monospace;"></span></p>
+          <div style="opacity: 0.8; margin-bottom: 20px;">
+            <p><strong id="displayName"></strong> - Plan <strong id="displayPlan"></strong></p>
+            <p style="font-size: 0.85rem; margin-top: 5px;">Réf: <code id="displayRef" style="color: #25D366;"></code></p>
           </div>
           
-          <button type="button" id="wavePayButton" class="wave-pay-button" onclick="openWavePayment();">
-            <i class="fas fa-mobile-alt"></i> Payer avec Wave
-          </button>
-          
-          <div class="info-box" style="margin-top: 15px;">
-            <p><i class="fas fa-shield-alt"></i> <strong>Paiement sécurisé</strong> via Wave. Vous serez redirigé vers l'application Wave.</p>
+          <div class="payment-box">
+            <h3><i class="fas fa-list-ol"></i> Comment payer</h3>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">1</div>
+              <div class="payment-step-text">Ouvrez l'application <strong>Wave</strong> sur votre téléphone</div>
+            </div>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">2</div>
+              <div class="payment-step-text">Appuyez sur <strong>"Envoyer"</strong></div>
+            </div>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">3</div>
+              <div class="payment-step-text">Entrez le numéro ci-dessous :</div>
+            </div>
+            
+            <div class="highlight-box">
+              <div class="number" id="paymentNumber">01 50 25 24 67</div>
+              <div class="label">Numéro de réception Wave</div>
+              <button type="button" class="copy-btn" onclick="copyNumber()">
+                <i class="fas fa-copy"></i> Copier
+              </button>
+            </div>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">4</div>
+              <div class="payment-step-text">Montant: <strong id="amountToPay">2 000 FCFA</strong></div>
+            </div>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">5</div>
+              <div class="payment-step-text">Dans le motif, écrivez: <strong id="paymentMotif">HANI-ABC123</strong></div>
+            </div>
+            
+            <div class="payment-step">
+              <div class="payment-step-num">6</div>
+              <div class="payment-step-text">Validez et <strong>notez le N° de transaction</strong></div>
+            </div>
           </div>
           
-          <div class="info-box">
-            <p><i class="fas fa-info-circle"></i> Après le paiement Wave, notez le <strong>numéro de transaction</strong> qui s'affiche dans Wave (ex: TXN123456)</p>
+          <div class="warning-box">
+            <p><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Notez le numéro de transaction Wave qui s'affiche après le paiement. Vous en aurez besoin à l'étape suivante.</p>
           </div>
           
           <button type="button" id="goToConfirmBtn" class="btn-submit" style="margin-top: 20px;">
-            <i class="fas fa-check"></i> J'ai payé, confirmer mon paiement
+            <i class="fas fa-check"></i> J'ai payé, confirmer
           </button>
+          
+          <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; opacity: 0.7;">
+            <a href="#" onclick="goToStep(1); return false;" style="color: #25D366;">← Retour</a>
+          </p>
         </div>
       </div>
     </div>
@@ -272,18 +307,17 @@
         
         <div class="transaction-input">
           <label>N° de transaction Wave <span class="required">*</span></label>
-          <input type="text" class="form-control" id="transactionId" placeholder="Ex: TXN123456789 ou ID affiché dans Wave">
-          <small><i class="fas fa-info-circle"></i> Vous le trouvez dans Wave après le paiement, dans l'historique ou le reçu</small>
+          <input type="text" class="form-control" id="transactionId" placeholder="Ex: WAV123456 ou l'ID affiché dans Wave">
+          <small><i class="fas fa-info-circle"></i> Visible dans Wave après le paiement (historique/reçu)</small>
         </div>
         
         <div class="transaction-input">
           <label>Numéro Wave utilisé pour payer <span class="required">*</span></label>
           <input type="tel" class="form-control" id="waveNumber" placeholder="Ex: 0778901234">
-          <small><i class="fas fa-info-circle"></i> Le numéro depuis lequel vous avez envoyé l'argent</small>
         </div>
         
         <div class="info-box">
-          <p><i class="fas fa-shield-alt"></i> <strong>Sécurité:</strong> Ces informations nous permettent de vérifier votre paiement. Votre code sera généré instantanément après confirmation.</p>
+          <p><i class="fas fa-shield-alt"></i> Ces informations permettent de vérifier votre paiement. Votre code sera généré instantanément.</p>
         </div>
         
         <button type="button" id="confirmPaymentBtn" class="btn-submit">
@@ -291,7 +325,7 @@
         </button>
         
         <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; opacity: 0.7;">
-          <a href="#" id="backToPayBtn" style="color: #25D366;">← Retour au paiement</a>
+          <a href="#" onclick="goToStep(2); return false;" style="color: #25D366;">← Retour</a>
         </p>
       </div>
     </div>
@@ -307,7 +341,7 @@
           <div class="activation-code-box">
             <h3>Votre code d'activation</h3>
             <div class="activation-code" id="activationCode">HANI-OR-XXXXXXXX</div>
-            <button type="button" class="copy-btn" id="copyCodeBtn">
+            <button type="button" class="copy-btn" onclick="copyCode()">
               <i class="fas fa-copy"></i> Copier le code
             </button>
           </div>
@@ -323,7 +357,7 @@
           </a>
           
           <div class="info-box" style="margin-top: 20px;">
-            <p><i class="fas fa-save"></i> <strong>Important:</strong> Conservez ce code ! Vous pouvez aussi le retrouver dans votre historique.</p>
+            <p><i class="fas fa-save"></i> <strong>Important:</strong> Conservez ce code !</p>
           </div>
         </div>
       </div>
@@ -332,23 +366,19 @@
     <!-- Loading -->
     <div class="loading" id="loadingScreen">
       <div class="spinner"></div>
-      <p id="loadingText">Traitement en cours...</p>
+      <p id="loadingText" style="color: white;">Traitement en cours...</p>
     </div>
   </div>
   
   <script>
     let currentStep = 1;
     let subscriberData = null;
-    // Configuration sécurisée - informations masquées
-    const MERCHANT_NUMBER = 'HANI-MD'; // Référence interne
-    const MERCHANT_DISPLAY = 'HANI-MD Premium'; // Nom affiché
-    const MERCHANT_NAME = 'HANI-MD';
-    const WHATSAPP_INTL = '2250150252467'; // Format international
+    const PAYMENT_NUMBER = '0150252467';
+    const PAYMENT_NUMBER_DISPLAY = '01 50 25 24 67';
     
     const planOptions = document.querySelectorAll('.plan-option');
     const form = document.getElementById('subscribeForm');
     
-    // Sélection plan
     planOptions.forEach(opt => {
       opt.addEventListener('click', () => {
         planOptions.forEach(o => o.classList.remove('selected'));
@@ -357,190 +387,176 @@
       });
     });
     
-    // Étape 1: Soumission formulaire d'inscription
+    function generateReference() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let ref = 'HANI-';
+      for (let i = 0; i < 6; i++) {
+        ref += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return ref;
+    }
+    
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('userName').value.trim();
       const phone = document.getElementById('userPhone').value.trim();
-      const plan = document.querySelector('input[name="plan"]:checked').value;
+      const selectedPlan = document.querySelector('input[name="plan"]:checked');
+      const plan = selectedPlan ? selectedPlan.value : 'OR';
+      const planData = document.querySelector(`.plan-option[data-plan="${plan}"]`);
+      const price = planData ? planData.dataset.price : 2000;
       
-      if (!name || name.length < 3) { showError('Entrez votre nom complet'); return; }
+      if (!name || name.length < 3) { showError('Entrez votre nom (minimum 3 caractères)'); return; }
       if (!phone || phone.length < 8) { showError('Numéro WhatsApp invalide'); return; }
       
       showLoading(true, 'Création de votre demande...');
       hideError();
       
+      const reference = generateReference();
+      
       try {
         const res = await fetch('/api/wave/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, plan })
+          body: JSON.stringify({ name, phone, plan, reference })
         });
         const data = await res.json();
         
-        if (data.success) {
-          subscriberData = data;
-          localStorage.setItem('currentSubscription', JSON.stringify(data));
-          updatePaymentScreen(data);
-          goToStep(2);
-        } else {
-          showError(data.error || 'Erreur lors de l\'inscription');
-        }
+        subscriberData = {
+          name,
+          phone,
+          plan,
+          price: parseInt(price),
+          reference: data.reference || reference,
+          requestId: data.requestId
+        };
       } catch (err) {
-        showError('Erreur de connexion au serveur');
+        subscriberData = { name, phone, plan, price: parseInt(price), reference };
       }
+      
+      localStorage.setItem('currentSubscription', JSON.stringify(subscriberData));
+      updatePaymentScreen();
+      goToStep(2);
       showLoading(false);
     });
     
-    // Étape 2: Aller à la confirmation
+    function updatePaymentScreen() {
+      if (!subscriberData) return;
+      document.getElementById('displayName').textContent = subscriberData.name;
+      document.getElementById('displayPlan').textContent = subscriberData.plan;
+      document.getElementById('displayRef').textContent = subscriberData.reference;
+      document.getElementById('paymentAmount').textContent = subscriberData.price.toLocaleString('fr-FR');
+      document.getElementById('amountToPay').textContent = subscriberData.price.toLocaleString('fr-FR') + ' FCFA';
+      document.getElementById('paymentMotif').textContent = subscriberData.reference;
+    }
+    
     document.getElementById('goToConfirmBtn').addEventListener('click', (e) => {
       e.preventDefault();
-      e.stopPropagation();
       goToStep(3);
     });
     
-    // Retour au paiement
-    document.getElementById('backToPayBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      goToStep(2);
-    });
-    
-    // Étape 3: Confirmer le paiement
     document.getElementById('confirmPaymentBtn').addEventListener('click', async (e) => {
       e.preventDefault();
-      e.stopPropagation();
       const transactionId = document.getElementById('transactionId').value.trim();
       const waveNumber = document.getElementById('waveNumber').value.trim();
       
-      if (!transactionId) {
-        showConfirmError('Entrez le numéro de transaction Wave');
+      if (!transactionId || transactionId.length < 4) {
+        showConfirmError('Entrez un numéro de transaction valide');
         return;
       }
       if (!waveNumber || waveNumber.length < 8) {
-        showConfirmError('Entrez un numéro Wave valide');
+        showConfirmError('Entrez votre numéro Wave');
         return;
       }
       
+      showLoading(true, 'Vérification du paiement...');
       hideConfirmError();
-      showLoading(true, 'Vérification et génération de votre code...');
       
       try {
-        const res = await fetch('/api/wave/confirm-payment', {
+        const res = await fetch('/api/wave/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            subscriberId: subscriberData?.subscriber?.id,
-            transactionId: transactionId,
-            waveNumber: waveNumber,
-            paymentRef: subscriberData?.subscriber?.paymentRef
+            transactionId,
+            waveNumber,
+            reference: subscriberData.reference,
+            phone: subscriberData.phone,
+            plan: subscriberData.plan,
+            amount: subscriberData.price,
+            name: subscriberData.name
           })
         });
         const data = await res.json();
         
-        if (data.success && data.activationCode) {
-          localStorage.removeItem('currentSubscription');
-          showSuccessScreen(data.activationCode);
+        if (data.success && data.code) {
+          displayActivationCode(data.code);
           goToStep(4);
         } else {
           showConfirmError(data.error || 'Erreur lors de la confirmation');
         }
       } catch (err) {
-        showConfirmError('Erreur de connexion. Veuillez réessayer.');
+        showConfirmError('Erreur de connexion. Réessayez.');
       }
       showLoading(false);
     });
     
-    // Copier code
-    document.getElementById('copyCodeBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const code = document.getElementById('activationCode').textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        const btn = document.getElementById('copyCodeBtn');
-        btn.innerHTML = '<i class="fas fa-check"></i> Copié !';
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copier le code'; }, 2000);
-      });
-    });
-    
-    // Vérifier s'il y a une souscription en cours au chargement
-    window.addEventListener('load', () => {
-      const saved = localStorage.getItem('currentSubscription');
-      if (saved) {
-        try {
-          subscriberData = JSON.parse(saved);
-          if (subscriberData?.subscriber) {
-            updatePaymentScreen(subscriberData);
-            goToStep(2);
-          }
-        } catch (e) {
-          localStorage.removeItem('currentSubscription');
-        }
-      }
-    });
+    function displayActivationCode(code) {
+      document.getElementById('activationCode').textContent = code;
+      document.getElementById('whatsappCommand').textContent = `.activer ${code}`;
+      
+      const history = JSON.parse(localStorage.getItem('activationHistory') || '[]');
+      history.unshift({ code, plan: subscriberData.plan, date: new Date().toISOString() });
+      localStorage.setItem('activationHistory', JSON.stringify(history.slice(0, 10)));
+    }
     
     function goToStep(step) {
       currentStep = step;
-      document.querySelectorAll('.step').forEach((s, i) => {
-        s.classList.remove('active', 'completed');
-        if (i + 1 < step) s.classList.add('completed');
-        if (i + 1 === step) s.classList.add('active');
-      });
-      document.querySelectorAll('.step-content').forEach((c, i) => {
-        c.classList.toggle('active', i + 1 === step);
-      });
-    }
-    
-    function updatePaymentScreen(data) {
-      const planNames = { BRONZE: '🥉 Bronze', ARGENT: '🥈 Argent', OR: '🥇 Or', DIAMANT: '💎 Diamant', LIFETIME: '👑 Lifetime' };
-      const amount = data.subscriber?.amount || 2000;
-      const plan = data.subscriber?.plan || 'OR';
-      const paymentRef = data.subscriber?.paymentRef || 'N/A';
+      document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('step' + step).classList.add('active');
       
-      document.getElementById('paymentAmount').textContent = amount.toLocaleString('fr-FR');
-      document.getElementById('displayName').textContent = data.subscriber?.name || '';
-      document.getElementById('displayPlan').textContent = planNames[plan] || plan;
-      document.getElementById('displayRef').textContent = paymentRef;
-      document.getElementById('ussdCode').textContent = `Compte: CI 58 32 12 09 - ${amount} FCFA`;
+      document.querySelectorAll('.step').forEach((el, i) => {
+        el.classList.remove('active', 'completed');
+        if (i + 1 < step) el.classList.add('completed');
+        if (i + 1 === step) el.classList.add('active');
+      });
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    function showSuccessScreen(code) {
-      document.getElementById('activationCode').textContent = code;
-      document.getElementById('whatsappCommand').textContent = `.activer ${code}`;
+    function copyNumber() {
+      navigator.clipboard.writeText(PAYMENT_NUMBER).then(() => {
+        const btn = event.target.closest('.copy-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copié !';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copier'; }, 2000);
+      });
     }
     
-    function showLoading(show, text = 'Traitement en cours...') {
+    function copyCode() {
+      const code = document.getElementById('activationCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target.closest('.copy-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copié !';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copier le code'; }, 2000);
+      });
+    }
+    
+    function showLoading(show, text = 'Chargement...') {
       document.getElementById('loadingText').textContent = text;
-      document.getElementById('loadingScreen').style.display = show ? 'block' : 'none';
+      document.getElementById('loadingScreen').classList.toggle('active', show);
     }
     
     function showError(msg) {
-      document.getElementById('errorMessage').textContent = msg;
-      document.getElementById('errorAlert').classList.remove('hidden');
+      document.getElementById('formErrorMessage').textContent = msg;
+      document.getElementById('formError').classList.remove('hidden');
     }
     
-    function hideError() {
-      document.getElementById('errorAlert').classList.add('hidden');
-    }
+    function hideError() { document.getElementById('formError').classList.add('hidden'); }
     
     function showConfirmError(msg) {
       document.getElementById('confirmErrorMessage').textContent = msg;
       document.getElementById('confirmError').classList.remove('hidden');
     }
     
-    function hideConfirmError() {
-      document.getElementById('confirmError').classList.add('hidden');
-    }
-    
-    function openWavePayment() {
-      // Ouvrir Wave avec le montant pré-rempli
-      if (subscriberData && subscriberData.waveUrl) {
-        window.open(subscriberData.waveUrl, '_blank');
-      } else {
-        // Fallback: ouvrir Wave app
-        const amount = document.getElementById('paymentAmount').textContent.replace(/\s/g, '');
-        window.open('https://wave.com/app', '_blank');
-      }
-    }
+    function hideConfirmError() { document.getElementById('confirmError').classList.add('hidden'); }
   </script>
 </body>
 </html>
