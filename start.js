@@ -391,6 +391,7 @@ async function handleCommand(ovl, msg) {
 ┃ 👁️ Vue unique (View Once) :
 ┃ ${config.PREFIXE}vv (répondre à un msg)
 ┃ ${config.PREFIXE}listvv
+┃ 💬 "c'est quel wé ?" (sans préfixe)
 ┃
 ┃ 🗑️ Messages supprimés :
 ┃ ${config.PREFIXE}antidelete on/off
