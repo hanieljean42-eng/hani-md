@@ -324,6 +324,166 @@ app.get('/api/wave/status/:id', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// 🔗 ROUTES API MULTI-SESSION CLIENT
+// ═══════════════════════════════════════════════════════════
+
+const MultiSession = require('./lib/MultiSession');
+
+// Page de connexion client
+app.get('/connect', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'connect.html'));
+});
+
+// Récupérer infos client par ID
+app.get('/api/client/:clientId', (req, res) => {
+  try {
+    const client = MultiSession.getClientInfo(req.params.clientId);
+    if (!client) {
+      return res.status(404).json({ success: false, error: 'Client non trouvé' });
+    }
+    
+    // Vérifier expiration
+    if (client.expiresAt && new Date(client.expiresAt) < new Date()) {
+      return res.status(403).json({ success: false, error: 'Abonnement expiré' });
+    }
+    
+    res.json({ success: true, client });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Récupérer infos client par code d'activation
+app.get('/api/client/code/:code', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    
+    // Chercher le code
+    const codesFile = path.join(__dirname, 'DataBase', 'activation_codes.json');
+    let codes = {};
+    if (fs.existsSync(codesFile)) {
+      codes = JSON.parse(fs.readFileSync(codesFile, 'utf8') || '{}');
+    }
+    
+    if (!codes[code]) {
+      return res.status(404).json({ success: false, error: 'Code invalide' });
+    }
+    
+    const codeData = codes[code];
+    
+    // Créer/récupérer session client
+    let clientId = codeData.clientId;
+    
+    if (!clientId) {
+      // Créer une nouvelle session
+      const result = await MultiSession.createClientSession(code, codeData.plan, codeData.expiresAt);
+      clientId = result.clientId;
+      
+      // Sauvegarder le clientId dans le code
+      codeData.clientId = clientId;
+      codes[code] = codeData;
+      fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+    }
+    
+    const client = MultiSession.getClientInfo(clientId);
+    res.json({ success: true, client, code: codeData });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Obtenir QR code pour un client
+app.get('/api/client/:clientId/qr', async (req, res) => {
+  try {
+    const clientId = req.params.clientId;
+    const client = MultiSession.getClientInfo(clientId);
+    
+    if (!client) {
+      return res.status(404).json({ success: false, error: 'Client non trouvé' });
+    }
+    
+    // Vérifier si déjà connecté
+    if (client.status === 'connected') {
+      return res.json({ success: true, connected: true, phoneNumber: client.phoneNumber });
+    }
+    
+    // Récupérer QR en attente
+    let qr = MultiSession.getPendingQR(clientId);
+    
+    // Si pas de QR, démarrer la connexion
+    if (!qr && client.status !== 'connected') {
+      try {
+        await MultiSession.startClientConnection(
+          clientId,
+          (qrImage, id) => console.log(`[CLIENT] QR généré pour ${id}`),
+          (socket, id, phone) => console.log(`[CLIENT] ✅ ${id} connecté: ${phone}`),
+          (id, retry) => console.log(`[CLIENT] ❌ ${id} déconnecté`)
+        );
+        
+        // Attendre un peu que le QR soit généré
+        await new Promise(r => setTimeout(r, 2000));
+        qr = MultiSession.getPendingQR(clientId);
+      } catch (e) {
+        console.log(`[CLIENT] Erreur démarrage: ${e.message}`);
+      }
+    }
+    
+    if (qr) {
+      return res.json({ success: true, qr, status: client.status });
+    }
+    
+    res.json({ success: true, qr: null, status: client.status, message: 'Génération du QR...' });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// QR par code d'activation
+app.get('/api/client/code/:code/qr', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    
+    const codesFile = path.join(__dirname, 'DataBase', 'activation_codes.json');
+    let codes = {};
+    if (fs.existsSync(codesFile)) {
+      codes = JSON.parse(fs.readFileSync(codesFile, 'utf8') || '{}');
+    }
+    
+    if (!codes[code] || !codes[code].clientId) {
+      return res.status(404).json({ success: false, error: 'Code invalide ou non initialisé' });
+    }
+    
+    // Rediriger vers l'endpoint par clientId
+    const clientId = codes[code].clientId;
+    const client = MultiSession.getClientInfo(clientId);
+    
+    if (client?.status === 'connected') {
+      return res.json({ success: true, connected: true, phoneNumber: client.phoneNumber });
+    }
+    
+    const qr = MultiSession.getPendingQR(clientId);
+    res.json({ success: true, qr, status: client?.status });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Liste des clients (owner only - protégé par header)
+app.get('/api/clients', (req, res) => {
+  const authKey = req.headers['x-owner-key'] || req.query.key;
+  if (authKey !== process.env.OWNER_API_KEY && authKey !== 'hani-owner-2026') {
+    return res.status(403).json({ error: 'Non autorisé' });
+  }
+  
+  try {
+    const clients = MultiSession.getAllClients();
+    res.json({ success: true, total: clients.length, clients });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // 🔌 CONNEXION WHATSAPP
 // ═══════════════════════════════════════════════════════════
 

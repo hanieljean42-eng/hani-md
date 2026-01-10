@@ -130,6 +130,34 @@ function incrementUsage(phone) {
 // 📋 COMMANDE MENU PRINCIPAL
 // ═══════════════════════════════════════════════════════════
 
+// Catégories par plan
+const PLAN_CATEGORIES = {
+  FREE: ['download', 'search', 'fun', 'outils', 'systeme'],
+  BRONZE: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'systeme'],
+  ARGENT: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'systeme'],
+  OR: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
+  DIAMANT: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
+  LIFETIME: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
+  OWNER: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme', 'owner']
+};
+
+// Info des catégories
+const CATEGORY_INFO = {
+  download: { emoji: '📥', name: 'Download', desc: 'YouTube, TikTok, Instagram' },
+  search: { emoji: '🔍', name: 'Search', desc: 'Google, YouTube, Wikipedia' },
+  fun: { emoji: '🎭', name: 'Fun', desc: 'Jeux, Blagues, Quiz' },
+  outils: { emoji: '🛠️', name: 'Outils', desc: 'Stickers, Conversion, QR' },
+  audio: { emoji: '🎵', name: 'Audio', desc: 'Effets audio, TTS' },
+  status: { emoji: '📷', name: 'Status', desc: 'Statuts WhatsApp' },
+  ia: { emoji: '🤖', name: 'IA', desc: 'GPT, Gemini, DALL-E' },
+  groupe: { emoji: '👥', name: 'Groupe', desc: 'Gestion des groupes' },
+  logo: { emoji: '🎨', name: 'Logo', desc: 'Création de logos' },
+  economie: { emoji: '💰', name: 'Economie', desc: 'Banque, Daily, Shop' },
+  premium: { emoji: '💎', name: 'Premium', desc: 'Fonctionnalités VIP' },
+  systeme: { emoji: '⚙️', name: 'Systeme', desc: 'Bot, Ping, Info' },
+  owner: { emoji: '👑', name: 'Owner', desc: 'Commandes admin' }
+};
+
 ovlcmd({
   nom_cmd: "menu",
   classe: "Système",
@@ -145,6 +173,35 @@ ovlcmd({
     const hours = Math.floor(uptime / 3600);
     const minutes = Math.floor((uptime % 3600) / 60);
     
+    // Déterminer les catégories disponibles selon le plan
+    const plan = userInfo.plan.toUpperCase();
+    const availableCategories = PLAN_CATEGORIES[plan] || PLAN_CATEGORIES['FREE'];
+    const allCategories = PLAN_CATEGORIES['OWNER'];
+    
+    // Construire le menu des catégories
+    let categoriesMenu = '';
+    for (const cat of allCategories) {
+      const info = CATEGORY_INFO[cat];
+      const isAvailable = availableCategories.includes(cat) || userInfo.isOwner;
+      
+      if (isAvailable) {
+        categoriesMenu += `│ ${info.emoji} *${prefix}menu ${cat}*\n│    └ ${info.desc}\n│\n`;
+      } else {
+        categoriesMenu += `│ 🔒 ~~${prefix}menu ${cat}~~ *(${info.name})*\n│    └ _Requiert plan supérieur_\n│\n`;
+      }
+    }
+    
+    // Badge du plan
+    const planBadges = {
+      FREE: '🆓 GRATUIT',
+      BRONZE: '🥉 BRONZE',
+      ARGENT: '🥈 ARGENT',
+      OR: '🥇 OR',
+      DIAMANT: '💎 DIAMANT',
+      LIFETIME: '👑 LIFETIME',
+      OWNER: '👑 OWNER'
+    };
+    
     const mainMenu = `
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
 ┃     🌟 *HANI-MD V2.6.1* 🌟    
@@ -152,54 +209,21 @@ ovlcmd({
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
 ╭─────「 👤 *PROFIL* 」─────╮
-│ 📱 Plan: *${userInfo.plan}*
-│ 📊 Cmds: ${userInfo.dailyLimit === -1 ? '∞' : `${userInfo.commandsToday}/${userInfo.dailyLimit}`}
+│ 🏷️ Plan: *${planBadges[plan] || plan}*
+│ 📊 Cmds: ${userInfo.dailyLimit === -1 ? '∞ Illimité' : `${userInfo.commandsToday}/${userInfo.dailyLimit}`}
 │ ⏱️ Uptime: ${hours}h ${minutes}m
 ╰─────────────────────────────╯
 
 ╭─────「 📋 *CATÉGORIES* 」─────╮
 │
-│ 📥 *${prefix}menu download* 
-│    └ YouTube, TikTok, Instagram
-│
-│ 🤖 *${prefix}menu ia*
-│    └ GPT, Gemini, DALL-E
-│
-│ 🔍 *${prefix}menu search*
-│    └ Google, YouTube, Wikipedia
-│
-│ 🎭 *${prefix}menu fun*
-│    └ Jeux, Blagues, Quiz
-│
-│ 🛠️ *${prefix}menu outils*
-│    └ Stickers, Conversion, QR
-│
-│ 👥 *${prefix}menu groupe*
-│    └ Gestion des groupes
-│
-│ 📷 *${prefix}menu status*
-│    └ Statuts WhatsApp
-│
-│ 🎵 *${prefix}menu audio*
-│    └ Effets audio, TTS
-│
-│ 🎨 *${prefix}menu logo*
-│    └ Création de logos
-│
-│ 💎 *${prefix}menu premium*
-│    └ Fonctionnalités VIP
-│
-│ 💰 *${prefix}menu economie*
-│    └ Banque, Daily, Shop
-│
-│ ⚙️ *${prefix}menu systeme*
-│    └ Bot, Ping, Info
-${userInfo.isOwner ? `│\n│ 👑 *${prefix}menu owner*\n│    └ Commandes admin` : ''}
-│
-╰─────────────────────────────╯
+${categoriesMenu}╰─────────────────────────────╯
 
-💡 *${prefix}aide <cmd>* pour l'aide
-📞 Support: wa.me/22550252467
+╭─────「 ℹ️ *INFO* 」─────╮
+│ 💡 *${prefix}aide <cmd>* - Aide commande
+│ 💳 *${prefix}upgrade* - Améliorer plan
+│ 📊 *${prefix}myplan* - Mon abonnement
+│ 📞 Support: wa.me/22550252467
+╰─────────────────────────────╯
 
 ⭐ Powered by HANI-MD
 `;

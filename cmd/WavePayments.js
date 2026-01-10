@@ -40,6 +40,8 @@ const OWNER_JID = OWNER_NUMBER + '@s.whatsapp.net';
 // 🔑 COMMANDE ACTIVATION (UTILISATEUR)
 // ═══════════════════════════════════════════════════════════
 
+const MultiSession = require('../lib/MultiSession');
+
 ovlcmd({
   nom_cmd: "activer",
   classe: "Premium",
@@ -99,6 +101,7 @@ ovlcmd({
     
     // Activer le code
     const planName = codeData.plan || 'OR';
+    const planUpper = planName.toUpperCase();
     const days = codeData.days || 30;
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
@@ -107,8 +110,36 @@ ovlcmd({
     codeData.used = true;
     codeData.usedBy = userJid;
     codeData.usedAt = new Date().toISOString();
+    codeData.expiresAt = expiresAt.toISOString();
     
-    // Sauvegarder
+    // ═══════════════════════════════════════════════════════
+    // 🔗 CRÉER UNE SESSION CLIENT POUR SON PROPRE BOT
+    // ═══════════════════════════════════════════════════════
+    
+    let clientSession = null;
+    let connectUrl = '';
+    
+    try {
+      // Créer une session pour ce client
+      clientSession = await MultiSession.createClientSession(
+        code, 
+        planUpper, 
+        expiresAt.toISOString()
+      );
+      
+      // Sauvegarder le clientId dans le code
+      codeData.clientId = clientSession.clientId;
+      
+      // URL de connexion
+      const baseUrl = process.env.BASE_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app';
+      connectUrl = `${baseUrl}/connect?id=${clientSession.clientId}&code=${code}`;
+      
+      console.log(`[ACTIVER] 🔗 Session créée: ${clientSession.clientId}`);
+    } catch (sessionError) {
+      console.log(`[ACTIVER] ⚠️ Erreur création session: ${sessionError.message}`);
+    }
+    
+    // Sauvegarder le code mis à jour
     const targetFile = path.join(__dirname, '..', 'DataBase', `${codeSource}.json`);
     const allCodes = JSON.parse(fs.readFileSync(targetFile, 'utf8') || '{}');
     allCodes[code] = codeData;
@@ -135,11 +166,12 @@ ovlcmd({
       const data = {
         phone,
         whatsappJid: userJid,
-        plan: planName.toUpperCase(),
+        plan: planUpper,
         status: 'active',
         activatedAt: new Date().toISOString(),
         expiresAt: expiresAt.toISOString(),
-        activationCode: code
+        activationCode: code,
+        clientId: clientSession?.clientId || null
       };
       
       if (idx >= 0) {
@@ -151,16 +183,73 @@ ovlcmd({
       fs.writeFileSync(subscribersFile, JSON.stringify(subscribers, null, 2));
     } catch (e) {}
     
+    // ═══════════════════════════════════════════════════════
+    // 📋 FONCTIONNALITÉS SELON LE PLAN
+    // ═══════════════════════════════════════════════════════
+    
+    const planFeatures = {
+      BRONZE: '🥉 *BRONZE* (500 FCFA)\n' +
+        '✅ 100 commandes/jour\n' +
+        '✅ Téléchargements audio/vidéo\n' +
+        '✅ Stickers avancés\n' +
+        '✅ Conversion de fichiers\n' +
+        '❌ IA limitée\n' +
+        '❌ Gestion de groupe',
+      ARGENT: '🥈 *ARGENT* (1000 FCFA)\n' +
+        '✅ 300 commandes/jour\n' +
+        '✅ Téléchargements HD\n' +
+        '✅ IA complète (GPT, DALL-E)\n' +
+        '✅ Gestion de groupe\n' +
+        '✅ Anti-spam & protections\n' +
+        '✅ Support prioritaire',
+      OR: '🥇 *OR* (2000 FCFA)\n' +
+        '✅ Commandes ILLIMITÉES\n' +
+        '✅ Toutes les fonctionnalités\n' +
+        '✅ IA sans limite\n' +
+        '✅ Support VIP 24/7\n' +
+        '✅ Fonctionnalités bêta',
+      DIAMANT: '💎 *DIAMANT* (5000 FCFA)\n' +
+        '✅ TOUT ILLIMITÉ\n' +
+        '✅ Multi-numéros (3 max)\n' +
+        '✅ API Access\n' +
+        '✅ Bot dédié\n' +
+        '✅ Support personnel\n' +
+        '✅ Fonctionnalités exclusives',
+      LIFETIME: '👑 *LIFETIME* (15000 FCFA)\n' +
+        '✅ ACCÈS À VIE\n' +
+        '✅ Toutes les fonctionnalités\n' +
+        '✅ Mises à jour gratuites\n' +
+        '✅ Support VIP permanent\n' +
+        '✅ Badge exclusif 👑'
+    };
+    
     const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
-    const expireText = days >= 36500 ? '♾️ À VIE' : `Expire le: ${expiresAt.toLocaleDateString('fr-FR')}`;
+    const expireText = days >= 36500 ? '♾️ À VIE' : `📅 Expire le: ${expiresAt.toLocaleDateString('fr-FR')}`;
     
-    console.log(`[ACTIVER] ✅ Succès: ${planName} pour ${userJid}`);
+    console.log(`[ACTIVER] ✅ Succès: ${planUpper} pour ${userJid}`);
     
-    return repondre(`🎉 *ABONNEMENT ACTIVÉ !*\n\n` +
-      `${planEmoji[planName.toUpperCase()] || '💎'} *Plan:* ${planName.toUpperCase()}\n` +
-      `📅 ${expireText}\n\n` +
-      `✅ Accès premium activé !\n\n` +
-      `Tapez *.menu* pour les commandes.`);
+    // Message de succès avec lien de connexion
+    let successMsg = `🎉 *ABONNEMENT ACTIVÉ !*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `${planEmoji[planUpper] || '💎'} *Plan:* ${planUpper}\n` +
+      `${expireText}\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${planFeatures[planUpper] || ''}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    if (connectUrl) {
+      successMsg += `🔗 *CONNECTEZ VOTRE BOT:*\n\n` +
+        `Cliquez sur ce lien pour connecter HANI-MD à votre WhatsApp personnel:\n\n` +
+        `🌐 ${connectUrl}\n\n` +
+        `📱 Scannez le QR code avec votre WhatsApp pour avoir votre propre bot !\n\n`;
+    }
+    
+    successMsg += `✅ *Commandes disponibles:*\n` +
+      `Tapez *.menu* pour voir toutes vos commandes.\n\n` +
+      `💬 Support: wa.me/22550252467\n` +
+      `⭐ Merci d'avoir choisi HANI-MD !`;
+    
+    return repondre(successMsg);
     
   } catch (e) {
     console.error('[ACTIVER] Erreur:', e);
