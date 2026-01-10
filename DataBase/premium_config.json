@@ -1,34 +1,34 @@
-﻿{
+{
   "botInfo": {
     "name": "HANI-MD",
     "version": "2.6.0",
     "developer": "H2025",
     "whatsapp": "+22550252467",
-    "description": "Bot WhatsApp intelligent avec des fonctionnalitÃ©s premium avancÃ©es"
+    "description": "Bot WhatsApp intelligent avec des fonctionnalités premium avancées"
   },
   "paymentMethods": [
-    { "id": "wave", "name": "Wave", "number": "+22550252467", "icon": "ðŸ“±" },
-    { "id": "orange", "name": "Orange Money", "number": "+22550252467", "icon": "ðŸŸ " },
-    { "id": "mtn", "name": "MTN Money", "number": "+22550252467", "icon": "ðŸŸ¡" }
+    { "id": "wave", "name": "Wave", "number": "+22550252467", "icon": "📱" },
+    { "id": "orange", "name": "Orange Money", "number": "+22550252467", "icon": "🟠" },
+    { "id": "mtn", "name": "MTN Money", "number": "+22550252467", "icon": "🟡" }
   ],
   "plans": {
     "FREE": {
       "name": "Gratuit",
       "price": 0,
       "currency": "FCFA",
-      "duration": "Ã€ vie",
+      "duration": "À vie",
       "dailyLimit": 20,
-      "icon": "ðŸ†“",
+      "icon": "🆓",
       "color": "#6b7280",
       "popular": false,
       "features": [
         { "name": "20 commandes par jour", "included": true },
         { "name": "Commandes de base (menu, ping, info)", "included": true },
         { "name": "Stickers simples", "included": true },
-        { "name": "TÃ©lÃ©chargements audio/vidÃ©o", "included": false },
+        { "name": "Téléchargements audio/vidéo", "included": false },
         { "name": "Intelligence Artificielle", "included": false },
         { "name": "Gestion de groupe", "included": false },
-        { "name": "Protections avancÃ©es", "included": false },
+        { "name": "Protections avancées", "included": false },
         { "name": "Support prioritaire", "included": false }
       ],
       "commands": ["menu", "ping", "info", "help", "premium", "owner"]
@@ -39,18 +39,18 @@
       "currency": "FCFA",
       "duration": "30 jours",
       "dailyLimit": 100,
-      "icon": "ðŸ¥‰",
+      "icon": "🥉",
       "color": "#cd7f32",
       "popular": false,
       "features": [
         { "name": "100 commandes par jour", "included": true },
-        { "name": "TÃ©lÃ©chargements YouTube (audio)", "included": true },
-        { "name": "TÃ©lÃ©chargements TikTok", "included": true },
-        { "name": "Stickers avancÃ©s & GIFs", "included": true },
+        { "name": "Téléchargements YouTube (audio)", "included": true },
+        { "name": "Téléchargements TikTok", "included": true },
+        { "name": "Stickers avancés & GIFs", "included": true },
         { "name": "Conversion fichiers (toimg, tts)", "included": true },
         { "name": "Traduction automatique", "included": true },
         { "name": "Intelligence Artificielle", "included": false },
-        { "name": "Gestion de groupe avancÃ©e", "included": false },
+        { "name": "Gestion de groupe avancée", "included": false },
         { "name": "Support prioritaire", "included": false }
       ],
       "commands": ["play", "video", "tiktok", "sticker", "toimg", "tts", "translate", "logo"]
@@ -61,14 +61,14 @@
       "currency": "FCFA",
       "duration": "30 jours",
       "dailyLimit": 500,
-      "icon": "ðŸ¥ˆ",
+      "icon": "🥈",
       "color": "#c0c0c0",
       "popular": true,
       "features": [
         { "name": "500 commandes par jour", "included": true },
-        { "name": "Tous tÃ©lÃ©chargements HD (YouTube, TikTok, Instagram)", "included": true },
-        { "name": "IA ComplÃ¨te (GPT, DALL-E, Gemini)", "included": true },
-        { "name": "GÃ©nÃ©ration d'images IA", "included": true },
+        { "name": "Tous téléchargements HD (YouTube, TikTok, Instagram)", "included": true },
+        { "name": "IA Complète (GPT, DALL-E, Gemini)", "included": true },
+        { "name": "Génération d'images IA", "included": true },
         { "name": "Gestion de groupe (kick, add, promote)", "included": true },
         { "name": "Anti-spam & Anti-link", "included": true },
         { "name": "Welcome & Goodbye automatiques", "included": true },
@@ -82,17 +82,17 @@
       "currency": "FCFA",
       "duration": "30 jours",
       "dailyLimit": -1,
-      "icon": "ðŸ¥‡",
+      "icon": "🥇",
       "color": "#ffd700",
       "popular": false,
       "features": [
-        { "name": "Commandes ILLIMITÃ‰ES", "included": true },
-        { "name": "Toutes les fonctionnalitÃ©s Argent", "included": true },
+        { "name": "Commandes ILLIMITÉES", "included": true },
+        { "name": "Toutes les fonctionnalités Argent", "included": true },
         { "name": "Mode invisible (anti-appel)", "included": true },
-        { "name": "Notifications espion avancÃ©es", "included": true },
+        { "name": "Notifications espion avancées", "included": true },
         { "name": "Sauvegarde automatique statuts", "included": true },
         { "name": "Anti-delete messages", "included": true },
-        { "name": "Ã‰conomie & Jeux premium", "included": true },
+        { "name": "Économie & Jeux premium", "included": true },
         { "name": "Support VIP 24/7", "included": true }
       ],
       "commands": ["invisible", "anticall", "antidelete", "economy", "casino", "slots", "daily", "leaderboard"]
@@ -103,18 +103,18 @@
       "currency": "FCFA",
       "duration": "30 jours",
       "dailyLimit": -1,
-      "icon": "ðŸ’Ž",
+      "icon": "💎",
       "color": "#00d4ff",
       "popular": false,
       "features": [
-        { "name": "TOUT ILLIMITÃ‰", "included": true },
-        { "name": "Toutes les fonctionnalitÃ©s Or", "included": true },
-        { "name": "Multi-numÃ©ros (jusqu'Ã  3)", "included": true },
+        { "name": "TOUT ILLIMITÉ", "included": true },
+        { "name": "Toutes les fonctionnalités Or", "included": true },
+        { "name": "Multi-numéros (jusqu'à 3)", "included": true },
         { "name": "Broadcast massif", "included": true },
-        { "name": "FonctionnalitÃ©s exclusives bÃªta", "included": true },
-        { "name": "API personnalisÃ©e", "included": true },
-        { "name": "Badge Diamant ðŸ’Ž", "included": true },
-        { "name": "Support personnel dÃ©diÃ©", "included": true }
+        { "name": "Fonctionnalités exclusives bêta", "included": true },
+        { "name": "API personnalisée", "included": true },
+        { "name": "Badge Diamant 💎", "included": true },
+        { "name": "Support personnel dédié", "included": true }
       ],
       "commands": ["broadcast", "multibot", "api", "beta", "export", "backup"]
     },
@@ -122,63 +122,63 @@
       "name": "Lifetime",
       "price": 15000,
       "currency": "FCFA",
-      "duration": "Ã€ VIE",
+      "duration": "À VIE",
       "dailyLimit": -1,
-      "icon": "ðŸ‘‘",
+      "icon": "👑",
       "color": "#9333ea",
       "popular": false,
       "features": [
-        { "name": "ACCÃˆS Ã€ VIE", "included": true },
-        { "name": "Toutes les fonctionnalitÃ©s DIAMANT", "included": true },
-        { "name": "Mises Ã  jour gratuites Ã  vie", "included": true },
-        { "name": "Badge Lifetime exclusif ðŸ‘‘", "included": true },
-        { "name": "PrioritÃ© absolue", "included": true },
-        { "name": "AccÃ¨s anticipÃ© nouvelles features", "included": true },
+        { "name": "ACCÈS À VIE", "included": true },
+        { "name": "Toutes les fonctionnalités DIAMANT", "included": true },
+        { "name": "Mises à jour gratuites à vie", "included": true },
+        { "name": "Badge Lifetime exclusif 👑", "included": true },
+        { "name": "Priorité absolue", "included": true },
+        { "name": "Accès anticipé nouvelles features", "included": true },
         { "name": "Support VIP permanent", "included": true },
-        { "name": "Mention dans les crÃ©dits du bot", "included": true }
+        { "name": "Mention dans les crédits du bot", "included": true }
       ],
       "commands": ["all"]
     }
   },
   "categories": {
     "telechargement": {
-      "name": "ðŸ“¥ TÃ©lÃ©chargement",
-      "description": "TÃ©lÃ©chargez des mÃ©dias depuis YouTube, TikTok, Instagram, Facebook et plus",
+      "name": "📥 Téléchargement",
+      "description": "Téléchargez des médias depuis YouTube, TikTok, Instagram, Facebook et plus",
       "commands": ["play", "video", "tiktok", "insta", "fb", "twitter", "spotify", "apk", "mediafire"]
     },
     "ia": {
-      "name": "ðŸ¤– Intelligence Artificielle",
-      "description": "AccÃ©dez aux meilleures IA du marchÃ©",
+      "name": "🤖 Intelligence Artificielle",
+      "description": "Accédez aux meilleures IA du marché",
       "commands": ["gpt", "gemini", "dalle", "imagine", "claude", "bard", "copilot"]
     },
     "groupe": {
-      "name": "ðŸ‘¥ Gestion de Groupe",
-      "description": "GÃ©rez vos groupes WhatsApp efficacement",
+      "name": "👥 Gestion de Groupe",
+      "description": "Gérez vos groupes WhatsApp efficacement",
       "commands": ["kick", "add", "promote", "demote", "tagall", "hidetag", "setname", "setdesc", "setpp", "antilink", "antispam", "welcome", "goodbye"]
     },
     "conversion": {
-      "name": "ðŸ”„ Conversion",
+      "name": "🔄 Conversion",
       "description": "Convertissez vos fichiers facilement",
       "commands": ["sticker", "toimg", "tovideo", "toaudio", "tts", "translate", "resize"]
     },
     "fun": {
-      "name": "ðŸŽ® Fun & Jeux",
-      "description": "Amusez-vous avec des jeux et fonctionnalitÃ©s amusantes",
+      "name": "🎮 Fun & Jeux",
+      "description": "Amusez-vous avec des jeux et fonctionnalités amusantes",
       "commands": ["slot", "casino", "dice", "quiz", "truth", "dare", "joke", "quote", "horoscope"]
     },
     "economie": {
-      "name": "ðŸ’° Ã‰conomie",
-      "description": "SystÃ¨me Ã©conomique avec coins, diamants et rÃ©compenses",
+      "name": "💰 Économie",
+      "description": "Système économique avec coins, diamants et récompenses",
       "commands": ["daily", "work", "bank", "transfer", "shop", "inventory", "leaderboard", "profile"]
     },
     "protection": {
-      "name": "ðŸ›¡ï¸ Protection",
-      "description": "ProtÃ©gez-vous et votre groupe",
+      "name": "🛡️ Protection",
+      "description": "Protégez-vous et votre groupe",
       "commands": ["antilink", "antispam", "antibot", "antitag", "anticall", "antidelete", "invisible"]
     },
     "statut": {
-      "name": "ðŸ“¸ Statuts",
-      "description": "GÃ©rez et sauvegardez les statuts",
+      "name": "📸 Statuts",
+      "description": "Gérez et sauvegardez les statuts",
       "commands": ["dlstatus", "mystatus", "viewstatus", "autostatus", "savealliststatus"]
     }
   }

@@ -33,7 +33,7 @@ try {
 }
 
 // Numéro du owner pour les notifications
-const OWNER_NUMBER = (config.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+const OWNER_NUMBER = (config.NUMERO_OWNER || '22550252467').replace(/[^0-9]/g, '');
 const OWNER_JID = OWNER_NUMBER + '@s.whatsapp.net';
 
 // ═══════════════════════════════════════════════════════════
@@ -497,7 +497,7 @@ ovlcmd({
       `Votre demande n'a pas pu être validée.\n\n` +
       `📝 *Raison:* ${reason}\n\n` +
       `Si vous avez payé, contactez:\n` +
-      `📞 wa.me/2250150252467`;
+      `📞 wa.me/22550252467`;
     
     try {
       await ovl.sendMessage(clientJid, { text: clientMsg });
@@ -555,7 +555,7 @@ ovlcmd({
     `3️⃣ Payez avec Wave\n` +
     `4️⃣ Recevez votre code\n` +
     `5️⃣ *.activer CODE*\n\n` +
-    `📞 Support: wa.me/2250150252467`;
+    `📞 Support: wa.me/22550252467`;
   
   return repondre(message);
 });

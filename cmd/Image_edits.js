@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HANI-MD - Edition d'Images
  * Filtres, effets, manipulations d'images avec JIMP
  */
@@ -69,7 +69,7 @@ ovlcmd(
   {
     nom_cmd: "removebg",
     classe: "Image",
-    react: "🖼️",
+    react: "???",
     desc: "Supprimer l'arriere-plan d'une image",
     alias: ["rembg", "nobg"]
   },
@@ -130,7 +130,7 @@ ovlcmd(
   {
     nom_cmd: "blur",
     classe: "Image",
-    react: "🖼️",
+    react: "???",
     desc: "Appliquer un effet de flou",
     alias: ["flou", "blurimg"]
   },
@@ -182,7 +182,7 @@ ovlcmd(
   {
     nom_cmd: "grayscale",
     classe: "Image",
-    react: "🖤",
+    react: "??",
     desc: "Convertir en noir et blanc",
     alias: ["bw", "blackwhite", "gray"]
   },
@@ -218,7 +218,7 @@ ovlcmd(
   {
     nom_cmd: "invert",
     classe: "Image",
-    react: "🔄",
+    react: "??",
     desc: "Inverser les couleurs",
     alias: ["negative", "inverser"]
   },
@@ -254,7 +254,7 @@ ovlcmd(
   {
     nom_cmd: "mirror",
     classe: "Image",
-    react: "🪞",
+    react: "??",
     desc: "Effet miroir horizontal",
     alias: ["flip", "miroir"]
   },
@@ -290,7 +290,7 @@ ovlcmd(
   {
     nom_cmd: "rotate",
     classe: "Image",
-    react: "🔄",
+    react: "??",
     desc: "Faire pivoter une image",
     alias: ["rotation", "turn"]
   },
@@ -328,7 +328,7 @@ ovlcmd(
   {
     nom_cmd: "sepia",
     classe: "Image",
-    react: "📜",
+    react: "??",
     desc: "Appliquer un effet sepia (vintage)",
     alias: ["vintage", "old"]
   },
@@ -364,7 +364,7 @@ ovlcmd(
   {
     nom_cmd: "brightness",
     classe: "Image",
-    react: "☀️",
+    react: "??",
     desc: "Ajuster la luminosite",
     alias: ["luminosite", "bright"]
   },
@@ -402,7 +402,7 @@ ovlcmd(
   {
     nom_cmd: "contrast",
     classe: "Image",
-    react: "🎨",
+    react: "??",
     desc: "Ajuster le contraste",
     alias: ["contraste"]
   },
@@ -440,7 +440,7 @@ ovlcmd(
   {
     nom_cmd: "posterize",
     classe: "Image",
-    react: "🎭",
+    react: "??",
     desc: "Effet poster (reduire les couleurs)",
     alias: ["poster"]
   },
@@ -478,7 +478,7 @@ ovlcmd(
   {
     nom_cmd: "pixelate",
     classe: "Image",
-    react: "🟩",
+    react: "??",
     desc: "Pixeliser une image",
     alias: ["pixel", "minecraft"]
   },
@@ -516,7 +516,7 @@ ovlcmd(
   {
     nom_cmd: "circle",
     classe: "Image",
-    react: "⭕",
+    react: "?",
     desc: "Rogner une image en cercle",
     alias: ["rond", "cercle"]
   },
@@ -557,7 +557,7 @@ ovlcmd(
   {
     nom_cmd: "resize",
     classe: "Image",
-    react: "📐",
+    react: "??",
     desc: "Redimensionner une image",
     alias: ["redimensionner", "scale"]
   },
@@ -591,12 +591,12 @@ ovlcmd(
   }
 );
 
-// ENHANCE - Amélioration HD avec API AI
+// ENHANCE - Am�lioration HD avec API AI
 ovlcmd(
   {
     nom_cmd: "enhance",
     classe: "Image",
-    react: "✨",
+    react: "?",
     desc: "Ameliorer la qualite d'une image (upscale AI 4K)",
     alias: ["hd", "upscale", "ameliorer", "4k", "qualite"]
   },
@@ -605,11 +605,11 @@ ovlcmd(
       const imageBuffer = await getQuotedImageBuffer(ovl, msg);
       
       if (!imageBuffer) {
-        return repondre("📸 Répondez à une image avec .enhance pour l'améliorer en HD");
+        return repondre("?? R�pondez � une image avec .enhance pour l'am�liorer en HD");
       }
 
-      await repondre("✨ Amélioration HD en cours...\n🔄 Traitement de l'image...");
-      console.log("[ENHANCE] Début - Taille originale:", imageBuffer.length, "bytes");
+      await repondre("? Am�lioration HD en cours...\n?? Traitement de l'image...");
+      console.log("[ENHANCE] D�but - Taille originale:", imageBuffer.length, "bytes");
 
       let enhancedBuffer = null;
       let apiUsed = null;
@@ -632,7 +632,7 @@ ovlcmd(
         if (response.data && response.data.length > 5000) {
           enhancedBuffer = Buffer.from(response.data);
           apiUsed = "LoLHuman HD";
-          console.log("[ENHANCE] LoLHuman succès:", enhancedBuffer.length, "bytes");
+          console.log("[ENHANCE] LoLHuman succ�s:", enhancedBuffer.length, "bytes");
         }
       } catch (e) {
         console.log("[ENHANCE] LoLHuman erreur:", e.message);
@@ -655,7 +655,7 @@ ovlcmd(
           if (response.data && response.data.length > 5000) {
             enhancedBuffer = Buffer.from(response.data);
             apiUsed = "Remini AI";
-            console.log("[ENHANCE] Remini succès:", enhancedBuffer.length, "bytes");
+            console.log("[ENHANCE] Remini succ�s:", enhancedBuffer.length, "bytes");
           }
         } catch (e) {
           console.log("[ENHANCE] Remini erreur:", e.message);
@@ -679,7 +679,7 @@ ovlcmd(
             if (imgResp.data && imgResp.data.length > 5000) {
               enhancedBuffer = Buffer.from(imgResp.data);
               apiUsed = "Neoxr Upscale";
-              console.log("[ENHANCE] Neoxr succès");
+              console.log("[ENHANCE] Neoxr succ�s");
             }
           }
         } catch (e) {
@@ -687,15 +687,15 @@ ovlcmd(
         }
       }
 
-      // API 3: Traitement local - Renvoie l'image originale légèrement améliorée
+      // API 3: Traitement local - Renvoie l'image originale l�g�rement am�lior�e
       if (!enhancedBuffer) {
         try {
-          console.log("[ENHANCE] Utilisation image originale avec amélioration légère...");
+          console.log("[ENHANCE] Utilisation image originale avec am�lioration l�g�re...");
           const image = await readImageFromBuffer(imageBuffer);
           
           console.log("[ENHANCE] Image originale:", image.width, "x", image.height);
           
-          // NE PAS resize - juste renvoyer l'image originale avec légère amélioration
+          // NE PAS resize - juste renvoyer l'image originale avec l�g�re am�lioration
           // Les APIs externes ne fonctionnent pas, donc on renvoie l'original
           
           enhancedBuffer = imageBuffer; // Renvoyer l'image ORIGINALE
@@ -710,12 +710,12 @@ ovlcmd(
       }
 
       if (enhancedBuffer && enhancedBuffer.length > 1000) {
-        console.log("[ENHANCE] ✅ Succès - Taille finale:", enhancedBuffer.length, "bytes");
+        console.log("[ENHANCE] ? Succ�s - Taille finale:", enhancedBuffer.length, "bytes");
         
         await ovl.sendMessage(msg.key.remoteJid, {
           image: enhancedBuffer,
           mimetype: 'image/png',
-          caption: `✨ *Image Améliorée HD*\n\n🔧 Méthode: ${apiUsed}\n📐 Qualité augmentée\n\n✨ Powered by HANI-MD`
+          caption: `? *Image Am�lior�e HD*\n\n?? M�thode: ${apiUsed}\n?? Qualit� augment�e\n\n? Powered by HANI-MD`
         }, { quoted: ms });
         return;
       }
@@ -726,12 +726,12 @@ ovlcmd(
       await ovl.sendMessage(msg.key.remoteJid, {
         image: imageBuffer,
         mimetype: 'image/jpeg',
-        caption: "📸 Image renvoyée (APIs d'amélioration indisponibles)\nHANI-MD"
+        caption: "?? Image renvoy�e (APIs d'am�lioration indisponibles)\nHANI-MD"
       }, { quoted: ms });
 
     } catch (error) {
       console.error("[ENHANCE]", error);
-      repondre("❌ Erreur: " + error.message);
+      repondre("? Erreur: " + error.message);
     }
   }
 );
@@ -741,7 +741,7 @@ ovlcmd(
   {
     nom_cmd: "cartoon",
     classe: "Image",
-    react: "🎨",
+    react: "??",
     desc: "Effet dessin anime",
     alias: ["toon", "anime", "dessin"]
   },
