@@ -143,6 +143,11 @@ app.get('/commands', (req, res) => {
   });
 });
 
+// Page QR pour le owner
+app.get('/qr-page', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'qr.html'));
+});
+
 // Page d'accueil
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
