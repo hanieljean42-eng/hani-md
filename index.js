@@ -154,6 +154,176 @@ app.get('/', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// 💳 ROUTES API PAIEMENT WAVE
+// ═══════════════════════════════════════════════════════════
+
+const crypto = require('crypto');
+const OWNER_NUMBER = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+const OWNER_JID = OWNER_NUMBER + '@s.whatsapp.net';
+
+// Souscription Wave
+app.post('/api/wave/subscribe', (req, res) => {
+  try {
+    const { name, phone, plan, reference } = req.body;
+    const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+    const planUpper = (plan || 'OR').toUpperCase();
+    const ref = reference || `HANI-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    
+    // Sauvegarder la demande
+    const subscribersFile = path.join(__dirname, 'DataBase', 'subscribers.json');
+    let subscribers = { subscribers: [] };
+    if (fs.existsSync(subscribersFile)) {
+      try { subscribers = JSON.parse(fs.readFileSync(subscribersFile, 'utf8')); } catch(e) {}
+    }
+    
+    subscribers.subscribers.push({
+      name: name || 'Client',
+      phone: cleanPhone,
+      plan: planUpper,
+      reference: ref,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    
+    fs.writeFileSync(subscribersFile, JSON.stringify(subscribers, null, 2));
+    
+    res.json({ success: true, reference: ref, message: 'Demande enregistrée' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Confirmation du paiement - SYSTÈME SÉCURISÉ avec notification owner
+app.post('/api/wave/confirm', async (req, res) => {
+  try {
+    const { transactionId, waveNumber, reference, phone, plan, amount, name } = req.body;
+    
+    if (!transactionId || transactionId.length < 4) {
+      return res.status(400).json({ error: 'Numéro de transaction invalide' });
+    }
+    if (!waveNumber || waveNumber.length < 8) {
+      return res.status(400).json({ error: 'Numéro Wave invalide' });
+    }
+    
+    const planUpper = (plan || 'OR').toUpperCase();
+    const requestId = crypto.randomBytes(6).toString('hex').toUpperCase();
+    const planPrices = { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 };
+    
+    // Sauvegarder la demande EN ATTENTE de validation owner
+    const pendingFile = path.join(__dirname, 'DataBase', 'pending_validations.json');
+    let pending = [];
+    if (fs.existsSync(pendingFile)) {
+      try { pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8')); } catch(e) { pending = []; }
+    }
+    
+    const request = {
+      id: requestId,
+      transactionId,
+      waveNumber: waveNumber.replace(/[^0-9]/g, ''),
+      reference: reference || 'DIRECT',
+      name: name || 'Client',
+      phone: (phone || '').replace(/[^0-9]/g, ''),
+      plan: planUpper,
+      amount: amount || planPrices[planUpper] || 2000,
+      status: 'pending_validation',
+      createdAt: new Date().toISOString()
+    };
+    
+    pending.push(request);
+    fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
+    
+    // Logger
+    console.log(`\n[WAVE] 🔔 ═══════════════════════════════════════════`);
+    console.log(`[WAVE] 📝 NOUVELLE DEMANDE DE PAIEMENT (EN ATTENTE)`);
+    console.log(`[WAVE]    🆔 ID: ${requestId}`);
+    console.log(`[WAVE]    👤 ${name || 'Client'} (${phone || waveNumber})`);
+    console.log(`[WAVE]    💎 Plan: ${planUpper} - ${request.amount} FCFA`);
+    console.log(`[WAVE]    📝 Transaction Wave: ${transactionId}`);
+    console.log(`[WAVE]    ⚠️ EN ATTENTE DE VALIDATION OWNER`);
+    console.log(`[WAVE] ═══════════════════════════════════════════\n`);
+    
+    // 🔔 ENVOYER NOTIFICATION À L'OWNER VIA WHATSAPP
+    try {
+      if (sock && sock.user) {
+        const notifMessage = 
+          `🔔 *NOUVELLE DEMANDE DE PAIEMENT*\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `🆔 *ID:* \`${requestId}\`\n` +
+          `👤 *Client:* ${name || 'Non renseigné'}\n` +
+          `📱 *Téléphone:* ${phone || waveNumber}\n` +
+          `📱 *Wave:* ${waveNumber}\n` +
+          `💎 *Plan:* ${planUpper}\n` +
+          `💵 *Montant:* ${request.amount} FCFA\n` +
+          `📝 *N° Transaction Wave:* ${transactionId}\n\n` +
+          `⏰ *Date:* ${new Date().toLocaleString('fr-FR')}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `⚠️ *VÉRIFIEZ dans votre historique Wave* si vous avez reçu ce paiement !\n\n` +
+          `✅ Si OK: *.validatepay ${requestId}*\n` +
+          `❌ Si faux: *.rejectpay ${requestId}*\n\n` +
+          `📋 Voir tout: *.pendingpay*`;
+        
+        await sock.sendMessage(OWNER_JID, { text: notifMessage });
+        console.log(`[WAVE] ✅ Notification envoyée à l'owner: ${OWNER_NUMBER}`);
+      } else {
+        console.log(`[WAVE] ⚠️ Bot non connecté - notification sauvegardée pour envoi ultérieur`);
+        // Sauvegarder pour envoi ultérieur
+        const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+        let notifications = [];
+        if (fs.existsSync(notifFile)) {
+          try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch(e) { notifications = []; }
+        }
+        notifications.push({
+          type: 'payment_request',
+          requestId,
+          ownerJid: OWNER_JID,
+          name: name || 'Client',
+          phone: phone || waveNumber,
+          waveNumber,
+          plan: planUpper,
+          amount: request.amount,
+          transactionId,
+          createdAt: new Date().toISOString(),
+          sent: false
+        });
+        fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+      }
+    } catch (notifError) {
+      console.error('[WAVE] Erreur notification owner:', notifError.message);
+    }
+    
+    res.json({
+      success: true,
+      pending: true,
+      requestId,
+      message: 'Demande enregistrée ! Votre paiement est en cours de vérification. Vous recevrez votre code par WhatsApp une fois validé.'
+    });
+  } catch (e) {
+    console.error('[WAVE] Erreur confirmation:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Statut d'un paiement
+app.get('/api/wave/status/:id', (req, res) => {
+  try {
+    const pendingFile = path.join(__dirname, 'DataBase', 'pending_validations.json');
+    let pending = [];
+    if (fs.existsSync(pendingFile)) {
+      pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+    }
+    
+    const request = pending.find(p => p.id === req.params.id);
+    if (request) {
+      return res.json({ success: true, status: request.status, request });
+    }
+    
+    res.status(404).json({ error: 'Demande non trouvée' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // 🔌 CONNEXION WHATSAPP
 // ═══════════════════════════════════════════════════════════
 
@@ -200,6 +370,64 @@ async function startBot() {
         
         await sock.sendMessage(sock.user?.id, { text: startMsg });
       } catch (e) {}
+      
+      // 🔔 ENVOYER LES NOTIFICATIONS EN ATTENTE À L'OWNER
+      try {
+        const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+        if (fs.existsSync(notifFile)) {
+          let notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8') || '[]');
+          const unsent = notifications.filter(n => !n.sent);
+          
+          if (unsent.length > 0) {
+            console.log(`[WAVE] 📨 Envoi de ${unsent.length} notification(s) en attente...`);
+            
+            for (const notif of unsent) {
+              try {
+                const notifMessage = 
+                  `🔔 *PAIEMENT EN ATTENTE* (différé)\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                  `🆔 *ID:* \`${notif.requestId}\`\n` +
+                  `👤 *Client:* ${notif.name}\n` +
+                  `📱 *Téléphone:* ${notif.phone}\n` +
+                  `📱 *Wave:* ${notif.waveNumber || notif.phone}\n` +
+                  `💎 *Plan:* ${notif.plan}\n` +
+                  `💵 *Montant:* ${notif.amount} FCFA\n` +
+                  `📝 *Transaction:* ${notif.transactionId}\n` +
+                  `⏰ *Date:* ${new Date(notif.createdAt).toLocaleString('fr-FR')}\n\n` +
+                  `✅ *.validatepay ${notif.requestId}*\n` +
+                  `❌ *.rejectpay ${notif.requestId}*`;
+                
+                await sock.sendMessage(OWNER_JID, { text: notifMessage });
+                notif.sent = true;
+                console.log(`[WAVE] ✅ Notification ${notif.requestId} envoyée`);
+                
+                // Petit délai entre les messages
+                await new Promise(r => setTimeout(r, 1000));
+              } catch (e) {
+                console.log(`[WAVE] ❌ Erreur envoi notification: ${e.message}`);
+              }
+            }
+            
+            // Mettre à jour le fichier
+            fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+          }
+        }
+        
+        // Vérifier les paiements en attente
+        const pendingFile = path.join(__dirname, 'DataBase', 'pending_validations.json');
+        if (fs.existsSync(pendingFile)) {
+          const pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+          const awaiting = pending.filter(p => p.status === 'pending_validation');
+          
+          if (awaiting.length > 0) {
+            const resumeMsg = `📋 *${awaiting.length} PAIEMENT(S) EN ATTENTE*\n\n` +
+              `Tapez *.pendingpay* pour les voir et valider.`;
+            await sock.sendMessage(OWNER_JID, { text: resumeMsg });
+          }
+        }
+      } catch (e) {
+        console.log(`[WAVE] ⚠️ Erreur notifications différées: ${e.message}`);
+      }
     },
     
     onDisconnected: (error, wasLoggedOut) => {
