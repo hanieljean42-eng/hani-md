@@ -610,11 +610,16 @@ async function handleMessages(socket, msgUpdate) {
   try {
     const { messages, type } = msgUpdate;
     
+    console.log(`[DEBUG] Message reçu - type: ${type}, count: ${messages?.length || 0}`);
+    
     if (type !== "notify") return;
     
     for (const msg of messages) {
       // Ignorer les messages de protocole
-      if (!msg.message) continue;
+      if (!msg.message) {
+        console.log(`[DEBUG] Message ignoré - pas de contenu`);
+        continue;
+      }
       if (msg.key?.remoteJid === "status@broadcast") continue;
       
       // Stocker le message
@@ -626,6 +631,11 @@ async function handleMessages(socket, msgUpdate) {
       const pushName = msg.pushName || "Utilisateur";
       const body = getMessageText(msg);
       
+      // Debug info
+      const msgType = Object.keys(msg.message || {})[0];
+      console.log(`[DEBUG] 📩 From: ${pushName} | Type: ${msgType} | Body: "${body?.substring(0, 50) || 'vide'}"`);
+      console.log(`[DEBUG] Prefix: "${config.PREFIX}" | Starts with prefix: ${body?.startsWith(config.PREFIX)}`);
+      
       // Traiter les vues uniques
       const hasViewOnce = msg.message?.viewOnceMessage || 
                           msg.message?.viewOnceMessageV2 || 
@@ -636,17 +646,19 @@ async function handleMessages(socket, msgUpdate) {
       
       // Traiter les commandes
       if (body && body.startsWith(config.PREFIX)) {
-        await processCommand(socket, msg, { db });
+        console.log(`[DEBUG] ✅ Commande détectée: ${body}`);
+        const result = await processCommand(socket, msg, { db });
+        console.log(`[DEBUG] Résultat processCommand: ${result}`);
       }
       
       // Log des messages (optionnel)
       if (!isFromMe) {
-        const msgType = Object.keys(msg.message || {})[0];
         console.log(`📩 ${pushName}: ${body?.substring(0, 50) || `[${msgType}]`}`);
       }
     }
   } catch (error) {
     console.error("[MSG] ❌ Erreur traitement:", error.message);
+    console.error(error.stack);
   }
 }
 
