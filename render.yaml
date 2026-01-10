@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     buildCommand: npm install --legacy-peer-deps && npm rebuild sharp
-    startCommand: node start.js
+    startCommand: node index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:

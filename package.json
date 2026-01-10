@@ -1,20 +1,22 @@
 {
   "name": "hani-md",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "🌟 HANI-MD - Bot WhatsApp Intelligent & Performant par H2025",
-  "main": "hani.js",
+  "main": "index.js",
   "type": "commonjs",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node start.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "build": "npm install --legacy-peer-deps",
-    "pm2": "pm2 start hani.js --attach --name hani",
+    "pm2": "pm2 start index.js --attach --name hani",
     "stop": "pm2 stop all",
     "init-db": "node scripts/init-mysql.js",
     "deploy": "node scripts/deploy-railway.js",
-    "railway": "railway up"
+    "railway": "railway up",
+    "legacy": "node hani.js"
   },
   "keywords": [
     "HANI-MD",

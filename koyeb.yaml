@@ -6,7 +6,7 @@ git:
   builder: buildpack
   buildpack:
     build_command: npm install --legacy-peer-deps
-    run_command: node start.js
+    run_command: node index.js
 instance_types:
   - type: free
 ports:

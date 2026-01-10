@@ -9,7 +9,7 @@ cmds = ["npm install --legacy-peer-deps"]
 cmds = ["npm rebuild sharp"]
 
 [start]
-cmd = "node hani.js"
+cmd = "node index.js"
 
 [variables]
 NODE_ENV = "production"
