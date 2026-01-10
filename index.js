@@ -99,7 +99,9 @@ app.get('/health', (req, res) => {
     bot: config.BOT_NAME,
     version: config.BOT_VERSION,
     connected: connectionState.isConnected,
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    build: '2026-01-10-v2'
   });
 });
 
