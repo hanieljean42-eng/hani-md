@@ -51,6 +51,19 @@ test/
 CLEANUP.ps1
 *.local
 
+# Session ID (contient les credentials WhatsApp - NE JAMAIS COMMITTER!)
+session_id.txt
+session_principale/
+session_backup/
+
+# Fichiers de données générés dynamiquement
+DataBase/*_data.json
+DataBase/wave_transactions.json
+DataBase/subscribers.json
+DataBase/activation_codes.json
+DataBase/transactions.json
+lib/store_msg.json
+
 # IDE
 .vscode/
 .idea/

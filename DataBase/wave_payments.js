@@ -27,8 +27,8 @@ const WAVE_CONFIG = {
   currency: 'XOF',
   country: 'CI', // Côte d'Ivoire
   // URLs de redirection après paiement
-  successUrl: process.env.WAVE_SUCCESS_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-success',
-  errorUrl: process.env.WAVE_ERROR_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app/payment-error'
+  successUrl: process.env.WAVE_SUCCESS_URL || `${process.env.BOT_URL || 'http://localhost:3000'}/payment-success`,
+  errorUrl: process.env.WAVE_ERROR_URL   || `${process.env.BOT_URL || 'http://localhost:3000'}/payment-error`
 };
 
 // Plans disponibles

@@ -16,7 +16,7 @@ const DB_PATH = path.join(__dirname, "wa_config_data.json");
 const DEFAULT_CONFIG = {
   prefix: ".",
   botName: "HANI-MD",
-  ownerNumber: "",
+  ownerNumber: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "22550252467",
   ownerName: "HANIEL",
   mode: "public", // public ou private
   autoRead: false,

@@ -34,38 +34,36 @@ const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 // ═══════════════════════════════════════════════════════════
 
 const commandModules = [
-  "./cmd/Telechargement",
-  "./cmd/Outils",
-  "./cmd/Fun",
-  "./cmd/Groupe",
+  // ═══ SYSTÈME (toujours chargé en premier) ═══
+  "./cmd/Menu",
   "./cmd/Owner",
-  "./cmd/Systeme",
-  "./cmd/Search",
-  "./cmd/Ia",
+  // ═══ TÉLÉCHARGEMENT ═══
+  "./cmd/Telechargement",
+  // ═══ OUTILS & UTILITAIRES ═══
+  "./cmd/Outils",
   "./cmd/Conversion",
+  "./cmd/Reaction",
+  // ═══ DIVERTISSEMENT ═══
+  "./cmd/Fun",
+  "./cmd/Ovl-game",
+  // ═══ INTELLIGENCE ARTIFICIELLE ═══
+  "./cmd/Ia",
+  // ═══ RECHERCHE ═══
+  "./cmd/Search",
+  // ═══ GROUPES ═══
+  "./cmd/Groupe",
+  "./cmd/Confidentialite",
+  // ═══ MÉDIAS ═══
   "./cmd/Fx_audio",
   "./cmd/Status",
   "./cmd/Image_edits",
   "./cmd/Logo",
-  "./cmd/Reaction",
-  "./cmd/Confidentialite",
+  // ═══ PROFIL & PRO ═══
   "./cmd/ProFeatures",
-  "./cmd/Premium",
-  "./cmd/Ovl-economy",
-  "./cmd/Ovl-game",
-  "./cmd/Advanced",
-  "./cmd/Menu",
-  "./cmd/Payments",
-  "./cmd/WavePayments",
-  "./cmd/Newsletter",
   "./cmd/Contacts",
-  "./cmd/Engagement",
-  "./cmd/Feedback",
-  "./cmd/Referral",
-  "./cmd/Support",
-  "./cmd/Tutorial",
+  // ═══ CONFIG ═══
   "./cmd/Config",
-  "./cmd/Autoreply"
+  "./cmd/Autoreply",
 ];
 
 let loadedModules = 0;
@@ -160,7 +158,7 @@ app.get('/', (req, res) => {
 // ═══════════════════════════════════════════════════════════
 
 const crypto = require('crypto');
-const OWNER_NUMBER = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+const OWNER_NUMBER = (process.env.NUMERO_OWNER || '22550252467').replace(/[^0-9]/g, '');
 const OWNER_JID = OWNER_NUMBER + '@s.whatsapp.net';
 
 // Souscription Wave

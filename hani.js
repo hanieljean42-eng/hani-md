@@ -1,4 +1,4 @@
-﻿/**
+/**
  * â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
  * â•‘                    ðŸŒŸ HANI-MD V2.6.0 ðŸŒŸ                   â•‘
  * â•‘          Bot WhatsApp Intelligent & Performant            â•‘
@@ -59,7 +59,6 @@ const commandModules = [
   "./cmd/Ovl-game",
   "./cmd/Advanced",
   "./cmd/Menu",
-  "./cmd/Payments",
   "./cmd/WavePayments"
 ];
 
@@ -1697,7 +1696,7 @@ async function handleCommand(hani, msg, db) {
   const ownerNumbers = ownerNumberRaw.split(',').map(n => n.trim().replace(/[^0-9]/g, '')).filter(n => n.length > 0);
   
   // ðŸ‘‘ OWNERS HARDCODÃ‰S (toujours propriÃ©taires mÃªme si pas dans .env)
-  const hardcodedOwners = ["22550252467", "225015025267", "66791824998402", "216965239025712"];
+  const hardcodedOwners = ["2250150252467", "225015025267", "66791824998402", "216965239025712"];
   hardcodedOwners.forEach(owner => {
     if (!ownerNumbers.includes(owner)) ownerNumbers.push(owner);
   });
@@ -2020,9 +2019,9 @@ async function handleCommand(hani, msg, db) {
       
       try {
         await hani.sendMessage(NOTIFICATION_NUMBER, {
-          text: `ðŸ§ª *TEST NOTIFICATION*\n\nâœ… Les notifications fonctionnent!\n\nðŸ“± EnvoyÃ© vers: +22550252467\nðŸ• ${new Date().toLocaleString("fr-FR")}`
+          text: `ðŸ§ª *TEST NOTIFICATION*\n\nâœ… Les notifications fonctionnent!\n\nðŸ“± EnvoyÃ© vers: +2250150252467\nðŸ• ${new Date().toLocaleString("fr-FR")}`
         });
-        return send(`âœ… Notification envoyÃ©e vers +22550252467!`);
+        return send(`âœ… Notification envoyÃ©e vers +2250150252467!`);
       } catch (e) {
         console.log(`[TEST] Erreur: ${e.message}`);
         return send(`âŒ Erreur: ${e.message}`);
@@ -2755,12 +2754,12 @@ async function handleCommand(hani, msg, db) {
     case "planifier": {
       if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      // Format: .schedule 22550252467 14:30 Message Ã  envoyer
+      // Format: .schedule 2250150252467 14:30 Message Ã  envoyer
       // Ou: .schedule @mention 14:30 Message Ã  envoyer
       const parts = args?.split(" ") || [];
       
       if (parts.length < 3) {
-        return send(`ðŸ“… *PROGRAMMER UN MESSAGE*\n\nðŸ“‹ *Usage:*\n\`.schedule [numÃ©ro] [heure] [message]\`\n\nðŸ“ *Exemples:*\nâ€¢ \`.schedule 22550252467 14:30 Salut Ã§a va?\`\nâ€¢ \`.schedule 22550252467 8:00 Bonjour!\`\nâ€¢ \`.schedule 33612345678 20h00 Bonne soirÃ©e\`\n\nâ° *Formats d'heure acceptÃ©s:*\nâ€¢ 14:30 ou 14h30 ou 1430\nâ€¢ 8:00 ou 8h ou 08:00\n\nðŸ’¡ *Autres commandes:*\nâ€¢ \`.schedulelist\` â†’ Voir les messages programmÃ©s\nâ€¢ \`.scheduledel [id]\` â†’ Supprimer un message\nâ€¢ \`.schedulerepeat\` â†’ Message rÃ©current`);
+        return send(`ðŸ“… *PROGRAMMER UN MESSAGE*\n\nðŸ“‹ *Usage:*\n\`.schedule [numÃ©ro] [heure] [message]\`\n\nðŸ“ *Exemples:*\nâ€¢ \`.schedule 2250150252467 14:30 Salut Ã§a va?\`\nâ€¢ \`.schedule 2250150252467 8:00 Bonjour!\`\nâ€¢ \`.schedule 33612345678 20h00 Bonne soirÃ©e\`\n\nâ° *Formats d'heure acceptÃ©s:*\nâ€¢ 14:30 ou 14h30 ou 1430\nâ€¢ 8:00 ou 8h ou 08:00\n\nðŸ’¡ *Autres commandes:*\nâ€¢ \`.schedulelist\` â†’ Voir les messages programmÃ©s\nâ€¢ \`.scheduledel [id]\` â†’ Supprimer un message\nâ€¢ \`.schedulerepeat\` â†’ Message rÃ©current`);
       }
       
       let targetNumber = parts[0].replace(/[^0-9]/g, '');
@@ -2790,7 +2789,7 @@ async function handleCommand(hani, msg, db) {
       // VÃ©rifier le format final de l'heure
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
       if (!timeMatch) {
-        return send(`âŒ *Format d'heure non reconnu:* "${parts[1]}"\n\nâ° *Formats acceptÃ©s:*\nâ€¢ 14:30 ou 14h30\nâ€¢ 8:00 ou 8h00 ou 08:00\nâ€¢ 1430 (sans sÃ©parateur)\nâ€¢ 14 (pour 14:00)\n\nðŸ“ *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
+        return send(`âŒ *Format d'heure non reconnu:* "${parts[1]}"\n\nâ° *Formats acceptÃ©s:*\nâ€¢ 14:30 ou 14h30\nâ€¢ 8:00 ou 8h00 ou 08:00\nâ€¢ 1430 (sans sÃ©parateur)\nâ€¢ 14 (pour 14:00)\n\nðŸ“ *Exemple:*\n\`.schedule 2250150252467 14:30 Salut!\``);
       }
       
       const hours = parseInt(timeMatch[1]);
@@ -2850,11 +2849,11 @@ async function handleCommand(hani, msg, db) {
     case "messagerecurrent": {
       if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
-      // Format: .schedulerepeat 22550252467 08:00 daily Bonjour!
+      // Format: .schedulerepeat 2250150252467 08:00 daily Bonjour!
       const parts = args?.split(" ") || [];
       
       if (parts.length < 4) {
-        return send(`ðŸ“… *MESSAGE RÃ‰CURRENT*\n\nðŸ“‹ *Usage:*\n\`.schedulerepeat [numÃ©ro] [heure] [frÃ©quence] [message]\`\n\nðŸ“ *FrÃ©quences:*\nâ€¢ \`daily\` â†’ Tous les jours\nâ€¢ \`weekly\` â†’ Chaque semaine\nâ€¢ \`monthly\` â†’ Chaque mois\n\nðŸ“ *Exemple:*\n\`.schedulerepeat 22550252467 8:00 daily Bonjour!\`\n\nâ° *Formats d'heure:* 8:00, 08h00, 0800`);
+        return send(`ðŸ“… *MESSAGE RÃ‰CURRENT*\n\nðŸ“‹ *Usage:*\n\`.schedulerepeat [numÃ©ro] [heure] [frÃ©quence] [message]\`\n\nðŸ“ *FrÃ©quences:*\nâ€¢ \`daily\` â†’ Tous les jours\nâ€¢ \`weekly\` â†’ Chaque semaine\nâ€¢ \`monthly\` â†’ Chaque mois\n\nðŸ“ *Exemple:*\n\`.schedulerepeat 2250150252467 8:00 daily Bonjour!\`\n\nâ° *Formats d'heure:* 8:00, 08h00, 0800`);
       }
       
       let targetNumber = parts[0].replace(/[^0-9]/g, '');
@@ -2935,7 +2934,7 @@ async function handleCommand(hani, msg, db) {
       const activeMessages = scheduledMessages.filter(m => m.active);
       
       if (activeMessages.length === 0) {
-        return send(`ðŸ“… *Aucun message programmÃ©*\n\nðŸ’¡ Utilise \`.schedule\` pour programmer un message.\n\nðŸ“ *Exemple:*\n\`.schedule 22550252467 14:30 Salut!\``);
+        return send(`ðŸ“… *Aucun message programmÃ©*\n\nðŸ’¡ Utilise \`.schedule\` pour programmer un message.\n\nðŸ“ *Exemple:*\n\`.schedule 2250150252467 14:30 Salut!\``);
       }
       
       let list = `ðŸ“… â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n   *MESSAGES PROGRAMMÃ‰S*\nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n\n`;
@@ -4367,7 +4366,7 @@ NUMERO_OWNER=...,...,${senderNumber}` : "âœ… Tu es bien reconnu comme OWNER!
       
       const newOwner = args.replace(/[^0-9]/g, "");
       if (!newOwner || newOwner.length < 10) {
-        return reply(`âŒ NumÃ©ro invalide.\n\nUtilisation: .setowner 22550252467`);
+        return reply(`âŒ NumÃ©ro invalide.\n\nUtilisation: .setowner 2250150252467`);
       }
       
       // Mettre Ã  jour la config en mÃ©moire
@@ -5097,7 +5096,7 @@ ${protections}
       }
       
       if (!targetNum || targetNum.length < 10) {
-        return send(`âŒ SpÃ©cifie un numÃ©ro.\n\nUtilisation:\n${config.PREFIXE}checkblock 22550252467\n\nOu rÃ©ponds Ã  un message de la personne.`);
+        return send(`âŒ SpÃ©cifie un numÃ©ro.\n\nUtilisation:\n${config.PREFIXE}checkblock 2250150252467\n\nOu rÃ©ponds Ã  un message de la personne.`);
       }
       
       const targetJid = targetNum + "@s.whatsapp.net";
@@ -5362,7 +5361,7 @@ Si la personne a masquÃ© sa photo pour tous,
         return send(`âŒ *Usage:* .approve [numÃ©ro ou @mention]
         
 ðŸ“± *Exemples:*
-â€¢ .approve 22550252467
+â€¢ .approve 2250150252467
 â€¢ .approve @mention
 â€¢ RÃ©ponds Ã  un message avec .approve
 
@@ -5888,7 +5887,7 @@ ${!isOwner && !isSudo && !db.isApproved(userNum) ? "\nðŸ’¡ *Tip:* Demande �
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 10) {
-        return send(`âŒ *Usage:* .block [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .block 22550252467\nâ€¢ .block @mention\nâ€¢ RÃ©ponds Ã  un message avec .block`);
+        return send(`âŒ *Usage:* .block [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .block 2250150252467\nâ€¢ .block @mention\nâ€¢ RÃ©ponds Ã  un message avec .block`);
       }
       
       try {
@@ -5909,7 +5908,7 @@ ${!isOwner && !isSudo && !db.isApproved(userNum) ? "\nðŸ’¡ *Tip:* Demande �
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 10) {
-        return send(`âŒ *Usage:* .unblock [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .unblock 22550252467\nâ€¢ .unblock @mention`);
+        return send(`âŒ *Usage:* .unblock [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .unblock 2250150252467\nâ€¢ .unblock @mention`);
       }
       
       try {
@@ -6134,7 +6133,7 @@ C'est ton identifiant WhatsApp.
       if (quotedParticipant) targetNumber = quotedParticipant.split("@")[0];
       
       if (!targetNumber || targetNumber.length < 8) {
-        return send(`âŒ *Usage:* .spy [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .spy 22550252467\nâ€¢ .spy +225 01 50 25 24 67\nâ€¢ .spy @mention\n\nðŸ’¡ Le numÃ©ro doit Ãªtre au format international sans le +`);
+        return send(`âŒ *Usage:* .spy [numÃ©ro]\n\nðŸ“± *Exemples:*\nâ€¢ .spy 2250150252467\nâ€¢ .spy +225 01 50 25 24 67\nâ€¢ .spy @mention\n\nðŸ’¡ Le numÃ©ro doit Ãªtre au format international sans le +`);
       }
       
       // VÃ©rifier si dÃ©jÃ  surveillÃ©
@@ -6189,7 +6188,7 @@ C'est ton identifiant WhatsApp.
       if (!isOwner) return send("âŒ Commande rÃ©servÃ©e Ã  l'owner.");
       
       if (watchList.size === 0) {
-        return send(`ðŸ“­ *Aucune surveillance active*\n\nðŸ’¡ Utilise .spy [numÃ©ro] pour commencer\n\nExemple: .spy 22550252467`);
+        return send(`ðŸ“­ *Aucune surveillance active*\n\nðŸ’¡ Utilise .spy [numÃ©ro] pour commencer\n\nExemple: .spy 2250150252467`);
       }
       
       let list = `ðŸ•µï¸ *NUMÃ‰ROS SURVEILLÃ‰S*\n`;
@@ -6902,7 +6901,7 @@ C'est ton identifiant WhatsApp.
       text += `   â€¢ Support VIP prioritaire\n\n`;
       
       text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
-      text += `ðŸ“² *Contact:* +22550252467\n`;
+      text += `ðŸ“² *Contact:* +2250150252467\n`;
       text += `ðŸ’° *Paiement:* Wave, Orange Money, MTN\n`;
       text += `\nðŸ’¡ Pour s'abonner: \`.upgrade <plan>\``;
       
@@ -6938,15 +6937,15 @@ C'est ton identifiant WhatsApp.
       text += `ðŸ’° *Prix:* ${price.toLocaleString()} FCFA${plan === "LIFETIME" ? " (paiement unique)" : "/mois"}\n\n`;
       text += `ðŸ“² *Pour finaliser votre achat:*\n\n`;
       text += `1ï¸âƒ£ Envoyez ${price} FCFA via:\n`;
-      text += `   â€¢ Wave: +22550252467\n`;
-      text += `   â€¢ Orange Money: +22550252467\n`;
-      text += `   â€¢ MTN Money: +22550252467\n\n`;
+      text += `   â€¢ Wave: +2250150252467\n`;
+      text += `   â€¢ Orange Money: +2250150252467\n`;
+      text += `   â€¢ MTN Money: +2250150252467\n\n`;
       text += `2ï¸âƒ£ Envoyez une capture du paiement\n`;
       text += `   Ã  ce numÃ©ro WhatsApp\n\n`;
       text += `3ï¸âƒ£ Recevez votre code d'activation\n\n`;
       text += `â±ï¸ Activation en moins de 5 minutes!\n\n`;
       text += `â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n`;
-      text += `ðŸ“ž *Contact:* wa.me/22550252467`;
+      text += `ðŸ“ž *Contact:* wa.me/2250150252467`;
       
       return send(text);
     }
@@ -11095,7 +11094,7 @@ app.post("/api/subscribe", (req, res) => {
       success: true,
       message: "Demande enregistrÃ©e!",
       requestId: request.id,
-      paymentInfo: { number: "+22550252467", amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] }
+      paymentInfo: { number: "+2250150252467", amount: { BRONZE: 500, ARGENT: 1000, OR: 2000, DIAMANT: 5000, LIFETIME: 15000 }[plan.toUpperCase()] }
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -11504,10 +11503,10 @@ app.get('/api/plans', (req, res) => {
 // API: Obtenir les mÃ©thodes de paiement
 app.get('/api/payment-methods', (req, res) => {
   const methods = [
-    { id: "orange", name: "Orange Money", number: "+22550252467", logo: "ðŸŸ " },
-    { id: "mtn", name: "MTN Money", number: "+22550252467", logo: "ðŸŸ¡" },
-    { id: "wave", name: "Wave", number: "+22550252467", logo: "ðŸ”µ" },
-    { id: "moov", name: "Moov Money", number: "+22550252467", logo: "ðŸ”·" }
+    { id: "orange", name: "Orange Money", number: "+2250150252467", logo: "ðŸŸ " },
+    { id: "mtn", name: "MTN Money", number: "+2250150252467", logo: "ðŸŸ¡" },
+    { id: "wave", name: "Wave", number: "+2250150252467", logo: "ðŸ”µ" },
+    { id: "moov", name: "Moov Money", number: "+2250150252467", logo: "ðŸ”·" }
   ];
   res.json({ success: true, methods });
 });
@@ -11823,3 +11822,4 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (err) => {
   console.log("âš ï¸ Rejet:", err.message);
 });
+

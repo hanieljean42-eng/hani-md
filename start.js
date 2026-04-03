@@ -38,39 +38,43 @@ const { findCommand, executeCommand, getCommands } = require("./lib/ovlcmd");
 
 // Charger tous les modules de commandes
 const commandModules = [
-  "./cmd/Telechargement",
-  "./cmd/Outils",
-  "./cmd/Fun",
-  "./cmd/Groupe",
+  // ═══ SYSTÈME (chargé en premier) ═══
+  "./cmd/Menu",
   "./cmd/Owner",
-  "./cmd/Systeme",
-  "./cmd/Search",
-  "./cmd/Ia",
+  // ═══ TÉLÉCHARGEMENT ═══
+  "./cmd/Telechargement",
+  // ═══ OUTILS & UTILITAIRES ═══
+  "./cmd/Outils",
   "./cmd/Conversion",
+  "./cmd/Reaction",
+  // ═══ DIVERTISSEMENT ═══
+  "./cmd/Fun",
+  "./cmd/Ovl-game",
+  // ═══ INTELLIGENCE ARTIFICIELLE ═══
+  "./cmd/Ia",
+  // ═══ RECHERCHE ═══
+  "./cmd/Search",
+  // ═══ GROUPES ═══
+  "./cmd/Groupe",
+  "./cmd/Confidentialite",
+  // ═══ MÉDIAS ═══
   "./cmd/Fx_audio",
   "./cmd/Status",
   "./cmd/Image_edits",
   "./cmd/Logo",
-  "./cmd/Reaction",
-  "./cmd/Confidentialite",
+  // ═══ PROFIL & PRO ═══
   "./cmd/ProFeatures",
-  "./cmd/Premium",
-  "./cmd/Ovl-economy",
-  "./cmd/Ovl-game",
-  "./cmd/Advanced",
-  "./cmd/Menu",
-  "./cmd/Payments",
-  "./cmd/WavePayments",
-  // Nouveaux modules commerciaux
-  "./cmd/Newsletter",
   "./cmd/Contacts",
-  "./cmd/Engagement",
-  "./cmd/Feedback",
-  "./cmd/Referral",
-  "./cmd/Support",
-  "./cmd/Tutorial",
+  // ═══ ÉCONOMIE ═══
+  "./cmd/Ovl-economy",
+  // ═══ PREMIUM & PAIEMENTS ═══
+  "./cmd/Premium",
+  "./cmd/WavePayments",
+  // ═══ SYSTÈME AVANCÉ ═══
+  "./cmd/Systeme",
+  "./cmd/Advanced",
   "./cmd/Config",
-  "./cmd/Autoreply"
+  "./cmd/Autoreply",
 ];
 
 let loadedModules = 0;
@@ -88,7 +92,7 @@ console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles via ovlcmd
 const config = {
   PREFIXE: process.env.PREFIXE || ".",
   NOM_OWNER: process.env.NOM_OWNER || "Owner",
-  NUMERO_OWNER: process.env.NUMERO_OWNER || "",
+  NUMERO_OWNER: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "22550252467",
   MODE: process.env.MODE || "public",
   STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "OVL-MD-V2",
   STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "OVL",
@@ -320,7 +324,10 @@ async function handleCommand(ovl, msg) {
   // Fonction pour obtenir les infos utilisateur
   const getUserInfo = async (jid) => {
     const phone = jid.replace('@s.whatsapp.net', '').replace('@lid', '');
-    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (phone === '2250150252467');
+    const ownerNum = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+    const isOwner = AccessControl ? AccessControl.isOwner(jid) : (
+      phone === ownerNum || phone.includes(ownerNum) || ownerNum.includes(phone)
+    );
     
     let plan = 'FREE';
     let dailyLimit = 30;
@@ -360,12 +367,16 @@ async function handleCommand(ovl, msg) {
     case "aide": {
       if (MenuSystem) {
         try {
-          const userInfo = await getUserInfo(from);
+          const senderForMenu = msg.key.participant || from;
+          const userInfo = await getUserInfo(senderForMenu);
           const category = args[0] ? args[0].toLowerCase() : null;
           
           let menuText;
-          if (category && MenuSystem.CATEGORIES[category]) {
-            menuText = MenuSystem.generateCategoryMenu(category, userInfo);
+          if (category && MenuSystem.CATEGORIES[category.toLowerCase()]) {
+            menuText = MenuSystem.generateCategoryMenu(category.toLowerCase(), userInfo);
+          } else if (category) {
+            const cats = Object.keys(MenuSystem.CATEGORIES).join(', ');
+            menuText = `❌ Catégorie inconnue: *${category}*\n\nCatégories disponibles:\n${cats.split(', ').map(c => `• .menu ${c}`).join('\n')}`;
           } else {
             menuText = MenuSystem.generateMainMenu(userInfo);
           }
@@ -678,12 +689,17 @@ async function handleCommand(ovl, msg) {
           const sender = msg.key.participant || from;
           const senderNumber = sender.replace("@s.whatsapp.net", "").replace("@lid", "");
           const ownerNumber = (config.NUMERO_OWNER || "").replace(/[^0-9]/g, "");
-          const isOwner = senderNumber === ownerNumber || senderNumber.includes(ownerNumber);
+          const isOwner = ownerNumber.length > 5 && (
+                           senderNumber === ownerNumber || 
+                           senderNumber.includes(ownerNumber) || 
+                           ownerNumber.includes(senderNumber)
+                         );
           
-          // Fonction répondre pour les commandes - TOUJOURS EN PRIVÉ
-          const repondre = async (text) => {
-            // Envoyer en privé à soi-même au lieu du chat actuel
-            await ovl.sendMessage(botNumber, { text });
+          // Fonction répondre pour les commandes - envoie dans le chat d'origine
+          const repondre = async (text, opts = {}) => {
+            const msgContent = { text: String(text) };
+            if (opts?.mentions) msgContent.mentions = opts.mentions;
+            await ovl.sendMessage(from, msgContent, { quoted: msg });
           };
           
           // Préparer le message structuré pour les commandes
@@ -691,27 +707,49 @@ async function handleCommand(ovl, msg) {
           const arg = rest;
           const texte = argsText;
           
+          // Déterminer les permissions de groupe
+          let isAdmin = false;
+          let isBotAdmin = false;
+          let groupName = null;
+          if (isGroup) {
+            try {
+              const groupMeta = await ovl.groupMetadata(from);
+              const botJid = ovl.user?.id?.split(':')[0] + '@s.whatsapp.net';
+              const admins = groupMeta.participants
+                .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+                .map(p => p.id);
+              isAdmin = admins.includes(sender);
+              isBotAdmin = admins.includes(botJid);
+              groupName = groupMeta.subject;
+            } catch (e) {}
+          }
+
           // Options passées au handler
           const options = {
             repondre,
             arg,
+            args: arg,
+            argsText: texte,
             texte,
             ms,
             superUser: isOwner,
             auteurMessage: sender,
             isGroup,
-            auteurMsgReworded: sender,
-            verifGroupe: isGroup,
+            verif_Groupe: isGroup,
+            admin_Groupe: isBotAdmin,
+            verif_Ovl_Admin: isBotAdmin,
+            verif_Admin: isAdmin,
+            auteur_Msg: sender,
+            auteurMsgRepondu: msg.message?.extendedTextMessage?.contextInfo?.participant,
             nomAuteurMessage: msg.pushName || "Utilisateur",
             msgRepondu: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage,
-            auteurMsgRepondu: msg.message?.extendedTextMessage?.contextInfo?.participant,
             idBot: botNumber,
             preniumUsers: [],
             superUsers: [config.NUMERO_OWNER],
             dev: [],
             prefixe: config.PREFIXE,
-            nomGroupe: isGroup ? (await ovl.groupMetadata(from).catch(() => ({ subject: "Groupe" }))).subject : null,
-            // Ajouter la destination privée pour les commandes qui envoient des médias
+            from,
+            nomGroupe: groupName,
             destPrivate: botNumber,
           };
           
@@ -745,6 +783,41 @@ async function startBot() {
   // Créer le dossier de session s'il n'existe pas
   if (!fs.existsSync(SESSION_FOLDER)) {
     fs.mkdirSync(SESSION_FOLDER, { recursive: true });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // 🔑 RESTAURER SESSION DEPUIS SESSION_ID (DÉPLOIEMENT CLOUD)
+  // ═══════════════════════════════════════════════════════
+  const sessionId = process.env.SESSION_ID || '';
+  const credsPath = path.join(SESSION_FOLDER, 'creds.json');
+  const hasExistingSession = fs.existsSync(credsPath);
+
+  if (sessionId && !hasExistingSession) {
+    try {
+      // Format bundle complet: HANI-MD~{base64(JSON)}  ← session-generator.js
+      // Format simple ancien:  HANI-MD_{base64(creds)} ← session.js (legacy)
+      if (sessionId.startsWith('HANI-MD~')) {
+        const jsonStr = Buffer.from(sessionId.slice(8), 'base64').toString('utf-8');
+        const bundle = JSON.parse(jsonStr);
+        for (const [filename, b64content] of Object.entries(bundle)) {
+          fs.writeFileSync(path.join(SESSION_FOLDER, filename), Buffer.from(b64content, 'base64'));
+        }
+        console.log(`[SESSION] ✅ Session restaurée depuis SESSION_ID (${Object.keys(bundle).length} fichiers)`);
+      } else if (sessionId.startsWith('HANI-MD_')) {
+        const decoded = Buffer.from(sessionId.slice(8), 'base64').toString('utf-8');
+        fs.writeFileSync(credsPath, decoded);
+        console.log('[SESSION] ✅ Session restaurée depuis SESSION_ID (format simple)');
+      } else {
+        console.error('[SESSION] ❌ Format SESSION_ID non reconnu (doit commencer par HANI-MD~)');
+      }
+    } catch (e) {
+      console.error('[SESSION] ❌ Impossible de restaurer SESSION_ID:', e.message);
+      console.log('[SESSION] Le bot va afficher un QR code...');
+    }
+  } else if (!sessionId && !hasExistingSession) {
+    console.log('[SESSION] ℹ️ Aucune SESSION_ID définie — affichage du QR code...');
+  } else if (hasExistingSession) {
+    console.log('[SESSION] ✅ Session existante trouvée sur disque');
   }
 
   // Charger l'état d'authentification
@@ -822,7 +895,7 @@ async function startBot() {
             const pending = notifications.filter(n => !n.sent);
             
             if (pending.length > 0) {
-              const ownerNumber = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+              const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
               const ownerJid = ownerNumber + '@s.whatsapp.net';
               
               for (const notif of pending) {
@@ -839,7 +912,7 @@ async function startBot() {
                     `⏰ *Date:* ${new Date(notif.createdAt).toLocaleString('fr-FR')}\n` +
                     `━━━━━━━━━━━━━━━━━━━━━`;
                   
-                  await sock.sendMessage(ownerJid, { text: msg });
+                  await ovl.sendMessage(ownerJid, { text: msg });
                   notif.sent = true;
                   await delay(1000);
                 }
@@ -882,16 +955,23 @@ async function startBot() {
         console.log(`⚠️ Échec de connexion ${connectionFailureCount}/${MAX_CONNECTION_FAILURES}`);
         
         if (connectionFailureCount >= MAX_CONNECTION_FAILURES) {
-          console.log("❌ Trop d'échecs de connexion - session corrompue détectée");
-          console.log("🔄 Suppression de la session et nouveau QR dans 3 secondes...");
           connectionFailureCount = 0;
-          
-          if (fs.existsSync(SESSION_FOLDER)) {
-            fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+          if (process.env.SESSION_ID) {
+            // Sur Railway/cloud : ne pas supprimer, juste signaler
+            console.error('❌ SESSION INVALIDÉE — Regénérez la SESSION_ID:');
+            console.error('   1. node session-generator.js  (sur votre PC)');
+            console.error('   2. Mettez à jour SESSION_ID dans Railway Variables');
+            console.error('⏳ Nouvelle tentative dans 60 secondes...');
+            await delay(60000);
+            startBot();
+          } else {
+            console.log("❌ Trop d'échecs - suppression session et nouveau QR...");
+            if (fs.existsSync(SESSION_FOLDER)) {
+              fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+            }
+            await delay(3000);
+            startBot();
           }
-          
-          await delay(3000);
-          startBot();
           return;
         }
       } else {
@@ -900,17 +980,24 @@ async function startBot() {
       }
       
       if (isRealLogout) {
-        // Déconnexion manuelle VRAIE depuis WhatsApp - supprimer la session
-        console.log("❌ Déconnexion manuelle détectée depuis WhatsApp.");
-        console.log("🔄 Suppression de la session et nouveau QR dans 3 secondes...");
         connectionFailureCount = 0;
-        
-        if (fs.existsSync(SESSION_FOLDER)) {
-          fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+        if (process.env.SESSION_ID) {
+          // Sur Railway/cloud : signaler sans supprimer
+          console.error('❌ DÉCONNEXION WHATSAPP DÉTECTÉE');
+          console.error('   → Allez dans WhatsApp > Appareils connectés > Déconnecter TOUT');
+          console.error('   → Puis: node session-generator.js sur votre PC');
+          console.error('   → Puis mettez à jour SESSION_ID dans Railway');
+          console.error('⏳ Nouvelle tentative dans 60 secondes...');
+          await delay(60000);
+          startBot();
+        } else {
+          console.log("❌ Déconnexion manuelle - suppression session et nouveau QR...");
+          if (fs.existsSync(SESSION_FOLDER)) {
+            fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+          }
+          await delay(3000);
+          startBot();
         }
-        
-        await delay(3000);
-        startBot();
       } else if (isTemporaryError) {
         // Erreur temporaire (conflit, connection failure, stream error) - garder la session
         console.log("⚡ Erreur temporaire détectée - reconnexion avec session existante...");
@@ -1596,10 +1683,10 @@ app.post('/api/wave/confirm', async (req, res) => {
     
     // 🔔 ENVOYER NOTIFICATION À L'OWNER
     try {
-      const ownerNumber = (process.env.NUMERO_OWNER || '2250150252467').replace(/[^0-9]/g, '');
+      const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
       const ownerJid = ownerNumber + '@s.whatsapp.net';
       
-      if (sock && sock.user) {
+      if (ovl && ovl.user) {
         const notifMessage = 
           `🔔 *NOUVELLE DEMANDE DE PAIEMENT*\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n\n` +
@@ -1616,7 +1703,7 @@ app.post('/api/wave/confirm', async (req, res) => {
           `❌ Si faux: *.rejectpay ${requestId}*\n\n` +
           `📋 Voir tout: *.pendingpay*`;
         
-        await sock.sendMessage(ownerJid, { text: notifMessage });
+        await ovl.sendMessage(ownerJid, { text: notifMessage });
         console.log(`[WAVE] ✅ Notification envoyée à l'owner: ${ownerNumber}`);
       } else {
         console.log(`[WAVE] ⚠️ Bot non connecté - notification sauvegardée`);
@@ -1887,7 +1974,7 @@ app.get('/payment-error', (req, res) => {
     <p>Le paiement n'a pas pu être complété. Aucun montant n'a été débité.</p>
     <div>
       <a href="/subscribe.html" class="btn">Réessayer</a>
-      <a href="https://wa.me/2250150252467" class="btn btn-secondary" target="_blank">Contacter le support</a>
+      <a href="https://wa.me/22550252467" class="btn btn-secondary" target="_blank">Contacter le support</a>
     </div>
   </div>
 </body>
@@ -1910,10 +1997,44 @@ app.listen(port, '0.0.0.0', () => {
   }
 });
 
-// Lancer le bot
-startBot().catch((err) => {
-  console.error("❌ Erreur de démarrage:", err.message);
-});
+// Connecter la base de données puis lancer le bot
+// Priorité : Firebase → MySQL → JSON local (fallback automatique)
+(async () => {
+  let dbConnected = false;
+
+  // 1. Essayer Firebase (si FIREBASE_URL défini)
+  if (process.env.FIREBASE_URL) {
+    try {
+      const firebaseDB = require('./DataBase/firebase_db');
+      dbConnected = await firebaseDB.connect();
+      if (dbConnected) {
+        console.log('[DB] 🔥 Firebase connecté — données premium sauvegardées sur Firebase');
+      }
+    } catch (e) {
+      console.log('[DB] ⚠️ Firebase non disponible:', e.message);
+    }
+  }
+
+  // 2. Sinon essayer MySQL
+  if (!dbConnected) {
+    try {
+      const mysqlDB = require('./DataBase/mysql');
+      dbConnected = await mysqlDB.connect();
+      if (dbConnected) {
+        console.log('[DB] ✅ MySQL connecté — données premium persistées dans la base');
+      } else {
+        console.log('[DB] ℹ️ Aucune base de données configurée — données sauvées en JSON local');
+      }
+    } catch (e) {
+      console.log('[DB] ⚠️ MySQL non disponible:', e.message, '— mode JSON local');
+    }
+  }
+
+  // Lancer le bot
+  startBot().catch((err) => {
+    console.error("❌ Erreur de démarrage:", err.message);
+  });
+})();
 
 // Gérer les erreurs non capturées
 process.on("uncaughtException", (err) => {

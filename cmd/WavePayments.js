@@ -26,21 +26,43 @@ try {
 
 // Import premium existant
 let premiumDB;
+let writeJSONPersisted = null;
 try {
   premiumDB = require('../DataBase/premium');
+  // writeJSON avec backup MySQL automatique
+  writeJSONPersisted = premiumDB.writeJSON;
 } catch (e) {
   console.error('[WAVE CMD] Module premium non disponible');
+}
+
+// Fallback si writeJSONPersisted non disponible
+function savePersisted(file, data) {
+  if (writeJSONPersisted) return writeJSONPersisted(file, data);
+  try {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    return true;
+  } catch (e) { return false; }
 }
 
 // Numéro du owner pour les notifications
 const OWNER_NUMBER = (config.NUMERO_OWNER || '22550252467').replace(/[^0-9]/g, '');
 const OWNER_JID = OWNER_NUMBER + '@s.whatsapp.net';
 
+// Lien de paiement Jeko (configurable via .env)
+const JEKO_BASE_LINK = process.env.JEKO_PAYMENT_LINK || 'https://pay.jeko.africa/pl/2a5354be-710e-454e-8741-1b3d6beb5890';
+
+// Prix des plans (doit correspondre exactement au paiement)
+const PLANS_PRIX = {
+  bronze:  { prix: 500,   emoji: '🥉', label: 'BRONZE'  },
+  argent:  { prix: 1000,  emoji: '🥈', label: 'ARGENT'  },
+  or:      { prix: 2000,  emoji: '🥇', label: 'OR'      },
+  diamant: { prix: 5000,  emoji: '💎', label: 'DIAMANT' },
+  lifetime:{ prix: 15000, emoji: '👑', label: 'LIFETIME'}
+};
+
 // ═══════════════════════════════════════════════════════════
 // 🔑 COMMANDE ACTIVATION (UTILISATEUR)
 // ═══════════════════════════════════════════════════════════
-
-const MultiSession = require('../lib/MultiSession');
 
 ovlcmd({
   nom_cmd: "activer",
@@ -58,199 +80,131 @@ ovlcmd({
       `*.activer VOTRE-CODE*\n\n` +
       `Exemple: *.activer HANI-OR-A1B2C3D4*\n\n` +
       `📱 Obtenez un code:\n` +
-      `https://hani-md-1hanieljean1-f1e1290c.koyeb.app/subscribe.html`);
+      `${process.env.BOT_URL || 'http://localhost:3000'}/subscribe.html`);
   }
   
   const code = arg[0].toUpperCase();
   console.log(`[ACTIVER] 🔍 Code: ${code}`);
   
   try {
-    // Chercher le code dans les fichiers
+    // ── 1. Chercher le code dans activation_codes.json ou premium_codes.json ──
     let codeData = null;
     let codeSource = null;
-    
-    // 1. activation_codes.json
+
     const activationCodesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
     if (fs.existsSync(activationCodesFile)) {
       const codes = JSON.parse(fs.readFileSync(activationCodesFile, 'utf8') || '{}');
-      if (codes[code]) {
-        codeData = codes[code];
-        codeSource = 'activation_codes';
-      }
+      if (codes[code]) { codeData = codes[code]; codeSource = 'activation_codes'; }
     }
-    
-    // 2. premium_codes.json
+
     if (!codeData) {
       const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
       if (fs.existsSync(premiumCodesFile)) {
         const codes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8') || '{}');
-        if (codes[code]) {
-          codeData = codes[code];
-          codeSource = 'premium_codes';
-        }
+        if (codes[code]) { codeData = codes[code]; codeSource = 'premium_codes'; }
       }
     }
-    
+
     if (!codeData) {
-      return repondre(`❌ *Code invalide*\n\nLe code \`${code}\` n'existe pas.`);
+      return repondre(`❌ *Code invalide*\n\nLe code \`${code}\` n'existe pas.\nVérifiez le code reçu ou contactez: wa.me/${OWNER_NUMBER}`);
     }
-    
+
     if (codeData.used || codeData.usedBy) {
-      return repondre(`❌ *Code déjà utilisé*\n\nCe code a déjà été activé.`);
+      return repondre(`❌ *Code déjà utilisé*\n\nCe code a déjà été activé par un autre utilisateur.`);
     }
-    
-    // Activer le code
+
+    // ── 2. Lire les infos du plan ──
     const planName = codeData.plan || 'OR';
     const planUpper = planName.toUpperCase();
     const days = codeData.days || 30;
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
-    
-    // Marquer comme utilisé
+
+    // ── 3. Marquer le code comme utilisé ──
     codeData.used = true;
     codeData.usedBy = userJid;
     codeData.usedAt = new Date().toISOString();
     codeData.expiresAt = expiresAt.toISOString();
-    
-    // ═══════════════════════════════════════════════════════
-    // 🔗 CRÉER UNE SESSION CLIENT POUR SON PROPRE BOT
-    // ═══════════════════════════════════════════════════════
-    
-    let clientSession = null;
-    let connectUrl = '';
-    
-    try {
-      // Créer une session pour ce client
-      clientSession = await MultiSession.createClientSession(
-        code, 
-        planUpper, 
-        expiresAt.toISOString()
-      );
-      
-      // Sauvegarder le clientId dans le code
-      codeData.clientId = clientSession.clientId;
-      
-      // URL de connexion
-      const baseUrl = process.env.BASE_URL || 'https://hani-md-1hanieljean1-f1e1290c.koyeb.app';
-      connectUrl = `${baseUrl}/connect?id=${clientSession.clientId}&code=${code}`;
-      
-      console.log(`[ACTIVER] 🔗 Session créée: ${clientSession.clientId}`);
-    } catch (sessionError) {
-      console.log(`[ACTIVER] ⚠️ Erreur création session: ${sessionError.message}`);
-    }
-    
-    // Sauvegarder le code mis à jour
+
     const targetFile = path.join(__dirname, '..', 'DataBase', `${codeSource}.json`);
     const allCodes = JSON.parse(fs.readFileSync(targetFile, 'utf8') || '{}');
     allCodes[code] = codeData;
     fs.writeFileSync(targetFile, JSON.stringify(allCodes, null, 2));
-    
-    // Sync avec premium
+
+    // ── 4. Activer le premium dans la base de données (débloque les fonctionnalités) ──
     if (premiumDB) {
       try {
         premiumDB.addPremium(userJid, planName.toLowerCase(), days);
-      } catch (e) {}
+      } catch (e) {
+        console.error('[ACTIVER] Erreur addPremium:', e.message);
+      }
     }
-    
-    // Sauvegarder dans subscribers
+
+    // ── 5. Sauvegarder dans subscribers.json ──
     try {
       const subscribersFile = path.join(__dirname, '..', 'DataBase', 'subscribers.json');
       let subscribers = { subscribers: [] };
       if (fs.existsSync(subscribersFile)) {
         subscribers = JSON.parse(fs.readFileSync(subscribersFile, 'utf8') || '{"subscribers":[]}');
       }
-      
       const phone = userJid.replace('@s.whatsapp.net', '').replace('@lid', '');
       const idx = subscribers.subscribers.findIndex(s => s.phone === phone);
-      
       const data = {
-        phone,
-        whatsappJid: userJid,
-        plan: planUpper,
-        status: 'active',
+        phone, whatsappJid: userJid,
+        plan: planUpper, status: 'active',
         activatedAt: new Date().toISOString(),
-        expiresAt: expiresAt.toISOString(),
-        activationCode: code,
-        clientId: clientSession?.clientId || null
+        expiresAt: days >= 36500 ? null : expiresAt.toISOString(),
+        activationCode: code
       };
-      
       if (idx >= 0) {
         subscribers.subscribers[idx] = { ...subscribers.subscribers[idx], ...data };
       } else {
         subscribers.subscribers.push(data);
       }
-      
-      fs.writeFileSync(subscribersFile, JSON.stringify(subscribers, null, 2));
+      savePersisted(subscribersFile, subscribers);
     } catch (e) {}
-    
-    // ═══════════════════════════════════════════════════════
-    // 📋 FONCTIONNALITÉS SELON LE PLAN
-    // ═══════════════════════════════════════════════════════
-    
-    const planFeatures = {
-      BRONZE: '🥉 *BRONZE* (500 FCFA)\n' +
-        '✅ 100 commandes/jour\n' +
-        '✅ Téléchargements audio/vidéo\n' +
-        '✅ Stickers avancés\n' +
-        '✅ Conversion de fichiers\n' +
-        '❌ IA limitée\n' +
-        '❌ Gestion de groupe',
-      ARGENT: '🥈 *ARGENT* (1000 FCFA)\n' +
-        '✅ 300 commandes/jour\n' +
-        '✅ Téléchargements HD\n' +
-        '✅ IA complète (GPT, DALL-E)\n' +
-        '✅ Gestion de groupe\n' +
-        '✅ Anti-spam & protections\n' +
-        '✅ Support prioritaire',
-      OR: '🥇 *OR* (2000 FCFA)\n' +
-        '✅ Commandes ILLIMITÉES\n' +
-        '✅ Toutes les fonctionnalités\n' +
-        '✅ IA sans limite\n' +
-        '✅ Support VIP 24/7\n' +
-        '✅ Fonctionnalités bêta',
-      DIAMANT: '💎 *DIAMANT* (5000 FCFA)\n' +
-        '✅ TOUT ILLIMITÉ\n' +
-        '✅ Multi-numéros (3 max)\n' +
-        '✅ API Access\n' +
-        '✅ Bot dédié\n' +
-        '✅ Support personnel\n' +
-        '✅ Fonctionnalités exclusives',
-      LIFETIME: '👑 *LIFETIME* (15000 FCFA)\n' +
-        '✅ ACCÈS À VIE\n' +
-        '✅ Toutes les fonctionnalités\n' +
-        '✅ Mises à jour gratuites\n' +
-        '✅ Support VIP permanent\n' +
-        '✅ Badge exclusif 👑'
-    };
-    
+
+    // ── 6. Notifier l'owner ──
     const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
-    const expireText = days >= 36500 ? '♾️ À VIE' : `📅 Expire le: ${expiresAt.toLocaleDateString('fr-FR')}`;
-    
-    console.log(`[ACTIVER] ✅ Succès: ${planUpper} pour ${userJid}`);
-    
-    // Message de succès avec lien de connexion
-    let successMsg = `🎉 *ABONNEMENT ACTIVÉ !*\n` +
+    try {
+      await ovl.sendMessage(OWNER_JID, {
+        text: `🎉 *NOUVEAU ABONNÉ ACTIVÉ*\n\n` +
+          `👤 ${msg.pushName || userJid.replace('@s.whatsapp.net','')}\n` +
+          `📱 ${userJid.replace('@s.whatsapp.net','')}\n` +
+          `${planEmoji[planUpper] || '💎'} Plan: ${planUpper}\n` +
+          `📅 Expire: ${days >= 36500 ? 'LIFETIME' : expiresAt.toLocaleDateString('fr-FR')}\n` +
+          `🔑 Code: ${code}`
+      });
+    } catch (e) {}
+
+    // ── 7. Message de succès au client ──
+    const planFeatures = {
+      BRONZE:  '✅ 100 commandes/jour\n✅ Téléchargements audio/vidéo\n✅ Stickers avancés',
+      ARGENT:  '✅ 300 commandes/jour\n✅ Téléchargements HD\n✅ IA complète (GPT)\n✅ Gestion de groupe',
+      OR:      '✅ Commandes ILLIMITÉES\n✅ Toutes les fonctionnalités\n✅ IA sans limite\n✅ Support VIP',
+      DIAMANT: '✅ TOUT ILLIMITÉ\n✅ Support personnel\n✅ Fonctionnalités exclusives',
+      LIFETIME:'✅ ACCÈS À VIE\n✅ Toutes les fonctionnalités\n✅ Mises à jour gratuites'
+    };
+    const expireText = days >= 36500 ? '♾️ *À VIE*' : `📅 Expire le: *${expiresAt.toLocaleDateString('fr-FR')}*`;
+
+    console.log(`[ACTIVER] ✅ ${planUpper} activé pour ${userJid}`);
+
+    return repondre(
+      `🎉 *ABONNEMENT ACTIVÉ !*\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n\n` +
-      `${planEmoji[planUpper] || '💎'} *Plan:* ${planUpper}\n` +
+      `${planEmoji[planUpper] || '💎'} Plan: *${planUpper}*\n` +
       `${expireText}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n` +
-      `${planFeatures[planUpper] || ''}\n` +
-      `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
-    if (connectUrl) {
-      successMsg += `🔗 *CONNECTEZ VOTRE BOT:*\n\n` +
-        `Cliquez sur ce lien pour connecter HANI-MD à votre WhatsApp personnel:\n\n` +
-        `🌐 ${connectUrl}\n\n` +
-        `📱 Scannez le QR code avec votre WhatsApp pour avoir votre propre bot !\n\n`;
-    }
-    
-    successMsg += `✅ *Commandes disponibles:*\n` +
-      `Tapez *.menu* pour voir toutes vos commandes.\n\n` +
-      `💬 Support: wa.me/22550252467\n` +
-      `⭐ Merci d'avoir choisi HANI-MD !`;
-    
-    return repondre(successMsg);
-    
+      `${planFeatures[planUpper] || '✅ Accès premium activé'}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `✅ Vos fonctionnalités premium sont\n` +
+      `   *immédiatement disponibles* sur ce chat.\n\n` +
+      `📋 Tapez *.menu* pour voir vos commandes\n` +
+      `💎 Tapez *.monplan* pour voir votre abonnement\n\n` +
+      `💬 Support: wa.me/${OWNER_NUMBER}\n` +
+      `⭐ Merci d'avoir choisi HANI-MD !`
+    );
+
   } catch (e) {
     console.error('[ACTIVER] Erreur:', e);
     return repondre(`❌ Erreur: ${e.message}`);
@@ -543,19 +497,21 @@ ovlcmd({
     `🥈 *ARGENT* - 1 000 FCFA/mois\n` +
     `   ↳ 300 commandes/jour\n\n` +
     `🥇 *OR* - 2 000 FCFA/mois ⭐\n` +
-    `   ↳ Illimité\n\n` +
+    `   ↳ Commandes illimitées\n\n` +
     `💎 *DIAMANT* - 5 000 FCFA/mois\n` +
-    `   ↳ Tout illimité\n\n` +
+    `   ↳ Tout illimité + bot dédié\n\n` +
     `👑 *LIFETIME* - 15 000 FCFA\n` +
-    `   ↳ À vie !\n\n` +
+    `   ↳ Accès à vie !\n\n` +
     `━━━━━━━━━━━━━━━\n` +
-    `📱 *PAIEMENT WAVE*\n\n` +
-    `1️⃣ Visitez le site\n` +
-    `2️⃣ Remplissez le formulaire\n` +
-    `3️⃣ Payez avec Wave\n` +
-    `4️⃣ Recevez votre code\n` +
-    `5️⃣ *.activer CODE*\n\n` +
-    `📞 Support: wa.me/22550252467`;
+    `� *COMMENT PAYER (Wave):*\n\n` +
+    `1️⃣ Tapez *.payer <plan>*\n` +
+    `   Ex: *.payer or*\n\n` +
+    `2️⃣ Cliquez le lien Wave reçu\n` +
+    `3️⃣ Payez le montant EXACT\n` +
+    `4️⃣ Tapez *.confirmer REF MONTANT*\n` +
+    `5️⃣ Recevez votre code d'activation\n` +
+    `6️⃣ Tapez *.activer CODE*\n\n` +
+    `📞 Support: wa.me/${OWNER_NUMBER}`;
   
   return repondre(message);
 });
@@ -619,4 +575,245 @@ ovlcmd({
     `Tapez *.abonnement* pour plus d'infos`);
 });
 
+// ═══════════════════════════════════════════════════════════
+// 💳 .payer <plan> — GÉNÈRE LE LIEN JEKO AVEC LE BON MONTANT
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd({
+  nom_cmd: "payer",
+  classe: "Premium",
+  react: "💳",
+  desc: "Obtenir le lien de paiement Wave pour un plan",
+  alias: ["pay", "acheter", "subscribe"]
+}, async (ovl, msg, { arg, repondre, sender, auteurMessage }) => {
+  const userJid = sender || auteurMessage || msg.key.participant || msg.key.remoteJid;
+  const userPhone = userJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+
+  // Afficher les plans si aucun argument
+  if (!arg || arg.length === 0) {
+    return repondre(
+      `💳 *PAIEMENT HANI-MD PREMIUM*\n\n` +
+      `Choisissez votre plan:\n\n` +
+      `🥉 *.payer bronze*  → 500 FCFA/mois\n` +
+      `🥈 *.payer argent*  → 1 000 FCFA/mois\n` +
+      `🥇 *.payer or*      → 2 000 FCFA/mois ⭐\n` +
+      `💎 *.payer diamant* → 5 000 FCFA/mois\n` +
+      `👑 *.payer lifetime*→ 15 000 FCFA (à vie)\n\n` +
+      `_Exemple: .payer or_`
+    );
+  }
+
+  const planKey = arg[0].toLowerCase();
+  const plan = PLANS_PRIX[planKey];
+
+  if (!plan) {
+    return repondre(
+      `❌ *Plan invalide:* \`${arg[0]}\`\n\n` +
+      `Plans disponibles: bronze, argent, or, diamant, lifetime`
+    );
+  }
+
+  // Générer une référence unique pour ce paiement
+  const crypto = require('crypto');
+  const refId = crypto.randomBytes(4).toString('hex').toUpperCase();
+  const reference = `HANI-${plan.label}-${refId}`;
+
+  // Construire le lien Jeko avec le montant exact
+  const jekoLink = `${JEKO_BASE_LINK}?amount=${plan.prix}&reference=${reference}`;
+
+  // Sauvegarder la demande en attente avec le montant attendu
+  const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
+  let pending = [];
+  try {
+    if (fs.existsSync(pendingFile)) {
+      pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+    }
+  } catch (e) {}
+
+  pending.push({
+    id: reference,
+    phone: userPhone,
+    whatsappJid: userJid,
+    plan: plan.label,
+    amount: plan.prix,           // ← montant ATTENDU (référence pour la vérification)
+    status: 'awaiting_payment',
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // expire dans 24h
+  });
+
+  savePersisted(pendingFile, pending);
+
+  const durationText = plan.label === 'LIFETIME' ? 'À VIE' : '30 jours';
+
+  return repondre(
+    `${plan.emoji} *PAIEMENT ${plan.label}*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `💵 *Montant exact:* ${plan.prix} FCFA\n` +
+    `📅 *Durée:* ${durationText}\n` +
+    `🆔 *Référence:* \`${reference}\`\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `🔗 *Cliquez pour payer:*\n` +
+    `${jekoLink}\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `⚠️ *IMPORTANT:*\n` +
+    `• Payez EXACTEMENT *${plan.prix} FCFA*\n` +
+    `• Tout autre montant sera *rejeté automatiquement*\n\n` +
+    `✅ *Après paiement, envoyez:*\n` +
+    `*.confirmer ${reference} ${plan.prix}*\n\n` +
+    `⏳ Cette référence expire dans 24h`
+  );
+});
+
+// ═══════════════════════════════════════════════════════════
+// ✅ .confirmer <ref> <montant> — VÉRIFICATION AUTOMATIQUE
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd({
+  nom_cmd: "confirmer",
+  classe: "Premium",
+  react: "🔄",
+  desc: "Confirmer votre paiement Wave après avoir payé",
+  alias: ["confirm", "paie"]
+}, async (ovl, msg, { arg, repondre, sender, auteurMessage }) => {
+  const userJid = sender || auteurMessage || msg.key.participant || msg.key.remoteJid;
+  const userPhone = userJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+
+  if (!arg || arg.length < 2) {
+    return repondre(
+      `🔄 *CONFIRMER UN PAIEMENT*\n\n` +
+      `Usage:\n` +
+      `*.confirmer REFERENCE MONTANT_PAYÉ*\n\n` +
+      `Exemple:\n` +
+      `*.confirmer HANI-OR-A1B2C3D4 2000*\n\n` +
+      `💡 La référence vous a été donnée lors de votre commande *.payer*`
+    );
+  }
+
+  const reference = arg[0].toUpperCase();
+  const montantSoumis = parseInt(arg[1], 10);
+
+  // Vérifier que le montant soumis est un nombre valide
+  if (isNaN(montantSoumis) || montantSoumis <= 0) {
+    return repondre(`❌ *Montant invalide:* \`${arg[1]}\`\n\nEntrez le montant que vous avez payé en chiffres.\nExemple: *.confirmer HANI-OR-A1B2 2000*`);
+  }
+
+  // Charger les paiements en attente
+  const pendingFile = path.join(__dirname, '..', 'DataBase', 'pending_validations.json');
+  let pending = [];
+  try {
+    if (fs.existsSync(pendingFile)) {
+      pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8') || '[]');
+    }
+  } catch (e) {
+    return repondre(`❌ Erreur système. Contactez: wa.me/${OWNER_NUMBER}`);
+  }
+
+  // Trouver la demande par référence
+  const reqIndex = pending.findIndex(p => p.id === reference);
+
+  if (reqIndex === -1) {
+    return repondre(
+      `❌ *Référence introuvable:* \`${reference}\`\n\n` +
+      `• Vérifiez la référence reçue lors de *.payer*\n` +
+      `• La référence expire après 24h\n` +
+      `• Recommencez avec *.payer <plan>*`
+    );
+  }
+
+  const demande = pending[reqIndex];
+
+  // Vérifier si déjà traité
+  if (demande.status === 'validated' || demande.status === 'active') {
+    return repondre(`✅ Ce paiement a déjà été validé.\nTapez *.activer ${demande.activationCode || 'VOTRE-CODE'}* pour activer.`);
+  }
+
+  if (demande.status === 'rejected') {
+    return repondre(`❌ Cette demande a déjà été rejetée.\nFaites *.payer ${demande.plan.toLowerCase()}* pour recommencer.`);
+  }
+
+  // Vérifier si expiré
+  if (demande.expiresAt && new Date(demande.expiresAt) < new Date()) {
+    pending[reqIndex].status = 'expired';
+    savePersisted(pendingFile, pending);
+    return repondre(`⏰ *Référence expirée*\n\nFaites *.payer ${demande.plan.toLowerCase()}* pour obtenir un nouveau lien.`);
+  }
+
+  // ═══════════════════════════════════════════════
+  // 🔍 VÉRIFICATION AUTOMATIQUE DU MONTANT
+  // ═══════════════════════════════════════════════
+  const montantAttendu = demande.amount;
+
+  if (montantSoumis !== montantAttendu) {
+    // ❌ REJET AUTOMATIQUE — montant incorrect
+    pending[reqIndex].status = 'rejected';
+    pending[reqIndex].rejectReason = `Montant incorrect: soumis ${montantSoumis} FCFA, attendu ${montantAttendu} FCFA`;
+    pending[reqIndex].rejectedAt = new Date().toISOString();
+    savePersisted(pendingFile, pending);
+
+    // Notifier l'owner du rejet automatique
+    try {
+      await ovl.sendMessage(OWNER_JID, {
+        text: `⚠️ *REJET AUTOMATIQUE*\n\n` +
+          `👤 ${userPhone}\n` +
+          `🆔 Réf: ${reference}\n` +
+          `${demande.plan} — Attendu: ${montantAttendu} FCFA\n` +
+          `❌ Soumis: ${montantSoumis} FCFA\n` +
+          `📅 ${new Date().toLocaleString('fr-FR')}`
+      });
+    } catch (e) {}
+
+    return repondre(
+      `❌ *PAIEMENT REJETÉ AUTOMATIQUEMENT*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `🆔 Référence: \`${reference}\`\n` +
+      `💵 Montant attendu: *${montantAttendu} FCFA*\n` +
+      `💸 Montant soumis: *${montantSoumis} FCFA*\n\n` +
+      `⚠️ *Le montant ne correspond pas au plan.*\n\n` +
+      `📌 Solutions:\n` +
+      `• Si vous avez payé *${montantAttendu} FCFA*, re-soumettez avec le bon montant\n` +
+      `• Si vous avez payé un autre montant, contactez:\n` +
+      `  📞 wa.me/${OWNER_NUMBER}`
+    );
+  }
+
+  // ✅ MONTANT CORRECT — marquer comme pending_validation pour l'owner
+  pending[reqIndex].status = 'pending_validation';
+  pending[reqIndex].confirmedAt = new Date().toISOString();
+  pending[reqIndex].amountConfirmed = montantSoumis;
+  pending[reqIndex].name = msg.pushName || userPhone;
+  pending[reqIndex].waveNumber = userPhone;
+  pending[reqIndex].transactionId = `AUTO-${Date.now()}`;
+  savePersisted(pendingFile, pending);
+
+  // Notifier l'owner pour validation finale
+  const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+  try {
+    await ovl.sendMessage(OWNER_JID, {
+      text: `💰 *NOUVEAU PAIEMENT À VALIDER*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `👤 *Nom:* ${msg.pushName || userPhone}\n` +
+        `📱 *Tel:* ${userPhone}\n` +
+        `🆔 *Réf:* \`${reference}\`\n` +
+        `${planEmoji[demande.plan] || '💎'} *Plan:* ${demande.plan}\n` +
+        `✅ *Montant vérifié:* ${montantSoumis} FCFA\n` +
+        `📅 ${new Date().toLocaleString('fr-FR')}\n\n` +
+        `▶️ Pour valider: *.validatepay ${reference}*\n` +
+        `▶️ Pour rejeter: *.rejectpay ${reference}*`
+    });
+  } catch (e) {}
+
+  return repondre(
+    `✅ *PAIEMENT REÇU ET VÉRIFIÉ !*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `🆔 Référence: \`${reference}\`\n` +
+    `${planEmoji[demande.plan] || '💎'} Plan: *${demande.plan}*\n` +
+    `💵 Montant: *${montantSoumis} FCFA* ✅\n\n` +
+    `⏳ *Validation en cours...*\n` +
+    `Vous recevrez votre code d'activation\n` +
+    `dans les prochaines minutes.\n\n` +
+    `💬 Support: wa.me/${OWNER_NUMBER}`
+  );
+});
+
 console.log('[WAVE] ✅ Module WavePayments chargé');
+

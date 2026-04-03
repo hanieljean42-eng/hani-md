@@ -21,6 +21,7 @@ const {
   delay,
   useMultiFileAuthState,
   DisconnectReason,
+  fetchLatestBaileysVersion,
 } = require("@whiskeysockets/baileys");
 
 const SESSION_FOLDER = "./DataBase/session/principale";
@@ -39,11 +40,16 @@ console.log(`
 ╚═══════════════════════════════════════════════════════════╝
 `);
 
-async function generateSession() {
-  // Nettoyer l'ancienne session
-  if (fs.existsSync(SESSION_FOLDER)) {
-    fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
-    console.log("🗑️  Ancienne session supprimée");
+let reconnectAttempts = 0;
+const MAX_RECONNECT = 5;
+
+async function generateSession(isRetry = false) {
+  // Nettoyer l'ancienne session seulement au premier lancement
+  if (!isRetry) {
+    if (fs.existsSync(SESSION_FOLDER)) {
+      fs.rmSync(SESSION_FOLDER, { recursive: true, force: true });
+      console.log("🗑️  Ancienne session supprimée");
+    }
   }
 
   // Créer le dossier
@@ -51,7 +57,19 @@ async function generateSession() {
 
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
+  // Obtenir la version WhatsApp avec fallback
+  let version;
+  try {
+    const result = await fetchLatestBaileysVersion();
+    version = result.version;
+    console.log(`[SESSION] Version WhatsApp: ${version.join(".")}`)
+  } catch (e) {
+    version = [2, 3000, 1020394028];
+    console.log(`[SESSION] Version fallback: ${version.join(".")}`)
+  }
+
   const sock = makeWASocket({
+    version,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
@@ -59,6 +77,7 @@ async function generateSession() {
     logger: pino({ level: "silent" }),
     browser: Browsers.ubuntu("Chrome"),
     markOnlineOnConnect: true,
+    connectTimeoutMs: 30000,
   });
 
   sock.ev.on("connection.update", async (update) => {
@@ -126,14 +145,25 @@ async function generateSession() {
 
     if (connection === "close") {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
+      const errorMsg = lastDisconnect?.error?.message || "Inconnue";
+      
+      console.log(`[SESSION] ❌ Connexion fermée - Code: ${statusCode} | Raison: ${errorMsg}`);
       
       if (statusCode === DisconnectReason.loggedOut) {
-        console.log("❌ Déconnecté. Relance le script.");
+        console.log("❌ Déconnecté (loggedOut). Relance le script.");
         process.exit(1);
-      } else if (statusCode !== 200) {
-        console.log("🔄 Reconnexion...");
-        await delay(3000);
-        generateSession();
+      } else if (statusCode === DisconnectReason.connectionReplaced) {
+        console.log("⚠️ Connexion remplacée (autre appareil). Relance le script.");
+        process.exit(1);
+      } else {
+        reconnectAttempts++;
+        if (reconnectAttempts > MAX_RECONNECT) {
+          console.log(`❌ Échec après ${MAX_RECONNECT} tentatives. Vérifier la connexion internet.`);
+          process.exit(1);
+        }
+        console.log(`🔄 Reconnexion (${reconnectAttempts}/${MAX_RECONNECT}) dans 5s...`);
+        await delay(5000);
+        generateSession(true);
       }
     }
   });

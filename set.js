@@ -18,7 +18,8 @@ const config = {
   BOT_NAME: process.env.BOT_NAME || "HANI-MD",
   BOT_VERSION: "2.6.1",
   OWNER_NAME: process.env.NOM_OWNER || process.env.OWNER_NAME || "H2025",
-  OWNER_NUMBER: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "",
+  OWNER_NUMBER: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "22550252467",
+  NUMERO_OWNER: process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || "22550252467", // alias pour compatibilité
   
   // Préfixe des commandes
   PREFIX: process.env.PREFIXE || process.env.PREFIX || ".",

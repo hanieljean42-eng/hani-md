@@ -10,7 +10,7 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const config = require('../set');
 const fs = require('fs');
 const path = require('path');
-const db = require('../DataBase/mysql');
+const db = require('../DataBase/db'); // Firebase-first via proxy db.js
 
 // ═══════════════════════════════════════════════════════════
 // 🔒 SÉCURITÉ AVANCÉE
@@ -22,9 +22,9 @@ ovlcmd({
   react: "🛡️",
   desc: "Active/désactive toutes les protections du groupe",
   alias: ["protection", "securite"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, arg }) => {
-  if (!verifGroupe) return repondre("❌ Cette commande est réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Cette commande est réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   
   const groupId = ms.key.remoteJid;
   const action = arg[0]?.toLowerCase();
@@ -68,8 +68,8 @@ ovlcmd({
   react: "🚨",
   desc: "Mode urgence - Ferme le groupe et supprime les messages récents",
   alias: ["urgence", "emergency"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, arg }) => {
-  if (!verifGroupe) return repondre("❌ Cette commande est réservée aux groupes.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Cette commande est réservée aux groupes.");
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
   
   const groupId = ms.key.remoteJid;
@@ -95,8 +95,8 @@ ovlcmd({
   react: "🔓",
   desc: "Désactive le mode urgence",
   alias: ["deverrouiller"]
-}, async (hani, ms, { repondre, verifGroupe, superUser }) => {
-  if (!verifGroupe) return repondre("❌ Cette commande est réservée aux groupes.");
+}, async (hani, ms, { repondre, verif_Groupe, superUser }) => {
+  if (!verif_Groupe) return repondre("❌ Cette commande est réservée aux groupes.");
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
   
   const groupId = ms.key.remoteJid;
@@ -147,8 +147,8 @@ ovlcmd({
   react: "📊",
   desc: "Statistiques du groupe",
   alias: ["gstats", "groupinfo"]
-}, async (hani, ms, { repondre, verifGroupe }) => {
-  if (!verifGroupe) return repondre("❌ Réservé aux groupes.");
+}, async (hani, ms, { repondre, verif_Groupe }) => {
+  if (!verif_Groupe) return repondre("❌ Réservé aux groupes.");
   
   const groupId = ms.key.remoteJid;
   const metadata = await hani.groupMetadata(groupId);
@@ -266,9 +266,9 @@ ovlcmd({
   react: "📣",
   desc: "Annonce avec mise en forme. Usage: .announce titre | message",
   alias: ["annonce"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, arg }) => {
-  if (!verifGroupe) return repondre("❌ Réservé aux groupes.");
-  if (!verifAdmin) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Réservé aux groupes.");
+  if (!verif_Admin) return repondre("❌ Réservé aux admins.");
   
   if (!arg[0]) return repondre("❌ Usage: .announce titre | message");
   
@@ -346,8 +346,8 @@ ovlcmd({
   react: "📊",
   desc: "Crée un sondage. Usage: .poll question | option1 | option2 | ...",
   alias: ["sondage", "vote"]
-}, async (hani, ms, { repondre, arg, verifGroupe }) => {
-  if (!verifGroupe) return repondre("❌ Réservé aux groupes.");
+}, async (hani, ms, { repondre, arg, verif_Groupe }) => {
+  if (!verif_Groupe) return repondre("❌ Réservé aux groupes.");
   if (!arg[0]) return repondre("❌ Usage: .poll Question | Option1 | Option2 | Option3");
   
   const fullArg = arg.join(' ');
@@ -497,7 +497,7 @@ ovlcmd({
   react: "👤",
   desc: "Informations sur un utilisateur. Usage: .whois @user",
   alias: ["userinfo", "profil"]
-}, async (hani, ms, { repondre, verifGroupe, arg }) => {
+}, async (hani, ms, { repondre, verif_Groupe, arg }) => {
   let target;
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
@@ -512,7 +512,7 @@ ovlcmd({
   let isAdmin = false;
   let groupName = "N/A";
   
-  if (verifGroupe) {
+  if (verif_Groupe) {
     const metadata = await hani.groupMetadata(ms.key.remoteJid);
     groupName = metadata.subject;
     const participant = metadata.participants.find(p => p.id === target);
@@ -1281,9 +1281,9 @@ ovlcmd({
   react: "⚠️",
   desc: "Avertit un utilisateur. 3 warns = kick. Usage: .warn @user [raison]",
   alias: ["avertir", "avertissement"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, arg }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
@@ -1339,9 +1339,9 @@ ovlcmd({
   react: "✅",
   desc: "Retire les avertissements d'un utilisateur",
   alias: ["pardonwarn", "resetwarn", "delwarn"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
@@ -1368,8 +1368,8 @@ ovlcmd({
   react: "📊",
   desc: "Vérifie les avertissements d'un utilisateur",
   alias: ["warns", "warncount"]
-}, async (hani, ms, { repondre, verifGroupe, arg }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
+}, async (hani, ms, { repondre, verif_Groupe, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
@@ -1400,9 +1400,9 @@ ovlcmd({
   react: "👢",
   desc: "Expulse un membre du groupe. Usage: .kick @user",
   alias: ["expulser", "remove", "virer"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin pour expulser.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
@@ -1428,9 +1428,9 @@ ovlcmd({
   react: "➕",
   desc: "Ajoute un membre au groupe. Usage: .add numéro",
   alias: ["ajouter", "invite"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin, arg }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin, arg }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin pour ajouter.");
   
   if (!arg[0]) return repondre("❌ Usage: .add numéro");
@@ -1463,9 +1463,9 @@ ovlcmd({
   react: "👑",
   desc: "Promeut un membre en admin. Usage: .promote @user",
   alias: ["admin", "promouvoir"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin pour promouvoir.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
@@ -1491,9 +1491,9 @@ ovlcmd({
   react: "⬇️",
   desc: "Retire les droits admin d'un membre. Usage: .demote @user",
   alias: ["unadmin", "retrograder"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin pour rétrograder.");
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
@@ -1519,9 +1519,9 @@ ovlcmd({
   react: "🔇",
   desc: "Ferme le groupe (seuls les admins peuvent parler)",
   alias: ["fermer", "silence"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin.");
   
   const groupId = ms.key.remoteJid;
@@ -1540,9 +1540,9 @@ ovlcmd({
   react: "🔊",
   desc: "Ouvre le groupe (tout le monde peut parler)",
   alias: ["ouvrir", "unsilence"]
-}, async (hani, ms, { repondre, verifGroupe, verifAdmin, superUser, verif_Ovl_Admin }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
-  if (!verifAdmin && !superUser) return repondre("❌ Réservé aux admins.");
+}, async (hani, ms, { repondre, verif_Groupe, verif_Admin, superUser, verif_Ovl_Admin }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
+  if (!verif_Admin && !superUser) return repondre("❌ Réservé aux admins.");
   if (!verif_Ovl_Admin) return repondre("❌ Je dois être admin.");
   
   const groupId = ms.key.remoteJid;
@@ -1561,8 +1561,8 @@ ovlcmd({
   react: "ℹ️",
   desc: "Affiche les informations complètes du groupe",
   alias: ["infogroupe", "ginfo"]
-}, async (hani, ms, { repondre, verifGroupe }) => {
-  if (!verifGroupe) return repondre("❌ Commande réservée aux groupes.");
+}, async (hani, ms, { repondre, verif_Groupe }) => {
+  if (!verif_Groupe) return repondre("❌ Commande réservée aux groupes.");
   
   const groupId = ms.key.remoteJid;
   
@@ -1602,7 +1602,7 @@ ovlcmd({
   react: "👤",
   desc: "Informations détaillées sur un utilisateur avec données MySQL",
   alias: ["profilev2", "userstats"]
-}, async (hani, ms, { repondre, verifGroupe, arg }) => {
+}, async (hani, ms, { repondre, verif_Groupe, arg }) => {
   let target;
   
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
@@ -1625,7 +1625,7 @@ ovlcmd({
     let groupName = "N/A";
     let memberSince = "N/A";
     
-    if (verifGroupe) {
+    if (verif_Groupe) {
       const metadata = await hani.groupMetadata(ms.key.remoteJid);
       groupName = metadata.subject;
       const participant = metadata.participants.find(p => p.id === target);
@@ -1671,3 +1671,4 @@ ovlcmd({
 });
 
 console.log("✅ Advanced Commands loaded - HANI-MD V3.1 - Spy & User Management FUNCTIONAL");
+

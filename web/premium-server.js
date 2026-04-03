@@ -34,8 +34,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuration
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'hani2025';
-const JWT_SECRET = process.env.JWT_SECRET || 'hani-premium-secret-2025';
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('[SECURITY] ⚠️ ADMIN_PASSWORD non défini dans .env ! Ajoutez-le pour sécuriser le panel.');
+}
+if (!process.env.JWT_SECRET) {
+  console.warn('[SECURITY] ⚠️ JWT_SECRET non défini dans .env ! Ajoutez-le pour sécuriser les sessions.');
+}
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || require('crypto').randomBytes(16).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
 
 // Sessions admin simples
 const adminSessions = new Map();

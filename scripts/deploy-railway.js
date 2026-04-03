@@ -145,7 +145,7 @@ async function main() {
   log.step(5, 'Configuration des variables d\'environnement...');
   
   // Variables obligatoires
-  const numeroOwner = await question('Numéro du owner (ex: 22550252467): ');
+  const numeroOwner = await question('Numéro du owner (ex: 2250150252467): ');
   const sessionId = await question('SESSION_ID: ');
   
   if (numeroOwner) {
@@ -196,3 +196,4 @@ main().catch(err => {
   rl.close();
   process.exit(1);
 });
+

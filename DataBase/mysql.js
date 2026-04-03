@@ -884,6 +884,44 @@ async function getActivity(jid, limit = 50) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// ⚙️ SETTINGS (persistance clé-valeur — pour premium, codes, etc.)
+// ═══════════════════════════════════════════════════════════
+
+async function getSetting(key) {
+  if (!isConnected) return null;
+  try {
+    const [rows] = await pool.execute('SELECT value FROM settings WHERE `key` = ?', [key]);
+    return rows[0]?.value ?? null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function setSetting(key, value) {
+  if (!isConnected) return false;
+  try {
+    const strVal = typeof value === 'string' ? value : JSON.stringify(value);
+    await pool.execute(
+      'INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?, updated_at = NOW()',
+      [key, strVal, strVal]
+    );
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function deleteSetting(key) {
+  if (!isConnected) return false;
+  try {
+    await pool.execute('DELETE FROM settings WHERE `key` = ?', [key]);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // 🧹 NETTOYAGE
 // ═══════════════════════════════════════════════════════════
 
@@ -1738,5 +1776,10 @@ module.exports = {
   deleteBroadcastList,
   
   // Nettoyage
-  cleanOldData
+  cleanOldData,
+
+  // Settings (persistance clé-valeur)
+  getSetting,
+  setSetting,
+  deleteSetting
 };

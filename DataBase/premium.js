@@ -15,6 +15,44 @@ const PREMIUM_FILE = path.join(__dirname, 'premium_users.json');
 const CODES_FILE = path.join(__dirname, 'premium_codes.json');
 const TRANSACTIONS_FILE = path.join(__dirname, 'transactions.json');
 
+const PENDING_FILE = path.join(__dirname, 'pending_validations.json');
+const SUBSCRIBERS_FILE = path.join(__dirname, 'subscribers.json');
+
+// ── Clés MySQL settings pour chaque fichier ──
+const MYSQL_KEYS = {
+  [PREMIUM_FILE]: 'hani_premium_users',
+  [CODES_FILE]: 'hani_premium_codes',
+  [TRANSACTIONS_FILE]: 'hani_transactions',
+  [PENDING_FILE]: 'hani_pending_validations',
+  [SUBSCRIBERS_FILE]: 'hani_subscribers'
+};
+
+// ── Persistance : Firebase → MySQL → JSON local (via proxy db.js) ──
+const mysqlDB = require('./db');
+
+/**
+ * Restaure les fichiers JSON depuis MySQL au démarrage.
+ * Appelé une fois au chargement du module.
+ */
+async function restoreFromMySQL() {
+  if (!mysqlDB || !mysqlDB.isConnected()) return;
+  for (const [file, key] of Object.entries(MYSQL_KEYS)) {
+    try {
+      const val = await mysqlDB.getSetting(key);
+      if (val) {
+        const parsed = JSON.parse(val);
+        fs.writeFileSync(file, JSON.stringify(parsed, null, 2), 'utf8');
+        console.log(`[PREMIUM] ✅ Restauré depuis DB: ${path.basename(file)}`);
+      }
+    } catch(e) {
+      console.log(`[PREMIUM] ⚠️ Restauration DB ${key}: ${e.message}`);
+    }
+  }
+}
+
+// Lancer la restauration dès que le module est chargé
+restoreFromMySQL().catch(() => {});
+
 // ═══════════════════════════════════════════════════════════
 // 📋 PLANS DISPONIBLES
 // ═══════════════════════════════════════════════════════════
@@ -139,6 +177,11 @@ function readJSON(file) {
 function writeJSON(file, data) {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    // Backup async vers MySQL si connecté
+    const mysqlKey = MYSQL_KEYS[file];
+    if (mysqlKey && mysqlDB && mysqlDB.isConnected()) {
+      mysqlDB.setSetting(mysqlKey, JSON.stringify(data)).catch(() => {});
+    }
     return true;
   } catch (e) {
     return false;
@@ -663,5 +706,10 @@ module.exports = {
   getTransactions,
   
   // Stats
-  getStats
+  getStats,
+
+  // Utilitaires MySQL persistence (pour autres modules)
+  writeJSON,
+  restoreFromMySQL,
+  MYSQL_KEYS
 };
