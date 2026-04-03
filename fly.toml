@@ -1,7 +1,7 @@
 # fly.toml — Configuration Fly.io pour HANI-MD
 # Plateforme: https://fly.io (gratuit — 3 VMs nano toujours actives)
 
-app = "hani-md"
+app = "hani-md05"
 primary_region = "cdg"   # Paris (plus proche de la Côte d'Ivoire)
 
 [build]
