@@ -589,10 +589,17 @@
         }
 
         if (data.qr) {
+          // QR reçu → afficher et effacer le message de statut
           document.getElementById('qr-status-msg').style.display = 'none';
           document.getElementById('qr-container').innerHTML =
             `<img src="${data.qr}" alt="QR Code" style="width:100%;border-radius:12px;max-width:280px;">`;
-        } else if (data.status === 'initializing' || data.status === 'reconnecting') {
+        } else if (data.status === 'reconnecting') {
+          // Reconnexion après scan QR → finalisation
+          document.getElementById('qr-container').innerHTML =
+            `<div style="font-size:3rem;">✅</div>`;
+          document.getElementById('qr-status-msg').textContent = '🔗 QR scanné ! Finalisation de la connexion…';
+          document.getElementById('qr-status-msg').style.display = 'block';
+        } else if (data.status === 'initializing') {
           document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
           document.getElementById('qr-status-msg').style.display = 'block';
         } else if (data.status === 'not_connected') {

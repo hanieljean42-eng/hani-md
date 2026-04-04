@@ -257,35 +257,30 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
     }
 
     if (connection === 'close') {
-      const errMsg  = lastDisconnect?.error?.message || 'unknown';
+      const errMsg     = lastDisconnect?.error?.message || 'unknown';
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       console.log(`[SESSIONS] 🔌 Fermé: ${id} | code=${statusCode} | msg=${errMsg}`);
 
+      // Fermeture intentionnelle (timer 70s ou kick admin)
       if (sessionData._closing) {
         console.log(`[SESSIONS] 🔴 Arrêt intentionnel: ${id}`);
         return;
       }
 
-      if (statusCode === DisconnectReason.loggedOut) {
-        console.log(`[SESSIONS] 🚪 Logout: ${id}`);
+      // Déconnexion définitive : supprimer la session
+      if (statusCode === DisconnectReason.loggedOut
+          || statusCode === DisconnectReason.forbidden) {
+        console.log(`[SESSIONS] 🚪 Déconnexion définitive (${statusCode}): ${id}`);
         sessions.delete(id);
         try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
         return;
       }
 
-      // Si la session n'a jamais été connectée → échec initial → NE PAS boucler
-      if (!sessionData.connectedAt) {
-        sessionData.status = 'failed';
-        console.log(`[SESSIONS] ❌ Échec connexion initiale: ${id} — ${errMsg}`);
-        // Nettoyer après 60s
-        setTimeout(() => { if (sessions.get(id) === sessionData) sessions.delete(id); }, 60000);
-        return;
-      }
-
-      // Session était connectée → tenter reconnexion
+      // Pour TOUS les autres cas (y compris le restart après scan QR = code 515)
+      // → reconnect avec les credentials existants (le scan a créé les creds)
       sessionData.status = 'reconnecting';
-      console.log(`[SESSIONS] 🔄 Reconnexion: ${id}`);
-      setTimeout(() => createSession(id, clientInfo), 5000);
+      console.log(`[SESSIONS] 🔄 Reconnexion après close (code=${statusCode}): ${id}`);
+      setTimeout(() => createSession(id, clientInfo), 3000);
     }
   });
 
