@@ -101,6 +101,39 @@ const config = {
 // Dossier de session
 const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reconnexion)
 
+// ═══════════════════════════════════════════════════════════
+// 🔐 CONTRÔLE D'ACCÈS PAR PLAN (BOT PRINCIPAL)
+// ═══════════════════════════════════════════════════════════
+const MAIN_PLAN_CONFIG = {
+  FREE:     { dailyLimit: 30,  allowedCategories: ['Système','Fun','Général'],       blockedCommands: ['ia','gpt','dalle','flux','gemini','chatgpt','imagine','removebg','blur','grayscale','invert','enhance','carto'], upgradeMsg: '⬆️ Abonnez-vous pour débloquer cette commande.' },
+  BRONZE:   { dailyLimit: 100, allowedCategories: ['Système','Fun','Général','Médias','Outils','Stickers'], blockedCommands: ['ia','gpt','dalle','flux','gemini','chatgpt','imagine'],                           upgradeMsg: '⬆️ Passez au plan Argent ou supérieur.' },
+  ARGENT:   { dailyLimit: 300, allowedCategories: null,                              blockedCommands: ['dalle','imagine','flux'],                                                                                  upgradeMsg: '⬆️ Passez au plan Or ou supérieur.' },
+  OR:       { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
+  DIAMANT:  { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
+  LIFETIME: { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
+  OWNER:    { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
+};
+
+// Commandes toujours autorisées (gratuites pour tous)
+const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','start','bot','allmenu','commands']);
+
+// Compteur d'usage journalier pour le bot principal
+const MAIN_USAGE_FILE = path.join(__dirname, 'DataBase', 'main_usage.json');
+function _readMainUsage() { try { return JSON.parse(fs.readFileSync(MAIN_USAGE_FILE,'utf8')); } catch { return {}; } }
+function _saveMainUsage(d) { try { fs.writeFileSync(MAIN_USAGE_FILE, JSON.stringify(d,null,2)); } catch {} }
+function getMainBotUsage(phone) {
+  const today = new Date().toISOString().split('T')[0];
+  const d = _readMainUsage();
+  return (d[phone]?.[today]) || 0;
+}
+function incrementMainBotUsage(phone) {
+  const today = new Date().toISOString().split('T')[0];
+  const d = _readMainUsage();
+  if (!d[phone]) d[phone] = {};
+  d[phone][today] = (d[phone][today] || 0) + 1;
+  _saveMainUsage(d);
+}
+
 // États simples pour activer/désactiver des protections (en mémoire)
 const protectionState = {
   antilink: false,
@@ -758,6 +791,38 @@ async function handleCommand(ovl, msg) {
             destPrivate: botNumber,
           };
           
+          // ── Vérification plan (si pas owner et commande non gratuite) ──
+          if (!isOwner && !FREE_COMMANDS.has(command.toLowerCase())) {
+            const userInfo = await getUserInfo(sender);
+            const planKey = (userInfo.plan || 'FREE').toUpperCase();
+            const planCfg = MAIN_PLAN_CONFIG[planKey] || MAIN_PLAN_CONFIG.FREE;
+            const siteUrl = process.env.SITE_URL || 'https://hani-md-1.onrender.com';
+
+            // Vérifier commande explicitement bloquée
+            if (planCfg.blockedCommands.includes(command.toLowerCase())) {
+              return repondre(`🔒 *Commande réservée*\n\n${planCfg.upgradeMsg}\n💎 Abonnez-vous ici : ${siteUrl}/subscribe`);
+            }
+
+            // Vérifier catégorie autorisée
+            if (planCfg.allowedCategories && cmdData.command.classe) {
+              if (!planCfg.allowedCategories.includes(cmdData.command.classe)) {
+                return repondre(`🔒 *Catégorie "${cmdData.command.classe}" non incluse dans votre plan ${planKey}*\n\n${planCfg.upgradeMsg}\n💎 ${siteUrl}/subscribe`);
+              }
+            }
+
+            // Vérifier limite journalière
+            if (planCfg.dailyLimit > 0) {
+              const usedToday = getMainBotUsage(senderClean);
+              if (usedToday >= planCfg.dailyLimit) {
+                return repondre(`⏰ *Limite journalière atteinte* (${usedToday}/${planCfg.dailyLimit} commandes)\n\n💎 Passez à un plan supérieur pour plus de commandes !\n🌐 ${siteUrl}/subscribe`);
+              }
+            }
+
+            // Incrémenter le compteur
+            incrementMainBotUsage(senderClean);
+          }
+          // ── Fin vérification plan ──
+
           // Exécuter la commande
           await executeCommand(command, ovl, msg, options);
           return;
