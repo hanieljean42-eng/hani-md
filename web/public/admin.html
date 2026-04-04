@@ -386,6 +386,28 @@
       background: var(--danger);
     }
 
+    /* Badge notification sidebar */
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      padding: 0 4px;
+      margin-left: auto;
+      animation: pulse-badge 1.5s infinite;
+    }
+    .nav-badge.hidden { display: none; }
+    @keyframes pulse-badge {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
     /* Modal */
     .modal-overlay {
       position: fixed;
@@ -595,7 +617,7 @@
         <li><a href="#" class="active" data-page="overview"><i class="fas fa-chart-pie"></i> Vue d'ensemble</a></li>
         <li><a href="#" data-page="users"><i class="fas fa-users"></i> Utilisateurs</a></li>
         <li><a href="#" data-page="codes"><i class="fas fa-key"></i> Codes</a></li>
-        <li><a href="#" data-page="requests"><i class="fas fa-clock"></i> Demandes</a></li>
+        <li><a href="#" data-page="requests" id="nav-requests"><i class="fas fa-clock"></i> Demandes <span class="nav-badge hidden" id="nav-badge">0</span></a></li>
         <li><a href="#" data-page="sessions"><i class="fas fa-robot"></i> Sessions Bot</a></li>
         <li><a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> Site public</a></li>
       </ul>
@@ -847,11 +869,15 @@
     const API_URL = '';
     let authToken = localStorage.getItem('adminToken');
 
+    let autoRefreshInterval = null;
+    let lastPendingCount = -1; // -1 = premier chargement, pas de notif
+
     // Check auth on load
     document.addEventListener('DOMContentLoaded', () => {
       if (authToken) {
         showDashboard();
         loadData();
+        startAutoRefresh();
       }
     });
 
@@ -874,6 +900,7 @@
           localStorage.setItem('adminToken', authToken);
           showDashboard();
           loadData();
+          startAutoRefresh();
         } else {
           showLoginError(data.error || 'Erreur de connexion');
         }
@@ -893,8 +920,73 @@
       document.getElementById('dashboard').classList.add('active');
     }
 
+    // Auto-refresh paiements en attente toutes les 20 secondes
+    function startAutoRefresh() {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      // Démander permission notification navigateur
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+      // Premier check immédiat
+      checkPendingPayments();
+      // Puis toutes les 20s
+      autoRefreshInterval = setInterval(checkPendingPayments, 20000);
+    }
+
+    async function checkPendingPayments() {
+      try {
+        const data = await apiCall('/api/admin/payments');
+        const payments = data.payments || [];
+        const pending = payments.filter(p => p.status === 'pending').length;
+
+        // Mettre à jour le badge sidebar
+        const badge = document.getElementById('nav-badge');
+        const statEl = document.getElementById('stat-requests');
+        if (badge) {
+          badge.textContent = pending;
+          badge.classList.toggle('hidden', pending === 0);
+        }
+        if (statEl) statEl.textContent = pending;
+
+        // Notification si nouveau paiement détecté
+        if (pending > lastPendingCount && lastPendingCount >= 0) {
+          const newCount = pending - lastPendingCount;
+          // Toast visible dans le panel
+          showToast(`💳 ${newCount} nouveau${newCount > 1 ? 'x' : ''} paiement${newCount > 1 ? 's' : ''} en attente !`);
+          // Notification navigateur
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('HANI-MD Admin', {
+              body: `${newCount} nouveau${newCount > 1 ? 'x' : ''} paiement${newCount > 1 ? 's' : ''} en attente d\'approbation`,
+              icon: '/favicon.ico'
+            });
+          }
+          // Son d'alerte
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+          } catch {}
+          // Si on est sur l'onglet Demandes, recharger la liste
+          if (document.getElementById('page-requests')?.classList.contains('active')) {
+            loadPayments();
+          }
+        }
+        lastPendingCount = pending;
+      } catch (e) {
+        // Silencieux si erreur réseau
+      }
+    }
+
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
+      clearInterval(autoRefreshInterval);
       localStorage.removeItem('adminToken');
       authToken = null;
       location.reload();
