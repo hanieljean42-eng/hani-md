@@ -776,8 +776,16 @@ async function handleCommand(ovl, msg) {
 
 // Variable pour stocker l'instance du bot
 let ovl = null;
+let isReconnecting = false;
 
 async function startBot() {
+  if (isReconnecting) return; // Eviter les appels concurrents
+  isReconnecting = true;
+  // Fermer proprement l'ancien socket s'il existe
+  try { if (ovl) { ovl.ws?.terminate(); ovl.end(undefined); } } catch(e) {}
+  ovl = null;
+  await new Promise(r => setTimeout(r, 1000)); // Laisser WhatsApp souffler
+  isReconnecting = false;
   console.log("\n");
   console.log("╔════════════════════════════════════════╗");
   console.log("║       🤖 OVL-MD-V2 - Bot WhatsApp      ║");
@@ -828,6 +836,15 @@ async function startBot() {
   // Charger l'état d'authentification
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
 
+  // Obtenir la version WhatsApp la plus récente
+  let waVersion;
+  try {
+    const { version } = await require('@whiskeysockets/baileys').fetchLatestBaileysVersion();
+    waVersion = version;
+  } catch(e) {
+    waVersion = [2, 3000, 1023042587];
+  }
+
   // Créer la connexion WhatsApp avec paramètres optimisés pour la stabilité
   ovl = makeWASocket({
     auth: {
@@ -838,7 +855,8 @@ async function startBot() {
       ),
     },
     logger: pino({ level: "silent" }),
-    browser: ["OVL-MD-V2", "Chrome", "120.0.0"],  // Browser personnalisé plus stable
+    version: waVersion,
+    browser: Browsers.macOS("Chrome"),  // macOS Chrome - plus accepté par WhatsApp
     keepAliveIntervalMs: 15000,         // Ping toutes les 15s pour maintenir la connexion active
     markOnlineOnConnect: false,         // Ne pas marquer en ligne (plus discret)
     generateHighQualityLinkPreview: true,
@@ -876,6 +894,27 @@ async function startBot() {
       console.log("║     ✅ CONNEXION RÉUSSIE !             ║");
       console.log("╚════════════════════════════════════════╝");
       console.log("\n");
+
+      // ── Auto-génération SESSION_ID pour Render ──────────────────
+      try {
+        const sessionFiles = fs.readdirSync(SESSION_FOLDER);
+        const bundle = {};
+        for (const f of sessionFiles) {
+          const fp = path.join(SESSION_FOLDER, f);
+          if (fs.statSync(fp).isFile()) bundle[f] = fs.readFileSync(fp).toString('base64');
+        }
+        const sessionId = 'HANI-MD~' + Buffer.from(JSON.stringify(bundle)).toString('base64');
+        fs.writeFileSync(path.join(__dirname, 'session_id.txt'), sessionId);
+        console.log("╔════════════════════════════════════════╗");
+        console.log("║  🔑 SESSION_ID sauvegardée dans        ║");
+        console.log("║     session_id.txt  → copie sur Render ║");
+        console.log("╚════════════════════════════════════════╝");
+        console.log(`📏 Longueur: ${sessionId.length} caractères\n`);
+      } catch(e) {
+        console.log('[SESSION] Auto-save SESSION_ID échoué:', e.message);
+      }
+      // ────────────────────────────────────────────────────────────
+
       console.log("📊 Informations du bot:");
       console.log(`   • Préfixe: ${config.PREFIXE}`);
       console.log(`   • Mode: ${config.MODE}`);
@@ -1005,8 +1044,8 @@ async function startBot() {
         }
       } else if (isTemporaryError) {
         // Erreur temporaire (conflit, connection failure, stream error) - garder la session
-        console.log("⚡ Erreur temporaire détectée - reconnexion avec session existante...");
-        await delay(3000);
+        console.log("⚡ Erreur temporaire détectée - reconnexion dans 8s...");
+        await delay(8000);
         startBot();
       } else if (statusCode === DisconnectReason.connectionClosed || 
                  statusCode === DisconnectReason.connectionLost ||

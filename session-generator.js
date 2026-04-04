@@ -75,7 +75,7 @@ async function generateSession(isRetry = false) {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
     },
     logger: pino({ level: "silent" }),
-    browser: Browsers.ubuntu("Chrome"),
+    browser: Browsers.macOS("Chrome"),
     markOnlineOnConnect: true,
     connectTimeoutMs: 30000,
   });
