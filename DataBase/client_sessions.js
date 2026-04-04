@@ -15,7 +15,8 @@ const {
   useMultiFileAuthState,
   DisconnectReason,
   Browsers,
-  makeCacheableSignalKeyStore
+  makeCacheableSignalKeyStore,
+  fetchLatestBaileysVersion
 } = require('@whiskeysockets/baileys');
 
 // Dossier de stockage des sessions clients
@@ -168,24 +169,35 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
+  // Récupérer la dernière version Baileys acceptée par WhatsApp
+  let waVersion;
+  try {
+    const { version } = await fetchLatestBaileysVersion();
+    waVersion = version;
+    console.log(`[SESSIONS] 🔌 [${id}] Baileys version: ${version.join('.')}`);
+  } catch (e) {
+    waVersion = [2, 3000, 1020394028];
+    console.log(`[SESSIONS] ⚠️ [${id}] Version fallback: ${waVersion.join('.')}`);
+  }
+
   const logger = pino({ level: 'silent' }).child({ level: 'silent' });
 
   const sock = makeWASocket({
+    version: waVersion,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger)
     },
     logger,
-    browser: ['HANI-MD', 'Chrome', '120.0.0'],
+    browser: Browsers.ubuntu('Chrome'),
     keepAliveIntervalMs: 15000,
-    connectTimeoutMs: 30000,
-    defaultQueryTimeoutMs: 30000,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
     retryRequestDelayMs: 2000,
     syncFullHistory: false,
     markOnlineOnConnect: false,
-    fireInitQueries: false,
-    emitOwnEvents: false,
-    printQRInTerminal: false
+    printQRInTerminal: false,
+    getMessage: async () => ({ conversation: '' })
   });
 
   const sessionData = {
@@ -202,7 +214,7 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
 
   sessions.set(id, sessionData);
 
-  // Timeout: si pas de QR après 35s (> connectTimeoutMs:30s), marquer comme failed
+  // Timeout: si pas de QR après 70s (> connectTimeoutMs:60s), marquer comme failed
   // Utilise sockRef pour éviter la race condition avec une nouvelle session créée entre-temps
   const sockRef = sock;
   setTimeout(() => {
@@ -210,10 +222,10 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
     if (s && s.sock === sockRef && (s.status === 'initializing' || s.status === 'reconnecting')) {
       s._closing = true;
       s.status = 'failed';
-      console.log(`[SESSIONS] ⏰ Timeout 35s: ${id} — QR non reçu`);
+      console.log(`[SESSIONS] ⏰ Timeout 70s: ${id} — QR non reçu`);
       try { sockRef.end(undefined); } catch {}
     }
-  }, 35000);
+  }, 70000);
 
   // ── Événements de connexion ──
   sock.ev.on('connection.update', async (update) => {
