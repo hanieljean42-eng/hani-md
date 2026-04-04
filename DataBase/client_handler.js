@@ -215,11 +215,64 @@ function attachMessageHandler(sock, clientId, plan) {
       // ── Incrémenter le compteur (sauf owner) ──
       if (!isOwnerNumber(senderNum)) incrementUsage(clientId);
 
-      // ── Construire l'objet hani (contexte bot) ──
-      const hani = buildHaniContext(sock, msg, from, args, argsText, planKey, senderNum);
+      // ── Construire les options (même format que start.js) ──
+      const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
+      const isOwner_ = isOwnerNumber(senderNum);
+      const effectivePlan = isOwner_ ? 'OWNER' : planKey;
 
-      // ── Exécuter la commande ──
-      await cmdData.handler(hani, msg);
+      let isAdmin = false;
+      let isBotAdmin = false;
+      let groupName = null;
+      if (isGroup) {
+        try {
+          const meta = await sock.groupMetadata(from);
+          const botJid = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
+          const admins = meta.participants
+            .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+            .map(p => p.id);
+          isAdmin = admins.includes(senderJid);
+          isBotAdmin = admins.includes(botJid);
+          groupName = meta.subject;
+        } catch {}
+      }
+
+      const repondre = (text) => sock.sendMessage(from, { text: String(text) }, { quoted: msg });
+
+      const options = {
+        repondre,
+        arg: args,
+        args,
+        texte: argsText,
+        argsText,
+        ms: msg,
+        superUser: isOwner_,
+        isOwner: isOwner_,
+        auteurMessage: senderJid,
+        auteur_Msg: senderJid,
+        from,
+        isGroup,
+        verif_Groupe: isGroup,
+        admin_Groupe: isBotAdmin,
+        verif_Ovl_Admin: isBotAdmin,
+        verif_Admin: isAdmin,
+        nomGroupe: groupName,
+        nomAuteurMessage: msg.pushName || senderNum,
+        msgRepondu: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage,
+        auteurMsgRepondu: msg.message?.extendedTextMessage?.contextInfo?.participant,
+        idBot: sock.user?.id?.split(':')[0],
+        superUsers: [ownerJid],
+        preniumUsers: [ownerJid],
+        dev: [ownerJid],
+        prefixe: PREFIX,
+        destPrivate: senderJid,
+        // Champs spécifiques client sessions
+        clientPlan: effectivePlan,
+        plan: effectivePlan,
+        clientMode: true,
+      };
+
+      // ── Exécuter la commande (même signature que start.js) ──
+      await cmdData.handler(sock, msg, options);
 
     } catch (e) {
       console.error(`[CLIENT_HANDLER] Erreur client ${clientId}:`, e.message);

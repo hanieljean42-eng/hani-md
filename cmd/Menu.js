@@ -22,15 +22,32 @@ const USAGE_FILE = path.join(__dirname, '..', 'DataBase', 'command_usage.json');
 /**
  * Récupère les infos utilisateur pour le menu
  */
-function getUserInfo(phone, isOwner = false) {
-  const ownerNumber = (config.NUMERO_OWNER || config.OWNER_NUMBER || '').replace(/[^0-9]/g, '');
-  const cleanPhone = phone.replace(/[^0-9]/g, '').replace('@s.whatsapp.net', '');
+function getUserInfo(phone, isOwner = false, planOverride = null) {
+  const ownerNumber = (config.NUMERO_OWNER || config.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+  const cleanPhone = (phone || '').replace(/[^0-9]/g, '').replace('@s.whatsapp.net', '');
   
   const userIsOwner = isOwner || cleanPhone === ownerNumber || 
-                      cleanPhone.includes(ownerNumber) || 
-                      ownerNumber.includes(cleanPhone);
-  
-  // Charger les données premium
+                      ownerNumber.includes(cleanPhone) || 
+                      cleanPhone.includes(ownerNumber);
+
+  // Si le plan est explicitement fourni (sessions client), l'utiliser directement
+  if (planOverride || userIsOwner) {
+    let plan = userIsOwner ? 'OWNER' : planOverride.toUpperCase();
+    const LIMITS = { OWNER: -1, LIFETIME: -1, DIAMANT: -1, OR: -1, ARGENT: 300, BRONZE: 100, FREE: 30 };
+    const dailyLimit = LIMITS[plan] ?? 30;
+    return {
+      phone: cleanPhone,
+      name: `User_${cleanPhone.slice(-4)}`,
+      plan,
+      isOwner: userIsOwner,
+      isPremium: plan !== 'FREE',
+      commandsToday: 0,
+      dailyLimit,
+      totalCommands: 0
+    };
+  }
+
+  // Sinon : lire depuis users_pro.json (bot principal)
   let premiumData = {};
   try {
     if (fs.existsSync(PREMIUM_USERS_FILE)) {
@@ -38,7 +55,6 @@ function getUserInfo(phone, isOwner = false) {
     }
   } catch (e) {}
 
-  // Charger les données d'utilisation
   let usageData = {};
   try {
     if (fs.existsSync(USAGE_FILE)) {
@@ -53,38 +69,21 @@ function getUserInfo(phone, isOwner = false) {
   let plan = 'FREE';
   let dailyLimit = 30;
 
-  if (userIsOwner) {
+  if (userPremium && (userPremium.expiresAt === -1 || new Date(userPremium.expiresAt) > new Date())) {
     isPremium = true;
-    plan = 'OWNER';
-    dailyLimit = -1;
-  } else if (userPremium) {
-    if (userPremium.expiresAt === -1 || new Date(userPremium.expiresAt) > new Date()) {
-      isPremium = true;
-      plan = userPremium.plan || 'PREMIUM';
-      
-      switch (plan.toUpperCase()) {
-        case 'BRONZE': dailyLimit = 100; break;
-        case 'ARGENT': dailyLimit = 300; break;
-        case 'OR': dailyLimit = -1; break;
-        case 'DIAMANT': 
-        case 'LIFETIME': 
-        case 'PREMIUM': dailyLimit = -1; break;
-        default: dailyLimit = 50; break;
-      }
-    }
+    plan = (userPremium.plan || 'PREMIUM').toUpperCase();
+    const LIMITS = { LIFETIME: -1, DIAMANT: -1, OR: -1, PREMIUM: -1, ARGENT: 300, BRONZE: 100 };
+    dailyLimit = LIMITS[plan] ?? 50;
   }
 
   const today = new Date().toDateString();
-  if (userUsage.lastReset !== today) {
-    userUsage.today = 0;
-    userUsage.lastReset = today;
-  }
+  if (userUsage.lastReset !== today) { userUsage.today = 0; userUsage.lastReset = today; }
 
   return {
     phone: cleanPhone,
     name: userPremium?.name || `User_${cleanPhone.slice(-4)}`,
     plan,
-    isOwner: userIsOwner,
+    isOwner: false,
     isPremium,
     commandsToday: userUsage.today || 0,
     dailyLimit,
@@ -164,9 +163,12 @@ ovlcmd({
   react: "📋",
   desc: "Afficher le menu principal",
   alias: ["m", "allmenu", "commands"]
-}, async (ovl, msg, { arg, repondre, superUser, auteurMessage, ms }) => {
+}, async (ovl, msg, { arg, repondre, superUser, auteurMessage, ms, clientPlan, plan: optPlan, isOwner } = {}) => {
   try {
-    const userInfo = getUserInfo(auteurMessage, superUser);
+    // Utiliser clientPlan (session client) ou déterminer depuis users_pro.json (bot principal)
+    const planOverride = clientPlan || optPlan || null;
+    const ownerOverride = isOwner || superUser || false;
+    const userInfo = getUserInfo(auteurMessage, ownerOverride, planOverride);
     const prefix = config.PREFIX || config.PREFIXE || ".";
     
     const uptime = process.uptime();
