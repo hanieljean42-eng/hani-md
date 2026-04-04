@@ -1221,7 +1221,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Servir les fichiers statiques (CSS, JS, images)
+// Servir les fichiers statiques - web/public en priorité (pages HTML principales)
+app.use(express.static(path.join(__dirname, 'web', 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ═══════════════════════════════════════════════════════════
