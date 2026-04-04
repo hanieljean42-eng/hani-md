@@ -33,13 +33,18 @@ async function downloadAudioBuffer(quotedMessage) {
   }
 }
 
-// Chemins possibles pour FFmpeg sur Windows
+// ffmpeg-static: binaire bundlé cross-platform (Windows + Linux/Render)
+let ffmpegStaticPath = null;
+try { ffmpegStaticPath = require('ffmpeg-static'); } catch(e) {}
+
+// Chemins possibles pour FFmpeg
 const FFMPEG_PATHS = [
+  ...(ffmpegStaticPath ? [ffmpegStaticPath] : []),
   "ffmpeg", // PATH système
-  "C:\\Users\\davis\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe",
+  "/usr/bin/ffmpeg", // Linux standard
+  "/usr/local/bin/ffmpeg", // Linux brew/local
   "C:\\ffmpeg\\bin\\ffmpeg.exe",
-  "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe",
-  "C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe"
+  "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
 ];
 
 // Variable pour stocker le chemin FFmpeg trouvé
