@@ -177,17 +177,19 @@ async function createSession(clientId, clientInfo) {
     plan: clientInfo?.plan || 'OR',
     name: clientInfo?.name || 'Client',
     createdAt: new Date().toISOString(),
-    connectedAt: null
+    connectedAt: null,
+    _closing: false   // Prevents reconnect loop when closing intentionally
   };
 
   sessions.set(id, sessionData);
 
-  // Timeout: si pas de QR après 45 secondes, marquer comme failed
+  // Timeout: si pas de QR après 45 secondes, marquer comme failed sans relancer
   setTimeout(() => {
     const s = sessions.get(id);
     if (s && s.status === 'initializing') {
+      s._closing = true;   // Bloquer le handler de reconnexion
       s.status = 'failed';
-      console.log(`[SESSIONS] ⏰ Timeout QR pour client: ${id}`);
+      console.log(`[SESSIONS] ⏰ Timeout QR pour client: ${id} — arrêt sans reconnexion`);
       try { sock.end(undefined); } catch {}
     }
   }, 45000);
@@ -220,16 +222,20 @@ async function createSession(clientId, clientInfo) {
     }
 
     if (connection === 'close') {
+      // Fermeture intentionnelle (timeout ou kick) → ne pas relancer
+      if (sessionData._closing) {
+        console.log(`[SESSIONS] 🔴 Fermeture intentionnelle: ${id} — pas de reconnexion`);
+        return;
+      }
+
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       if (statusCode === DisconnectReason.loggedOut) {
         console.log(`[SESSIONS] 🚪 Client déconnecté (logout): ${id}`);
         sessions.delete(id);
-        // Supprimer les fichiers de session
         try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
       } else {
         sessionData.status = 'reconnecting';
         console.log(`[SESSIONS] 🔄 Reconnexion pour: ${id}`);
-        // Relancer après délai
         setTimeout(() => createSession(id, clientInfo), 5000);
       }
     }

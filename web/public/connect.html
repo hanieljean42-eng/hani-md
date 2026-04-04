@@ -321,7 +321,7 @@
           Une erreur s'est produite.
         </p>
 
-        <button class="btn btn-primary" onclick="resetState()">
+        <button class="btn btn-primary" onclick="retryConnection()">
           <i class="fas fa-redo"></i> Réessayer
         </button>
 
@@ -380,6 +380,33 @@
     function showError(message) {
       document.getElementById('error-message').textContent = message;
       showState('error');
+    }
+
+    // Retenter la connexion sans re-saisir l'ID (depuis état erreur)
+    async function retryConnection() {
+      if (!clientId) return showState('input');
+      // Réinitialiser le conteneur QR
+      document.getElementById('qr-container').innerHTML = `
+        <div class="qr-placeholder">
+          <div class="spinner" style="width: 40px; height: 40px;"></div>
+        </div>`;
+      document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
+      document.getElementById('qr-status-msg').style.display = 'block';
+      showState('qr');
+      try {
+        const response = await fetch(`/api/clients/verify/${clientId}`);
+        const data = await response.json();
+        if (!data.valid) {
+          return resetState();
+        }
+        document.getElementById('plan-badge').textContent = getPlanBadge(data.plan);
+        document.getElementById('plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+        await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
+        startTimer();
+        startPolling();
+      } catch (e) {
+        showError('Erreur réseau. Vérifiez votre connexion.');
+      }
     }
 
     // Re-vérifier depuis l'écran "paiement en attente"

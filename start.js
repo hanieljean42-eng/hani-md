@@ -2157,8 +2157,11 @@ app.post('/api/clients/kick/:id', requireAdmin, async (req, res) => {
   try {
     const clientId = req.params.id.trim().toUpperCase();
     const session = clientSessions.getSession(clientId);
-    if (session && session.sock) {
-      try { await session.sock.logout(); } catch {}
+    if (session) {
+      session._closing = true; // Empêcher la boucle de reconnexion
+      if (session.sock) {
+        try { await session.sock.logout(); } catch { try { session.sock.end(undefined); } catch {} }
+      }
     }
     res.json({ success: true, message: `Session ${clientId} déconnectée` });
   } catch (e) {
