@@ -2071,6 +2071,24 @@ app.get('/api/clients/list', (req, res) => {
   res.json({ sessions: clientSessions.listSessions() });
 });
 
+// Déconnecter (kick) une session client (admin uniquement)
+app.post('/api/clients/kick/:id', async (req, res) => {
+  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+  const ADMIN_PWD = process.env.ADMIN_PASSWORD || 'haniel200700';
+  if (token !== ADMIN_PWD) return res.status(401).json({ error: 'Non autorisé' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const session = clientSessions.getSession(clientId);
+    if (session && session.sock) {
+      try { await session.sock.logout(); } catch {}
+    }
+    res.json({ success: true, message: `Session ${clientId} déconnectée` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Route pour la page de connexion client
 app.get('/connect', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'public', 'connect.html'));

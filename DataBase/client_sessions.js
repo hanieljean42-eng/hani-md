@@ -30,6 +30,14 @@ const CODES_FILE       = path.join(__dirname, 'activation_codes.json');
 // Map en mémoire : clientId → sessionData
 const sessions = new Map();
 
+// Gestionnaire de commandes par plan
+let clientHandler;
+try {
+  clientHandler = require('./client_handler');
+} catch (e) {
+  console.error('[SESSIONS] client_handler non disponible:', e.message);
+}
+
 // ═══════════════════════════════════════════════════
 // 📋 VÉRIFICATION CLIENT
 // ═══════════════════════════════════════════════════
@@ -172,6 +180,11 @@ async function createSession(clientId, clientInfo) {
       sessionData.phoneNumber = sock.user?.id?.split(':')[0] || null;
       sessionData.connectedAt = new Date().toISOString();
       console.log(`[SESSIONS] ✅ Client connecté: ${id} → ${sessionData.phoneNumber}`);
+
+      // Attacher le gestionnaire de commandes selon le plan
+      if (clientHandler) {
+        clientHandler.attachMessageHandler(sock, id, sessionData.plan);
+      }
     }
 
     if (connection === 'close') {

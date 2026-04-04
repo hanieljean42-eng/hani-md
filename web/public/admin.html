@@ -596,6 +596,7 @@
         <li><a href="#" data-page="users"><i class="fas fa-users"></i> Utilisateurs</a></li>
         <li><a href="#" data-page="codes"><i class="fas fa-key"></i> Codes</a></li>
         <li><a href="#" data-page="requests"><i class="fas fa-clock"></i> Demandes</a></li>
+        <li><a href="#" data-page="sessions"><i class="fas fa-robot"></i> Sessions Bot</a></li>
         <li><a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> Site public</a></li>
       </ul>
     </aside>
@@ -630,6 +631,11 @@
             <div class="stat-icon cyan"><i class="fas fa-clock"></i></div>
             <div class="stat-value" id="stat-requests">0</div>
             <div class="stat-label">Demandes en attente</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,0.2);color:#10b981;"><i class="fas fa-robot"></i></div>
+            <div class="stat-value" id="stat-sessions">0</div>
+            <div class="stat-label">Bots connectés</div>
           </div>
         </div>
 
@@ -685,6 +691,31 @@
           </div>
           <div class="card-body">
             <div id="codesList" class="codes-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions Bot Page -->
+      <div class="page" id="page-sessions">
+        <div class="header">
+          <h1>🤖 Sessions Bot Clients</h1>
+          <button class="btn btn-sm btn-primary" onclick="loadSessions()"><i class="fas fa-sync"></i> Actualiser</button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Client</th>
+                  <th>Plan</th>
+                  <th>Numéro WhatsApp</th>
+                  <th>Statut</th>
+                  <th>Connecté le</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTable"><tr><td colspan="6" style="text-align:center;padding:2rem;">Chargement...</td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -858,6 +889,7 @@
         if (page === 'users') loadUsers();
         if (page === 'codes') loadCodes();
         if (page === 'requests') loadRequests();
+        if (page === 'sessions') loadSessions();
       });
     });
 
@@ -874,6 +906,45 @@
       
       const res = await fetch(endpoint, options);
       return res.json();
+    }
+
+    async function loadSessions() {
+      try {
+        const pwd = localStorage.getItem('adminToken');
+        const data = await fetch('/api/clients/list?token=' + pwd).then(r => r.json());
+        const sessions = data.sessions || [];
+        document.getElementById('stat-sessions').textContent = sessions.filter(s => s.status === 'connected').length;
+        const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+        const statusBadge = (s) => {
+          if (s === 'connected')    return '<span style="color:#10b981;">🟢 Connecté</span>';
+          if (s === 'qr_ready')     return '<span style="color:#f59e0b;">🟡 En attente QR</span>';
+          if (s === 'reconnecting') return '<span style="color:#6366f1;">🔄 Reconnexion</span>';
+          return '<span style="color:#ef4444;">🔴 Déconnecté</span>';
+        };
+        let html = sessions.length ? '' : '<tr><td colspan="6" style="text-align:center;padding:2rem;">Aucune session active</td></tr>';
+        sessions.forEach(s => {
+          const icon = planIcons[s.plan?.toUpperCase()] || '🤖';
+          const connDate = s.connectedAt ? new Date(s.connectedAt).toLocaleString('fr-FR') : '-';
+          html += `<tr>
+            <td><code style="font-size:0.85rem;">${s.clientId}</code></td>
+            <td>${icon} ${s.plan || '-'}</td>
+            <td>${s.phoneNumber ? '+' + s.phoneNumber : '-'}</td>
+            <td>${statusBadge(s.status)}</td>
+            <td>${connDate}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="kickSession('${s.clientId}')"><i class="fas fa-power-off"></i></button></td>
+          </tr>`;
+        });
+        document.getElementById('sessionsTable').innerHTML = html;
+      } catch (err) {
+        document.getElementById('sessionsTable').innerHTML = '<tr><td colspan="6" style="text-align:center;">Erreur de chargement</td></tr>';
+      }
+    }
+
+    async function kickSession(clientId) {
+      if (!confirm('Déconnecter ce client ?')) return;
+      await apiCall('/api/clients/kick/' + clientId, 'POST');
+      showToast('Session déconnectée');
+      loadSessions();
     }
 
     async function loadData() {
