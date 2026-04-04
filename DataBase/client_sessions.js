@@ -178,13 +178,13 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
     logger,
     browser: ['HANI-MD', 'Chrome', '120.0.0'],
     keepAliveIntervalMs: 15000,
-    connectTimeoutMs: 60000,
-    defaultQueryTimeoutMs: 60000,
+    connectTimeoutMs: 30000,
+    defaultQueryTimeoutMs: 30000,
     retryRequestDelayMs: 2000,
     syncFullHistory: false,
     markOnlineOnConnect: false,
-    fireInitQueries: true,
-    emitOwnEvents: true,
+    fireInitQueries: false,
+    emitOwnEvents: false,
     printQRInTerminal: false
   });
 
@@ -202,34 +202,35 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
 
   sessions.set(id, sessionData);
 
-  // Timeout: si pas de QR après 75s (> connectTimeoutMs:60s), marquer comme failed
+  // Timeout: si pas de QR après 35s (> connectTimeoutMs:30s), marquer comme failed
+  // Utilise sockRef pour éviter la race condition avec une nouvelle session créée entre-temps
+  const sockRef = sock;
   setTimeout(() => {
     const s = sessions.get(id);
-    if (s && (s.status === 'initializing' || s.status === 'reconnecting')) {
-      s._closing = true;   // Bloquer le handler de reconnexion
+    if (s && s.sock === sockRef && (s.status === 'initializing' || s.status === 'reconnecting')) {
+      s._closing = true;
       s.status = 'failed';
-      console.log(`[SESSIONS] ⏰ Timeout 75s pour client: ${id} — pas de QR reçu`);
-      try { sock.end(undefined); } catch {}
+      console.log(`[SESSIONS] ⏰ Timeout 35s: ${id} — QR non reçu`);
+      try { sockRef.end(undefined); } catch {}
     }
-  }, 75000);
+  }, 35000);
 
   // ── Événements de connexion ──
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
+    // Logging détaillé pour diagnostic
+    console.log(`[SESSIONS] 📡 [${id}] connection=${connection || '-'} | qr=${!!qr} | code=${lastDisconnect?.error?.output?.statusCode || '-'} | msg=${(lastDisconnect?.error?.message || '').slice(0,80)}`);
+
     if (qr) {
       try {
         sessionData.qr     = await QRCode.toDataURL(qr, { margin: 2, width: 300 });
         sessionData.status = 'qr_ready';
-        sessionData._closing = false; // QR arrivé, annuler tout timeout précédent
-        console.log(`[SESSIONS] ✅ QR prêt pour client: ${id}`);
+        sessionData._closing = false;
+        console.log(`[SESSIONS] ✅ QR prêt: ${id}`);
       } catch (e) {
-        console.error('[SESSIONS] ❌ Erreur génération QR:', e.message);
+        console.error('[SESSIONS] ❌ Erreur QRCode.toDataURL:', e.message);
       }
-    }
-
-    if (connection === 'connecting') {
-      console.log(`[SESSIONS] 🔗 Connexion WA en cours pour: ${id}`);
     }
 
     if (connection === 'open') {
@@ -237,34 +238,42 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
       sessionData.qr          = null;
       sessionData.phoneNumber = sock.user?.id?.split(':')[0] || null;
       sessionData.connectedAt = new Date().toISOString();
-      console.log(`[SESSIONS] ✅ Client connecté: ${id} → ${sessionData.phoneNumber}`);
-
-      // Attacher le gestionnaire de commandes selon le plan
+      console.log(`[SESSIONS] ✅ Connecté: ${id} → ${sessionData.phoneNumber}`);
       if (clientHandler) {
         clientHandler.attachMessageHandler(sock, id, sessionData.plan);
       }
     }
 
     if (connection === 'close') {
-      const errMsg = lastDisconnect?.error?.message || '';
-      console.log(`[SESSIONS] 🔌 Connexion fermée pour: ${id} | raison: ${errMsg || 'inconnue'}`);
+      const errMsg  = lastDisconnect?.error?.message || 'unknown';
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      console.log(`[SESSIONS] 🔌 Fermé: ${id} | code=${statusCode} | msg=${errMsg}`);
 
-      // Fermeture intentionnelle (timeout ou kick) → ne pas relancer
       if (sessionData._closing) {
         console.log(`[SESSIONS] 🔴 Arrêt intentionnel: ${id}`);
         return;
       }
 
-      const statusCode = lastDisconnect?.error?.output?.statusCode;
       if (statusCode === DisconnectReason.loggedOut) {
-        console.log(`[SESSIONS] 🚪 Client déconnecté (logout): ${id}`);
+        console.log(`[SESSIONS] 🚪 Logout: ${id}`);
         sessions.delete(id);
         try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
-      } else {
-        sessionData.status = 'reconnecting';
-        console.log(`[SESSIONS] 🔄 Reconnexion pour: ${id}`);
-        setTimeout(() => createSession(id, clientInfo), 5000);
+        return;
       }
+
+      // Si la session n'a jamais été connectée → échec initial → NE PAS boucler
+      if (!sessionData.connectedAt) {
+        sessionData.status = 'failed';
+        console.log(`[SESSIONS] ❌ Échec connexion initiale: ${id} — ${errMsg}`);
+        // Nettoyer après 60s
+        setTimeout(() => { if (sessions.get(id) === sessionData) sessions.delete(id); }, 60000);
+        return;
+      }
+
+      // Session était connectée → tenter reconnexion
+      sessionData.status = 'reconnecting';
+      console.log(`[SESSIONS] 🔄 Reconnexion: ${id}`);
+      setTimeout(() => createSession(id, clientInfo), 5000);
     }
   });
 
