@@ -2103,7 +2103,7 @@ app.get('/api/admin/payments', requireAdmin, (req, res) => {
 });
 
 // Approuver un paiement → le client peut maintenant connecter son bot
-app.post('/api/admin/payments/approve/:ref', requireAdmin, (req, res) => {
+app.post('/api/admin/payments/approve/:ref', requireAdmin, async (req, res) => {
   try {
     const ref = req.params.ref.trim().toUpperCase();
     const payments = readPendingPayments();
