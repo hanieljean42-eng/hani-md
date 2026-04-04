@@ -1411,7 +1411,7 @@ app.get("/api/connection-status", (req, res) => {
 
 // Routes pour les pages HTML
 app.get("/", (req, res) => {
-  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const indexPath = path.join(__dirname, 'web', 'public', 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
@@ -1470,22 +1470,22 @@ app.get("/", (req, res) => {
 
 // Route pour la page d'abonnement
 app.get("/subscribe.html", (req, res) => {
-  const subscribePath = path.join(__dirname, 'public', 'subscribe.html');
-  if (fs.existsSync(subscribePath)) {
-    res.sendFile(subscribePath);
-  } else {
-    res.redirect('/');
-  }
+  res.sendFile(path.join(__dirname, 'web', 'public', 'subscribe.html'));
 });
 
-// Route pour la page de paiements (admin)
+// Route pour la page de paiements
 app.get("/payments.html", (req, res) => {
-  const paymentsPath = path.join(__dirname, 'public', 'payments.html');
-  if (fs.existsSync(paymentsPath)) {
-    res.sendFile(paymentsPath);
-  } else {
-    res.redirect('/');
-  }
+  res.sendFile(path.join(__dirname, 'web', 'public', 'payments.html'));
+});
+
+// Route pour le panel admin (sans .html)
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, 'web', 'public', 'admin.html'));
+});
+
+// Route pour la page d'activation (code premium)
+app.get("/activate", (req, res) => {
+  res.sendFile(path.join(__dirname, 'web', 'public', 'activate.html'));
 });
 
 // API pour créer un paiement
@@ -2118,6 +2118,25 @@ app.post('/api/admin/payments/approve/:ref', requireAdmin, (req, res) => {
 
     const p = payments[idx];
     console.log(`[ADMIN] ✅ Paiement approuvé: ${p.name} - ${p.plan} - Réf: ${p.reference}`);
+
+    // Notifier le client par WhatsApp si le bot est connecté
+    if (ovl && connectionStatus === 'connected' && p.phone) {
+      try {
+        const siteUrl = process.env.RENDER_EXTERNAL_URL
+          || process.env.SITE_URL
+          || 'https://hani-md.onrender.com';
+        const connectLink = `${siteUrl}/connect?id=${encodeURIComponent(p.reference)}`;
+        const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+        const icon = planIcons[p.plan?.toUpperCase()] || '💎';
+        const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
+        await ovl.sendMessage(clientJid, {
+          text: `✅ *HANI-MD — Paiement validé !*\n\nBonjour *${p.name}* 👋\n\nVotre paiement a été confirmé par l'owner !\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n➡️ *Connectez votre bot maintenant :*\n${connectLink}\n\n_Cliquez sur le lien, scannez le QR Code avec WhatsApp → votre bot sera actif ! 🤖_`
+        });
+        console.log(`[ADMIN] 📱 Notification envoyée à ${p.phone}`);
+      } catch (notifErr) {
+        console.error('[ADMIN] Erreur notification WA client:', notifErr.message);
+      }
+    }
 
     res.json({
       success: true,
