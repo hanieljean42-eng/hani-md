@@ -235,10 +235,14 @@
 
         <div id="afterPayDiv" class="hidden" style="margin-top:4px;">
           <div class="success-box">
-            <p>✅ <strong>Paiement effectué ?</strong> Cliquez sur le bouton WhatsApp pour envoyer votre preuve et recevoir votre code d'activation.</p>
+            <p>✅ <strong>Paiement effectué ?</strong> Envoyez votre preuve sur WhatsApp. L'owner valide et active votre accès en moins de 30 min.</p>
           </div>
           <a id="waBtn" href="#" target="_blank" class="btn-whatsapp">
             <i class="fab fa-whatsapp"></i> Envoyer ma preuve de paiement
+          </a>
+          <a id="connectBtn" href="/connect" class="btn-wave" style="margin-top:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+            <i class="fas fa-qrcode"></i> Connecter mon bot (QR Code)
+            <i class="fas fa-arrow-right" style="font-size:0.8rem;"></i>
           </a>
         </div>
 
@@ -247,22 +251,22 @@
 
       <!-- Instructions finales -->
       <div class="card">
-        <h3 style="font-size:0.95rem;margin-bottom:14px;opacity:0.9;">📋 Après votre paiement Wave</h3>
+        <h3 style="font-size:0.95rem;margin-bottom:14px;opacity:0.9;">📋 Comment ça marche ?</h3>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">1</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Cliquez <strong>"Envoyer ma preuve"</strong> — un message WhatsApp pré-rempli s'ouvre avec votre référence</p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Payez via Wave → envoyez la preuve sur WhatsApp</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">2</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">L'owner vérifie et vous envoie votre <strong>code d'activation</strong> par WhatsApp (moins de 30 min)</p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">L'owner valide votre paiement et active votre compte</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">3</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Tapez dans le bot HANI-MD :</p>
+            <div style="width:28px;height:28px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">3</div>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Cliquez <strong>"Connecter mon bot"</strong> → scannez le QR code avec votre WhatsApp → votre bot est actif !</p>
           </div>
         </div>
-        <div class="cmd-box">.activer VOTRE-CODE</div>
+        <div class="cmd-box" style="margin-top:14px;">🤖 Votre numéro WhatsApp devient le bot</div>
       </div>
     </div>
 
@@ -351,8 +355,11 @@
       document.getElementById('jekoBtn').href = JEKO_URL;
 
       // Message WhatsApp pré-rempli
-      const msg = `Bonjour, j'ai payé pour HANI-MD Plan ${subData.plan} (${formatted} FCFA).\nMon numéro WhatsApp: ${subData.phone}\nNom: ${subData.name}\nRéférence: ${subData.reference}\nMerci de m'envoyer mon code d'activation 🙏`;
+      const msg = `Bonjour, j'ai payé pour HANI-MD Plan ${subData.plan} (${formatted} FCFA).\nMon numéro WhatsApp: ${subData.phone}\nNom: ${subData.name}\nRéférence: ${subData.reference}\nMerci d'activer mon accès 🙏`;
       document.getElementById('waBtn').href = `https://wa.me/${SUPPORT_NUMBER}?text=${encodeURIComponent(msg)}`;
+
+      // Bouton connexion bot avec référence pré-remplie
+      document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(subData.reference)}`;
     }
 
     function onJekoClick() {
