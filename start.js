@@ -1221,6 +1221,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Charger le serveur premium (admin APIs, codes, users...)
+let premiumApp, requireAdmin;
+try {
+  const ps = require('./web/premium-server');
+  premiumApp  = ps.app;
+  requireAdmin = ps.requireAdmin;
+  console.log('[PREMIUM] ✅ Routes admin chargées depuis premium-server.js');
+} catch (e) {
+  console.log('[PREMIUM] ⚠️ premium-server non disponible:', e.message);
+  requireAdmin = (req, res, next) => next(); // fallback: pas de restriction
+}
+
 // Servir les fichiers statiques - web/public en priorité (pages HTML principales)
 app.use(express.static(path.join(__dirname, 'web', 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -2063,20 +2075,14 @@ app.get('/api/clients/qr/:id', (req, res) => {
 });
 
 // Lister toutes les sessions (admin uniquement)
-app.get('/api/clients/list', (req, res) => {
+app.get('/api/clients/list', requireAdmin, (req, res) => {
   if (!clientSessions) return res.status(503).json({ sessions: [] });
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
-  const ADMIN_PWD = process.env.ADMIN_PASSWORD || 'haniel200700';
-  if (token !== ADMIN_PWD) return res.status(401).json({ error: 'Non autorisé' });
   res.json({ sessions: clientSessions.listSessions() });
 });
 
 // Déconnecter (kick) une session client (admin uniquement)
-app.post('/api/clients/kick/:id', async (req, res) => {
+app.post('/api/clients/kick/:id', requireAdmin, async (req, res) => {
   if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
-  const ADMIN_PWD = process.env.ADMIN_PASSWORD || 'haniel200700';
-  if (token !== ADMIN_PWD) return res.status(401).json({ error: 'Non autorisé' });
   try {
     const clientId = req.params.id.trim().toUpperCase();
     const session = clientSessions.getSession(clientId);
@@ -2093,6 +2099,15 @@ app.post('/api/clients/kick/:id', async (req, res) => {
 app.get('/connect', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'public', 'connect.html'));
 });
+
+// ═══════════════════════════════════════════════════════════
+// 🔌 MONTER LES ROUTES ADMIN (premium-server.js)
+// Les routes /api/admin/* n'existent QUE dans premium-server
+// ═══════════════════════════════════════════════════════════
+if (premiumApp) {
+  app.use(premiumApp);
+  console.log('[PREMIUM] ✅ Routes /api/admin/* montées dans le serveur principal');
+}
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);

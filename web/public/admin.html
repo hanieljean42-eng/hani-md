@@ -910,8 +910,7 @@
 
     async function loadSessions() {
       try {
-        const pwd = localStorage.getItem('adminToken');
-        const data = await fetch('/api/clients/list?token=' + pwd).then(r => r.json());
+        const data = await apiCall('/api/clients/list');
         const sessions = data.sessions || [];
         document.getElementById('stat-sessions').textContent = sessions.filter(s => s.status === 'connected').length;
         const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };

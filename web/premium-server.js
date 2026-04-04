@@ -780,4 +780,4 @@ function startPremiumServer(port = 3001) {
   });
 }
 
-module.exports = { app, startPremiumServer };
+module.exports = { app, startPremiumServer, requireAdmin, adminSessions };
