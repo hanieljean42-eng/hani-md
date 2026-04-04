@@ -8,11 +8,21 @@
 const fs   = require('fs');
 const path = require('path');
 
+// Numéro du propriétaire du bot (accès illimité total)
+const OWNER_NUMBER = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, '');
+
 // ═══════════════════════════════════════════════════
 // 📊 LIMITES ET DROITS PAR PLAN
 // ═══════════════════════════════════════════════════
 
 const PLAN_CONFIG = {
+  OWNER: {
+    dailyLimit: -1,
+    allowedCategories: null,
+    blockedCommands: [],
+    planLabel: '👑 Owner',
+    upgradeMsg: ''
+  },
   BRONZE: {
     dailyLimit: 100,
     allowedCategories: ['Général', 'Médias', 'Outils', 'Fun'],
@@ -91,7 +101,14 @@ function incrementUsage(clientId) {
 // 🔍 VÉRIFICATION DES DROITS
 // ═══════════════════════════════════════════════════
 
-function checkCommandAllowed(clientId, plan, cmdName, cmdCategory) {
+function isOwnerNumber(number) {
+  return (number || '').replace(/\D/g, '') === OWNER_NUMBER;
+}
+
+function checkCommandAllowed(clientId, plan, cmdName, cmdCategory, senderNumber) {
+  // L'owner a toujours accès à tout
+  if (isOwnerNumber(senderNumber)) return { allowed: true };
+
   const planKey = (plan || 'BRONZE').toUpperCase();
   const cfg = PLAN_CONFIG[planKey] || PLAN_CONFIG.BRONZE;
 
@@ -136,7 +153,9 @@ function checkCommandAllowed(clientId, plan, cmdName, cmdCategory) {
 function attachMessageHandler(sock, clientId, plan) {
   const PREFIX = process.env.PREFIXE || '.';
   const planKey = (plan || 'BRONZE').toUpperCase();
-  const planLabel = PLAN_CONFIG[planKey]?.planLabel || '🥉 Bronze';
+  const cfg = PLAN_CONFIG[planKey] || PLAN_CONFIG.BRONZE;
+  const planLabel = cfg.planLabel || '🥉 Bronze';
+  console.log(`[CLIENT_HANDLER] 📋 Plan actif pour ${clientId}: ${planKey} (${planLabel})`);  
 
   // Import ovlcmd (partagé avec le bot principal)
   let findCommand;
@@ -183,17 +202,21 @@ function attachMessageHandler(sock, clientId, plan) {
       const cmd = cmdData.command;
 
       // ── Vérifier les droits pour ce plan ──
-      const check = checkCommandAllowed(clientId, planKey, cmdName, cmd.category);
+      const isGroup = from.endsWith('@g.us');
+      const senderJid = isGroup ? (msg.key.participant || msg.key.remoteJid) : msg.key.remoteJid;
+      const senderNum = senderJid.split('@')[0];
+
+      const check = checkCommandAllowed(clientId, planKey, cmdName, cmd.category, senderNum);
       if (!check.allowed) {
         await sock.sendMessage(from, { text: `❌ *Commande non disponible*\n\n${check.msg}` });
         return;
       }
 
-      // ── Incrémenter le compteur ──
-      incrementUsage(clientId);
+      // ── Incrémenter le compteur (sauf owner) ──
+      if (!isOwnerNumber(senderNum)) incrementUsage(clientId);
 
       // ── Construire l'objet hani (contexte bot) ──
-      const hani = buildHaniContext(sock, msg, from, args, argsText, planKey);
+      const hani = buildHaniContext(sock, msg, from, args, argsText, planKey, senderNum);
 
       // ── Exécuter la commande ──
       await cmdData.handler(hani, msg);
@@ -226,12 +249,14 @@ function getTextFromMessage(msg) {
   );
 }
 
-function buildHaniContext(sock, msg, from, args, argsText, plan) {
+function buildHaniContext(sock, msg, from, args, argsText, plan, senderNum) {
   const isGroup = from.endsWith('@g.us');
   const senderJid = isGroup
     ? (msg.key.participant || msg.key.remoteJid)
     : msg.key.remoteJid;
-  const senderNumber = senderJid.split('@')[0];
+  const senderNumber = senderNum || senderJid.split('@')[0];
+  const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
+  const isOwner = isOwnerNumber(senderNumber);
 
   return {
     // Fonctions d'envoi
@@ -245,20 +270,21 @@ function buildHaniContext(sock, msg, from, args, argsText, plan) {
     sender: senderJid,
     senderNumber,
     isGroup,
+    isOwner,
     msg,
     args,
     argsText,
     text: argsText,
     prefix: process.env.PREFIXE || '.',
-    plan,
-    clientMode: true, // Indique qu'on est dans une session client
+    plan: isOwner ? 'OWNER' : plan,
+    clientMode: true,
 
     // Compat avec le système ovlcmd existant
     ovl: sock,
     nomGroupe: '',
-    superUsers: [],
-    preniumUsers: [],
-    dev: [],
+    superUsers: [ownerJid],
+    preniumUsers: [ownerJid],
+    dev: [ownerJid],
     destPrivate: senderJid,
   };
 }
@@ -267,10 +293,10 @@ function buildHaniContext(sock, msg, from, args, argsText, plan) {
 // 📊 STATS D'USAGE
 // ═══════════════════════════════════════════════════
 
-function getUsageStats(clientId) {
+function getUsageStats(clientId, plan) {
   const { count } = getClientUsage(clientId);
-  const plan = 'BRONZE'; // placeholder
-  const cfg = PLAN_CONFIG[plan] || PLAN_CONFIG.BRONZE;
+  const planKey = (plan || 'BRONZE').toUpperCase();
+  const cfg = PLAN_CONFIG[planKey] || PLAN_CONFIG.BRONZE;
   return {
     today: count,
     limit: cfg.dailyLimit,
