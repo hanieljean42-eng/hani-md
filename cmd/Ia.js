@@ -10,16 +10,34 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const axios = require("axios");
 
-// ─── Helper Gemini ────────────────────────────────────────────────────────────
+// ─── Helper IA — Pollinations.ai (gratuit, sans clé) + Gemini en fallback ─────
 async function askGemini(prompt) {
+  // 1ère tentative : Pollinations.ai text (100% gratuit, aucune clé requise)
+  try {
+    const res = await axios.post(
+      "https://text.pollinations.ai/",
+      { messages: [{ role: "user", content: prompt }], model: "openai", seed: Math.floor(Math.random() * 99999) },
+      { headers: { "Content-Type": "application/json" }, timeout: 30000 }
+    );
+    const text = typeof res.data === "string" ? res.data : res.data?.choices?.[0]?.message?.content;
+    if (text && text.trim()) return text.trim();
+  } catch(e) {}
+
+  // 2ème tentative : Google Gemini REST API (si clé disponible)
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY non configurée. Obtenez une clé gratuite sur https://aistudio.google.com/app/apikey");
-  let GenAI;
-  try { GenAI = require("@google/generative-ai"); } catch(e) { throw new Error("Package @google/generative-ai manquant. Exécutez npm install."); }
-  const genAI = new GenAI.GoogleGenerativeAI(key);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  if (key) {
+    try {
+      const res = await axios.post(
+        `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${key}`,
+        { contents: [{ parts: [{ text: prompt }] }] },
+        { headers: { "Content-Type": "application/json" }, timeout: 30000 }
+      );
+      const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text.trim();
+    } catch(e) {}
+  }
+
+  throw new Error("Service IA temporairement indisponible. Réessayez dans quelques secondes.");
 }
 
 // ═══════════════════════════════════════════════════════════
