@@ -142,7 +142,9 @@ const protectionState = {
   anticall: false,
   antitag: false,
   antidelete: true,  // Activé par défaut pour voir les messages supprimés
+  ghostMode: true,   // Activé par défaut — bot apparaît hors ligne
 };
+process.env.GHOST_MODE = "true"; // Sync avec les modules de commandes
 
 // Stockage des messages pour anti-delete (garde les 500 derniers messages)
 const messageStore = new Map();
@@ -994,6 +996,28 @@ async function startBot() {
       console.log("\n");
       console.log("💡 Tape " + config.PREFIXE + "menu sur WhatsApp pour voir toutes les commandes");
       console.log("\n");
+
+      // 👻 MODE FANTÔME — apparaître hors ligne dès la connexion
+      setTimeout(async () => {
+        try {
+          await ovl.sendPresenceUpdate("unavailable");
+          if (typeof ovl.updateLastSeenPrivacy === 'function') {
+            await ovl.updateLastSeenPrivacy("none");
+          }
+          if (typeof ovl.updateOnlinePrivacy === 'function') {
+            await ovl.updateOnlinePrivacy("match_last_seen");
+          }
+          console.log("[GHOST] 👻 Mode fantôme activé — bot apparaît hors ligne");
+        } catch(e) {
+          console.log("[GHOST] sendPresenceUpdate:", e.message);
+        }
+        // Maintenir le mode fantôme toutes les 3 minutes
+        setInterval(async () => {
+          if (process.env.GHOST_MODE !== "false") {
+            try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
+          }
+        }, 180000);
+      }, 3000);
       
       // 🔔 Envoyer les notifications de paiement en attente à l'owner
       setTimeout(async () => {
@@ -1214,6 +1238,10 @@ async function startBot() {
       
       // Traiter les commandes (même les messages envoyés par soi-même)
       await handleCommand(ovl, msg);
+      // 👻 Re-signaler "hors ligne" après chaque commande traitée
+      if (process.env.GHOST_MODE !== "false") {
+        try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
+      }
     } catch (e) {
       console.log("⚠️ Erreur message:", e.message);
     }

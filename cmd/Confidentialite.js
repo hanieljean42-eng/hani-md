@@ -310,4 +310,85 @@ ovlcmd(
   }
 );
 
-console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall");
+// ═══════════════════════════════════════════════════════════
+// 👻 MODE FANTÔME (INVISIBLE)
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "ghost",
+    classe: "Confidentialité",
+    react: "👻",
+    desc: "Activer/désactiver le mode invisible (apparaître hors ligne)",
+    alias: ["invisible", "ghostmode", "fantome", "offline"]
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    try {
+      if (!superUser) {
+        return repondre("❌ Cette commande est réservée au propriétaire");
+      }
+
+      const action = arg[0]?.toLowerCase();
+
+      if (action === "on" || action === "1") {
+        process.env.GHOST_MODE = "true";
+        // Apparaître hors ligne immédiatement
+        try {
+          await ovl.sendPresenceUpdate("unavailable");
+          if (typeof ovl.updateLastSeenPrivacy === 'function') {
+            await ovl.updateLastSeenPrivacy("none");
+          }
+          if (typeof ovl.updateOnlinePrivacy === 'function') {
+            await ovl.updateOnlinePrivacy("match_last_seen");
+          }
+        } catch(e) {}
+        repondre(
+          `👻 *Mode Fantôme ACTIVÉ*\n\n` +
+          `✅ Le bot apparaît maintenant *hors ligne*\n` +
+          `✅ "Vu récemment" masqué pour tout le monde\n` +
+          `✅ Statut "en ligne" masqué\n\n` +
+          `💡 Les gens ne sauront plus que le bot tourne 24h/24\n` +
+          `🔄 Actif aussi pour tous les bots clients\n\n` +
+          `Pour désactiver: *.ghost off*`
+        );
+
+      } else if (action === "off" || action === "0") {
+        process.env.GHOST_MODE = "false";
+        try {
+          await ovl.sendPresenceUpdate("available");
+          if (typeof ovl.updateLastSeenPrivacy === 'function') {
+            await ovl.updateLastSeenPrivacy("all");
+          }
+        } catch(e) {}
+        repondre(
+          `👁️ *Mode Fantôme DÉSACTIVÉ*\n\n` +
+          `❌ Le bot apparaît maintenant *en ligne*\n` +
+          `❌ "Vu récemment" visible\n\n` +
+          `Pour réactiver: *.ghost on*`
+        );
+
+      } else {
+        const etat = process.env.GHOST_MODE !== "false" ? "✅ ACTIVÉ" : "❌ DÉSACTIVÉ";
+        repondre(
+          `👻 *Mode Fantôme*\n\n` +
+          `État actuel: ${etat}\n\n` +
+          `📖 *Ce que fait ce mode:*\n` +
+          `• Cache le statut "en ligne" du bot\n` +
+          `• Cache "vu récemment" de tout le monde\n` +
+          `• Après chaque message traité, le bot revient "hors ligne"\n` +
+          `• Personne ne sait que le bot tourne en permanence\n\n` +
+          `📌 *Commandes:*\n` +
+          `• *.ghost on* — activer l'invisibilité\n` +
+          `• *.ghost off* — désactiver\n` +
+          `• *.invisible on/off* — même chose`
+        );
+      }
+
+    } catch (error) {
+      console.error("[GHOST]", error);
+      repondre(`❌ Erreur: ${error.message}`);
+    }
+  }
+);
+
+console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall, ghost");
