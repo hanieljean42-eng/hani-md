@@ -872,10 +872,11 @@ async function startBot() {
   const credsPath = path.join(SESSION_FOLDER, 'creds.json');
   const hasExistingSession = fs.existsSync(credsPath);
 
-  if (sessionId && !hasExistingSession) {
+  // Sur Render : le disque est éphémère — toujours restaurer depuis SESSION_ID
+  // même si un creds.json existe (il peut être d'un redémarrage précédent invalide)
+  const isCloud = !!process.env.SESSION_ID;
+  if (sessionId && (isCloud || !hasExistingSession)) {
     try {
-      // Format bundle complet: HANI-MD~{base64(JSON)}  ← session-generator.js
-      // Format simple ancien:  HANI-MD_{base64(creds)} ← session.js (legacy)
       if (sessionId.startsWith('HANI-MD~')) {
         const jsonStr = Buffer.from(sessionId.slice(8), 'base64').toString('utf-8');
         const bundle = JSON.parse(jsonStr);
@@ -2342,7 +2343,6 @@ if (premiumApp) {
 app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);
   console.log(`📱 Site accessible: http://localhost:${port}`);
-  // Afficher l'IP locale pour l'accès depuis le téléphone
   const os = require('os');
   const networkInterfaces = os.networkInterfaces();
   for (const name in networkInterfaces) {
@@ -2352,6 +2352,32 @@ app.listen(port, '0.0.0.0', () => {
       }
     }
   }
+
+  // 💓 SELF-PING — Empêche Render de mettre le service en veille
+  // Sans cela, Render endort le service après 15 min → WhatsApp se déconnecte
+  setTimeout(() => {
+    const selfUrl = (
+      process.env.RENDER_EXTERNAL_URL ||
+      process.env.SITE_URL ||
+      `http://localhost:${port}`
+    ).replace(/\/$/, '');
+    const https = require('https');
+    const http = require('http');
+    setInterval(() => {
+      try {
+        const url = selfUrl + '/health';
+        const client = url.startsWith('https') ? https : http;
+        const req = client.get(url, (res) => {
+          if (res.statusCode === 200) {
+            console.log('[KEEPALIVE] 💓 Self-ping OK — service actif');
+          }
+        });
+        req.on('error', () => {});
+        req.setTimeout(10000, () => req.destroy());
+      } catch(e) {}
+    }, 10 * 60 * 1000); // Toutes les 10 minutes
+    console.log(`[KEEPALIVE] 💓 Self-ping activé → ${selfUrl}/health (toutes les 10 min)`);
+  }, 30000); // Démarrer 30s après le lancement
 });
 
 // Connecter la base de données puis lancer le bot
