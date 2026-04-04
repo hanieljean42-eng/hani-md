@@ -367,7 +367,9 @@ async function handleCommand(ovl, msg) {
     case "aide": {
       if (MenuSystem) {
         try {
-          const senderForMenu = msg.key.participant || from;
+          const isFromMe = msg.key.fromMe === true;
+          const botJid = ovl.user?.id?.split(':')[0] + '@s.whatsapp.net';
+          const senderForMenu = isFromMe ? botJid : (msg.key.participant || from);
           const userInfo = await getUserInfo(senderForMenu);
           const category = args[0] ? args[0].toLowerCase() : null;
           
@@ -688,12 +690,15 @@ async function handleCommand(ovl, msg) {
           const isGroup = from.endsWith("@g.us");
           const sender = msg.key.participant || from;
           const senderNumber = sender.replace("@s.whatsapp.net", "").replace("@lid", "");
-          const ownerNumber = (config.NUMERO_OWNER || "").replace(/[^0-9]/g, "");
-          const isOwner = ownerNumber.length > 5 && (
-                           senderNumber === ownerNumber || 
-                           senderNumber.includes(ownerNumber) || 
-                           ownerNumber.includes(senderNumber)
-                         );
+          const ownerNumber = (config.NUMERO_OWNER || config.OWNER_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, "");
+          const senderClean = senderNumber.split(':')[0]; // retirer le :0 éventuel
+          // fromMe=true : seul l'owner peut envoyer des messages depuis ce bot
+          const isOwner = msg.key.fromMe === true || (ownerNumber.length > 5 && (
+                           senderClean === ownerNumber ||
+                           senderNumber === ownerNumber ||
+                           senderClean.includes(ownerNumber) ||
+                           ownerNumber.includes(senderClean)
+                         ));
           
           // Fonction répondre pour les commandes - envoie dans le chat d'origine
           const repondre = async (text, opts = {}) => {
