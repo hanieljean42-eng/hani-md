@@ -154,15 +154,33 @@ const MAX_STORED_MESSAGES = 500;
 const deletedMessages = [];
 const MAX_DELETED_MESSAGES = 50;
 
-// Extraction textuelle d'un message Baileys
+// Extraction textuelle d'un message Baileys (tous types couverts)
 function getMessageText(msg) {
-  const type = Object.keys(msg.message || {})[0];
-  if (!type) return "";
-  if (type === "conversation") return msg.message.conversation || "";
-  if (type === "extendedTextMessage") return msg.message.extendedTextMessage?.text || "";
-  if (type === "imageMessage") return msg.message.imageMessage?.caption || "";
-  if (type === "videoMessage") return msg.message.videoMessage?.caption || "";
-  return "";
+  const m = msg.message;
+  if (!m) return "";
+  return (
+    m.conversation ||
+    m.extendedTextMessage?.text ||
+    m.imageMessage?.caption ||
+    m.videoMessage?.caption ||
+    m.documentMessage?.caption ||
+    m.documentWithCaptionMessage?.message?.documentMessage?.caption ||
+    m.buttonsMessage?.contentText ||
+    m.buttonsResponseMessage?.selectedDisplayText ||
+    m.listMessage?.description ||
+    m.listResponseMessage?.singleSelectReply?.selectedRowId ||
+    m.templateMessage?.hydratedTemplate?.hydratedContentText ||
+    m.templateButtonReplyMessage?.selectedDisplayText ||
+    m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson ||
+    m.reactionMessage?.text ||
+    m.ephemeralMessage?.message?.conversation ||
+    m.ephemeralMessage?.message?.extendedTextMessage?.text ||
+    m.viewOnceMessage?.message?.imageMessage?.caption ||
+    m.viewOnceMessage?.message?.videoMessage?.caption ||
+    m.viewOnceMessageV2?.message?.imageMessage?.caption ||
+    m.viewOnceMessageV2?.message?.videoMessage?.caption ||
+    ""
+  );
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1285,8 +1303,15 @@ async function startBot() {
               notifText += `💬 Chat: ${storedMsg.sender}\n`;
               notifText += `📝 Type: ${storedMsg.type?.replace("Message", "")}\n`;
               notifText += `🕐 Date: ${new Date().toLocaleString("fr-FR")}\n`;
-              if (storedMsg.text) {
-                notifText += `\n📄 Contenu:\n"${storedMsg.text}"`;
+              // Texte du message — plusieurs tentatives
+              const msgContent = storedMsg.text ||
+                getMessageText({ message: storedMsg.message }) ||
+                "";
+              if (msgContent) {
+                notifText += `\n📄 *Contenu:*\n"${msgContent}"`;
+              } else {
+                // Fallback : afficher le type brut si pas de texte extractible
+                notifText += `\n📄 Contenu: [${storedMsg.type || 'inconnu'} — pas de texte]`;
               }
               
               await ovl.sendMessage(myJid, { text: notifText });
