@@ -1983,6 +1983,99 @@ app.get('/payment-error', (req, res) => {
   `);
 });
 
+// ═══════════════════════════════════════════════════════════
+// 👤 API CLIENTS — Bot-as-a-Service (session WhatsApp par client)
+// ═══════════════════════════════════════════════════════════
+
+let clientSessions;
+try {
+  clientSessions = require('./DataBase/client_sessions');
+  console.log('[SESSIONS] ✅ Gestionnaire multi-sessions chargé');
+} catch (e) {
+  console.log('[SESSIONS] ⚠️ Gestionnaire sessions non disponible:', e.message);
+}
+
+// Vérifier si un clientId est valide (a payé)
+app.get('/api/clients/verify/:id', (req, res) => {
+  if (!clientSessions) return res.status(503).json({ valid: false, error: 'Service indisponible' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const info = clientSessions.verifyClient(clientId);
+    if (!info.valid) return res.json({ valid: false, error: 'ID client non reconnu. Vérifiez votre référence de paiement.' });
+
+    // Vérifier si une session existe déjà
+    const session = clientSessions.getSession(clientId);
+    const status = session ? session.status : 'not_connected';
+    const phoneNumber = session ? session.phoneNumber : null;
+
+    res.json({
+      valid: true,
+      plan: info.plan,
+      name: info.name,
+      status: info.status === 'expired' ? 'expired' : status,
+      expiresAt: info.expiresAt,
+      phoneNumber
+    });
+  } catch (e) {
+    res.status(500).json({ valid: false, error: 'Erreur serveur: ' + e.message });
+  }
+});
+
+// Initier/relancer la connexion WhatsApp pour un client
+app.post('/api/clients/connect/:id', async (req, res) => {
+  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const info = clientSessions.verifyClient(clientId);
+    if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
+    if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
+
+    const session = await clientSessions.createSession(clientId, info);
+
+    res.json({
+      status: session.status,
+      phoneNumber: session.phoneNumber,
+      plan: session.plan
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur création session: ' + e.message });
+  }
+});
+
+// Récupérer le QR code et le statut de connexion d'un client
+app.get('/api/clients/qr/:id', (req, res) => {
+  if (!clientSessions) return res.status(503).json({ status: 'error' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const session = clientSessions.getSession(clientId);
+
+    if (!session) return res.json({ status: 'not_connected' });
+
+    res.json({
+      status: session.status,
+      qr: session.qr || null,
+      phoneNumber: session.phoneNumber,
+      plan: session.plan
+    });
+  } catch (e) {
+    res.status(500).json({ status: 'error', error: e.message });
+  }
+});
+
+// Lister toutes les sessions (admin uniquement)
+app.get('/api/clients/list', (req, res) => {
+  if (!clientSessions) return res.status(503).json({ sessions: [] });
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+  const ADMIN_PWD = process.env.ADMIN_PASSWORD || 'haniel200700';
+  if (token !== ADMIN_PWD) return res.status(401).json({ error: 'Non autorisé' });
+  res.json({ sessions: clientSessions.listSessions() });
+});
+
+// Route pour la page de connexion client
+app.get('/connect', (req, res) => {
+  res.sendFile(path.join(__dirname, 'web', 'public', 'connect.html'));
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Serveur web actif sur le port ${port}`);
   console.log(`📱 Site accessible: http://localhost:${port}`);
@@ -2029,6 +2122,13 @@ app.listen(port, '0.0.0.0', () => {
     } catch (e) {
       console.log('[DB] ⚠️ MySQL non disponible:', e.message, '— mode JSON local');
     }
+  }
+
+  // Restaurer les sessions clients existantes (Bot-as-a-Service)
+  if (clientSessions) {
+    clientSessions.restorePersistedSessions().catch(e =>
+      console.log('[SESSIONS] Erreur restauration:', e.message)
+    );
   }
 
   // Lancer le bot
