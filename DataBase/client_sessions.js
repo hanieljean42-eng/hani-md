@@ -137,6 +137,17 @@ async function createSession(clientId, clientInfo) {
     const existing = sessions.get(id);
     if (existing.status === 'connected') return existing;
     if (existing.status === 'qr_ready')  return existing;
+    // Si initialisation récente (< 60s), attendre le QR
+    const age = Date.now() - new Date(existing.createdAt).getTime();
+    if (existing.status === 'initializing' && age < 60000) {
+      return existing;
+    }
+    // Sinon fermer l'ancien socket avant de recréer
+    if (existing.sock) {
+      try { existing.sock.end(undefined); } catch {}
+    }
+    sessions.delete(id);
+    console.log(`[SESSIONS] 🔄 Recréation session: ${id}`);
   }
 
   const sessionDir = path.join(SESSIONS_DIR, id);
@@ -170,6 +181,16 @@ async function createSession(clientId, clientInfo) {
   };
 
   sessions.set(id, sessionData);
+
+  // Timeout: si pas de QR après 45 secondes, marquer comme failed
+  setTimeout(() => {
+    const s = sessions.get(id);
+    if (s && s.status === 'initializing') {
+      s.status = 'failed';
+      console.log(`[SESSIONS] ⏰ Timeout QR pour client: ${id}`);
+      try { sock.end(undefined); } catch {}
+    }
+  }, 45000);
 
   // ── Événements de connexion ──
   sock.ev.on('connection.update', async (update) => {

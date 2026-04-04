@@ -227,6 +227,8 @@
           <span class="plan-badge" id="plan-badge">🥇 Or</span>
         </p>
 
+        <p id="qr-status-msg" style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-bottom:0.5rem;display:none;">⏳ Connexion aux serveurs WhatsApp…</p>
+
         <div class="qr-container" id="qr-container">
           <div class="qr-placeholder">
             <div class="spinner" style="width: 40px; height: 40px;"></div>
@@ -553,9 +555,20 @@
           return;
         }
 
+        if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          clearInterval(timerInterval);
+          showError('La connexion aux serveurs WhatsApp a échoué (délai dépassé). Cliquez sur Réessayer.');
+          return;
+        }
+
         if (data.qr) {
-          document.getElementById('qr-container').innerHTML = 
-            `<img src="${data.qr}" alt="QR Code" style="width: 100%;">`;
+          document.getElementById('qr-status-msg').style.display = 'none';
+          document.getElementById('qr-container').innerHTML =
+            `<img src="${data.qr}" alt="QR Code" style="width:100%;border-radius:12px;">`;
+        } else if (data.status === 'initializing') {
+          document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
+          document.getElementById('qr-status-msg').style.display = 'block';
         }
 
       } catch (e) {
