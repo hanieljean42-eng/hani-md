@@ -64,12 +64,23 @@ function verifyClient(clientId) {
     p => p.reference === id || p.id === id || p.paymentRef === id
   );
   if (pendingEntry) {
+    // ✅ SÉCURITÉ : seuls les paiements APPROUVÉS peuvent connecter le bot
+    if (pendingEntry.status !== 'approved') {
+      return {
+        valid: false,
+        pending: true,
+        name: pendingEntry.name || 'Client',
+        plan: pendingEntry.plan || 'OR',
+        status: pendingEntry.status || 'pending',
+        error: 'Paiement en attente de validation. L\'owner va confirmer votre paiement sous 30 min.'
+      };
+    }
     return {
       valid: true,
       plan: pendingEntry.plan || 'OR',
       name: pendingEntry.name || 'Client',
       phone: pendingEntry.phone || null,
-      status: pendingEntry.status || 'pending',
+      status: 'approved',
       expiresAt: null
     };
   }

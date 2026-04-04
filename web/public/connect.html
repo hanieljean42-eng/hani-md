@@ -290,6 +290,27 @@
         </a>
       </div>
 
+      <!-- État 5b: Paiement en attente d'approbation -->
+      <div class="state" id="state-pending">
+        <div class="error-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">⏳</div>
+        <h2 style="margin-bottom: 0.5rem;">Paiement en cours de vérification</h2>
+        <p style="color: rgba(255,255,255,0.75); margin-bottom: 0.5rem;" id="pending-name"></p>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Votre paiement a bien été reçu. L'owner est en train de le valider.<br>
+          <strong>Vous recevrez un message WhatsApp dès que c'est prêt.</strong>
+        </p>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 16px; margin-bottom: 1.5rem; text-align: left; font-size: 0.88rem;">
+          <p>⏱️ Délai habituel : <strong>moins de 30 minutes</strong></p>
+          <p style="margin-top: 8px;">📱 Vous pouvez aussi contacter le support :</p>
+        </div>
+        <a href="https://wa.me/22550252467" target="_blank" class="btn btn-success" style="margin-bottom: 12px;">
+          <i class="fab fa-whatsapp"></i> Contacter le support
+        </a>
+        <button class="btn btn-primary" onclick="recheckPending()">
+          <i class="fas fa-sync"></i> Vérifier à nouveau
+        </button>
+      </div>
+
       <!-- État 5: Erreur -->
       <div class="state" id="state-error">
         <div class="error-icon">❌</div>
@@ -337,7 +358,8 @@
       connecting: document.getElementById('state-connecting'),
       success: document.getElementById('state-success'),
       error: document.getElementById('state-error'),
-      expired: document.getElementById('state-expired')
+      expired: document.getElementById('state-expired'),
+      pending: document.getElementById('state-pending')
     };
 
     function showState(stateName) {
@@ -356,6 +378,27 @@
     function showError(message) {
       document.getElementById('error-message').textContent = message;
       showState('error');
+    }
+
+    // Re-vérifier depuis l'écran "paiement en attente"
+    async function recheckPending() {
+      if (!clientId) return showState('input');
+      showState('verifying');
+      try {
+        const response = await fetch(`/api/clients/verify/${clientId}`);
+        const data = await response.json();
+        if (!data.valid && data.pending) {
+          document.getElementById('pending-name').textContent =
+            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
+          return showState('pending');
+        }
+        if (!data.valid) return showError(data.error || 'ID non valide');
+        if (data.expiresAt && new Date(data.expiresAt) < new Date()) return showState('expired');
+        // Paiement approuvé → lancer la connexion
+        await initiateConnection(data.plan);
+      } catch (e) {
+        showError('Erreur réseau. Réessayez.');
+      }
     }
 
     function formatPhone(phone) {
@@ -419,8 +462,14 @@
         const response = await fetch(`/api/clients/verify/${clientId}`);
         const data = await response.json();
 
+        if (!data.valid && data.pending) {
+          // Paiement trouvé mais pas encore approuvé
+          document.getElementById('pending-name').textContent =
+            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
+          return showState('pending');
+        }
         if (!data.valid) {
-          return showError('ID client invalide ou non trouvé. Vérifiez votre ID.');
+          return showError('ID client invalide ou non trouvé. Vérifiez votre référence de paiement.');
         }
 
         // Vérifier expiration

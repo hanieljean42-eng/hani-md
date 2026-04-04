@@ -2013,6 +2013,10 @@ app.get('/api/clients/verify/:id', (req, res) => {
   try {
     const clientId = req.params.id.trim().toUpperCase();
     const info = clientSessions.verifyClient(clientId);
+    // Paiement trouvé mais pas encore approuvé par l'owner
+    if (!info.valid && info.pending) {
+      return res.json({ valid: false, pending: true, name: info.name, plan: info.plan, error: info.error });
+    }
     if (!info.valid) return res.json({ valid: false, error: 'ID client non reconnu. Vérifiez votre référence de paiement.' });
 
     // Vérifier si une session existe déjà
@@ -2071,6 +2075,73 @@ app.get('/api/clients/qr/:id', (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ status: 'error', error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 💳 GESTION DES PAIEMENTS EN ATTENTE (ADMIN)
+// ═══════════════════════════════════════════════════════════
+
+const PENDING_FILE = path.join(__dirname, 'DataBase', 'pending_payments.json');
+
+function readPendingPayments() {
+  try {
+    if (!fs.existsSync(PENDING_FILE)) return [];
+    const raw = JSON.parse(fs.readFileSync(PENDING_FILE, 'utf8'));
+    return Array.isArray(raw) ? raw : [];
+  } catch { return []; }
+}
+
+function savePendingPayments(arr) {
+  fs.writeFileSync(PENDING_FILE, JSON.stringify(arr, null, 2));
+}
+
+// Lister les paiements en attente (admin)
+app.get('/api/admin/payments', requireAdmin, (req, res) => {
+  const payments = readPendingPayments();
+  res.json({ success: true, payments });
+});
+
+// Approuver un paiement → le client peut maintenant connecter son bot
+app.post('/api/admin/payments/approve/:ref', requireAdmin, (req, res) => {
+  try {
+    const ref = req.params.ref.trim().toUpperCase();
+    const payments = readPendingPayments();
+    const idx = payments.findIndex(p =>
+      p.reference === ref || p.id === ref
+    );
+    if (idx === -1) return res.status(404).json({ error: 'Référence non trouvée: ' + ref });
+
+    payments[idx].status = 'approved';
+    payments[idx].approvedAt = new Date().toISOString();
+    savePendingPayments(payments);
+
+    const p = payments[idx];
+    console.log(`[ADMIN] ✅ Paiement approuvé: ${p.name} - ${p.plan} - Réf: ${p.reference}`);
+
+    res.json({
+      success: true,
+      message: `Paiement approuvé pour ${p.name}`,
+      client: { name: p.name, phone: p.phone, plan: p.plan, reference: p.reference }
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Rejeter/supprimer un paiement
+app.post('/api/admin/payments/reject/:ref', requireAdmin, (req, res) => {
+  try {
+    const ref = req.params.ref.trim().toUpperCase();
+    const payments = readPendingPayments();
+    const idx = payments.findIndex(p => p.reference === ref || p.id === ref);
+    if (idx === -1) return res.status(404).json({ error: 'Référence non trouvée' });
+    payments[idx].status = 'rejected';
+    payments[idx].rejectedAt = new Date().toISOString();
+    savePendingPayments(payments);
+    res.json({ success: true, message: 'Paiement rejeté' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
