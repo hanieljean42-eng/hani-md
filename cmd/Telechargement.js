@@ -43,17 +43,18 @@ ovlcmd(
       }
 
       const track = result.data[0];
-      const audioUrl = track.url;
 
-      if (!audioUrl) {
+      let audioBuffer;
+      if (track.localFile && fs.existsSync(track.localFile)) {
+        audioBuffer = fs.readFileSync(track.localFile);
+        try { fs.unlinkSync(track.localFile); } catch(e) {}
+      } else if (track.url) {
+        const audioResp = await axios.get(track.url, { responseType: "arraybuffer", timeout: 60000 });
+        audioBuffer = Buffer.from(audioResp.data);
+      } else {
         return repondre("❌ Lien de téléchargement non trouvé");
       }
 
-      // Télécharger le fichier
-      const audioResp = await axios.get(audioUrl, { responseType: "arraybuffer" });
-      const audioBuffer = Buffer.from(audioResp.data);
-
-      // Envoyer l'audio
       await ovl.sendMessage(msg.key.remoteJid, {
         audio: audioBuffer,
         mimetype: "audio/mp4",
@@ -97,17 +98,18 @@ ovlcmd(
       }
 
       const track = result.data[0];
-      const videoUrl = track.url;
 
-      if (!videoUrl) {
+      let videoBuffer;
+      if (track.localFile && fs.existsSync(track.localFile)) {
+        videoBuffer = fs.readFileSync(track.localFile);
+        try { fs.unlinkSync(track.localFile); } catch(e) {}
+      } else if (track.url) {
+        const videoResp = await axios.get(track.url, { responseType: "arraybuffer", timeout: 60000 });
+        videoBuffer = Buffer.from(videoResp.data);
+      } else {
         return repondre("❌ Lien de téléchargement non trouvé");
       }
 
-      // Télécharger le fichier
-      const videoResp = await axios.get(videoUrl, { responseType: "arraybuffer" });
-      const videoBuffer = Buffer.from(videoResp.data);
-
-      // Envoyer la vidéo
       await ovl.sendMessage(msg.key.remoteJid, {
         video: videoBuffer,
         mimetype: "video/mp4",
@@ -284,15 +286,21 @@ ovlcmd(
       await repondre("🎵 Téléchargement Spotify en cours...");
 
       const result = await spotifydl(query);
-      if (!result || !result.download) {
+      if (!result) {
         return repondre("❌ Impossible de télécharger cette musique");
       }
 
-      // Télécharger le fichier
-      const audioResp = await axios.get(result.download, { responseType: "arraybuffer" });
-      const audioBuffer = Buffer.from(audioResp.data);
+      let audioBuffer;
+      if (result.localFile && fs.existsSync(result.localFile)) {
+        audioBuffer = fs.readFileSync(result.localFile);
+        try { fs.unlinkSync(result.localFile); } catch(e) {}
+      } else if (result.download) {
+        const audioResp = await axios.get(result.download, { responseType: "arraybuffer", timeout: 60000 });
+        audioBuffer = Buffer.from(audioResp.data);
+      } else {
+        return repondre("❌ Impossible de télécharger cette musique");
+      }
 
-      // Envoyer la thumbnail si disponible
       if (result.thumbnail) {
         try {
           await ovl.sendMessage(msg.key.remoteJid, {
@@ -302,7 +310,6 @@ ovlcmd(
         } catch (e) {}
       }
 
-      // Envoyer l'audio
       await ovl.sendMessage(msg.key.remoteJid, {
         audio: audioBuffer,
         mimetype: "audio/mp4",

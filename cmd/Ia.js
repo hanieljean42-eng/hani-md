@@ -10,6 +10,18 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const axios = require("axios");
 
+// ─── Helper Gemini ────────────────────────────────────────────────────────────
+async function askGemini(prompt) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY non configurée. Obtenez une clé gratuite sur https://aistudio.google.com/app/apikey");
+  let GenAI;
+  try { GenAI = require("@google/generative-ai"); } catch(e) { throw new Error("Package @google/generative-ai manquant. Exécutez npm install."); }
+  const genAI = new GenAI.GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+
 // ═══════════════════════════════════════════════════════════
 // 🤖 GPT / CHATGPT
 // ═══════════════════════════════════════════════════════════
@@ -31,47 +43,15 @@ ovlcmd(
 
       await repondre("🤖 Réflexion en cours...");
 
-      // APIs GPT gratuites
-      const apis = [
-        `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(question)}`,
-        `https://api.agatz.xyz/api/gpt4?message=${encodeURIComponent(question)}`,
-        `https://api.itzpire.com/ai/gpt?text=${encodeURIComponent(question)}`
-      ];
-
-      let response = null;
-      
-      for (const apiUrl of apis) {
-        try {
-          const res = await axios.get(apiUrl, { timeout: 30000 });
-          
-          if (res.data) {
-            // Différents formats de réponse
-            response = res.data.result || res.data.response || res.data.answer || res.data.message || res.data.data;
-            
-            if (response && typeof response === "string" && response.length > 10) {
-              break;
-            }
-          }
-        } catch (e) {
-          continue;
-        }
+      let response;
+      try {
+        response = await askGemini(question);
+      } catch(e) {
+        return repondre(`❌ ${e.message}`);
       }
 
-      if (response) {
-        // Limiter la longueur
-        if (response.length > 4000) {
-          response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
-        }
-        
-        let result = `🤖 *ChatGPT*\n\n`;
-        result += `❓ *Question:*\n${question}\n\n`;
-        result += `💡 *Réponse:*\n${response}\n\n`;
-        result += `✨ Powered by HANI-MD`;
-        
-        repondre(result);
-      } else {
-        repondre("❌ Désolé, je n'ai pas pu obtenir de réponse. Réessayez plus tard.");
-      }
+      if (response.length > 4000) response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
+      repondre(`🤖 *HANI-AI*\n\n❓ *Question:*\n${question}\n\n💡 *Réponse:*\n${response}\n\n✨ Powered by HANI-MD`);
 
     } catch (error) {
       console.error("[GPT]", error);
@@ -101,30 +81,15 @@ ovlcmd(
 
       await repondre("💎 Gemini réfléchit...");
 
-      // API Gemini
-      const apiUrl = `https://api.vrfrnd.xyz/api/gemini?prompt=${encodeURIComponent(question)}`;
-      
+      let response;
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && (res.data.result || res.data.response)) {
-          let response = res.data.result || res.data.response;
-          
-          if (response.length > 4000) {
-            response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
-          }
-          
-          let result = `💎 *Google Gemini*\n\n`;
-          result += `❓ *Question:*\n${question}\n\n`;
-          result += `💡 *Réponse:*\n${response}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
+        response = await askGemini(question);
+      } catch(e) {
+        return repondre(`❌ ${e.message}`);
+      }
 
-      // Fallback vers GPT
-      repondre("❌ Gemini non disponible. Essayez .gpt à la place.");
+      if (response.length > 4000) response = response.substring(0, 4000) + "\n\n... [Réponse tronquée]";
+      repondre(`💎 *Google Gemini*\n\n❓ *Question:*\n${question}\n\n💡 *Réponse:*\n${response}\n\n✨ Powered by HANI-MD`);
 
     } catch (error) {
       console.error("[GEMINI]", error);
@@ -154,36 +119,14 @@ ovlcmd(
 
       await repondre("🎨 Génération de l'image en cours... (peut prendre 30-60 secondes)");
 
-      // APIs de génération d'images
-      const apis = [
-        `https://api.vrfrnd.xyz/api/dalle?prompt=${encodeURIComponent(prompt)}`,
-        `https://api.itzpire.com/ai/generate-image?prompt=${encodeURIComponent(prompt)}`
-      ];
-
-      let imageUrl = null;
-      
-      for (const apiUrl of apis) {
-        try {
-          const res = await axios.get(apiUrl, { timeout: 60000 });
-          
-          if (res.data) {
-            imageUrl = res.data.result || res.data.url || res.data.image || res.data.data;
-            
-            if (imageUrl && imageUrl.startsWith("http")) {
-              break;
-            }
-          }
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (imageUrl) {
+      // Pollinations.ai — génération d'images gratuite sans clé
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?nologo=true&width=768&height=768&seed=${Math.floor(Math.random()*99999)}`;
+      try {
         await ovl.sendMessage(msg.key.remoteJid, {
           image: { url: imageUrl },
-          caption: `🎨 *DALL-E*\n\n📝 Prompt: ${prompt}\n\n✨ Powered by HANI-MD`
+          caption: `🎨 *HANI-AI Image*\n\n📝 Prompt: ${prompt}\n\n✨ Powered by HANI-MD`
         }, { quoted: ms });
-      } else {
+      } catch(e) {
         repondre("❌ Impossible de générer l'image. Réessayez avec un autre prompt.");
       }
 
@@ -216,21 +159,12 @@ ovlcmd(
       await repondre("📝 Résumé en cours...");
 
       const prompt = `Résume ce texte en quelques phrases clés:\n\n${text}`;
-      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
-      
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && res.data.result) {
-          let result = `📝 *Résumé*\n\n`;
-          result += `${res.data.result}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
-
-      repondre("❌ Impossible de résumer le texte. Réessayez.");
+        const summary = await askGemini(prompt);
+        repondre(`📝 *Résumé*\n\n${summary}\n\n✨ Powered by HANI-MD`);
+      } catch(e) {
+        repondre(`❌ ${e.message}`);
+      }
 
     } catch (error) {
       console.error("[SUMMARIZE]", error);
@@ -261,28 +195,13 @@ ovlcmd(
       await repondre("💻 Génération du code...");
 
       const prompt = `Génère du code pour: ${request}. Fournis uniquement le code avec des commentaires explicatifs.`;
-      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
-      
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && res.data.result) {
-          let code = res.data.result;
-          
-          if (code.length > 4000) {
-            code = code.substring(0, 4000) + "\n\n... [Code tronqué]";
-          }
-          
-          let result = `💻 *Code Assistant*\n\n`;
-          result += `📝 Demande: ${request}\n\n`;
-          result += `${code}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
-
-      repondre("❌ Impossible de générer le code. Réessayez.");
+        let code = await askGemini(prompt);
+        if (code.length > 4000) code = code.substring(0, 4000) + "\n\n... [Code tronqué]";
+        repondre(`💻 *Code Assistant*\n\n📝 Demande: ${request}\n\n${code}\n\n✨ Powered by HANI-MD`);
+      } catch(e) {
+        repondre(`❌ ${e.message}`);
+      }
 
     } catch (error) {
       console.error("[CODE]", error);
@@ -314,24 +233,13 @@ ovlcmd(
 
       await repondre("🌐 Traduction IA en cours...");
 
-      const prompt = `Traduis ce texte en ${targetLang} de manière naturelle et fluide:\n\n"${text}"`;
-      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
-      
+      const prompt = `Traduis ce texte en ${targetLang} de manière naturelle et fluide:\n\n"${text}". Donne uniquement la traduction, rien d'autre.`;
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && res.data.result) {
-          let result = `🌐 *Traduction IA*\n\n`;
-          result += `📝 Original: ${text}\n`;
-          result += `🎯 Langue: ${targetLang}\n\n`;
-          result += `✅ Traduction:\n${res.data.result}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
-
-      repondre("❌ Impossible de traduire. Essayez .translate pour une traduction simple.");
+        const translation = await askGemini(prompt);
+        repondre(`🌐 *Traduction IA*\n\n📝 Original: ${text}\n🎯 Langue: ${targetLang}\n\n✅ Traduction:\n${translation}\n\n✨ Powered by HANI-MD`);
+      } catch(e) {
+        repondre(`❌ ${e.message}`);
+      }
 
     } catch (error) {
       console.error("[AITRANSLATE]", error);
@@ -359,22 +267,12 @@ ovlcmd(
       await repondre("🧠 Génération du quiz...");
 
       const prompt = `Génère une question de quiz sur "${topic}" avec 4 choix de réponses (A, B, C, D) et indique la bonne réponse à la fin. Format clair.`;
-      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
-      
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && res.data.result) {
-          let result = `🧠 *Quiz IA*\n\n`;
-          result += `📚 Sujet: ${topic}\n\n`;
-          result += `${res.data.result}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
-
-      repondre("❌ Impossible de générer le quiz. Réessayez.");
+        const quiz = await askGemini(prompt);
+        repondre(`🧠 *Quiz IA*\n\n📚 Sujet: ${topic}\n\n${quiz}\n\n✨ Powered by HANI-MD`);
+      } catch(e) {
+        repondre(`❌ ${e.message}`);
+      }
 
     } catch (error) {
       console.error("[AIQUIZ]", error);
@@ -402,22 +300,12 @@ ovlcmd(
       await repondre("📖 Création de l'histoire...");
 
       const prompt = `Écris une courte histoire captivante (environ 200 mots) sur le thème: "${theme}". Style narratif engageant.`;
-      const apiUrl = `https://api.vrfrnd.xyz/api/gpt?prompt=${encodeURIComponent(prompt)}`;
-      
       try {
-        const res = await axios.get(apiUrl, { timeout: 30000 });
-        
-        if (res.data && res.data.result) {
-          let result = `📖 *Histoire*\n\n`;
-          result += `🎭 Thème: ${theme}\n\n`;
-          result += `${res.data.result}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
-        }
-      } catch (e) {}
-
-      repondre("❌ Impossible de générer l'histoire. Réessayez.");
+        const story = await askGemini(prompt);
+        repondre(`📖 *Histoire*\n\n🎭 Thème: ${theme}\n\n${story}\n\n✨ Powered by HANI-MD`);
+      } catch(e) {
+        repondre(`❌ ${e.message}`);
+      }
 
     } catch (error) {
       console.error("[STORY]", error);

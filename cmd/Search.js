@@ -9,6 +9,10 @@
 
 const { ovlcmd } = require("../lib/ovlcmd");
 const axios = require("axios");
+const { ytSearch } = require("../lib/dl");
+
+const UA = "HANI-MD-Bot/2.0 (WhatsApp Bot)";
+const TMDB_KEY = process.env.TMDB_API_KEY || "8265bd1679663a7ea12ac168da84d2e8";
 
 // ═══════════════════════════════════════════════════════════
 // 🔍 GOOGLE SEARCH
@@ -31,28 +35,7 @@ ovlcmd(
 
       await repondre("🔍 Recherche en cours...");
 
-      // API de recherche
-      const apiUrl = `https://api.vrfrnd.xyz/api/google?query=${encodeURIComponent(query)}`;
-      
-      try {
-        const response = await axios.get(apiUrl, { timeout: 10000 });
-        
-        if (response.data && response.data.results) {
-          let results = `🔍 *Résultats Google*\n\n🔎 Recherche: ${query}\n\n`;
-          
-          response.data.results.slice(0, 5).forEach((r, i) => {
-            results += `*${i + 1}. ${r.title}*\n`;
-            results += `${r.description || ""}\n`;
-            results += `🔗 ${r.link}\n\n`;
-          });
-          
-          results += `✨ Powered by HANI-MD`;
-          return repondre(results);
-        }
-      } catch (e) {}
-
-      // Fallback - lien direct
-      repondre(`🔍 *Recherche Google*\n\n🔎 ${query}\n\n🔗 https://www.google.com/search?q=${encodeURIComponent(query)}`);
+      repondre(`🔍 *Recherche Google*\n\n🔎 ${query}\n\n🔗 https://www.google.com/search?q=${encodeURIComponent(query)}\n\n✨ Powered by HANI-MD`);
 
     } catch (error) {
       console.error("[GOOGLE]", error);
@@ -82,41 +65,23 @@ ovlcmd(
 
       await repondre("🎬 Recherche YouTube en cours...");
 
-      // API YouTube search
-      const apiUrl = `https://api.vrfrnd.xyz/api/ytsearch?query=${encodeURIComponent(query)}`;
-      
-      try {
-        const response = await axios.get(apiUrl, { timeout: 10000 });
-        
-        if (response.data && response.data.results) {
-          const results = response.data.results.slice(0, 5);
-          
-          let text = `🎬 *Résultats YouTube*\n\n🔎 Recherche: ${query}\n\n`;
-          
-          results.forEach((video, i) => {
-            text += `*${i + 1}. ${video.title}*\n`;
-            text += `⏱️ ${video.duration || "N/A"} | 👁️ ${video.views || "N/A"}\n`;
-            text += `🔗 ${video.url}\n\n`;
-          });
-          
-          text += `💡 Utilisez .play [lien] pour télécharger\n`;
-          text += `✨ Powered by HANI-MD`;
-          
-          // Envoyer avec thumbnail du premier résultat
-          if (results[0]?.thumbnail) {
-            await ovl.sendMessage(msg.key.remoteJid, {
-              image: { url: results[0].thumbnail },
-              caption: text
-            }, { quoted: ms });
-          } else {
-            repondre(text);
-          }
-          return;
-        }
-      } catch (e) {}
+      let results;
+      try { results = await ytSearch(query); } catch(e) { results = []; }
 
-      // Fallback
-      repondre(`🎬 *Recherche YouTube*\n\n🔗 https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+      if (results && results.length > 0) {
+        let text = `🎬 *Résultats YouTube*\n\n🔎 Recherche: ${query}\n\n`;
+        results.slice(0, 5).forEach((v, i) => {
+          text += `*${i + 1}. ${v.title}*\n`;
+          text += `⏱️ ${v.duration || "N/A"} | 👁️ ${v.views || "N/A"}\n`;
+          text += `🔗 ${v.url}\n\n`;
+        });
+        text += `💡 Utilisez .ytaudio ou .ytvideo pour télécharger\n✨ Powered by HANI-MD`;
+        if (results[0]?.thumbnail) {
+          await ovl.sendMessage(msg.key.remoteJid, { image: { url: results[0].thumbnail }, caption: text }, { quoted: ms });
+        } else { repondre(text); }
+      } else {
+        repondre(`🎬 *Recherche YouTube*\n\n🔗 https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+      }
 
     } catch (error) {
       console.error("[YTSEARCH]", error);
@@ -146,11 +111,10 @@ ovlcmd(
 
       await repondre("📚 Recherche Wikipedia...");
 
-      // API Wikipedia
       const apiUrl = `https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
       
       try {
-        const response = await axios.get(apiUrl, { timeout: 10000 });
+        const response = await axios.get(apiUrl, { timeout: 10000, headers: { "User-Agent": UA } });
         
         if (response.data) {
           let wiki = `📚 *Wikipedia*\n\n`;
@@ -199,32 +163,19 @@ ovlcmd(
 
       await repondre("🎵 Recherche des paroles...");
 
-      // API Lyrics
-      const apiUrl = `https://api.vrfrnd.xyz/api/lyrics?query=${encodeURIComponent(query)}`;
-      
       try {
-        const response = await axios.get(apiUrl, { timeout: 15000 });
-        
-        if (response.data && response.data.lyrics) {
-          let lyrics = response.data.lyrics;
-          
-          // Limiter la longueur
-          if (lyrics.length > 4000) {
-            lyrics = lyrics.substring(0, 4000) + "\n\n... [Paroles tronquées]";
-          }
-          
-          let result = `🎵 *Paroles*\n\n`;
-          result += `🎤 ${response.data.title || query}\n`;
-          result += `👤 ${response.data.artist || "Artiste inconnu"}\n\n`;
-          result += `📝 *Lyrics:*\n\n${lyrics}\n\n`;
-          result += `✨ Powered by HANI-MD`;
-          
-          return repondre(result);
+        const parts = query.split(/[-–]/).map(p => p.trim());
+        const artist = parts[0] || query;
+        const title = parts[1] || query;
+        const lyricsResp = await axios.get(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`, { timeout: 15000, headers: { "User-Agent": UA } });
+        if (lyricsResp.data?.lyrics) {
+          let lyrics = lyricsResp.data.lyrics;
+          if (lyrics.length > 4000) lyrics = lyrics.substring(0, 4000) + "\n\n... [Paroles tronquées]";
+          return repondre(`🎵 *Paroles*\n\n🎤 ${title}\n👤 ${artist}\n\n📝 *Lyrics:*\n\n${lyrics}\n\n✨ Powered by HANI-MD`);
         }
       } catch (e) {}
 
-      // Fallback
-      repondre(`❌ Paroles non trouvées pour "${query}"\n\n💡 Essayez: .lyrics Artiste - Titre`);
+      repondre(`❌ Paroles non trouvées pour "${query}"\n\n💡 Format: .lyrics Artiste - Titre`);
 
     } catch (error) {
       console.error("[LYRICS]", error);
@@ -336,28 +287,15 @@ ovlcmd(
 
       await repondre("🖼️ Recherche d'images...");
 
-      // API Pinterest/Images
-      const apiUrl = `https://api.vrfrnd.xyz/api/pinterest?query=${encodeURIComponent(query)}`;
-      
+      const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(query)}?nologo=true&width=512&height=512&seed=${Math.floor(Math.random()*99999)}`;
       try {
-        const response = await axios.get(apiUrl, { timeout: 10000 });
-        
-        if (response.data && response.data.results && response.data.results.length > 0) {
-          const images = response.data.results.slice(0, 5);
-          
-          for (const img of images) {
-            await ovl.sendMessage(msg.key.remoteJid, {
-              image: { url: img },
-              caption: `🖼️ ${query}\n✨ HANI-MD`
-            }, { quoted: ms });
-            
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-          return;
-        }
-      } catch (e) {}
-
-      repondre(`❌ Aucune image trouvée pour "${query}"`);
+        await ovl.sendMessage(msg.key.remoteJid, {
+          image: { url: imgUrl },
+          caption: `🖼️ *Image: ${query}*\n✨ Powered by HANI-MD`
+        }, { quoted: ms });
+      } catch(e) {
+        repondre(`❌ Impossible de charger l'image pour "${query}"`);
+      }
 
     } catch (error) {
       console.error("[IMAGE]", error);
@@ -418,29 +356,14 @@ ovlcmd(
 
       await repondre("🎬 Recherche du film...");
 
-      // API OMDb ou alternative
-      const apiUrl = `https://www.omdbapi.com/?t=${encodeURIComponent(query)}&apikey=d4efcfec`;
-      
       try {
-        const response = await axios.get(apiUrl, { timeout: 10000 });
-        
-        if (response.data && response.data.Response !== "False") {
-          const movie = response.data;
-          
-          let info = `🎬 *${movie.Title}* (${movie.Year})\n\n`;
-          info += `📊 Note: ⭐ ${movie.imdbRating}/10\n`;
-          info += `🎭 Genre: ${movie.Genre}\n`;
-          info += `⏱️ Durée: ${movie.Runtime}\n`;
-          info += `🎬 Réalisateur: ${movie.Director}\n`;
-          info += `🌟 Acteurs: ${movie.Actors}\n\n`;
-          info += `📝 Synopsis:\n${movie.Plot}\n\n`;
-          info += `✨ Powered by HANI-MD`;
-          
-          if (movie.Poster && movie.Poster !== "N/A") {
-            await ovl.sendMessage(msg.key.remoteJid, {
-              image: { url: movie.Poster },
-              caption: info
-            }, { quoted: ms });
+        const tmdbResp = await axios.get(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}&api_key=${TMDB_KEY}&language=fr`, { timeout: 10000 });
+        const movie = tmdbResp.data?.results?.[0];
+        if (movie) {
+          const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null;
+          const info = `🎬 *${movie.title}* (${movie.release_date?.split('-')[0] || 'N/A'})\n\n📊 Note: ⭐ ${movie.vote_average?.toFixed(1)}/10\n� Langue: ${movie.original_language?.toUpperCase() || 'N/A'}\n\n📝 Synopsis:\n${movie.overview || 'Aucun synopsis.'}\n\n✨ Powered by HANI-MD`;
+          if (posterUrl) {
+            await ovl.sendMessage(msg.key.remoteJid, { image: { url: posterUrl }, caption: info }, { quoted: ms });
           } else {
             repondre(info);
           }

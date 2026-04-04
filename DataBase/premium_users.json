@@ -1,8 +1,14 @@
 {
   "66791824998402@lid": {
     "plan": "gratuit",
-    "dailyUsage": 11,
+    "dailyUsage": 22,
     "lastUsageReset": "2026-04-03T17:45:22.031Z",
-    "totalCommands": 11
+    "totalCommands": 22
+  },
+  "216965239025712@lid": {
+    "plan": "gratuit",
+    "dailyUsage": 2,
+    "lastUsageReset": "2026-04-04T04:19:16.645Z",
+    "totalCommands": 2
   }
 }

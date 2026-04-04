@@ -34,29 +34,31 @@ const TEXTPRO_EFFECTS = {
   candy: "https://textpro.me/online-cute-3d-candy-text-effect-generator-1192.html"
 };
 
-// APIs alternatives gratuites pour les logos
-const LOGO_API_PROVIDERS = [
-  // API 1 - BotCahx (fiable)
-  {
-    name: "BotCahx",
-    makeUrl: (style, text) => `https://api.botcahx.eu.org/api/textpro/${style}?text=${encodeURIComponent(text)}&apikey=Admin`
-  },
-  // API 2 - ZenzAPI
-  {
-    name: "ZenzAPI", 
-    makeUrl: (style, text) => `https://api.zenkey.my.id/api/textpro/${style}?text=${encodeURIComponent(text)}`
-  },
-  // API 3 - Neoxr
-  {
-    name: "Neoxr",
-    makeUrl: (style, text) => `https://api.neoxr.eu/api/textpro/${style}?text=${encodeURIComponent(text)}&apikey=brrohT_FREE`
-  },
-  // API 4 - Simple maker (fallback)
-  {
-    name: "SimpleMaker",
-    makeUrl: (style, text) => `https://some-random-api.com/canvas/misc/${style}?text=${encodeURIComponent(text)}`
-  }
-];
+// Prompts Pollinations.ai pour chaque style de logo
+const STYLE_PROMPTS = {
+  fire:      "stunning fire text effect, glowing flames, dramatic lighting, black background, professional logo design, text reads",
+  ice:       "frozen ice crystal text effect, cold blue glow, frost particles, black background, professional logo design, text reads",
+  thunder:   "electric lightning text effect, blue sparks, storm energy, dark background, professional logo design, text reads",
+  neon:      "neon glow text effect, vibrant colors, dark city background, cyberpunk style, professional logo design, text reads",
+  gaming:    "e-sports gaming logo, 3D metallic text, dramatic lighting, dark background, professional gaming design, text reads",
+  diamond:   "diamond gem text effect, sparkles, crystal reflections, luxury design, black background, text reads",
+  "3d":      "3D metallic chrome text, dramatic shadows, professional logo, black background, text reads",
+  galaxy:    "galaxy space text effect, stars, nebula colors, cosmic design, dark background, text reads",
+  blood:     "blood dripping text effect, horror style, red and black, dark background, scary logo, text reads",
+  gold:      "golden 3D text effect, luxury metallic, shiny gold, black background, premium logo design, text reads",
+  graffiti:  "graffiti street art text, spray paint, urban style, colorful, wall background, text reads",
+  water:     "water wave text effect, liquid blue, flowing design, ocean theme, text reads",
+  medieval:  "medieval ancient text, stone carved, fantasy style, parchment background, text reads",
+  dark:      "dark shadow text effect, mysterious, black and dark purple, gothic style, text reads",
+  marvel:    "Marvel superhero text effect, red and gold, comic book style, dramatic, text reads",
+  blackpink: "Blackpink kpop text effect, pink and black, glitter, sparkles, K-pop logo style, text reads",
+  naruto:    "Naruto anime text effect, orange and black, ninja style, Japanese aesthetics, text reads",
+  pokemon:   "Pokemon text effect, yellow and blue, game logo style, fun and bold, text reads",
+  matrix:    "Matrix hacker text effect, green digital rain, dark background, cyberpunk, text reads",
+  chrome:    "chrome metallic text effect, silver reflections, industrial design, text reads",
+  hologram:  "holographic 3D text, rainbow iridescent, futuristic, tech design, dark background, text reads",
+  candy:     "candy sweet text effect, pastel colors, cute, colorful, kawaii style, text reads"
+};
 
 // Mapping des styles avec variations
 const STYLE_VARIANTS = {
@@ -82,7 +84,7 @@ const STYLE_VARIANTS = {
   candy: ["candy", "sweet", "cute"]
 };
 
-// Fonction utilitaire pour créer des logos via API
+// Génération de logo via Pollinations.ai (IA gratuite, sans clé)
 async function createLogo(ovl, msg, ms, repondre, style, text) {
   try {
     if (!text || text.trim() === "") {
@@ -90,90 +92,19 @@ async function createLogo(ovl, msg, ms, repondre, style, text) {
     }
 
     await repondre(`🎨 Création du logo "${style}" pour: ${text}...`);
-    console.log(`[LOGO] Création ${style}: "${text}"`);
 
-    const variants = STYLE_VARIANTS[style] || [style];
-    let imageBuffer = null;
-    let successApi = null;
+    const basePrompt = STYLE_PROMPTS[style] || `${style} text effect, professional logo design, text reads`;
+    const fullPrompt = `${basePrompt} "${text}", high quality, 4K`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?nologo=true&width=768&height=512&seed=${Math.floor(Math.random()*99999)}`;
 
-    // Essayer toutes les APIs avec fallback
-    for (const provider of LOGO_API_PROVIDERS) {
-      if (imageBuffer) break;
-      
-      for (const variant of variants) {
-        try {
-          const apiUrl = provider.makeUrl(variant, text);
-          console.log(`[LOGO] Essai ${provider.name}: ${variant}`);
-          
-          const response = await axios.get(apiUrl, { 
-            timeout: 25000,
-            responseType: 'arraybuffer',
-            headers: {
-              'Accept': 'image/*,application/json,*/*',
-              'User-Agent': 'Mozilla/5.0 HANI-MD Bot/2.6.0'
-            },
-            validateStatus: (status) => status < 500
-          });
-          
-          if (response.status !== 200) continue;
-          
-          const contentType = response.headers['content-type'] || '';
-          
-          // C'est directement une image
-          if (contentType.includes('image')) {
-            imageBuffer = Buffer.from(response.data);
-            successApi = provider.name;
-            console.log(`[LOGO] ✅ Succès avec ${provider.name} (image directe)`);
-            break;
-          }
-          
-          // C'est du JSON avec URL d'image
-          if (contentType.includes('json')) {
-            try {
-              const jsonData = JSON.parse(response.data.toString());
-              const imageUrl = jsonData.result || jsonData.url || jsonData.image || jsonData.data?.url || jsonData.data?.result;
-              
-              if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
-                console.log(`[LOGO] JSON reçu, téléchargement depuis: ${imageUrl.substring(0, 50)}...`);
-                const imgResponse = await axios.get(imageUrl, { 
-                  responseType: 'arraybuffer',
-                  timeout: 20000,
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-                });
-                if (imgResponse.data && imgResponse.data.length > 1000) {
-                  imageBuffer = Buffer.from(imgResponse.data);
-                  successApi = provider.name;
-                  console.log(`[LOGO] ✅ Succès avec ${provider.name} (via JSON)`);
-                  break;
-                }
-              }
-            } catch (parseErr) {
-              console.log(`[LOGO] Erreur parsing JSON: ${parseErr.message}`);
-            }
-          }
-        } catch (e) {
-          console.log(`[LOGO] ${provider.name}/${variant} échoué: ${e.message}`);
-        }
-      }
-    }
-
-    if (imageBuffer && imageBuffer.length > 1000) {
-      await ovl.sendMessage(msg.key.remoteJid, {
-        image: imageBuffer,
-        mimetype: 'image/png',
-        caption: `🎨 *Logo ${style.toUpperCase()}*\n\n📝 Texte: ${text}\n🔧 API: ${successApi}\n\n✨ Powered by HANI-MD`
-      }, { quoted: ms });
-      console.log(`[LOGO] ✅ Envoyé: ${style} - ${text}`);
-      return;
-    }
-
-    // Aucune API n'a fonctionné
-    console.log(`[LOGO] ❌ Toutes les APIs ont échoué pour ${style}`);
-    repondre(`❌ Le service de création de logo "${style}" est temporairement indisponible.\n\n💡 Essayez:\n• .neon ${text}\n• .gold ${text}\n• .gaming ${text}\n• .3dlogo ${text}`);
+    await ovl.sendMessage(msg.key.remoteJid, {
+      image: { url: imageUrl },
+      caption: `🎨 *Logo ${style.toUpperCase()}*\n\n📝 Texte: ${text}\n\n✨ Powered by HANI-MD`
+    }, { quoted: ms });
 
   } catch (error) {
     console.error(`[LOGO-${style}] Erreur:`, error.message);
-    repondre(`❌ Erreur: ${error.message}`);
+    repondre(`❌ Erreur lors de la création du logo: ${error.message}`);
   }
 }
 
