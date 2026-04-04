@@ -1,50 +1,71 @@
 {
-  "name": "OVL-MD-V2",
-  "description": "Bot WhatsApp Multi-Device basé sur Baileys",
-  "keywords": ["Ainz", "OVL-MD-V2", "Whatsapp", "Baileys", "Muti-device"],
-  "logo": "https://files.catbox.moe/lojrxz.jpg",
-  "repository": "https://github.com/Ainz-devs/OVL-MD-V2",
-  "success_url": "/",
-  "stack": "container",
+  "name": "hani-md",
+  "description": "HANI-MD - Bot WhatsApp Intelligent & Performant par H2025",
+  "keywords": ["hani-md", "H2025", "Whatsapp", "Baileys", "Multi-device"],
+  "repository": "https://github.com/hanieljean42-eng/hani-md",
+  "success_url": "/health",
+  "buildpacks": [
+    { "url": "heroku/nodejs" }
+  ],
   "env": {
-    "PREFIXE": {
-      "description": "Préfixe utilisé pour les commandes du bot",
-      "value": ".",
-      "required": false
-    },
-    "NOM_OWNER": {
-      "description": "Nom de l'Owner du bot",
-      "value": "Ainz",
-      "required": false
-    },
-    "NUMERO_OWNER": {
-      "description": "Numéro WhatsApp de l'Owner (au format international)",
-      "value": "226xxxxxxxx",
-      "required": true
-    },
-    "MODE": {
-      "description": "Mode de fonctionnement du bot (public ou private)",
-      "value": "public",
+    "NODE_ENV": {
+      "description": "Environnement Node.js",
+      "value": "production",
       "required": false
     },
     "SESSION_ID": {
-      "description": "Identifiant de session",
+      "description": "Session WhatsApp (format HANI-MD~base64). Générez-la avec: node session-generator.js",
       "value": "",
       "required": true
     },
-    "STICKER_PACK_NAME": {
-      "description": "Nom du pack de stickers",
-      "value": "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
+    "NUMERO_OWNER": {
+      "description": "Numéro WhatsApp du propriétaire (format international sans +)",
+      "value": "22550252467",
+      "required": true
+    },
+    "BOT_NAME": {
+      "description": "Nom du bot",
+      "value": "HANI-MD",
       "required": false
     },
-    "STICKER_AUTHOR_NAME": {
-      "description": "Auteur du sticker",
-      "value": "ᴀɪɴᴢ🔅✨",
+    "PREFIX": {
+      "description": "Préfixe des commandes",
+      "value": ".",
+      "required": false
+    },
+    "GEMINI_API_KEY": {
+      "description": "Clé API Google Gemini pour les commandes IA. Gratuite sur https://aistudio.google.com/app/apikey",
+      "value": "",
+      "required": false
+    },
+    "FIREBASE_URL": {
+      "description": "URL Firebase Realtime Database",
+      "value": "https://hani-md-default-rtdb.firebaseio.com",
+      "required": false
+    },
+    "FIREBASE_CREDENTIALS": {
+      "description": "Contenu JSON du service account Firebase (sur une seule ligne)",
+      "value": "",
+      "required": false
+    },
+    "ADMIN_PASSWORD": {
+      "description": "Mot de passe administrateur du bot",
+      "value": "",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Clé secrète JWT (chaîne aléatoire longue)",
+      "value": "",
+      "required": true
+    },
+    "PORT": {
+      "description": "Port du serveur web (Heroku le définit automatiquement)",
+      "value": "3000",
       "required": false
     }
   },
   "formation": {
-    "worker": {
+    "web": {
       "quantity": 1,
       "size": "basic"
     }
