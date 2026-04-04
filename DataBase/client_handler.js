@@ -150,9 +150,6 @@ function attachMessageHandler(sock, clientId, plan) {
   sock.ev.on('messages.upsert', async (m) => {
     try {
       const msg = m.messages?.[0];
-      if (!msg || !msg.message || msg.key.fromMe === false) {
-        // Traiter uniquement les messages reçus (pas fromMe sauf si bot répond)
-      }
       if (!msg || !msg.message) return;
 
       const body = getTextFromMessage(msg);
