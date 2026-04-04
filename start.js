@@ -2046,7 +2046,7 @@ app.post('/api/clients/connect/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
-    const session = await clientSessions.createSession(clientId, info);
+    const session = await clientSessions.createSession(clientId, info, true);
 
     res.json({
       status: session.status,

@@ -129,21 +129,22 @@ function verifyClient(clientId) {
  * Crée ou récupère une session WhatsApp pour un client.
  * Retourne la sessionData.
  */
-async function createSession(clientId, clientInfo) {
+async function createSession(clientId, clientInfo, forceNewQR = false) {
   const id = clientId.toUpperCase();
 
   // Si session déjà active en mémoire
   if (sessions.has(id)) {
     const existing = sessions.get(id);
     if (existing.status === 'connected') return existing;
-    if (existing.status === 'qr_ready')  return existing;
-    // Si initialisation récente (< 60s), attendre le QR
+    if (existing.status === 'qr_ready' && !forceNewQR) return existing;
+    // Si initialisation récente (< 60s) et pas de force, attendre le QR
     const age = Date.now() - new Date(existing.createdAt).getTime();
-    if (existing.status === 'initializing' && age < 60000) {
+    if (existing.status === 'initializing' && age < 60000 && !forceNewQR) {
       return existing;
     }
-    // Sinon fermer l'ancien socket avant de recréer
+    // Fermer l'ancien socket avant de recréer
     if (existing.sock) {
+      existing._closing = true;
       try { existing.sock.end(undefined); } catch {}
     }
     sessions.delete(id);
@@ -151,6 +152,18 @@ async function createSession(clientId, clientInfo) {
   }
 
   const sessionDir = path.join(SESSIONS_DIR, id);
+
+  // ✅ Supprimer les fichiers de session existants pour forcer un nouveau QR
+  // (empêche Baileys de tenter une reconnexion silencieuse avec des creds périmés)
+  if (forceNewQR && fs.existsSync(sessionDir)) {
+    try {
+      fs.rmSync(sessionDir, { recursive: true, force: true });
+      console.log(`[SESSIONS] 🗑️ Ancien dossier session supprimé → nouveau QR: ${id}`);
+    } catch (e) {
+      console.error(`[SESSIONS] Erreur suppression session dir:`, e.message);
+    }
+  }
+
   fs.mkdirSync(sessionDir, { recursive: true });
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
