@@ -155,18 +155,24 @@ async function createSession(clientId, clientInfo) {
 
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
-  const logger = pino({ level: 'silent' });
+  const logger = pino({ level: 'silent' }).child({ level: 'silent' });
 
   const sock = makeWASocket({
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger)
     },
-    browser: Browsers.macOS('Safari'),
-    printQRInTerminal: false,
     logger,
+    browser: ['HANI-MD', 'Chrome', '120.0.0'],
+    keepAliveIntervalMs: 15000,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
+    retryRequestDelayMs: 2000,
     syncFullHistory: false,
-    markOnlineOnConnect: false
+    markOnlineOnConnect: false,
+    fireInitQueries: true,
+    emitOwnEvents: true,
+    printQRInTerminal: false
   });
 
   const sessionData = {
@@ -183,16 +189,16 @@ async function createSession(clientId, clientInfo) {
 
   sessions.set(id, sessionData);
 
-  // Timeout: si pas de QR après 45 secondes, marquer comme failed sans relancer
+  // Timeout: si pas de QR après 75s (> connectTimeoutMs:60s), marquer comme failed
   setTimeout(() => {
     const s = sessions.get(id);
-    if (s && s.status === 'initializing') {
+    if (s && (s.status === 'initializing' || s.status === 'reconnecting')) {
       s._closing = true;   // Bloquer le handler de reconnexion
       s.status = 'failed';
-      console.log(`[SESSIONS] ⏰ Timeout QR pour client: ${id} — arrêt sans reconnexion`);
+      console.log(`[SESSIONS] ⏰ Timeout 75s pour client: ${id} — pas de QR reçu`);
       try { sock.end(undefined); } catch {}
     }
-  }, 45000);
+  }, 75000);
 
   // ── Événements de connexion ──
   sock.ev.on('connection.update', async (update) => {
@@ -200,12 +206,17 @@ async function createSession(clientId, clientInfo) {
 
     if (qr) {
       try {
-        sessionData.qr     = await QRCode.toDataURL(qr, { margin: 2, width: 280 });
+        sessionData.qr     = await QRCode.toDataURL(qr, { margin: 2, width: 300 });
         sessionData.status = 'qr_ready';
-        console.log(`[SESSIONS] QR prêt pour client: ${id}`);
+        sessionData._closing = false; // QR arrivé, annuler tout timeout précédent
+        console.log(`[SESSIONS] ✅ QR prêt pour client: ${id}`);
       } catch (e) {
-        console.error('[SESSIONS] Erreur génération QR:', e.message);
+        console.error('[SESSIONS] ❌ Erreur génération QR:', e.message);
       }
+    }
+
+    if (connection === 'connecting') {
+      console.log(`[SESSIONS] 🔗 Connexion WA en cours pour: ${id}`);
     }
 
     if (connection === 'open') {
@@ -222,9 +233,12 @@ async function createSession(clientId, clientInfo) {
     }
 
     if (connection === 'close') {
+      const errMsg = lastDisconnect?.error?.message || '';
+      console.log(`[SESSIONS] 🔌 Connexion fermée pour: ${id} | raison: ${errMsg || 'inconnue'}`);
+
       // Fermeture intentionnelle (timeout ou kick) → ne pas relancer
       if (sessionData._closing) {
-        console.log(`[SESSIONS] 🔴 Fermeture intentionnelle: ${id} — pas de reconnexion`);
+        console.log(`[SESSIONS] 🔴 Arrêt intentionnel: ${id}`);
         return;
       }
 

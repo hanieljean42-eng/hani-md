@@ -350,7 +350,7 @@
     let clientId = null;
     let pollInterval = null;
     let timerInterval = null;
-    let timeLeft = 120; // 2 minutes
+    let timeLeft = 150; // 2:30 minutes
 
     // Éléments
     const states = {
@@ -458,7 +458,7 @@
 
     // Timer QR
     function startTimer() {
-      timeLeft = 120;
+      timeLeft = 150;
       updateTimer();
       timerInterval = setInterval(() => {
         timeLeft--;
@@ -473,8 +473,7 @@
     function updateTimer() {
       const minutes = Math.floor(timeLeft / 60);
       const seconds = timeLeft % 60;
-      document.getElementById('qr-timer').textContent = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      document.getElementById('qr-timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
     // Vérifier le client
@@ -592,10 +591,15 @@
         if (data.qr) {
           document.getElementById('qr-status-msg').style.display = 'none';
           document.getElementById('qr-container').innerHTML =
-            `<img src="${data.qr}" alt="QR Code" style="width:100%;border-radius:12px;">`;
-        } else if (data.status === 'initializing') {
+            `<img src="${data.qr}" alt="QR Code" style="width:100%;border-radius:12px;max-width:280px;">`;
+        } else if (data.status === 'initializing' || data.status === 'reconnecting') {
           document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
           document.getElementById('qr-status-msg').style.display = 'block';
+        } else if (data.status === 'not_connected') {
+          // Session perdue — relancer
+          clearInterval(pollInterval);
+          clearInterval(timerInterval);
+          showError('Session perdue. Cliquez sur Réessayer.');
         }
 
       } catch (e) {
