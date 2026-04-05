@@ -8,7 +8,10 @@
  */
 
 const { ovlcmd } = require('../lib/ovlcmd');
-const Net = require('../lib/MultiBotManager');
+const Net     = require('../lib/MultiBotManager');
+const QRCode  = require('qrcode');
+const fs      = require('fs');
+const path    = require('path');
 
 // ─────────────────────────────────────────────────────────
 // ➕ .addbot <nom> <session_id>
@@ -29,16 +32,38 @@ ovlcmd(
 
     if (!name) {
       return repondre(
-        `❌ *Format:*\n.addbot <nom> <session_id>\n\n` +
-        `📌 *Exemple:*\n.addbot bot2 HANI-MD~xxxx...\n\n` +
-        `💡 Le session_id se génère avec *.getsession* sur le deuxième numéro`
+        `❌ *Format:*\n.addbot <nom> [session_id]\n\n` +
+        `📌 *Sans session_id:*\n.addbot bot2\n↳ Un QR code sera envoyé à scanner\n\n` +
+        `📌 *Avec session_id:*\n.addbot bot2 HANI-MD~xxxx...\n↳ Restaure depuis une session existante\n\n` +
+        `💡 Obtenir le session_id d'un bot: *.getsession*`
       );
     }
 
-    await repondre(`⏳ Démarrage du bot *${name}*...\n\nPatiente 10-20 secondes.`);
-
     const ownerJid = ovl.user?.id?.replace(/:\d+/, '') + '@s.whatsapp.net';
-    const result   = await Net.startBotInstance(name, sessionId, ownerJid);
+    const from     = msg.key.remoteJid;
+    let qrSent     = false;
+
+    // Callback QR — génère une image et l'envoie au owner
+    const qrCallback = async (qrData) => {
+      if (qrSent) return; // Envoyer le QR une seule fois
+      qrSent = true;
+      try {
+        const qrBuffer = await QRCode.toBuffer(qrData, { type: 'png', width: 400, margin: 2 });
+        await ovl.sendMessage(from, {
+          image: qrBuffer,
+          caption:
+            `📱 *Scanne ce QR avec le téléphone de "${name}"*\n\n` +
+            `⏳ Expire dans ~20s — scanne rapidement!\n` +
+            `ℹ️ Ouvre WhatsApp → Appareils connectés → Connecter un appareil`
+        }, { quoted: msg });
+      } catch (e) {
+        await repondre(`❌ Erreur génération QR: ${e.message}`);
+      }
+    };
+
+    await repondre(`⏳ Démarrage du bot *${name}*...\n\n${sessionId ? 'Restauration de la session...' : 'Génération du QR code...'}`);
+
+    const result = await Net.startBotInstance(name, sessionId || null, ownerJid, sessionId ? null : qrCallback);
 
     if (result.success) {
       const db = Net.loadNetworkDB();
@@ -49,12 +74,12 @@ ovlcmd(
         addedAt: new Date().toISOString()
       };
       Net.saveNetworkDB(db);
-      return repondre(
-        `✅ *Bot "${name}" démarré!*\n\n` +
-        `🔄 Connexion en cours...\n` +
-        `📱 Tu recevras une confirmation quand il sera en ligne.\n\n` +
-        `💡 *.botlist* → voir tous les bots`
-      );
+      if (sessionId) {
+        return repondre(
+          `✅ *Bot "${name}" démarré!*\n\n🔄 Connexion en cours...\n📱 Tu recevras une confirmation quand il sera en ligne.\n\n💡 *.botlist* → voir tous les bots`
+        );
+      }
+      // Si QR mode, le message de confirmation sera envoyé quand le bot se connecte
     } else {
       return repondre(`❌ Erreur: ${result.error}`);
     }
@@ -419,4 +444,62 @@ ovlcmd(
   }
 );
 
-console.log('[CMD] ✅ BotNetwork.js chargé — addbot, botlist, botcast, botsay, botping, removebot, netstats, botmirror');
+// ─────────────────────────────────────────────────────────
+// 🔑 .getsession — Exporter la session du bot courant
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'getsession',
+    classe: 'Bot Network',
+    react: '🔑',
+    desc: 'Obtenir le session_id de ce bot pour l\'ajouter au réseau',
+    alias: ['mysession', 'sessionid', 'sessionkey', 'exportsession']
+  },
+  async (ovl, msg, { repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Commande réservée au propriétaire');
+
+    const possiblePaths = [
+      path.join(process.cwd(), 'DataBase', 'session', 'principale', 'creds.json'),
+      path.join(process.cwd(), 'DataBase', 'session', 'creds.json'),
+      path.join(process.cwd(), 'session', 'creds.json'),
+      path.join(process.cwd(), 'auth_info_baileys', 'creds.json'),
+    ];
+
+    let credsData = null;
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        try { credsData = JSON.parse(fs.readFileSync(p, 'utf8')); break; } catch {}
+      }
+    }
+
+    if (!credsData) {
+      return repondre('❌ Fichier de session introuvable (creds.json).\n\nAssure-toi que le bot est bien connecté.');
+    }
+
+    const sessionId = 'HANI-MD~' + Buffer.from(JSON.stringify(credsData)).toString('base64');
+
+    // Envoyer comme document .txt (plus facile à copier que texte brut)
+    const tmpFile = path.join(process.cwd(), 'DataBase', `session_export_${Date.now()}.txt`);
+    try {
+      fs.writeFileSync(tmpFile, sessionId);
+      await ovl.sendMessage(msg.key.remoteJid, {
+        document: fs.readFileSync(tmpFile),
+        mimetype: 'text/plain',
+        fileName: 'session_id.txt',
+        caption:
+          `✅ *Session ID exporté!*\n\n` +
+          `📋 *Comment utiliser ce fichier:*\n` +
+          `1️⃣ Ouvre le fichier et copie TOUT le contenu\n` +
+          `2️⃣ Sur le bot principal, tape:\n` +
+          `   *.addbot <nom> <contenu_copié>*\n\n` +
+          `⚠️ Ne partage pas ce fichier — il donne accès à ce compte WhatsApp!`
+      }, { quoted: msg });
+    } catch (e) {
+      return repondre(`❌ Erreur export session: ${e.message}`);
+    } finally {
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+  }
+);
+
+console.log('[CMD] ✅ BotNetwork.js chargé — addbot, getsession, botlist, botcast, botsay, botping, removebot, netstats, botmirror');
