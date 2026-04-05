@@ -122,7 +122,7 @@ const MAIN_PLAN_CONFIG = {
     dailyLimit: 100,
     allowedCategories: ['Système', 'Fun', 'Games', 'Réaction', 'Support', 'Tutorial', 'Premium',
                         'Téléchargement', 'Outils', 'Recherche', 'Status', 'Confidentialité',
-                        'Conversion', 'Groupe', 'Pro'],
+                        'Conversion', 'Groupe', 'Pro', 'Audio FX', 'Contacts', 'Economy'],
     blockedCommands: ['gpt','gemini','chatgpt','dalle','imagine','flux', 'removebg','enhance'],
     upgradeMsg: '⬆️ Passez au plan Argent ou supérieur pour accéder à cette fonctionnalité.'
   },
