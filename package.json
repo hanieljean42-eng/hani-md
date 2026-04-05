@@ -50,10 +50,12 @@
     "play-dl": "^1.9.7",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.34.5",
     "simple-git": "^3.28.0",
     "wa-sticker-formatter": "^4.4.4",
     "wikipedia": "^2.1.2"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@babel/generator": "^7.28.5",
