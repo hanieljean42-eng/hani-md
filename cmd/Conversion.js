@@ -12,6 +12,13 @@ const { downloadMedia, downloadSticker, downloadVideo, downloadAudio, downloadIm
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+const { Sticker, StickerTypes } = require("wa-sticker-formatter");
+
+// Assurer que ffmpeg-static est disponible pour les stickers vidéo
+try {
+  const ffmpegPath = require("ffmpeg-static");
+  if (ffmpegPath) process.env.FFMPEG_PATH = ffmpegPath;
+} catch (e) {}
 
 // ═══════════════════════════════════════════════════════════
 // 🖼️ STICKER CRÉATION
@@ -49,11 +56,20 @@ ovlcmd(
         return repondre("❌ Impossible de télécharger le média");
       }
 
-      // Créer et envoyer le sticker
+      // ── Convertir en WebP via wa-sticker-formatter (obligatoire pour WhatsApp) ──
+      const isVideo = !!(quotedMessage?.videoMessage || directVideo);
+      const sticker = new Sticker(mediaBuffer, {
+        pack: "HANI-MD",
+        author: "H2025",
+        type: StickerTypes.FULL,
+        quality: 50,
+        ...(isVideo ? { fps: 15 } : {})
+      });
+      const stickerBuffer = await sticker.toBuffer();
+
+      // Envoyer le sticker WebP
       await ovl.sendMessage(msg.key.remoteJid, {
-        sticker: mediaBuffer,
-        packname: "HANI-MD",
-        author: "Premium Bot"
+        sticker: stickerBuffer
       }, { quoted: ms });
 
     } catch (error) {
