@@ -499,7 +499,7 @@ async function handleCommand(ovl, msg) {
         const allCmds = getCommands();
         const dynCats = {};
         for (const c of allCmds) {
-          const catRaw = c.category || c.classe || 'Divers';
+          const catRaw = c.category || 'Divers';
           const catKey = catRaw.toLowerCase().replace(/[^\w\séàâîôùèë]/g, '').trim();
           if (!dynCats[catKey]) dynCats[catKey] = { label: catRaw, cmds: [] };
           dynCats[catKey].cmds.push(c);
@@ -527,9 +527,12 @@ async function handleCommand(ovl, msg) {
             sub += `📊 *${cat.cmds.length} commandes* dans cette catégorie\n`;
             sub += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
             for (const c of cat.cmds) {
-              sub += `┌ *.${c.nom_cmd}*\n`;
-              if (c.alias && c.alias.length) sub += `│  ↪ ${c.alias.slice(0,3).map(a=>'.'+a).join(' | ')}\n`;
-              sub += `└  ${c.desc || 'Commande disponible'}\n\n`;
+              const cmdName = c.name || c.nom_cmd || '?';
+              const cmdDesc = c.description || c.desc || 'Commande disponible';
+              const cmdAlias = c.aliases || c.alias || [];
+              sub += `┌ *.${cmdName}*\n`;
+              if (cmdAlias.length) sub += `│  ↪ ${cmdAlias.slice(0,3).map(a=>'.'+a).join(' | ')}\n`;
+              sub += `└  ${cmdDesc}\n\n`;
             }
             sub += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
             sub += `💡 *.menu* → retour au menu principal`;
