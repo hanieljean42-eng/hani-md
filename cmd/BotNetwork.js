@@ -32,20 +32,74 @@ ovlcmd(
 
     if (!name) {
       return repondre(
-        `❌ *Format:*\n.addbot <nom> [session_id]\n\n` +
-        `📌 *Sans session_id:*\n.addbot bot2\n↳ Un QR code sera envoyé à scanner\n\n` +
-        `📌 *Avec session_id:*\n.addbot bot2 HANI-MD~xxxx...\n↳ Restaure depuis une session existante\n\n` +
-        `💡 Obtenir le session_id d'un bot: *.getsession*`
+        `❌ *Format:*\n\n` +
+        `📱 *Mode le plus simple (code 8 chiffres):*\n*.addbot bot2 22550XXXXXXX*\n↳ Entre le numéro du 2ème téléphone\n↳ Tu recevras un code à taper dans WhatsApp\n\n` +
+        `� *Mode QR code:*\n*.addbot bot2*\n↳ Un QR code image sera envoyé\n\n` +
+        `� *Mode session_id:*\n*.addbot bot2 HANI-MD~xxxx...*\n↳ Restaure depuis un fichier session\n\n` +
+        `💡 *.getsession* → exporter la session de ce bot`
       );
     }
 
     const ownerJid = ovl.user?.id?.replace(/:\d+/, '') + '@s.whatsapp.net';
     const from     = msg.key.remoteJid;
-    let qrSent     = false;
 
-    // Callback QR — génère une image et l'envoie au owner
+    // Détecter le mode selon le 2ème argument
+    const isSessionId   = sessionId && sessionId.startsWith('HANI-MD~');
+    const isPhoneNumber = sessionId && /^[0-9+\s\-()]{7,}$/.test(sessionId);
+
+    // ── Mode code de couplage (numéro de téléphone fourni) ──
+    if (isPhoneNumber) {
+      const cleanPhone = sessionId.replace(/[^0-9]/g, '');
+      await repondre(`⏳ Connexion de *${name}* en cours...\n\nJe vais générer un code pour le numéro +${cleanPhone}`);
+
+      let codeSent = false;
+      const pairingCallback = async (qrData, code, err) => {
+        if (codeSent) return;
+        codeSent = true;
+        if (err) return repondre(`❌ Erreur code de couplage: ${err}`);
+        if (code) {
+          const formatted = code.replace(/(.{4})/, '$1-'); // XXXX-XXXX
+          await ovl.sendMessage(from, {
+            text:
+              `🔑 *Code de couplage pour "${name}":*\n\n` +
+              `┌─────────────────────┐\n` +
+              `│   *${formatted}*   │\n` +
+              `└─────────────────────┘\n\n` +
+              `📱 Sur le téléphone *+${cleanPhone}*:\n` +
+              `1️⃣ WhatsApp → ⋮ → Appareils connectés\n` +
+              `2️⃣ Lier un appareil\n` +
+              `3️⃣ Lier avec un numéro de téléphone\n` +
+              `4️⃣ Entre ce code: *${formatted}*\n\n` +
+              `⏳ Code valide ~60 secondes`
+          }, { quoted: msg });
+        }
+      };
+
+      const result = await Net.startBotInstance(name, null, ownerJid, pairingCallback, cleanPhone);
+      if (!result.success) return repondre(`❌ Erreur: ${result.error}`);
+
+      // Sauvegarder dans la DB réseau
+      const db = Net.loadNetworkDB();
+      db.bots[name] = { name, autoConnect: true, addedAt: new Date().toISOString() };
+      Net.saveNetworkDB(db);
+      return;
+    }
+
+    // ── Mode session_id (HANI-MD~...) ──
+    if (isSessionId) {
+      await repondre(`⏳ Restauration de la session de *${name}*...`);
+      const result = await Net.startBotInstance(name, sessionId, ownerJid, null, null);
+      if (!result.success) return repondre(`❌ Erreur: ${result.error}`);
+      const db = Net.loadNetworkDB();
+      db.bots[name] = { name, sessionId, autoConnect: true, addedAt: new Date().toISOString() };
+      Net.saveNetworkDB(db);
+      return repondre(`✅ *Bot "${name}" démarré!*\n🔄 Connexion en cours...\n📱 Confirmation à venir.`);
+    }
+
+    // ── Mode QR code (fallback) ──
+    let qrSent = false;
     const qrCallback = async (qrData) => {
-      if (qrSent) return; // Envoyer le QR une seule fois
+      if (qrSent) return;
       qrSent = true;
       try {
         const qrBuffer = await QRCode.toBuffer(qrData, { type: 'png', width: 400, margin: 2 });
@@ -53,36 +107,18 @@ ovlcmd(
           image: qrBuffer,
           caption:
             `📱 *Scanne ce QR avec le téléphone de "${name}"*\n\n` +
-            `⏳ Expire dans ~20s — scanne rapidement!\n` +
-            `ℹ️ Ouvre WhatsApp → Appareils connectés → Connecter un appareil`
+            `⏳ Expire dans ~20s\n` +
+            `ℹ️ WhatsApp → Appareils connectés → Connecter un appareil`
         }, { quoted: msg });
-      } catch (e) {
-        await repondre(`❌ Erreur génération QR: ${e.message}`);
-      }
+      } catch (e) { await repondre(`❌ QR erreur: ${e.message}`); }
     };
 
-    await repondre(`⏳ Démarrage du bot *${name}*...\n\n${sessionId ? 'Restauration de la session...' : 'Génération du QR code...'}`);
-
-    const result = await Net.startBotInstance(name, sessionId || null, ownerJid, sessionId ? null : qrCallback);
-
-    if (result.success) {
-      const db = Net.loadNetworkDB();
-      db.bots[name] = {
-        name,
-        sessionId: sessionId || null,
-        autoConnect: true,
-        addedAt: new Date().toISOString()
-      };
-      Net.saveNetworkDB(db);
-      if (sessionId) {
-        return repondre(
-          `✅ *Bot "${name}" démarré!*\n\n🔄 Connexion en cours...\n📱 Tu recevras une confirmation quand il sera en ligne.\n\n💡 *.botlist* → voir tous les bots`
-        );
-      }
-      // Si QR mode, le message de confirmation sera envoyé quand le bot se connecte
-    } else {
-      return repondre(`❌ Erreur: ${result.error}`);
-    }
+    await repondre(`⏳ Génération du QR pour *${name}*...`);
+    const result = await Net.startBotInstance(name, null, ownerJid, qrCallback, null);
+    if (!result.success) return repondre(`❌ Erreur: ${result.error}`);
+    const db = Net.loadNetworkDB();
+    db.bots[name] = { name, autoConnect: true, addedAt: new Date().toISOString() };
+    Net.saveNetworkDB(db);
   }
 );
 
