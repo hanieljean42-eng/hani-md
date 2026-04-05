@@ -721,7 +721,10 @@
       <div class="page" id="page-sessions">
         <div class="header">
           <h1>🤖 Sessions Bot Clients</h1>
-          <button class="btn btn-sm btn-primary" onclick="loadSessions()"><i class="fas fa-sync"></i> Actualiser</button>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span id="sessions-live" style="font-size:0.8rem;color:#10b981;display:none;"><i class="fas fa-circle" style="font-size:0.6rem;animation:pulse 1.5s infinite;"></i> Live</span>
+            <button class="btn btn-sm btn-primary" onclick="loadSessions()"><i class="fas fa-sync"></i> Actualiser</button>
+          </div>
         </div>
         <div class="card">
           <div class="card-body">
@@ -753,6 +756,7 @@
         <div class="card" style="margin-bottom: 1.5rem;">
           <div class="card-header">
             <h3>💳 Paiements Jeko/Wave <span id="pending-badge" style="background:#f59e0b;color:#000;font-size:0.75rem;padding:2px 8px;border-radius:20px;margin-left:8px;">0</span></h3>
+            <button class="btn btn-sm btn-danger" onclick="clearPayments()" style="padding:6px 14px;font-size:0.82rem;"><i class="fas fa-trash"></i> Vider les traités</button>
           </div>
           <div class="card-body">
             <table>
@@ -774,7 +778,10 @@
 
         <!-- Demandes premium classiques -->
         <div class="card">
-          <div class="card-header"><h3>📝 Demandes premium (codes)</h3></div>
+          <div class="card-header">
+            <h3>📝 Demandes premium (codes)</h3>
+            <button class="btn btn-sm btn-danger" onclick="clearRequests()" style="padding:6px 14px;font-size:0.82rem;"><i class="fas fa-trash"></i> Vider les traités</button>
+          </div>
           <div class="card-body">
             <table>
               <thead>
@@ -1007,7 +1014,8 @@
         if (page === 'users') loadUsers();
         if (page === 'codes') loadCodes();
         if (page === 'requests') { loadPayments(); loadRequests(); }
-        if (page === 'sessions') loadSessions();
+        if (page === 'sessions') { loadSessions(); startSessionsRefresh(); }
+        else { stopSessionsRefresh(); }
       });
     });
 
@@ -1082,7 +1090,7 @@
           const actions = p.status === 'pending'
             ? `<button class="btn btn-sm btn-success" onclick="approvePayment('${p.reference}')" style="margin-right:4px;padding:6px 10px;">✅ Approuver</button>
                <button class="btn btn-sm btn-danger" onclick="rejectPayment('${p.reference}')" style="padding:6px 10px;">❌ Rejeter</button>`
-            : (p.status === 'approved' ? `<small style="opacity:0.6;">${p.approvedAt ? new Date(p.approvedAt).toLocaleDateString('fr-FR') : ''}</small>` : '');
+            : `<small style="opacity:0.6;">${p.status === 'approved' && p.approvedAt ? new Date(p.approvedAt).toLocaleDateString('fr-FR') : ''}</small>`;
           html += `<tr>
             <td>${p.name || '-'}</td>
             <td>${p.phone ? '+' + p.phone : '-'}</td>
@@ -1090,7 +1098,10 @@
             <td><code style="font-size:0.82rem;">${p.reference}</code></td>
             <td>${date}</td>
             <td>${statusLabel(p.status)}</td>
-            <td>${actions}</td>
+            <td>
+              ${actions}
+              <button class="btn-icon" title="Supprimer" onclick="deletePayment('${p.id}')" style="margin-left:4px;background:rgba(239,68,68,0.15);color:#ef4444;"><i class="fas fa-times"></i></button>
+            </td>
           </tr>`;
         });
         document.getElementById('paymentsTable').innerHTML = html;
@@ -1119,6 +1130,51 @@
       } else {
         showToast(data.error || 'Erreur', true);
       }
+    }
+
+    // ── Sessions auto-refresh ─────────────────────────────────
+    let sessionsRefreshInterval = null;
+    function startSessionsRefresh() {
+      stopSessionsRefresh();
+      document.getElementById('sessions-live').style.display = 'inline-flex';
+      sessionsRefreshInterval = setInterval(loadSessions, 10000);
+    }
+    function stopSessionsRefresh() {
+      if (sessionsRefreshInterval) { clearInterval(sessionsRefreshInterval); sessionsRefreshInterval = null; }
+      const el = document.getElementById('sessions-live');
+      if (el) el.style.display = 'none';
+    }
+
+    // ── Supprimer un paiement individuel ──────────────────────
+    async function deletePayment(id) {
+      if (!id || !confirm('Supprimer ce paiement de la liste ?')) return;
+      const data = await apiCall('/api/admin/payments/' + id, 'DELETE');
+      if (data.success) { showToast('Paiement supprimé'); loadPayments(); }
+      else showToast(data.error || 'Erreur', true);
+    }
+
+    // ── Vider tous les paiements traités ─────────────────────
+    async function clearPayments() {
+      if (!confirm('Supprimer tous les paiements approuvés et rejetés ?\nLes demandes EN ATTENTE seront conservées.')) return;
+      const data = await apiCall('/api/admin/payments/clear', 'POST');
+      if (data.success) { showToast(`✅ ${data.deleted} paiement(s) supprimé(s)`); loadPayments(); }
+      else showToast(data.error || 'Erreur', true);
+    }
+
+    // ── Supprimer une demande individuelle ────────────────────
+    async function deleteRequest(id) {
+      if (!id || !confirm('Supprimer cette demande ?')) return;
+      const data = await apiCall('/api/admin/requests/' + id, 'DELETE');
+      if (data.success) { showToast('Demande supprimée'); loadRequests(); }
+      else showToast(data.error || 'Erreur', true);
+    }
+
+    // ── Vider toutes les demandes traitées ───────────────────
+    async function clearRequests() {
+      if (!confirm('Supprimer toutes les demandes approuvées ?\nLes demandes EN ATTENTE seront conservées.')) return;
+      const data = await apiCall('/api/admin/requests/clear', 'POST');
+      if (data.success) { showToast(`✅ ${data.deleted} demande(s) supprimée(s)`); loadRequests(); }
+      else showToast(data.error || 'Erreur', true);
     }
 
     async function kickSession(clientId) {
@@ -1224,7 +1280,8 @@
           <td>${new Date(r.createdAt).toLocaleDateString('fr-FR')}</td>
           <td>${statusBadge}</td>
           <td>
-            ${r.status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="approveRequest('${r.id}')">Approuver</button>` : r.code || ''}
+            ${r.status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="approveRequest('${r.id}')" style="margin-right:4px;">Approuver</button>` : `<small style="opacity:0.6;">${r.code || ''}</small>`}
+            <button class="btn-icon" title="Supprimer" onclick="deleteRequest('${r.id}')" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i class="fas fa-times"></i></button>
           </td>
         </tr>`;
       });

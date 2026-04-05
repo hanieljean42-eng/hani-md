@@ -766,7 +766,59 @@ app.get('/api/admin/wave/check/:phone', requireAdmin, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 🚀 EXPORT
+// �️ API SUPPRESSION PAIEMENTS & DEMANDES (ADMIN)
+// ═══════════════════════════════════════════════════════════
+
+// Supprimer un paiement Wave individuel
+app.delete('/api/admin/payments/:id', requireAdmin, (req, res) => {
+  try {
+    const f = path.join(__dirname, '..', 'DataBase', 'pending_payments.json');
+    let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
+    const before = items.length;
+    items = items.filter(r => r.id !== req.params.id);
+    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    res.json({ success: true, deleted: before - items.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Vider tous les paiements traités (approuvés / rejetés)
+app.post('/api/admin/payments/clear', requireAdmin, (req, res) => {
+  try {
+    const f = path.join(__dirname, '..', 'DataBase', 'pending_payments.json');
+    let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
+    const before = items.length;
+    items = items.filter(r => r.status === 'pending');
+    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    res.json({ success: true, deleted: before - items.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Supprimer une demande premium individuelle
+app.delete('/api/admin/requests/:id', requireAdmin, (req, res) => {
+  try {
+    const f = path.join(__dirname, '..', 'DataBase', 'premium_requests.json');
+    let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
+    const before = items.length;
+    items = items.filter(r => r.id !== req.params.id);
+    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    res.json({ success: true, deleted: before - items.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Vider toutes les demandes traitées (approuvées)
+app.post('/api/admin/requests/clear', requireAdmin, (req, res) => {
+  try {
+    const f = path.join(__dirname, '..', 'DataBase', 'premium_requests.json');
+    let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
+    const before = items.length;
+    items = items.filter(r => r.status === 'pending');
+    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    res.json({ success: true, deleted: before - items.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// �🚀 EXPORT
 // ═══════════════════════════════════════════════════════════
 
 function startPremiumServer(port = 3001) {
