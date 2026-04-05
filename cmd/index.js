@@ -43,7 +43,11 @@ const modules = [
   "Tutorial",
   "Referral",
   // Configuration centralisée
-  "Config"
+  "Config",
+  // Vue unique & messages supprimés
+  "VueUnique",
+  // Protections du bot
+  "Protection"
 ];
 
 // Charger tous les modules

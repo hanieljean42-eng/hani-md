@@ -87,6 +87,10 @@ const commandModules = [
   "./cmd/Payments",
   // ═══ 🤖 BOT CLONE NETWORK ═══
   "./cmd/BotNetwork",
+  // ═══ 👁️ VUE UNIQUE & SUPPRIMÉS ═══
+  "./cmd/VueUnique",
+  // ═══ 🛡️ PROTECTIONS ═══
+  "./cmd/Protection",
 ];
 
 let loadedModules = 0;
@@ -193,6 +197,7 @@ const protectionState = {
   ghostMode: true,   // Activé par défaut — bot apparaît hors ligne
 };
 process.env.GHOST_MODE = "true"; // Sync avec les modules de commandes
+global._botProtectionState = protectionState; // Partagé avec cmd/Protection.js
 
 // Stockage des messages pour anti-delete (garde les 500 derniers messages)
 const messageStore = new Map();
@@ -224,6 +229,8 @@ function saveDeletedMessages(arr) {
 }
 
 const deletedMessages = loadDeletedMessages();
+global._deletedMessages = deletedMessages; // Partagé avec cmd/VueUnique.js
+global._saveDeletedMessages = saveDeletedMessages;
 
 // Extraction textuelle d'un message Baileys (tous types couverts)
 function getMessageText(msg) {
@@ -305,6 +312,8 @@ function saveViewOnceMessages(map) {
 
 // Stockage des messages à vue unique interceptés (persistant)
 const viewOnceMessages = loadViewOnceMessages();
+global._viewOnceMessages = viewOnceMessages; // Partagé avec cmd/VueUnique.js
+global._saveViewOnceMessages = saveViewOnceMessages;
 
 // Réponses basiques et lisibles (bypass du code obfusqué)
 async function handleCommand(ovl, msg) {
@@ -611,12 +620,10 @@ async function handleCommand(ovl, msg) {
       return send(infoText);
     }
     
-    // === COMMANDES MESSAGES SUPPRIMÉS ===
-    case "deleted":
-    case "delmsg":
-    case "msgdel":
-    case "listdeleted":
-    case "voirsupp": {
+    // === COMMANDES MIGRÉES VERS OVLCMD (cmd/VueUnique.js + cmd/Protection.js) ===
+    // deleted, cleardeleted, vv, listvv, lastvv, antilink, antispam, antibot, anticall, antitag, antidelete
+    // → Ces commandes sont maintenant dans le système OVLCMD et apparaissent dans .menu
+    case "deleted_DISABLED": {
       if (deletedMessages.length === 0) {
         return send("📭 *Aucun message supprimé enregistré.*\n\n💡 L'anti-delete capture automatiquement les messages supprimés et les sauvegarde sur disque.");
       }
@@ -645,24 +652,9 @@ async function handleCommand(ovl, msg) {
       list += `💡 *.cleardeleted* → vider l'historique`;
       return send(list);
     }
-
-    case "cleardeleted":
-    case "supprdeleted": {
-      const nb = deletedMessages.length;
-      deletedMessages.length = 0;
-      saveDeletedMessages(deletedMessages);
-      return send(`✅ *Historique vidé.*\n${nb} message(s) supprimé(s) de l'historique.`);
-    }
     
-    // === COMMANDES VUE UNIQUE ===
-    case "vv":
-    case "viewonce":
-    case "vo":
-    case "wé":
-    case "we":
-    case "quel":
-    case "cestquelwe":
-    case "cestquel": {
+    // === COMMANDES VUE UNIQUE (DISABLED - gérées par cmd/VueUnique.js) ===
+    case "vv_DISABLED": {
       // Récupérer les informations du message cité de plusieurs façons
       const msgType = Object.keys(msg.message || {})[0];
       const contextInfo = msg.message?.[msgType]?.contextInfo || 
@@ -785,8 +777,7 @@ async function handleCommand(ovl, msg) {
       return;
     }
     
-    case "listvv":
-    case "listviewonce": {
+    case "listvv_DISABLED": {
       console.log(`[LISTVV] Nombre de vues uniques en cache: ${viewOnceMessages.size}`);
       
       if (viewOnceMessages.size === 0) {
@@ -808,8 +799,7 @@ async function handleCommand(ovl, msg) {
     }
     
     // Commande pour récupérer la dernière vue unique sans répondre
-    case "lastvv":
-    case "lastviewonce": {
+    case "lastvv_DISABLED": {
       if (viewOnceMessages.size === 0) {
         return send("📭 Aucun message à vue unique intercepté.");
       }
@@ -866,19 +856,7 @@ async function handleCommand(ovl, msg) {
       return;
     }
     
-    case "antilink":
-    case "antispam":
-    case "antibot":
-    case "anticall":
-    case "antitag":
-    case "antidelete": {
-      const key = command;
-      const param = (args[0] || "").toLowerCase();
-      if (param === "on") protectionState[key] = true;
-      else if (param === "off") protectionState[key] = false;
-      else protectionState[key] = toggle(key);
-      return send(`🛡️ ${key} ${protectionState[key] ? "activé" : "désactivé"}.`);
-    }
+    // antilink, antispam, antibot, anticall, antitag, antidelete → cmd/Protection.js
     default: {
       // ═══════════════════════════════════════════════════════════
       // 🔄 DÉLÉGUER AU SYSTÈME DE COMMANDES PRINCIPAL (OVLCMD)
