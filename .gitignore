@@ -53,6 +53,7 @@ CLEANUP.ps1
 
 # Session ID (contient les credentials WhatsApp - NE JAMAIS COMMITTER!)
 session_id.txt
+session_id_minimal.txt
 session_principale/
 session_backup/
 
