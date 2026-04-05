@@ -184,9 +184,32 @@ process.env.GHOST_MODE = "true"; // Sync avec les modules de commandes
 const messageStore = new Map();
 const MAX_STORED_MESSAGES = 500;
 
-// Stockage des messages supprimés
-const deletedMessages = [];
-const MAX_DELETED_MESSAGES = 50;
+// Stockage des messages supprimés — PERSISTANT sur disque
+const DELETED_MSGS_FILE = path.join(__dirname, 'DataBase', 'deleted_messages.json');
+const MAX_DELETED_MESSAGES = 200;
+
+function loadDeletedMessages() {
+  try {
+    if (fs.existsSync(DELETED_MSGS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DELETED_MSGS_FILE, 'utf8'));
+      console.log(`[ANTIDELETE] ✅ ${data.length} messages supprimés chargés depuis le cache`);
+      return data;
+    }
+  } catch (e) {
+    console.log(`[ANTIDELETE] ⚠️ Erreur chargement: ${e.message}`);
+  }
+  return [];
+}
+
+function saveDeletedMessages(arr) {
+  try {
+    fs.writeFileSync(DELETED_MSGS_FILE, JSON.stringify(arr.slice(-MAX_DELETED_MESSAGES), null, 2), 'utf8');
+  } catch (e) {
+    console.log(`[ANTIDELETE] ⚠️ Erreur sauvegarde: ${e.message}`);
+  }
+}
+
+const deletedMessages = loadDeletedMessages();
 
 // Extraction textuelle d'un message Baileys (tous types couverts)
 function getMessageText(msg) {
@@ -521,21 +544,44 @@ async function handleCommand(ovl, msg) {
     // === COMMANDES MESSAGES SUPPRIMÉS ===
     case "deleted":
     case "delmsg":
-    case "msgdel": {
+    case "msgdel":
+    case "listdeleted":
+    case "voirsupp": {
       if (deletedMessages.length === 0) {
-        return send("📭 Aucun message supprimé intercepté récemment.");
+        return send("📭 *Aucun message supprimé enregistré.*\n\n💡 L'anti-delete capture automatiquement les messages supprimés et les sauvegarde sur disque.");
       }
       
-      let list = "🗑️ *Messages supprimés récents :*\n\n";
-      const recent = deletedMessages.slice(-10); // Les 10 derniers
+      // Pagination : .deleted [nombre] ou .deleted all
+      const param = (args[0] || '').toLowerCase();
+      let count = 15;
+      if (param === 'all') count = deletedMessages.length;
+      else if (!isNaN(parseInt(param))) count = Math.min(parseInt(param), deletedMessages.length);
+
+      const recent = deletedMessages.slice(-count).reverse(); // Plus récents en premier
+      let list = `🗑️ *MESSAGES SUPPRIMÉS INTERCEPTÉS*\n`;
+      list += `📊 Total enregistré: *${deletedMessages.length}* | Affichage: *${recent.length}*\n`;
+      list += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
       recent.forEach((del, i) => {
-        list += `${i + 1}. De: ${del.sender}\n`;
-        list += `   Chat: ${del.chat}\n`;
-        list += `   Type: ${del.type}\n`;
-        if (del.text) list += `   Texte: "${del.text.substring(0, 100)}${del.text.length > 100 ? '...' : ''}"\n`;
-        list += `   Date: ${del.date}\n\n`;
+        list += `*${i + 1}.* 👤 ${del.sender || 'Inconnu'}\n`;
+        if (del.text) list += `   💬 "${del.text.substring(0, 120)}${del.text.length > 120 ? '...' : ''}"\n`;
+        else list += `   📎 [${del.type || 'media'}]\n`;
+        list += `   🕐 ${del.date}\n\n`;
       });
+
+      list += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      list += `💡 *.deleted all* → tout voir\n`;
+      list += `💡 *.deleted 30* → voir les 30 derniers\n`;
+      list += `💡 *.cleardeleted* → vider l'historique`;
       return send(list);
+    }
+
+    case "cleardeleted":
+    case "supprdeleted": {
+      const nb = deletedMessages.length;
+      deletedMessages.length = 0;
+      saveDeletedMessages(deletedMessages);
+      return send(`✅ *Historique vidé.*\n${nb} message(s) supprimé(s) de l'historique.`);
     }
     
     // === COMMANDES VUE UNIQUE ===
@@ -1327,6 +1373,8 @@ async function startBot() {
           if (deletedMessages.length > MAX_DELETED_MESSAGES) {
             deletedMessages.shift();
           }
+          // Sauvegarder sur disque immédiatement (persistance après redémarrage)
+          saveDeletedMessages(deletedMessages);
           
           // Envoyer le message supprimé à toi-même
           try {
