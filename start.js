@@ -1335,6 +1335,47 @@ async function startBot() {
         console.log(`📩 Message reçu: "${body}" de ${msg.key.remoteJid} (fromMe: ${msg.key.fromMe})`);
       }
       
+      // ═══════════════════════════════════════════════════════
+      // 🤖 AUTOREPLY — Vérifier les déclencheurs configurés
+      // ═══════════════════════════════════════════════════════
+      if (!msg.key.fromMe && body) {
+        try {
+          const AUTOREPLY_DB_PATH = path.join(__dirname, 'DataBase', 'autoreply_advanced.json');
+          if (fs.existsSync(AUTOREPLY_DB_PATH)) {
+            const arDB = JSON.parse(fs.readFileSync(AUTOREPLY_DB_PATH, 'utf8'));
+            if (arDB.settings?.enabled !== false && arDB.replies && Object.keys(arDB.replies).length > 0) {
+              const msgLower = arDB.settings?.caseSensitive ? body : body.toLowerCase();
+              let matched = null;
+
+              for (const [trigger, data] of Object.entries(arDB.replies)) {
+                const t = arDB.settings?.caseSensitive ? trigger : trigger.toLowerCase();
+                const isMatch = arDB.settings?.partialMatch !== false
+                  ? msgLower.includes(t)
+                  : msgLower === t;
+                if (isMatch) { matched = data; break; }
+              }
+
+              if (matched) {
+                const chatJid = msg.key.remoteJid;
+                const replyText = typeof matched === 'string' ? matched : matched.response;
+                if (replyText) {
+                  await ovl.sendMessage(chatJid, { text: replyText }, { quoted: msg });
+                  console.log(`[AUTOREPLY] ✅ Trigger trouvé → réponse envoyée à ${chatJid}`);
+                  // Mettre à jour les stats
+                  try {
+                    arDB.stats = arDB.stats || {};
+                    arDB.stats.totalTriggers = (arDB.stats.totalTriggers || 0) + 1;
+                    fs.writeFileSync(AUTOREPLY_DB_PATH, JSON.stringify(arDB, null, 2));
+                  } catch(e) {}
+                }
+              }
+            }
+          }
+        } catch (arErr) {
+          console.log('[AUTOREPLY] Erreur:', arErr.message);
+        }
+      }
+
       // Traiter les commandes (même les messages envoyés par soi-même)
       await handleCommand(ovl, msg);
       // 👻 Re-signaler "hors ligne" après chaque commande traitée
