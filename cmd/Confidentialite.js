@@ -557,4 +557,92 @@ ovlcmd(
   }
 );
 
-console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall, ghost, viewblocked, unviewblocked, presencelist");
+// ═══════════════════════════════════════════════════════════
+// 🕵️ AUTO-SURVEILLANCE — traquer ceux qui t'espionnent en cachette
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "autospy",
+    classe: "Confidentialité",
+    react: "🕵️",
+    desc: "Surveiller automatiquement ceux qui regardent ton statut en cachette",
+    alias: ["autosurveillance", "spymode", "traqueur", "detectespion"]
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre("❌ Cette commande est réservée au propriétaire.");
+
+    const action = arg[0]?.toLowerCase();
+
+    if (action === "on" || action === "1") {
+      global.autoSpyEnabled = true;
+      await repondre(
+        `🕵️ *MODE AUTO-SURVEILLANCE ACTIVÉ*\n\n` +
+        `✅ Désormais, *toute personne* qui regarde ton statut sera:\n\n` +
+        `📍 *Détectée automatiquement*\n` +
+        `📡 *Ajoutée à la surveillance*\n` +
+        `🔔 *Notifiée à toi en temps réel*\n\n` +
+        `📋 *Ce que tu recevras sur chaque espion:*\n` +
+        `• 🕵️ Son numéro + sa bio\n` +
+        `• 🟢 Quand il se connecte/déconnecte\n` +
+        `• ✏️ Quand il écrit un message\n` +
+        `• ✅ Quand il lit tes messages\n` +
+        `• 📊 Chaque fois qu'il voit ton statut\n` +
+        `• 🖼️ Quand il change sa photo\n\n` +
+        `_Ils t'espionnent en cachette — maintenant c'est toi qui les surveilles_\n\n` +
+        `🛑 Pour désactiver: *.autospy off*\n` +
+        `📋 Voir les cibles: *.presencelist*`
+      );
+
+    } else if (action === "off" || action === "0") {
+      global.autoSpyEnabled = false;
+      await repondre(
+        `🛑 *MODE AUTO-SURVEILLANCE DÉSACTIVÉ*\n\n` +
+        `❌ Les nouveaux viewers de statut ne seront plus ajoutés automatiquement.\n\n` +
+        `📋 Cibles déjà en surveillance: ${global.presenceSpyList.size}\n` +
+        `💡 Utilise *.autospy on* pour réactiver.`
+      );
+
+    } else if (action === "clear" || action === "reset") {
+      const nb = global.presenceSpyList.size;
+      global.presenceSpyList.clear();
+      await repondre(
+        `🗑️ *LISTE VIDÉE*\n\n` +
+        `✅ ${nb} contact(s) supprimé(s) de la surveillance.\n` +
+        `Mode auto-spy: ${global.autoSpyEnabled ? '✅ Actif' : '❌ Inactif'}`
+      );
+
+    } else {
+      const etat = global.autoSpyEnabled ? '✅ ACTIVÉ' : '❌ DÉSACTIVÉ';
+      const cibles = global.presenceSpyList.size;
+      let listeTxt = '';
+      if (cibles > 0) {
+        let i = 1;
+        for (const [jid, info] of global.presenceSpyList) {
+          const num = jid.split('@')[0];
+          const auto = info.autoAdded ? ' _(auto)_' : '';
+          const etatContact = info.isOnline ? '🟢' : '🔴';
+          listeTxt += `${i}. ${etatContact} *+${num}*${auto}\n`;
+          i++;
+          if (i > 10) { listeTxt += `_...et ${cibles - 10} autres_`; break; }
+        }
+      }
+
+      await repondre(
+        `🕵️ *MODE AUTO-SURVEILLANCE*\n\n` +
+        `État: *${etat}*\n` +
+        `Cibles actives: *${cibles}*\n\n` +
+        (listeTxt ? `👁️ *Sous surveillance:*\n${listeTxt}\n` : '') +
+        `📌 *Commandes:*\n` +
+        `• *.autospy on* — activer (traquer les viewers de statut)\n` +
+        `• *.autospy off* — désactiver\n` +
+        `• *.autospy clear* — vider la liste\n` +
+        `• *.presencelist* — liste complète\n` +
+        `• *.viewblocked numéro* — ajouter manuellement\n\n` +
+        `💡 _Dès que quelqu'un regarde ton statut, il devient automatiquement une cible_`
+      );
+    }
+  }
+);
+
+console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall, ghost, viewblocked, unviewblocked, presencelist, autospy");

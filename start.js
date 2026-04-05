@@ -148,6 +148,8 @@ const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','s
 // ═══════════════════════════════════════════════════════════
 // Map<jid, { addedAt, lastSeen, lastOnline, lastReceipt }>
 global.presenceSpyList = global.presenceSpyList || new Map();
+// Mode auto-surveillance : ajouter automatiquement les viewers de statut
+global.autoSpyEnabled = global.autoSpyEnabled || false;
 
 // Compteur d'usage journalier pour le bot principal
 const MAIN_USAGE_FILE = path.join(__dirname, 'DataBase', 'main_usage.json');
@@ -1536,14 +1538,40 @@ async function startBot() {
   });
 
   // ── MÉTHODE 7 : Vue de ton statut (status@broadcast) ────────
+  // + Auto-surveillance : si quelqu'un regarde ton statut, l'ajouter comme cible
   ovl.ev.on('messages.upsert', async ({ messages: msgs }) => {
     for (const m of msgs || []) {
       if (m.key?.remoteJid === 'status@broadcast' && !m.key?.fromMe) {
         const viewer = m.key?.participant || m.key?.remoteJid;
-        if (viewer && global.presenceSpyList.has(viewer)) {
-          const num = viewer.split('@')[0];
-          const heure = new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+        if (!viewer) continue;
+        const num = viewer.split('@')[0];
+        const heure = new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+
+        if (global.presenceSpyList.has(viewer)) {
+          // Déjà surveillé → notifier la vue
           await spyNotify(`📊 *VUE DE STATUT*\n\n👤 *+${num}* a regardé ton statut\n🕐 À: ${heure}\n\n_Contact sous surveillance_`);
+        } else if (global.autoSpyEnabled) {
+          // Mode auto-spy actif → ajouter automatiquement ce viewer comme cible
+          global.presenceSpyList.set(viewer, {
+            addedAt: Date.now(),
+            isOnline: false,
+            lastSeen: null,
+            lastReceipt: null,
+            autoAdded: true
+          });
+          // Souscrire immédiatement à sa présence
+          try { await ovl.presenceSubscribe(viewer); } catch(_) {}
+          // Récupérer son statut "À propos"
+          let bio = '';
+          try { const s = await ovl.fetchStatus(viewer).catch(()=>null); bio = s?.status || ''; } catch(_) {}
+          await spyNotify(
+            `🕵️ *ESPION DÉTECTÉ — AJOUTÉ AUTOMATIQUEMENT*\n\n` +
+            `👤 *+${num}* vient de regarder ton statut en cachette\n` +
+            `📝 Bio: ${bio || '(non disponible)'}\n` +
+            `🕐 Heure: ${heure}\n\n` +
+            `📡 Surveillance activée sur ce contact.\n` +
+            `Tu recevras toutes ses activités désormais.`
+          );
         }
       }
     }
