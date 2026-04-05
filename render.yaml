@@ -4,7 +4,7 @@ services:
     runtime: node
     region: frankfurt
     plan: free
-    buildCommand: npm install --legacy-peer-deps
+    buildCommand: NODE_OPTIONS="" npm install --legacy-peer-deps --ignore-optional --omit=dev
     startCommand: node start.js
     healthCheckPath: /health
     autoDeploy: true
