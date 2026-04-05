@@ -538,4 +538,202 @@ ovlcmd(
   }
 );
 
-console.log('[CMD] ✅ BotNetwork.js chargé — addbot, getsession, botlist, botcast, botsay, botping, removebot, netstats, botmirror');
+// ─────────────────────────────────────────────────────────
+// 👥 .botcontacts <nom> [page] — Contacts du bot couplé
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'botcontacts',
+    classe: 'Bot Network',
+    react: '👥',
+    desc: 'Voir les contacts du bot couplé',
+    alias: ['botcontact', 'botcont', 'botcarnet']
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Réservé au propriétaire');
+    const name = arg[0];
+    const page = parseInt(arg[1]) || 1;
+    if (!name) return repondre('❌ Usage: *.botcontacts <nom_bot> [page]*\nEx: .botcontacts jean 1');
+
+    const data = Net.getBotData(name);
+    const contacts = (data.contacts || []).filter(c => c.id && c.id.endsWith('@s.whatsapp.net'));
+
+    if (!contacts.length) {
+      return repondre(
+        `📭 *Aucun contact chargé pour "${name}"*\n\n` +
+        `💡 Les contacts se chargent automatiquement à la connexion.\n` +
+        `Attends quelques secondes après la connexion du bot.`
+      );
+    }
+
+    const PER_PAGE = 30;
+    const totalPages = Math.ceil(contacts.length / PER_PAGE);
+    const slice = contacts.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+    let text = `👥 *Contacts de "${name}"* (${contacts.length} total)\n`;
+    text += `📄 Page *${page}/${totalPages}*\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    for (const c of slice) {
+      const phone = c.id.replace('@s.whatsapp.net', '');
+      const name2 = c.name || c.notify || c.verifiedName || '';
+      text += `📱 ${name2 ? `*${name2}*` : '?'} — +${phone}\n`;
+    }
+
+    if (page < totalPages) {
+      text += `\n▶️ Suite: *.botcontacts ${name} ${page + 1}*`;
+    }
+
+    return repondre(text);
+  }
+);
+
+// ─────────────────────────────────────────────────────────
+// 👥 .botgroups <nom> — Groupes du bot couplé
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'botgroups',
+    classe: 'Bot Network',
+    react: '👥',
+    desc: 'Voir tous les groupes du bot couplé',
+    alias: ['botgroup', 'botgroupes', 'botgrp']
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Réservé au propriétaire');
+    const name = arg[0];
+    if (!name) return repondre('❌ Usage: *.botgroups <nom_bot>*\nEx: .botgroups jean');
+
+    await repondre(`⏳ Récupération des groupes de "${name}"...`);
+
+    const groups = await Net.fetchBotGroups(name);
+    if (!groups) {
+      return repondre(`❌ Bot "${name}" non connecté ou erreur.`);
+    }
+
+    const list = Object.values(groups);
+    if (!list.length) return repondre(`📭 *"${name}" n'est dans aucun groupe.*`);
+
+    let text = `👥 *Groupes de "${name}"* — ${list.length} groupes\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    for (const g of list.slice(0, 50)) {
+      const count = (g.participants || []).length;
+      text += `👥 *${g.subject || '?'}*\n`;
+      text += `   └ ${count} membres | ID: \`${g.id}\`\n`;
+    }
+
+    if (list.length > 50) text += `\n... et ${list.length - 50} autres groupes`;
+
+    text += `\n\n💬 *.botsay ${name} [ID_GROUPE] [message]* pour envoyer dans un groupe`;
+    return repondre(text);
+  }
+);
+
+// ─────────────────────────────────────────────────────────
+// 💬 .botchats <nom> [page] — Conversations récentes
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'botchats',
+    classe: 'Bot Network',
+    react: '💬',
+    desc: 'Voir les conversations récentes du bot couplé',
+    alias: ['botconv', 'botdiscussion', 'botmessages']
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Réservé au propriétaire');
+    const name = arg[0];
+    const page = parseInt(arg[1]) || 1;
+    if (!name) return repondre('❌ Usage: *.botchats <nom_bot> [page]*\nEx: .botchats jean');
+
+    const data = Net.getBotData(name);
+    const chats = data.chats || [];
+
+    if (!chats.length) {
+      return repondre(
+        `📭 *Aucune conversation chargée pour "${name}"*\n\n` +
+        `💡 Les conversations se chargent automatiquement à la connexion.`
+      );
+    }
+
+    const PER_PAGE = 20;
+    const totalPages = Math.ceil(chats.length / PER_PAGE);
+    const slice = chats.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+    let text = `💬 *Conversations de "${name}"* (${chats.length} total)\n`;
+    text += `📄 Page *${page}/${totalPages}*\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    for (const c of slice) {
+      const isGroup = c.id?.endsWith('@g.us');
+      const icon = isGroup ? '👥' : '👤';
+      const unread = c.unreadCount > 0 ? ` 🔴${c.unreadCount}` : '';
+      const id = c.id || '?';
+      const displayId = isGroup ? id : '+' + id.replace('@s.whatsapp.net', '');
+      const ts = c.conversationTimestamp
+        ? new Date(c.conversationTimestamp * 1000).toLocaleString('fr-FR', { timeZone: 'Africa/Abidjan', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+        : '';
+      text += `${icon} *${displayId}*${unread}\n`;
+      if (ts) text += `   └ ${ts}\n`;
+    }
+
+    if (page < totalPages) text += `\n▶️ Suite: *.botchats ${name} ${page + 1}*`;
+    text += `\n\n📤 *.botsay ${name} [numéro] [msg]* pour répondre`;
+
+    return repondre(text);
+  }
+);
+
+// ─────────────────────────────────────────────────────────
+// 📊 .botinfo <nom> — Infos complètes du bot couplé
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'botinfo',
+    classe: 'Bot Network',
+    react: '📊',
+    desc: 'Infos complètes sur un bot couplé',
+    alias: ['botdetails', 'botstats']
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Réservé au propriétaire');
+    const name = arg[0];
+    if (!name) return repondre('❌ Usage: *.botinfo <nom_bot>*');
+
+    const bots = Net.getNetworkStatus();
+    const bot  = bots.find(b => b.name === name);
+    if (!bot) return repondre(`❌ Bot "${name}" introuvable.`);
+
+    const data  = Net.getBotData(name);
+    const contacts = (data.contacts || []).filter(c => c.id?.endsWith('@s.whatsapp.net'));
+    const groups   = await Net.fetchBotGroups(name);
+    const chats    = data.chats || [];
+    const unread   = chats.filter(c => (c.unreadCount || 0) > 0).length;
+
+    const icon   = bot.status === 'connected' ? '🟢' : '🔴';
+    const since  = bot.connectedAt ? new Date(bot.connectedAt).toLocaleString('fr-FR', { timeZone: 'Africa/Abidjan' }) : 'N/A';
+
+    let text = `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n`;
+    text    += `┃   📊 *BOT INFO — ${name.toUpperCase()}*\n`;
+    text    += `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n`;
+    text    += `${icon} Statut: *${bot.status}*\n`;
+    text    += `📱 Numéro: *+${bot.phone || '?'}*\n`;
+    text    += `🕐 Connecté depuis: *${since}*\n\n`;
+    text    += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text    += `👥 Contacts: *${contacts.length}*\n`;
+    text    += `👥 Groupes: *${groups ? Object.keys(groups).length : '?'}*\n`;
+    text    += `💬 Conversations: *${chats.length}*\n`;
+    text    += `🔴 Non lus: *${unread}*\n\n`;
+    text    += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text    += `📋 *.botcontacts ${name}* → voir contacts\n`;
+    text    += `👥 *.botgroups ${name}* → voir groupes\n`;
+    text    += `💬 *.botchats ${name}* → voir conversations\n`;
+    text    += `📤 *.botsay ${name} <num> <msg>* → envoyer\n`;
+    text    += `🔭 *.botmirror on ${name}* → tout recevoir ici`;
+
+    return repondre(text);
+  }
+);
+
+console.log('[CMD] ✅ BotNetwork.js chargé — addbot, getsession, botlist, botcontacts, botgroups, botchats, botinfo, botcast, botsay, botping, removebot, netstats, botmirror');
