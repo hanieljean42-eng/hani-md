@@ -9,10 +9,9 @@
 
 const { ovlcmd } = require("../lib/ovlcmd");
 const { downloadMedia, downloadSticker, downloadVideo, downloadAudio, downloadImage } = require("../lib/mediaDownloader");
-const fs = require("fs");
+const fs   = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
-const { makeSticker } = require("../lib/stickerUtils");
+const { makeSticker, videoToAudio, videoToVoiceNote, stickerToVideo, stickerToImage } = require("../lib/stickerUtils");
 
 // ═══════════════════════════════════════════════════════════
 // 🖼️ STICKER CRÉATION
@@ -99,9 +98,13 @@ ovlcmd(
         return repondre("❌ Impossible de télécharger le sticker");
       }
 
+      // Convertir WebP → PNG via sharp (extrait le 1er frame si animé)
+      const imageBuffer = await stickerToImage(stickerBuffer);
+
       await ovl.sendMessage(msg.key.remoteJid, {
-        image: stickerBuffer,
-        caption: "✅ Sticker converti!\n🔥 HANI-MD"
+        image: imageBuffer,
+        mimetype: "image/png",
+        caption: "✅ Sticker converti en image!\n🔥 HANI-MD"
       }, { quoted: ms });
 
     } catch (error) {
@@ -139,10 +142,12 @@ ovlcmd(
         return repondre("❌ Impossible de télécharger la vidéo");
       }
 
-      // Envoyer comme audio (WhatsApp peut convertir)
+      // Extraire l'audio via ffmpeg (MP3)
+      const audioBuffer = await videoToAudio(videoBuffer);
+
       await ovl.sendMessage(msg.key.remoteJid, {
-        audio: videoBuffer,
-        mimetype: "audio/mp4",
+        audio: audioBuffer,
+        mimetype: "audio/mpeg",
         ptt: false
       }, { quoted: ms });
 
@@ -162,26 +167,35 @@ ovlcmd(
     nom_cmd: "tovn",
     classe: "Conversion",
     react: "🎤",
-    desc: "Convertir un audio en message vocal",
+    desc: "Convertir une vidéo ou audio en message vocal",
     alias: ["toptt", "tovocal", "voicenote"]
   },
   async (ovl, msg, { ms, repondre }) => {
     try {
       const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-      
-      if (!quotedMessage?.audioMessage) {
-        return repondre("❌ Répondez à un audio avec .tovn");
+      const hasVideo = quotedMessage?.videoMessage;
+      const hasAudio = quotedMessage?.audioMessage;
+
+      if (!hasVideo && !hasAudio) {
+        return repondre("❌ Répondez à une vidéo ou un audio avec .tovn");
       }
 
-      const audioBuffer = await downloadAudio(quotedMessage);
+      await repondre("🎤 Conversion en vocal...");
 
-      if (!audioBuffer) {
-        return repondre("❌ Impossible de télécharger l'audio");
+      let vocalBuffer;
+      if (hasVideo) {
+        const videoBuffer = await downloadVideo(quotedMessage);
+        if (!videoBuffer) return repondre("❌ Impossible de télécharger la vidéo");
+        // Extraire audio de la vidéo via ffmpeg → OGG Opus
+        vocalBuffer = await videoToVoiceNote(videoBuffer);
+      } else {
+        vocalBuffer = await downloadAudio(quotedMessage);
+        if (!vocalBuffer) return repondre("❌ Impossible de télécharger l'audio");
       }
 
-      // Envoyer comme message vocal
+      // Envoyer comme message vocal (PTT)
       await ovl.sendMessage(msg.key.remoteJid, {
-        audio: audioBuffer,
+        audio: vocalBuffer,
         mimetype: "audio/ogg; codecs=opus",
         ptt: true
       }, { quoted: ms });
@@ -266,8 +280,10 @@ ovlcmd(
       const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
       
       if (!quotedMessage?.stickerMessage && !quotedMessage?.videoMessage) {
-        return repondre("❌ Répondez à un sticker animé ou GIF avec .tovideo");
+        return repondre("❌ Répondez à un sticker animé avec .tovideo");
       }
+
+      await repondre("🎥 Conversion en cours...");
 
       const mediaBuffer = await downloadMedia(quotedMessage);
 
@@ -275,8 +291,13 @@ ovlcmd(
         return repondre("❌ Impossible de télécharger le média");
       }
 
+      // Si c'est un sticker WebP → convertir en MP4 via ffmpeg
+      const videoBuffer = quotedMessage?.stickerMessage
+        ? await stickerToVideo(mediaBuffer)
+        : mediaBuffer;
+
       await ovl.sendMessage(msg.key.remoteJid, {
-        video: mediaBuffer,
+        video: videoBuffer,
         mimetype: "video/mp4",
         caption: "✅ Converti en vidéo!\n🔥 HANI-MD"
       }, { quoted: ms });
