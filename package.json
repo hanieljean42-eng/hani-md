@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node start.js",
     "dev": "nodemon start.js",
-    "build": "npm install --legacy-peer-deps",
+    "build": "npm install --legacy-peer-deps --no-optional --omit=dev --ignore-scripts",
     "pm2": "pm2 start start.js --attach --name hani",
     "stop": "pm2 stop all",
     "init-db": "node scripts/init-mysql.js",
@@ -39,7 +39,6 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-session": "^1.18.2",
-    "ffmpeg-static": "^5.2.0",
     "file-type": "^16.5.3",
     "firebase-admin": "^12.7.0",
     "gtts": "^0.2.1",
@@ -55,7 +54,8 @@
     "wikipedia": "^2.1.2"
   },
   "optionalDependencies": {
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "ffmpeg-static": "^5.2.0"
   },
   "devDependencies": {
     "@babel/generator": "^7.28.5",

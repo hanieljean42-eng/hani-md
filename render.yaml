@@ -4,7 +4,7 @@ services:
     runtime: node
     region: frankfurt
     plan: free
-    buildCommand: NODE_OPTIONS="" npm install --legacy-peer-deps --ignore-optional --omit=dev
+    buildCommand: apt-get install -y ffmpeg 2>/dev/null || true; npm install --legacy-peer-deps --no-optional --omit=dev --ignore-scripts
     startCommand: node start.js
     healthCheckPath: /health
     autoDeploy: true
