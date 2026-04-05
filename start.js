@@ -105,13 +105,39 @@ const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reco
 // 🔐 CONTRÔLE D'ACCÈS PAR PLAN (BOT PRINCIPAL)
 // ═══════════════════════════════════════════════════════════
 const MAIN_PLAN_CONFIG = {
-  FREE:     { dailyLimit: 30,  allowedCategories: ['Système','Fun','Général'],       blockedCommands: ['ia','gpt','dalle','flux','gemini','chatgpt','imagine','removebg','blur','grayscale','invert','enhance','carto'], upgradeMsg: '⬆️ Abonnez-vous pour débloquer cette commande.' },
-  BRONZE:   { dailyLimit: 100, allowedCategories: ['Système','Fun','Général','Médias','Outils','Stickers'], blockedCommands: ['ia','gpt','dalle','flux','gemini','chatgpt','imagine'],                           upgradeMsg: '⬆️ Passez au plan Argent ou supérieur.' },
-  ARGENT:   { dailyLimit: 300, allowedCategories: null,                              blockedCommands: ['dalle','imagine','flux'],                                                                                  upgradeMsg: '⬆️ Passez au plan Or ou supérieur.' },
-  OR:       { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
-  DIAMANT:  { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
-  LIFETIME: { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
-  OWNER:    { dailyLimit: -1,  allowedCategories: null,                              blockedCommands: [],                                                                                                         upgradeMsg: '' },
+  // 🆓 Gratuit — commandes de base uniquement
+  FREE: {
+    dailyLimit: 30,
+    allowedCategories: ['Système', 'Fun', 'Games', 'Réaction', 'Support', 'Tutorial', 'Premium'],
+    blockedCommands: [
+      'gpt','gemini','chatgpt','dalle','imagine','flux',        // IA
+      'removebg','blur','grayscale','invert','enhance','carto', // Image editing
+      'ytaudio','ytvideo','tiktokdl','fbvideo','igdownload',    // Téléchargements
+      'spotifydownload','pinterestdl','twitterdl',
+    ],
+    upgradeMsg: '⬆️ Abonnez-vous pour débloquer cette commande.\n💎 Tapez *.premium* pour voir les offres.'
+  },
+  // 🥉 Bronze — téléchargements + outils + stickers
+  BRONZE: {
+    dailyLimit: 100,
+    allowedCategories: ['Système', 'Fun', 'Games', 'Réaction', 'Support', 'Tutorial', 'Premium',
+                        'Téléchargement', 'Outils', 'Recherche', 'Status', 'Confidentialité',
+                        'Conversion', 'Groupe', 'Pro'],
+    blockedCommands: ['gpt','gemini','chatgpt','dalle','imagine','flux', 'removebg','enhance'],
+    upgradeMsg: '⬆️ Passez au plan Argent ou supérieur pour accéder à cette fonctionnalité.'
+  },
+  // 🥈 Argent — IA + image editing inclus
+  ARGENT: {
+    dailyLimit: 300,
+    allowedCategories: null, // toutes catégories
+    blockedCommands: ['dalle','imagine','flux'],
+    upgradeMsg: '⬆️ Passez au plan Or ou supérieur pour un accès total.'
+  },
+  // 🥇 Or — tout illimité
+  OR:       { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
+  DIAMANT:  { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
+  LIFETIME: { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
+  OWNER:    { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
 };
 
 // Commandes toujours autorisées (gratuites pour tous)
@@ -824,9 +850,9 @@ async function handleCommand(ovl, msg) {
             }
 
             // Vérifier catégorie autorisée
-            if (planCfg.allowedCategories && cmdData.command.classe) {
-              if (!planCfg.allowedCategories.includes(cmdData.command.classe)) {
-                return repondre(`🔒 *Catégorie "${cmdData.command.classe}" non incluse dans votre plan ${planKey}*\n\n${planCfg.upgradeMsg}\n💎 ${siteUrl}/subscribe`);
+            if (planCfg.allowedCategories && cmdData.command.category) {
+              if (!planCfg.allowedCategories.includes(cmdData.command.category)) {
+                return repondre(`🔒 *Catégorie "${cmdData.command.category}" non incluse dans votre plan ${planKey}*\n\n${planCfg.upgradeMsg}\n💎 Abonnez-vous : ${siteUrl}/subscribe`);
               }
             }
 
