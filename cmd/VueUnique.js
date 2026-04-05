@@ -8,6 +8,10 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 
+// JID privé de l'owner — résultats envoyés toujours en privé
+const getOwnerJid = () =>
+  (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
+
 // ═══════════════════════════════════════════════════════════
 // 👁️ VV — Récupérer une vue unique (répondre au message)
 // ═══════════════════════════════════════════════════════════
@@ -90,16 +94,18 @@ ovlcmd(
       });
 
       const caption = '👁️ Vue unique récupérée :\n' + (media.caption || '');
+      const ownerJid = getOwnerJid();
 
       if (mediaType === 'imageMessage') {
-        await ovl.sendMessage(from, { image: stream, caption });
+        await ovl.sendMessage(ownerJid, { image: stream, caption });
       } else if (mediaType === 'videoMessage') {
-        await ovl.sendMessage(from, { video: stream, caption });
+        await ovl.sendMessage(ownerJid, { video: stream, caption });
       } else if (mediaType === 'audioMessage') {
-        await ovl.sendMessage(from, { audio: stream, mimetype: 'audio/mp4' });
+        await ovl.sendMessage(ownerJid, { audio: stream, mimetype: 'audio/mp4' });
       } else {
         return repondre('❌ Type de média non supporté: ' + mediaType);
       }
+      if (from !== ownerJid) repondre('👁️ Vue unique envoyée en privé.');
 
       if (storedViewOnce) {
         vm.delete(quotedId);
@@ -185,14 +191,16 @@ ovlcmd(
       });
 
       const caption = `👁️ Dernière vue unique (de ${lastData.pushName || 'Inconnu'}):\n${media?.caption || ''}`;
+      const ownerJid = getOwnerJid();
 
       if (mediaType === 'imageMessage') {
-        await ovl.sendMessage(from, { image: stream, caption });
+        await ovl.sendMessage(ownerJid, { image: stream, caption });
       } else if (mediaType === 'videoMessage') {
-        await ovl.sendMessage(from, { video: stream, caption });
+        await ovl.sendMessage(ownerJid, { video: stream, caption });
       } else if (mediaType === 'audioMessage') {
-        await ovl.sendMessage(from, { audio: stream, mimetype: 'audio/mp4' });
+        await ovl.sendMessage(ownerJid, { audio: stream, mimetype: 'audio/mp4' });
       }
+      if (from !== ownerJid) repondre('👁️ Dernière vue unique envoyée en privé.');
 
       vm.delete(lastId);
       if (global._saveViewOnceMessages) global._saveViewOnceMessages(vm);
