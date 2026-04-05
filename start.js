@@ -1728,11 +1728,34 @@ async function startBot() {
     }
   });
 
-  // ── MÉTHODE 7 : Vue de ton statut (status@broadcast) ────────
+  // ── MÉTHODE 7 : Vue de ton statut (status@broadcast) ────────────
   // + Auto-surveillance : si quelqu'un regarde ton statut, l'ajouter comme cible
+  // + Auto-view et auto-react aux statuts des contacts
   ovl.ev.on('messages.upsert', async ({ messages: msgs }) => {
     for (const m of msgs || []) {
       if (m.key?.remoteJid === 'status@broadcast' && !m.key?.fromMe) {
+        // ── AUTO-VIEW / AUTO-REACT (commandes .autoview et .autoreact) ──
+        if (m.message) {
+          try {
+            const scPath = path.join(__dirname, 'DataBase', 'status_config.json');
+            if (fs.existsSync(scPath)) {
+              const sc = JSON.parse(fs.readFileSync(scPath, 'utf8'));
+              const senderJid = m.key?.participant;
+              if (sc.autoView) {
+                await ovl.readMessages([m.key]);
+                console.log(`[STATUS] 👁️ Auto-vu: ${senderJid}`);
+              }
+              if (sc.autoReact && senderJid) {
+                await ovl.sendMessage(senderJid, {
+                  react: { text: sc.reactEmoji || '❤️', key: m.key }
+                });
+                console.log(`[STATUS] ❤️ Auto-réaction: ${senderJid}`);
+              }
+            }
+          } catch (e) {
+            console.log('[STATUS] Erreur autoview/autoreact:', e.message);
+          }
+        }
         const viewer = m.key?.participant || m.key?.remoteJid;
         if (!viewer) continue;
         const num = viewer.split('@')[0];
