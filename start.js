@@ -143,6 +143,12 @@ const MAIN_PLAN_CONFIG = {
 // Commandes toujours autorisées (gratuites pour tous)
 const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','start','bot','allmenu','commands']);
 
+// ═══════════════════════════════════════════════════════════
+// 👁️ SURVEILLANCE PRÉSENCE - partagé avec les commandes
+// ═══════════════════════════════════════════════════════════
+// Map<jid, { addedAt, lastSeen, lastOnline, lastReceipt }>
+global.presenceSpyList = global.presenceSpyList || new Map();
+
 // Compteur d'usage journalier pour le bot principal
 const MAIN_USAGE_FILE = path.join(__dirname, 'DataBase', 'main_usage.json');
 function _readMainUsage() { try { return JSON.parse(fs.readFileSync(MAIN_USAGE_FILE,'utf8')); } catch { return {}; } }
@@ -1381,6 +1387,93 @@ async function startBot() {
           await ovl.sendMessage(call.from, { text: "❌ Les appels sont désactivés sur ce bot." });
         } catch (e) {
           // Ignorer
+        }
+      }
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // 👁️ SURVEILLANCE PRÉSENCE — notifier le proprio en temps réel
+  // ═══════════════════════════════════════════════════════════
+  const ownerJid = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467')
+    .replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+
+  // Re-souscrire à tous les JIDs surveillés après reconnexion
+  for (const [jid] of global.presenceSpyList) {
+    try { await ovl.presenceSubscribe(jid); } catch(_) {}
+  }
+
+  ovl.ev.on('presence.update', async ({ id, presences }) => {
+    if (!global.presenceSpyList.has(id)) return;
+    const info = global.presenceSpyList.get(id) || {};
+    const num = id.split('@')[0];
+
+    for (const [participantJid, presence] of Object.entries(presences || {})) {
+      const isOnline = presence.lastKnownPresence === 'available' || presence.lastKnownPresence === 'composing';
+      const wasOnline = info.isOnline;
+
+      // Mettre à jour le Map
+      info.isOnline = isOnline;
+      info.lastKnownPresence = presence.lastKnownPresence;
+      if (presence.lastSeen) info.lastSeen = presence.lastSeen;
+      info.lastUpdate = Date.now();
+      global.presenceSpyList.set(id, info);
+
+      // Notifier uniquement au changement d'état
+      if (isOnline && !wasOnline) {
+        const heure = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        try {
+          await ovl.sendMessage(ownerJid, {
+            text: `👁️ *SURVEILLANCE PRÉSENCE*\n\n🟢 *+${num}* vient de se connecter\n🕐 Heure: ${heure}\n\n_Contact sous surveillance active_`
+          });
+        } catch(_) {}
+      } else if (!isOnline && wasOnline) {
+        const lastSeenStr = presence.lastSeen
+          ? new Date(presence.lastSeen * 1000).toLocaleString('fr-FR')
+          : new Date().toLocaleString('fr-FR');
+        try {
+          await ovl.sendMessage(ownerJid, {
+            text: `👁️ *SURVEILLANCE PRÉSENCE*\n\n🔴 *+${num}* vient de se déconnecter\n🕐 Dernière vue: ${lastSeenStr}\n\n_Contact sous surveillance active_`
+          });
+        } catch(_) {}
+      }
+    }
+  });
+
+  // Accusés de lecture des contacts surveillés
+  ovl.ev.on('message.receipt.update', async (receipts) => {
+    for (const receipt of receipts || []) {
+      const senderJid = receipt.key?.participant || receipt.key?.remoteJid;
+      if (!senderJid || !global.presenceSpyList.has(senderJid)) continue;
+      if (receipt.receipt?.readTimestamp) {
+        const num = senderJid.split('@')[0];
+        const heure = new Date(receipt.receipt.readTimestamp * 1000).toLocaleString('fr-FR');
+        const info = global.presenceSpyList.get(senderJid) || {};
+        info.lastReceipt = receipt.receipt.readTimestamp;
+        global.presenceSpyList.set(senderJid, info);
+        try {
+          await ovl.sendMessage(ownerJid, {
+            text: `✅ *ACCUSÉ DE LECTURE*\n\n👤 *+${num}* a lu ton message\n🕐 À: ${heure}\n\n_Contact sous surveillance active_`
+          });
+        } catch(_) {}
+      }
+    }
+  });
+
+  // Vues de statuts des contacts surveillés (ou qui voient ton statut)
+  ovl.ev.on('messages.upsert', async ({ messages: msgs }) => {
+    for (const m of msgs || []) {
+      // Détecter quand quelqu'un regarde ton statut
+      if (m.key?.remoteJid === 'status@broadcast' && m.key?.fromMe === false) {
+        const viewer = m.key?.participant || m.key?.remoteJid;
+        if (viewer && global.presenceSpyList.has(viewer)) {
+          const num = viewer.split('@')[0];
+          const heure = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+          try {
+            await ovl.sendMessage(ownerJid, {
+              text: `📊 *VUE DE STATUT*\n\n👤 *+${num}* a regardé ton statut\n🕐 À: ${heure}\n\n_Contact sous surveillance active_`
+            });
+          } catch(_) {}
         }
       }
     }

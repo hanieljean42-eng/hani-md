@@ -391,4 +391,170 @@ ovlcmd(
   }
 );
 
-console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall, ghost");
+// ═══════════════════════════════════════════════════════════
+// 👁️ SURVEILLANCE PRÉSENCE — voir même les contacts bloqués
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "viewblocked",
+    classe: "Confidentialité",
+    react: "🔍",
+    desc: "Surveiller la présence/statuts d'un contact (même bloqué)",
+    alias: ["spybloque", "voirbloque", "presencespy", "tracksomeone"]
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre("❌ Cette commande est réservée au propriétaire.");
+
+    // Récupérer la cible
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    let target;
+    if (mentioned && mentioned.length > 0) {
+      target = mentioned[0];
+    } else if (arg[0]) {
+      const num = arg[0].replace(/[^0-9]/g, '');
+      if (!num) return repondre("❌ Numéro invalide. Ex: .viewblocked 22612345678");
+      target = num + '@s.whatsapp.net';
+    } else {
+      return repondre(
+        `👁️ *Surveillance Présence*\n\n` +
+        `📌 *Usage:*\n` +
+        `• *.viewblocked 22612345678* — surveiller un numéro\n` +
+        `• *.viewblocked @mention* — mentionner quelqu'un\n` +
+        `• *.unviewblocked numéro* — arrêter la surveillance\n` +
+        `• *.presencelist* — voir toutes les cibles actives\n\n` +
+        `📡 *Ce que tu recevras:*\n` +
+        `🟢 Quand il se connecte\n` +
+        `🔴 Quand il se déconnecte\n` +
+        `✅ Quand il lit un de tes messages\n` +
+        `📊 Quand il regarde ton statut`
+      );
+    }
+
+    const num = target.split('@')[0];
+
+    try {
+      // Souscrire à la présence (fonctionne même si bloqué dans certains cas)
+      await ovl.presenceSubscribe(target);
+
+      // Récupérer le statut "À propos" actuel
+      let statusText = "Non disponible";
+      try {
+        const s = await ovl.fetchStatus(target);
+        if (s?.status) statusText = s.status;
+      } catch (_) {}
+
+      // Récupérer la dernière connexion connue
+      let lastSeenStr = "Masqué";
+      try {
+        const pres = await ovl.fetchPresenceUpdates(target);
+        if (pres?.lastSeen) {
+          lastSeenStr = new Date(pres.lastSeen * 1000).toLocaleString('fr-FR');
+        }
+      } catch (_) {}
+
+      // Ajouter au Map global
+      global.presenceSpyList.set(target, {
+        addedAt: Date.now(),
+        isOnline: false,
+        lastSeen: null,
+        lastReceipt: null
+      });
+
+      await repondre(
+        `👁️ *SURVEILLANCE ACTIVÉE*\n\n` +
+        `👤 Cible: *+${num}*\n` +
+        `📝 Bio/Statut: _${statusText}_\n` +
+        `🕐 Dernière vue connue: ${lastSeenStr}\n\n` +
+        `📡 *Tu seras notifié quand il/elle:*\n` +
+        `🟢 Se connecte sur WhatsApp\n` +
+        `🔴 Se déconnecte\n` +
+        `✅ Lit un de tes messages\n` +
+        `📊 Regarde ton statut\n\n` +
+        `⚠️ _Fonctionne même si ce contact t'a bloqué_\n\n` +
+        `🛑 Pour arrêter: *.unviewblocked ${num}*`,
+        { mentions: [target] }
+      );
+
+    } catch (e) {
+      repondre(`❌ Erreur: ${e.message}`);
+    }
+  }
+);
+
+// ─── Arrêter la surveillance d'un contact ───────────────────
+
+ovlcmd(
+  {
+    nom_cmd: "unviewblocked",
+    classe: "Confidentialité",
+    react: "🛑",
+    desc: "Arrêter la surveillance d'un contact",
+    alias: ["stopviewblocked", "unspybloque", "stoptrack"]
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre("❌ Cette commande est réservée au propriétaire.");
+
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    let target;
+    if (mentioned && mentioned.length > 0) {
+      target = mentioned[0];
+    } else if (arg[0]) {
+      target = arg[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+    } else {
+      return repondre("❌ Usage: .unviewblocked numéro");
+    }
+
+    if (global.presenceSpyList.has(target)) {
+      global.presenceSpyList.delete(target);
+      repondre(`✅ Surveillance arrêtée pour *+${target.split('@')[0]}*`, { mentions: [target] });
+    } else {
+      repondre(`⚠️ *+${target.split('@')[0]}* n'est pas sous surveillance.`);
+    }
+  }
+);
+
+// ─── Liste de toutes les cibles actives ────────────────────
+
+ovlcmd(
+  {
+    nom_cmd: "presencelist",
+    classe: "Confidentialité",
+    react: "📋",
+    desc: "Voir la liste de tous les contacts sous surveillance",
+    alias: ["viewblockedlist", "spylist2", "tracklist"]
+  },
+  async (ovl, msg, { repondre, superUser }) => {
+    if (!superUser) return repondre("❌ Cette commande est réservée au propriétaire.");
+
+    if (global.presenceSpyList.size === 0) {
+      return repondre(
+        `📋 *Aucun contact sous surveillance*\n\n` +
+        `💡 Utilise *.viewblocked numéro* pour commencer.`
+      );
+    }
+
+    let txt = `👁️ *CONTACTS SOUS SURVEILLANCE* (${global.presenceSpyList.size})\n\n`;
+    const mentions = [];
+
+    for (const [jid, info] of global.presenceSpyList) {
+      const num = jid.split('@')[0];
+      const depuis = new Date(info.addedAt || Date.now()).toLocaleString('fr-FR');
+      const etat = info.isOnline ? '🟢 En ligne' : '🔴 Hors ligne';
+      const lu = info.lastReceipt
+        ? new Date(info.lastReceipt * 1000).toLocaleString('fr-FR')
+        : 'Jamais';
+
+      txt += `👤 *+${num}*\n`;
+      txt += `   └ État: ${etat}\n`;
+      txt += `   └ Dernier lu: ${lu}\n`;
+      txt += `   └ Surveillé depuis: ${depuis}\n\n`;
+      mentions.push(jid);
+    }
+
+    txt += `🛑 Pour arrêter: *.unviewblocked numéro*`;
+    repondre(txt, { mentions });
+  }
+);
+
+console.log("[CMD] ✅ Confidentialite.js chargé - Commandes: block, unblock, blocklist, lastseen, typing, readreceipts, privacy, anticall, ghost, viewblocked, unviewblocked, presencelist");
