@@ -129,21 +129,23 @@ const MAIN_PLAN_CONFIG = {
     ],
     upgradeMsg: '⬆️ Abonnez-vous pour débloquer cette commande.\n💎 Tapez *.premium* pour voir les offres.'
   },
-  // 🥉 Bronze — téléchargements + outils + stickers
+  // 🥉 Bronze — stickers + téléchargements + fun (entrée de gamme)
   BRONZE: {
-    dailyLimit: 100,
+    dailyLimit: 50,
+    allowedCategories: ['Système', 'Fun', 'Games', 'Réaction', 'Premium', 'Conversion', 'Téléchargement'],
+    blockedCommands: ['gpt','gemini','chatgpt','dalle','imagine','flux','removebg','enhance',
+                      'google','wikipedia','lyrics','ytsearch',
+                      'statustext','statusimg','statusvid','autoview','autoreact','dlstatus'],
+    upgradeMsg: '⬆️ Passez au plan Argent pour débloquer IA, recherche, groupes et plus.'
+  },
+  // 🥈 Argent — + recherche, groupes, statuts, outils
+  ARGENT: {
+    dailyLimit: 200,
     allowedCategories: ['Système', 'Fun', 'Games', 'Réaction', 'Support', 'Tutorial', 'Premium',
                         'Téléchargement', 'Outils', 'Recherche', 'Status', 'Confidentialité',
                         'Conversion', 'Groupe', 'Pro', 'Audio FX', 'Contacts', 'Economy'],
-    blockedCommands: ['gpt','gemini','chatgpt','dalle','imagine','flux', 'removebg','enhance'],
-    upgradeMsg: '⬆️ Passez au plan Argent ou supérieur pour accéder à cette fonctionnalité.'
-  },
-  // 🥈 Argent — IA + image editing inclus
-  ARGENT: {
-    dailyLimit: 300,
-    allowedCategories: null, // toutes catégories
-    blockedCommands: ['dalle','imagine','flux'],
-    upgradeMsg: '⬆️ Passez au plan Or ou supérieur pour un accès total.'
+    blockedCommands: ['gpt','gemini','chatgpt','dalle','imagine','flux'],
+    upgradeMsg: '⬆️ Passez au plan Or pour un accès total illimité.'
   },
   // 🥇 Or — tout illimité
   OR:       { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
@@ -457,7 +459,9 @@ async function handleCommand(ovl, msg) {
     
     try {
       const premiumDB = require('./DataBase/premium');
-      const status = await premiumDB.getPremiumStatus(jid);
+      // Normaliser le JID: retirer le suffixe device (:0, :1…) pour multi-device
+      const normalizedJid = jid.replace(/:\d+@/, '@');
+      const status = await premiumDB.getPremiumStatus(normalizedJid);
       if (status && status.plan) {
         plan = status.plan;
         dailyLimit = status.dailyLimit || 30;

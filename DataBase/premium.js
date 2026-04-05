@@ -356,8 +356,10 @@ function activatePremium(userJid, plan, days) {
  * Vérifie le statut premium d'un utilisateur
  */
 function getPremiumStatus(userJid) {
+  // Normaliser JID multi-device: "2256XXXXXXX:0@s.whatsapp.net" → "2256XXXXXXX@s.whatsapp.net"
+  const normalizedJid = (userJid || '').replace(/:\d+@/, '@');
   const users = readJSON(PREMIUM_FILE);
-  const user = users[userJid];
+  const user = users[normalizedJid] || users[userJid];
   
   if (!user) {
     return {
