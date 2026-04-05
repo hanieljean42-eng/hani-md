@@ -75,6 +75,16 @@ const commandModules = [
   "./cmd/Advanced",
   "./cmd/Config",
   "./cmd/Autoreply",
+  // ═══ ENGAGEMENT & CROISSANCE ═══
+  "./cmd/Engagement",
+  "./cmd/Newsletter",
+  "./cmd/Referral",
+  // ═══ SUPPORT & FEEDBACK ═══
+  "./cmd/Support",
+  "./cmd/Feedback",
+  "./cmd/Tutorial",
+  // ═══ PAIEMENTS ═══
+  "./cmd/Payments",
 ];
 
 let loadedModules = 0;
@@ -1360,13 +1370,50 @@ async function startBot() {
                 const replyText = typeof matched === 'string' ? matched : matched.response;
                 if (replyText) {
                   await ovl.sendMessage(chatJid, { text: replyText }, { quoted: msg });
-                  console.log(`[AUTOREPLY] ✅ Trigger trouvé → réponse envoyée à ${chatJid}`);
-                  // Mettre à jour les stats
+                  console.log(`[AUTOREPLY] ✅ Trigger → réponse envoyée à ${chatJid}`);
                   try {
                     arDB.stats = arDB.stats || {};
                     arDB.stats.totalTriggers = (arDB.stats.totalTriggers || 0) + 1;
                     fs.writeFileSync(AUTOREPLY_DB_PATH, JSON.stringify(arDB, null, 2));
                   } catch(e) {}
+                }
+              }
+
+              // ── MESSAGE D'ABSENCE (awaymsg) ──
+              if (!matched && arDB.awayEnabled) {
+                const now = new Date();
+                const [startH, startM] = (arDB.awaySchedule?.start || '22:00').split(':').map(Number);
+                const [endH, endM]     = (arDB.awaySchedule?.end   || '08:00').split(':').map(Number);
+                const mins = now.getHours() * 60 + now.getMinutes();
+                const startMins = startH * 60 + startM;
+                const endMins   = endH   * 60 + endM;
+                const isAbsent  = startMins > endMins
+                  ? (mins >= startMins || mins < endMins)   // passe minuit
+                  : (mins >= startMins && mins < endMins);
+                if (isAbsent) {
+                  const senderName = msg.pushName || msg.key.remoteJid.split('@')[0];
+                  const awayText = (arDB.awayMessage || '🕐 Je suis absent.')
+                    .replace('{name}', senderName)
+                    .replace('{number}', msg.key.remoteJid.split('@')[0])
+                    .replace('{time}', now.toLocaleTimeString('fr-FR'));
+                  await ovl.sendMessage(msg.key.remoteJid, { text: awayText }, { quoted: msg });
+                  console.log('[AWAYMSG] ✅ Message absence envoyé');
+                }
+              }
+
+              // ── MESSAGE DE BIENVENUE (welcomemsg) ──
+              if (!matched && arDB.welcomeEnabled) {
+                const welcomeKey = `welcome_sent_${msg.key.remoteJid}`;
+                const alreadySent = global._welcomeSent || (global._welcomeSent = new Set());
+                if (!alreadySent.has(welcomeKey)) {
+                  alreadySent.add(welcomeKey);
+                  const senderName = msg.pushName || msg.key.remoteJid.split('@')[0];
+                  const wText = (arDB.welcomeMessage || '👋 Bienvenue!')
+                    .replace('{name}', senderName)
+                    .replace('{number}', msg.key.remoteJid.split('@')[0])
+                    .replace('{time}', new Date().toLocaleTimeString('fr-FR'));
+                  await ovl.sendMessage(msg.key.remoteJid, { text: wText }, { quoted: msg });
+                  console.log('[WELCOMEMSG] ✅ Bienvenue envoyé à', msg.key.remoteJid);
                 }
               }
             }
