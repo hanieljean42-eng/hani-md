@@ -485,59 +485,110 @@ async function handleCommand(ovl, msg) {
     case "menu":
     case "help":
     case "aide": {
-      if (MenuSystem) {
-        try {
-          const isFromMe = msg.key.fromMe === true;
-          const botJid = ovl.user?.id?.split(':')[0] + '@s.whatsapp.net';
-          const senderForMenu = isFromMe ? botJid : (msg.key.participant || from);
-          const userInfo = await getUserInfo(senderForMenu);
-          const category = args[0] ? args[0].toLowerCase() : null;
-          
-          let menuText;
-          if (category && MenuSystem.CATEGORIES[category.toLowerCase()]) {
-            menuText = MenuSystem.generateCategoryMenu(category.toLowerCase(), userInfo);
-          } else if (category) {
-            const cats = Object.keys(MenuSystem.CATEGORIES).join(', ');
-            menuText = `❌ Catégorie inconnue: *${category}*\n\nCatégories disponibles:\n${cats.split(', ').map(c => `• .menu ${c}`).join('\n')}`;
-          } else {
-            menuText = MenuSystem.generateMainMenu(userInfo);
-          }
-          return send(menuText);
-        } catch (e) {
-          console.log('[MENU] Erreur:', e.message);
+      try {
+        const isFromMe = msg.key.fromMe === true;
+        const botJid = ovl.user?.id?.split(':')[0] + '@s.whatsapp.net';
+        const senderForMenu = isFromMe ? botJid : (msg.key.participant || from);
+        const userInfo = await getUserInfo(senderForMenu);
+        const isOwnerMenu = userInfo.isOwner;
+        const category = args[0] ? args.join(' ').toLowerCase().trim() : null;
+
+        // ── Construire la map dynamique depuis toutes les commandes réelles ──
+        const allCmds = getCommands();
+        const dynCats = {};
+        for (const c of allCmds) {
+          const catRaw = c.category || c.classe || 'Divers';
+          const catKey = catRaw.toLowerCase().replace(/[^\w\séàâîôùèë]/g, '').trim();
+          if (!dynCats[catKey]) dynCats[catKey] = { label: catRaw, cmds: [] };
+          dynCats[catKey].cmds.push(c);
         }
+
+        // Catégories owner-only à cacher pour non-owner
+        const ownerOnlyCats = ['owner', 'paiements', 'espionnage', 'modration', 'modération'];
+
+        if (category) {
+          // ── SOUS-MENU : trouver la catégorie (match souple) ──
+          const matchKey = Object.keys(dynCats).find(k => {
+            const kClean = k.replace(/[^\w]/g,'');
+            const catClean = category.replace(/[^\w]/g,'');
+            return kClean.includes(catClean) || catClean.includes(kClean);
+          }) || (MenuSystem?.CATEGORIES[category] ? category : null);
+
+          if (matchKey && dynCats[matchKey]) {
+            const cat = dynCats[matchKey];
+            const visibleCmds = cat.cmds.filter(c => isOwnerMenu || !ownerOnlyCats.some(o => matchKey.includes(o)));
+            const uptime = process.uptime();
+            const uptimeStr = `${Math.floor(uptime/3600)}h${Math.floor((uptime%3600)/60)}m`;
+            let sub = `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n`;
+            sub += `┃  ${cat.label.substring(0,28).padEnd(28)} ┃\n`;
+            sub += `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n`;
+            sub += `📊 *${cat.cmds.length} commandes* dans cette catégorie\n`;
+            sub += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+            for (const c of cat.cmds) {
+              sub += `┌ *.${c.nom_cmd}*\n`;
+              if (c.alias && c.alias.length) sub += `│  ↪ ${c.alias.slice(0,3).map(a=>'.'+a).join(' | ')}\n`;
+              sub += `└  ${c.desc || 'Commande disponible'}\n\n`;
+            }
+            sub += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            sub += `💡 *.menu* → retour au menu principal`;
+            return send(sub);
+          } else if (MenuSystem?.CATEGORIES[category]) {
+            return send(MenuSystem.generateCategoryMenu(category, userInfo));
+          } else {
+            const catList = Object.keys(dynCats)
+              .filter(k => isOwnerMenu || !ownerOnlyCats.some(o => k.includes(o)))
+              .map(k => `• .menu ${k}`)
+              .join('\n');
+            return send(`❌ Catégorie *${category}* introuvable.\n\nCatégories disponibles:\n${catList}`);
+          }
+        }
+
+        // ── MENU PRINCIPAL DYNAMIQUE ──
+        const botUptime = (() => {
+          const s = process.uptime();
+          return `${Math.floor(s/3600)}h ${Math.floor((s%3600)/60)}m`;
+        })();
+        const ram = (process.memoryUsage().heapUsed/1024/1024).toFixed(1);
+        const now = new Date().toLocaleString('fr-FR', {timeZone:'Africa/Abidjan'});
+
+        let menu = `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n`;
+        menu += `┃   🤖 *HANI-MD PREMIUM V2.6.0*  ┃\n`;
+        menu += `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n`;
+        menu += `╭──「 👤 *PROFIL* 」──╮\n`;
+        menu += `│ Nom: *${(userInfo.name||'Utilisateur').substring(0,20)}*\n`;
+        menu += `│ Plan: *${userInfo.plan || 'FREE'}*${isOwnerMenu?' 🔱':''}\n`;
+        menu += `│ Cmds: ${userInfo.dailyLimit===-1?'∞ Illimité':`${userInfo.commandsToday||0}/${userInfo.dailyLimit}`}\n`;
+        menu += `╰────────────────────╯\n\n`;
+        menu += `╭──「 ⚡ *BOT STATUS* 」──╮\n`;
+        menu += `│ ⏱️ Uptime: ${botUptime}\n`;
+        menu += `│ 💾 RAM: ${ram}MB\n`;
+        menu += `│ 🕐 ${now}\n`;
+        menu += `╰──────────────────────╯\n\n`;
+        menu += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        menu += `       📋 *TOUTES LES CATÉGORIES*\n`;
+        menu += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+        // Trier par nombre de cmds décroissant
+        const sortedCats = Object.entries(dynCats)
+          .filter(([k]) => isOwnerMenu || !ownerOnlyCats.some(o => k.includes(o)))
+          .sort((a,b) => b[1].cmds.length - a[1].cmds.length);
+
+        for (const [key, cat] of sortedCats) {
+          menu += `│ 📁 *.menu ${key}*\n`;
+          menu += `│    ↳ ${cat.cmds.length} commandes\n│\n`;
+        }
+
+        menu += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        menu += `📊 Total: *${allCmds.length} commandes* disponibles\n`;
+        menu += `💡 *.menu <catégorie>* → voir les commandes\n`;
+        menu += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        menu += `  🌐 Support: wa.me/22550252467`;
+
+        return send(menu);
+      } catch (menuErr) {
+        console.log('[MENU] Erreur:', menuErr.message);
+        return send('❌ Erreur menu. Utilise `.ping` pour vérifier que le bot fonctionne.');
       }
-      
-      // Menu de fallback si MenuSystem non disponible
-      const menuText = `
-╭━━━━━━━━━━━━━━━━━━━━━╮
-┃    🤖 HANI-MD V2.6.0
-┃━━━━━━━━━━━━━━━━━━━━━
-┃ Préfixe : ${config.PREFIXE}
-┃ Mode    : ${config.MODE}
-┃ Owner   : ${config.NOM_OWNER}
-┃
-┃ 📌 Commandes générales :
-┃ ${config.PREFIXE}ping
-┃ ${config.PREFIXE}info
-┃
-┃ 👁️ Vue unique (View Once) :
-┃ ${config.PREFIXE}vv (répondre à un msg)
-┃ ${config.PREFIXE}listvv
-┃ 💬 "c'est quel wé ?" (sans préfixe)
-┃
-┃ 🗑️ Messages supprimés :
-┃ ${config.PREFIXE}antidelete on/off
-┃ ${config.PREFIXE}deleted (voir supprimés)
-┃
-┃ 🛡️ Protections :
-┃ ${config.PREFIXE}antilink on/off
-┃ ${config.PREFIXE}antispam on/off
-┃ ${config.PREFIXE}antibot on/off
-┃ ${config.PREFIXE}anticall on/off
-┃ ${config.PREFIXE}antitag on/off
-╰━━━━━━━━━━━━━━━━━━━━━╯`;
-      return send(menuText);
     }
     case "info": {
       const infoText = `
