@@ -12,13 +12,7 @@ const { downloadMedia, downloadSticker, downloadVideo, downloadAudio, downloadIm
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
-const { Sticker, StickerTypes } = require("wa-sticker-formatter");
-
-// Assurer que ffmpeg-static est disponible pour les stickers vidéo
-try {
-  const ffmpegPath = require("ffmpeg-static");
-  if (ffmpegPath) process.env.FFMPEG_PATH = ffmpegPath;
-} catch (e) {}
+const { makeSticker } = require("../lib/stickerUtils");
 
 // ═══════════════════════════════════════════════════════════
 // 🖼️ STICKER CRÉATION
@@ -56,20 +50,18 @@ ovlcmd(
         return repondre("❌ Impossible de télécharger le média");
       }
 
-      // ── Convertir en WebP via wa-sticker-formatter (obligatoire pour WhatsApp) ──
+      // ── Convertir en WebP valide (sharp pour images, ffmpeg pour vidéos) ──
       const isVideo = !!(quotedMessage?.videoMessage || directVideo);
-      const sticker = new Sticker(mediaBuffer, {
-        pack: "HANI-MD",
-        author: "H2025",
-        type: StickerTypes.FULL,
-        quality: 50,
-        ...(isVideo ? { fps: 15 } : {})
-      });
-      const stickerBuffer = await sticker.toBuffer();
+      const stickerBuffer = await makeSticker(mediaBuffer, isVideo, 'HANI-MD', 'H2025');
+
+      if (!stickerBuffer || stickerBuffer.length < 50) {
+        return repondre("❌ Conversion sticker échouée. Réessaie avec une image plus petite.");
+      }
 
       // Envoyer le sticker WebP
       await ovl.sendMessage(msg.key.remoteJid, {
-        sticker: stickerBuffer
+        sticker: stickerBuffer,
+        isAnimated: isVideo
       }, { quoted: ms });
 
     } catch (error) {
