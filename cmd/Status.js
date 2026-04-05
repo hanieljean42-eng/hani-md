@@ -73,7 +73,11 @@ ovlcmd(
     const text = arg.join(" ").trim();
     if (!text) return repondre("❌ Utilisation: `.statustext [texte]`\n\nEx: `.statustext Disponible 🟢`");
     try {
-      await ovl.sendMessage("status@broadcast", { text });
+      await ovl.sendMessage(
+        "status@broadcast",
+        { text, backgroundColor: "#1e1e2e", font: 0 },
+        { statusJidList: [] }
+      );
       repondre("✅ Statut texte posté avec succès!");
     } catch (e) {
       console.error("[STATUSTEXT]", e);
@@ -108,7 +112,11 @@ ovlcmd(
 
     try {
       const caption = arg.join(" ") || "";
-      await ovl.sendMessage("status@broadcast", { image: buffer, caption });
+      await ovl.sendMessage(
+        "status@broadcast",
+        { image: buffer, caption },
+        { statusJidList: [] }
+      );
       repondre("✅ Statut image posté!");
     } catch (e) {
       console.error("[STATUSIMG]", e);
@@ -143,7 +151,11 @@ ovlcmd(
 
     try {
       const caption = arg.join(" ") || "";
-      await ovl.sendMessage("status@broadcast", { video: buffer, caption });
+      await ovl.sendMessage(
+        "status@broadcast",
+        { video: buffer, caption },
+        { statusJidList: [] }
+      );
       repondre("✅ Statut vidéo posté!");
     } catch (e) {
       console.error("[STATUSVID]", e);
@@ -177,7 +189,11 @@ ovlcmd(
     if (!buffer) return repondre("❌ Impossible de télécharger l'audio.");
 
     try {
-      await ovl.sendMessage("status@broadcast", { audio: buffer, mimetype: "audio/mp4", ptt: false });
+      await ovl.sendMessage(
+        "status@broadcast",
+        { audio: buffer, mimetype: "audio/mp4", ptt: false },
+        { statusJidList: [] }
+      );
       repondre("✅ Statut audio posté!");
     } catch (e) {
       console.error("[STATUSAUDIO]", e);
