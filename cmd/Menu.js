@@ -1,12 +1,11 @@
 /**
  * ╔═══════════════════════════════════════════════════════════╗
- * ║        📋 HANI-MD - COMMANDES MENU STYLISÉ V2.1           ║
- * ║     Menu dynamique selon abonnement & permissions         ║
- * ║              Par H2025 - 2026                             ║
+ * ║        📋 HANI-MD - MENU DYNAMIQUE V3.0                   ║
+ * ║   Lit toutes les commandes réelles, groupées par catégorie║
  * ╚═══════════════════════════════════════════════════════════╝
  */
 
-const { ovlcmd } = require('../lib/ovlcmd');
+const { ovlcmd, getCommands } = require('../lib/ovlcmd');
 const config = require('../set');
 const fs = require('fs');
 const path = require('path');
@@ -126,109 +125,227 @@ function incrementUsage(phone) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// 📋 COMMANDE MENU PRINCIPAL
+// 📋 GROUPES DE COMMANDES — mappe clé → classes réelles
 // ═══════════════════════════════════════════════════════════
 
-// Catégories par plan
-const PLAN_CATEGORIES = {
-  FREE: ['download', 'search', 'fun', 'outils', 'systeme'],
-  BRONZE: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'systeme'],
-  ARGENT: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'systeme'],
-  OR: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
-  DIAMANT: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
-  LIFETIME: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme'],
-  OWNER: ['download', 'search', 'fun', 'outils', 'audio', 'status', 'ia', 'groupe', 'logo', 'economie', 'premium', 'systeme', 'owner']
+const GROUPS = {
+  telechargement: {
+    emoji: '📥', name: 'Téléchargement',
+    desc: 'YouTube, TikTok, Instagram, Facebook, Spotify...',
+    classes: ['Téléchargement'],
+    minPlan: 'BRONZE'
+  },
+  ia: {
+    emoji: '🤖', name: 'Intelligence Artificielle',
+    desc: 'GPT, Gemini, Code, Résumé, Histoire, Quiz IA...',
+    classes: ['IA'],
+    minPlan: 'ARGENT'
+  },
+  image: {
+    emoji: '🖼️', name: 'Image & Logos',
+    desc: 'Blur, Grayscale, Enhance, 23 styles de logos...',
+    classes: ['Image', 'Logo'],
+    minPlan: 'ARGENT'
+  },
+  fun: {
+    emoji: '🎭', name: 'Fun & Jeux',
+    desc: 'Blackjack, Quiz, 8Ball, Blagues, Réactions...',
+    classes: ['Fun', 'Games', 'Réaction'],
+    minPlan: 'FREE'
+  },
+  outils: {
+    emoji: '🛠️', name: 'Outils & Conversion',
+    desc: 'Sticker, QR, Traducteur, Calculatrice, Base64...',
+    classes: ['Outils', 'Conversion', 'Pro'],
+    minPlan: 'BRONZE'
+  },
+  contacts: {
+    emoji: '📇', name: 'Contacts',
+    desc: 'VCard, QR, Lien, Mass PM, Invitations...',
+    classes: ['Contacts'],
+    minPlan: 'BRONZE'
+  },
+  audio: {
+    emoji: '🎵', name: 'Audio FX',
+    desc: 'Bass, Reverb, 8D, Robot, Slow, Fast, Chipmunk...',
+    classes: ['Audio FX'],
+    minPlan: 'BRONZE'
+  },
+  status: {
+    emoji: '📷', name: 'Statuts',
+    desc: 'Poster statuts texte/image/vidéo, Auto-vue...',
+    classes: ['Status'],
+    minPlan: 'BRONZE'
+  },
+  groupe: {
+    emoji: '👥', name: 'Gestion Groupe',
+    desc: 'Kick, Add, Tagall, Antilink, Promote, Demote...',
+    classes: ['Groupe'],
+    minPlan: 'BRONZE'
+  },
+  recherche: {
+    emoji: '🔍', name: 'Recherche',
+    desc: 'Google, Wikipedia, Météo, Paroles, Films...',
+    classes: ['Recherche'],
+    minPlan: 'BRONZE'
+  },
+  economie: {
+    emoji: '💰', name: 'Économie & Parrainage',
+    desc: 'Daily, Balance, Gamble, Shop, Parrainage...',
+    classes: ['Economy', '💰 Économie', 'Parrainage'],
+    minPlan: 'BRONZE'
+  },
+  confidentialite: {
+    emoji: '🔒', name: 'Confidentialité',
+    desc: 'Ghost, Block, Typing, ReadReceipts, Privacy...',
+    classes: ['Confidentialité', '🔒 Confidentialité', '🔒 Sécurité'],
+    minPlan: 'BRONZE'
+  },
+  espionnage: {
+    emoji: '🕵️', name: 'Espionnage & Surveillance',
+    desc: 'ViewBlocked, AutoSpy, Présence, Spy, PresenceList...',
+    classes: ['🕵️ Espionnage'],
+    minPlan: 'OWNER'
+  },
+  systeme: {
+    emoji: '⚙️', name: 'Système & Support',
+    desc: 'Ping, Uptime, Info, Ticket, FAQ, Tutorial...',
+    classes: ['Système', 'Tutorial', 'Support'],
+    minPlan: 'FREE'
+  },
+  premium: {
+    emoji: '💎', name: 'Abonnements',
+    desc: 'Activer, Tarifs, MonPlan, Payer, Confirmer...',
+    classes: ['Premium', '💎 Premium'],
+    minPlan: 'FREE'
+  },
+  avance: {
+    emoji: '🚀', name: 'Fonctions Avancées',
+    desc: 'Autoreply, Newsletter, Notes, Feedback, Sondage...',
+    classes: ['Autoreply', '🎯 Automatisation', 'Configuration', 'Engagement',
+              'Feedback', 'Newsletter', '📝 Notes', '📊 Analytics',
+              '📢 Diffusion', '🔍 Info', '🔧 Utilitaires'],
+    minPlan: 'ARGENT'
+  },
+  owner: {
+    emoji: '👑', name: 'Administration Owner',
+    desc: 'Broadcast, Shell, Restart, Clients, Codes, Sudo...',
+    classes: ['Owner', '👮 Modération', '👤 Profil'],
+    minPlan: 'OWNER'
+  }
 };
 
-// Info des catégories
-const CATEGORY_INFO = {
-  download: { emoji: '📥', name: 'Download', desc: 'YouTube, TikTok, Instagram' },
-  search: { emoji: '🔍', name: 'Search', desc: 'Google, YouTube, Wikipedia' },
-  fun: { emoji: '🎭', name: 'Fun', desc: 'Jeux, Blagues, Quiz' },
-  outils: { emoji: '🛠️', name: 'Outils', desc: 'Stickers, Conversion, QR' },
-  audio: { emoji: '🎵', name: 'Audio', desc: 'Effets audio, TTS' },
-  status: { emoji: '📷', name: 'Status', desc: 'Statuts WhatsApp' },
-  ia: { emoji: '🤖', name: 'IA', desc: 'GPT, Gemini, DALL-E' },
-  groupe: { emoji: '👥', name: 'Groupe', desc: 'Gestion des groupes' },
-  logo: { emoji: '🎨', name: 'Logo', desc: 'Création de logos' },
-  economie: { emoji: '💰', name: 'Economie', desc: 'Banque, Daily, Shop' },
-  premium: { emoji: '💎', name: 'Premium', desc: 'Fonctionnalités VIP' },
-  systeme: { emoji: '⚙️', name: 'Systeme', desc: 'Bot, Ping, Info' },
-  owner: { emoji: '👑', name: 'Owner', desc: 'Commandes admin' }
+const PLAN_ORDER = ['FREE', 'BRONZE', 'ARGENT', 'OR', 'DIAMANT', 'LIFETIME', 'OWNER'];
+const PLAN_BADGES = {
+  FREE: '🆓 GRATUIT', BRONZE: '🥉 BRONZE', ARGENT: '🥈 ARGENT',
+  OR: '🥇 OR', DIAMANT: '💎 DIAMANT', LIFETIME: '♾️ LIFETIME', OWNER: '🔱 PROPRIÉTAIRE'
 };
+
+function planAllows(userPlan, minPlan) {
+  const ui = PLAN_ORDER.indexOf(userPlan);
+  const mi = PLAN_ORDER.indexOf(minPlan);
+  return ui >= mi;
+}
+
+// ─── Obtenir les commandes d'un groupe ──────────────────────
+function getCmdsForGroup(groupKey) {
+  const group = GROUPS[groupKey];
+  if (!group) return [];
+  const all = getCommands();
+  return all.filter(c => group.classes.includes(c.category));
+}
+
+// ─── Construire le texte d'un sous-menu ─────────────────────
+function buildSubMenu(groupKey, prefix) {
+  const group = GROUPS[groupKey];
+  const cmds = getCmdsForGroup(groupKey);
+  if (!cmds.length) return null;
+
+  let txt = `╭─────「 ${group.emoji} *${group.name.toUpperCase()}* 」─────╮\n│\n`;
+  for (const c of cmds) {
+    const aliases = c.aliases?.length ? ` _(${c.aliases.slice(0,2).join(', ')})_` : '';
+    txt += `│ ${c.reaction || '▸'} *${prefix}${c.name}*${aliases}\n│   └ ${c.description}\n│\n`;
+  }
+  txt += `╰─────────────────────────────╯\n`;
+  txt += `_Total: ${cmds.length} commandes_`;
+  return txt;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 📋 COMMANDE MENU PRINCIPAL
+// ═══════════════════════════════════════════════════════════
 
 ovlcmd({
   nom_cmd: "menu",
   classe: "Système",
   react: "📋",
-  desc: "Afficher le menu principal",
+  desc: "Afficher le menu principal ou un sous-menu de catégorie",
   alias: ["m", "allmenu", "commands"]
-}, async (ovl, msg, { arg, repondre, superUser, auteurMessage, ms, clientPlan, plan: optPlan, isOwner } = {}) => {
+}, async (ovl, msg, { arg, repondre, superUser, auteurMessage, clientPlan, plan: optPlan, isOwner } = {}) => {
   try {
-    // Utiliser clientPlan (session client) ou déterminer depuis users_pro.json (bot principal)
     const planOverride = clientPlan || optPlan || null;
     const ownerOverride = isOwner || superUser || false;
     const userInfo = getUserInfo(auteurMessage, ownerOverride, planOverride);
     const prefix = config.PREFIX || config.PREFIXE || ".";
-    
-    const uptime = process.uptime();
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    
-    // Déterminer les catégories disponibles selon le plan
     const plan = userInfo.plan.toUpperCase();
-    const availableCategories = PLAN_CATEGORIES[plan] || PLAN_CATEGORIES['FREE'];
-    const allCategories = PLAN_CATEGORIES['OWNER'];
-    
-    // Construire le menu des catégories
-    let categoriesMenu = '';
-    for (const cat of allCategories) {
-      const info = CATEGORY_INFO[cat];
-      const isAvailable = availableCategories.includes(cat) || userInfo.isOwner;
-      
-      if (isAvailable) {
-        categoriesMenu += `│ ${info.emoji} *${prefix}menu ${cat}*\n│    └ ${info.desc}\n│\n`;
+
+    // ── Sous-menu : .menu <groupe> ──────────────────────────
+    if (arg[0]) {
+      const key = arg[0].toLowerCase().replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a');
+      // Recherche flexible (telechargement, ia, fun, etc.)
+      const match = Object.keys(GROUPS).find(k =>
+        k === key || k.startsWith(key) || GROUPS[k].name.toLowerCase().includes(key)
+      );
+      if (!match) {
+        const list = Object.keys(GROUPS).map(k => `*${prefix}menu ${k}*`).join(' • ');
+        return repondre(`❌ Groupe "${arg[0]}" introuvable.\n\n📋 Groupes disponibles:\n${list}`);
+      }
+      const subTxt = buildSubMenu(match, prefix);
+      if (!subTxt) return repondre(`❌ Aucune commande dans ce groupe.`);
+      return repondre(subTxt);
+    }
+
+    // ── Menu principal ──────────────────────────────────────
+    const uptime = process.uptime();
+    const h = Math.floor(uptime / 3600), mn = Math.floor((uptime % 3600) / 60);
+    const totalCmds = getCommands().length;
+
+    let groupLines = '';
+    for (const [key, grp] of Object.entries(GROUPS)) {
+      const allowed = userInfo.isOwner || planAllows(plan, grp.minPlan);
+      const count = getCmdsForGroup(key).length;
+      if (allowed) {
+        groupLines += `│ ${grp.emoji} *${prefix}menu ${key}* (${count} cmds)\n│    └ _${grp.desc}_\n│\n`;
       } else {
-        categoriesMenu += `│ 🔒 ~~${prefix}menu ${cat}~~ *(${info.name})*\n│    └ _Requiert plan supérieur_\n│\n`;
+        groupLines += `│ 🔒 ${grp.emoji} ${grp.name} — _Plan ${grp.minPlan} requis_\n│\n`;
       }
     }
-    
-    // Badge du plan
-    const planBadges = {
-      FREE: '🆓 GRATUIT',
-      BRONZE: '🥉 BRONZE',
-      ARGENT: '🥈 ARGENT',
-      OR: '🥇 OR',
-      DIAMANT: '💎 DIAMANT',
-      LIFETIME: '👑 LIFETIME',
-      OWNER: '👑 OWNER'
-    };
-    
-    const mainMenu = `
-╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃     🌟 *HANI-MD V2.6.1* 🌟    
-┃  Bot WhatsApp Intelligent      
+
+    const mainMenu =
+`╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃    🌟 *HANI-MD V2.6.1* 🌟    
+┃  Bot WhatsApp Intelligent    
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
 ╭─────「 👤 *PROFIL* 」─────╮
-│ 🏷️ Plan: *${planBadges[plan] || plan}*
+│ 🏷️ Plan: *${PLAN_BADGES[plan] || plan}*
 │ 📊 Cmds: ${userInfo.dailyLimit === -1 ? '∞ Illimité' : `${userInfo.commandsToday}/${userInfo.dailyLimit}`}
-│ ⏱️ Uptime: ${hours}h ${minutes}m
+│ 🗂️ Total bot: *${totalCmds} commandes*
+│ ⏱️ Uptime: ${h}h ${mn}m
 ╰─────────────────────────────╯
 
 ╭─────「 📋 *CATÉGORIES* 」─────╮
 │
-${categoriesMenu}╰─────────────────────────────╯
+${groupLines}╰─────────────────────────────╯
 
 ╭─────「 ℹ️ *INFO* 」─────╮
-│ 💡 *${prefix}aide <cmd>* - Aide commande
-│ 💳 *${prefix}upgrade* - Améliorer plan
-│ 📊 *${prefix}myplan* - Mon abonnement
+│ 💡 *${prefix}menu <groupe>* → voir les cmds
+│ ❓ *${prefix}aide <cmd>* → aide d'une commande
+│ 💳 *${prefix}tarifs* → plans & prix
 │ 📞 Support: wa.me/22550252467
 ╰─────────────────────────────╯
 
-⭐ Powered by HANI-MD
-`;
+⭐ _Powered by HANI-MD_`;
 
     await repondre(mainMenu);
 
