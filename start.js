@@ -85,6 +85,8 @@ const commandModules = [
   "./cmd/Tutorial",
   // ═══ PAIEMENTS ═══
   "./cmd/Payments",
+  // ═══ 🤖 BOT CLONE NETWORK ═══
+  "./cmd/BotNetwork",
 ];
 
 let loadedModules = 0;
@@ -1156,6 +1158,17 @@ async function startBot() {
       console.log("\n");
       console.log("💡 Tape " + config.PREFIXE + "menu sur WhatsApp pour voir toutes les commandes");
       console.log("\n");
+
+      // 🤖 BOT CLONE NETWORK — reconnexion automatique des bots sauvegardés
+      setTimeout(async () => {
+        try {
+          const MultiBotManager = require('./lib/MultiBotManager');
+          const ownerJid = ovl.user?.id?.replace(/:\d+/, '') + '@s.whatsapp.net';
+          await MultiBotManager.autoConnectSavedBots(ownerJid);
+        } catch(e) {
+          console.log('[BOT-NET] Auto-connect ignoré:', e.message);
+        }
+      }, 8000);
 
       // 👻 MODE FANTÔME — apparaître hors ligne dès la connexion
       setTimeout(async () => {
