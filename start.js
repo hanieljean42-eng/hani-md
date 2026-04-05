@@ -1393,88 +1393,173 @@ async function startBot() {
   });
 
   // ═══════════════════════════════════════════════════════════
-  // 👁️ SURVEILLANCE PRÉSENCE — notifier le proprio en temps réel
+  // 👁️ SURVEILLANCE PRÉSENCE — TOUS LES MOYENS POSSIBLES
   // ═══════════════════════════════════════════════════════════
   const ownerJid = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467')
     .replace(/[^0-9]/g, '') + '@s.whatsapp.net';
 
-  // Re-souscrire à tous les JIDs surveillés après reconnexion
-  for (const [jid] of global.presenceSpyList) {
-    try { await ovl.presenceSubscribe(jid); } catch(_) {}
-  }
+  // Helper: envoyer notification au proprio sans plantage
+  const spyNotify = async (text) => {
+    try { await ovl.sendMessage(ownerJid, { text }); } catch(_) {}
+  };
 
+  // ── MÉTHODE 1 : presenceSubscribe (événement temps réel) ───
+  const subscribeAll = async () => {
+    for (const [jid] of global.presenceSpyList) {
+      try { await ovl.presenceSubscribe(jid); } catch(_) {}
+    }
+  };
+  await subscribeAll(); // souscription immédiate au démarrage
+
+  // ── MÉTHODE 2 : Re-souscription périodique (toutes les 4 min)
+  // WhatsApp expire les souscriptions présence → renouveler régulièrement
+  if (global._presenceInterval) clearInterval(global._presenceInterval);
+  global._presenceInterval = setInterval(subscribeAll, 4 * 60 * 1000);
+
+  // ── MÉTHODE 3 : Polling "À propos" + business profile (toutes les 15 min)
+  if (global._statusPollInterval) clearInterval(global._statusPollInterval);
+  global._statusPollInterval = setInterval(async () => {
+    for (const [jid, info] of global.presenceSpyList) {
+      const num = jid.split('@')[0];
+      try {
+        // Vérifier si toujours sur WhatsApp
+        const [onWA] = await ovl.onWhatsApp('+' + num).catch(() => [null]);
+        if (onWA && !onWA.exists) {
+          await spyNotify(`⚠️ *SURVEILLANCE*\n\n👤 *+${num}* n'est plus sur WhatsApp ou a changé de numéro.`);
+          continue;
+        }
+      } catch(_) {}
+
+      try {
+        // Vérifier changement de statut "À propos"
+        const s = await ovl.fetchStatus(jid).catch(() => null);
+        const newStatus = s?.status || '';
+        if (newStatus && newStatus !== info.lastAbout) {
+          const old = info.lastAbout || '(inconnu)';
+          info.lastAbout = newStatus;
+          global.presenceSpyList.set(jid, info);
+          await spyNotify(
+            `📝 *CHANGEMENT DE BIO*\n\n👤 *+${num}* a changé son statut "À propos"\n\n` +
+            `Avant: _${old}_\nAprès: _${newStatus}_`
+          );
+        } else if (newStatus && !info.lastAbout) {
+          info.lastAbout = newStatus;
+          global.presenceSpyList.set(jid, info);
+        }
+      } catch(_) {}
+
+      try {
+        // Tenter profil business
+        const bp = await ovl.getBusinessProfile(jid).catch(() => null);
+        if (bp?.description && bp.description !== info.lastBizDesc) {
+          info.lastBizDesc = bp.description;
+          global.presenceSpyList.set(jid, info);
+          await spyNotify(
+            `🏪 *PROFIL BUSINESS*\n\n👤 *+${num}* a un profil professionnel:\n_${bp.description}_`
+          );
+        }
+      } catch(_) {}
+    }
+  }, 15 * 60 * 1000);
+
+  // ── MÉTHODE 4 : Événement presence.update (temps réel) ─────
   ovl.ev.on('presence.update', async ({ id, presences }) => {
     if (!global.presenceSpyList.has(id)) return;
     const info = global.presenceSpyList.get(id) || {};
     const num = id.split('@')[0];
 
-    for (const [participantJid, presence] of Object.entries(presences || {})) {
-      const isOnline = presence.lastKnownPresence === 'available' || presence.lastKnownPresence === 'composing';
+    for (const [, presence] of Object.entries(presences || {})) {
+      const lastPres = presence.lastKnownPresence;
+      const isOnline = lastPres === 'available' || lastPres === 'composing' || lastPres === 'recording';
       const wasOnline = info.isOnline;
 
-      // Mettre à jour le Map
       info.isOnline = isOnline;
-      info.lastKnownPresence = presence.lastKnownPresence;
+      info.lastKnownPresence = lastPres;
       if (presence.lastSeen) info.lastSeen = presence.lastSeen;
       info.lastUpdate = Date.now();
       global.presenceSpyList.set(id, info);
 
-      // Notifier uniquement au changement d'état
-      if (isOnline && !wasOnline) {
-        const heure = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        try {
-          await ovl.sendMessage(ownerJid, {
-            text: `👁️ *SURVEILLANCE PRÉSENCE*\n\n🟢 *+${num}* vient de se connecter\n🕐 Heure: ${heure}\n\n_Contact sous surveillance active_`
-          });
-        } catch(_) {}
+      const heure = new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+      if (lastPres === 'composing') {
+        await spyNotify(`✏️ *EN TRAIN D'ÉCRIRE*\n\n👤 *+${num}* est en train d'écrire un message\n🕐 ${heure}`);
+      } else if (lastPres === 'recording') {
+        await spyNotify(`🎤 *EN TRAIN D'ENREGISTRER*\n\n👤 *+${num}* enregistre un audio\n🕐 ${heure}`);
+      } else if (isOnline && !wasOnline) {
+        await spyNotify(`👁️ *SURVEILLANCE PRÉSENCE*\n\n🟢 *+${num}* vient de se connecter\n🕐 ${heure}\n\n_Contact sous surveillance_`);
       } else if (!isOnline && wasOnline) {
         const lastSeenStr = presence.lastSeen
-          ? new Date(presence.lastSeen * 1000).toLocaleString('fr-FR')
-          : new Date().toLocaleString('fr-FR');
-        try {
-          await ovl.sendMessage(ownerJid, {
-            text: `👁️ *SURVEILLANCE PRÉSENCE*\n\n🔴 *+${num}* vient de se déconnecter\n🕐 Dernière vue: ${lastSeenStr}\n\n_Contact sous surveillance active_`
-          });
-        } catch(_) {}
+          ? new Date(presence.lastSeen * 1000).toLocaleString('fr-FR') : heure;
+        await spyNotify(`👁️ *SURVEILLANCE PRÉSENCE*\n\n🔴 *+${num}* s'est déconnecté\n🕐 Dernière vue: ${lastSeenStr}\n\n_Contact sous surveillance_`);
       }
     }
   });
 
-  // Accusés de lecture des contacts surveillés
+  // ── MÉTHODE 5 : message.receipt.update — livraison + lecture ──
   ovl.ev.on('message.receipt.update', async (receipts) => {
     for (const receipt of receipts || []) {
       const senderJid = receipt.key?.participant || receipt.key?.remoteJid;
       if (!senderJid || !global.presenceSpyList.has(senderJid)) continue;
+      const num = senderJid.split('@')[0];
+      const info = global.presenceSpyList.get(senderJid) || {};
+
       if (receipt.receipt?.readTimestamp) {
-        const num = senderJid.split('@')[0];
         const heure = new Date(receipt.receipt.readTimestamp * 1000).toLocaleString('fr-FR');
-        const info = global.presenceSpyList.get(senderJid) || {};
         info.lastReceipt = receipt.receipt.readTimestamp;
         global.presenceSpyList.set(senderJid, info);
-        try {
-          await ovl.sendMessage(ownerJid, {
-            text: `✅ *ACCUSÉ DE LECTURE*\n\n👤 *+${num}* a lu ton message\n🕐 À: ${heure}\n\n_Contact sous surveillance active_`
-          });
-        } catch(_) {}
+        await spyNotify(`✅ *ACCUSÉ DE LECTURE*\n\n👤 *+${num}* a lu ton message\n🕐 À: ${heure}\n\n_Contact sous surveillance_`);
+      } else if (receipt.receipt?.deliveredTimestamp && !info.lastDelivered) {
+        const heure = new Date(receipt.receipt.deliveredTimestamp * 1000).toLocaleString('fr-FR');
+        info.lastDelivered = receipt.receipt.deliveredTimestamp;
+        global.presenceSpyList.set(senderJid, info);
+        await spyNotify(`📬 *MESSAGE REÇU*\n\n👤 *+${num}* a reçu ton message (✓✓)\n🕐 À: ${heure}`);
       }
     }
   });
 
-  // Vues de statuts des contacts surveillés (ou qui voient ton statut)
+  // ── MÉTHODE 6 : messages.update — statut d'envoi (1✓ 2✓ lu) ─
+  ovl.ev.on('messages.update', async (updates) => {
+    for (const u of updates || []) {
+      const remoteJid = u.key?.remoteJid;
+      if (!remoteJid || !global.presenceSpyList.has(remoteJid)) continue;
+      const status = u.update?.status;
+      if (!status) continue;
+      const num = remoteJid.split('@')[0];
+      const heure = new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+      // status: 3=reçu, 4=lu, 5=lu(audio)
+      if (status === 4 || status === 5) {
+        await spyNotify(`💙 *MESSAGE LU*\n\n👤 *+${num}* a lu ton message (ticks bleus)\n🕐 ${heure}`);
+      } else if (status === 3) {
+        await spyNotify(`📩 *MESSAGE REÇU*\n\n👤 *+${num}* a reçu ton message (✓✓)\n🕐 ${heure}`);
+      }
+    }
+  });
+
+  // ── MÉTHODE 7 : Vue de ton statut (status@broadcast) ────────
   ovl.ev.on('messages.upsert', async ({ messages: msgs }) => {
     for (const m of msgs || []) {
-      // Détecter quand quelqu'un regarde ton statut
-      if (m.key?.remoteJid === 'status@broadcast' && m.key?.fromMe === false) {
+      if (m.key?.remoteJid === 'status@broadcast' && !m.key?.fromMe) {
         const viewer = m.key?.participant || m.key?.remoteJid;
         if (viewer && global.presenceSpyList.has(viewer)) {
           const num = viewer.split('@')[0];
-          const heure = new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-          try {
-            await ovl.sendMessage(ownerJid, {
-              text: `📊 *VUE DE STATUT*\n\n👤 *+${num}* a regardé ton statut\n🕐 À: ${heure}\n\n_Contact sous surveillance active_`
-            });
-          } catch(_) {}
+          const heure = new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+          await spyNotify(`📊 *VUE DE STATUT*\n\n👤 *+${num}* a regardé ton statut\n🕐 À: ${heure}\n\n_Contact sous surveillance_`);
         }
+      }
+    }
+  });
+
+  // ── MÉTHODE 8 : contacts.update — changement de photo de profil ─
+  ovl.ev.on('contacts.update', async (updates) => {
+    for (const contact of updates || []) {
+      if (!contact.id || !global.presenceSpyList.has(contact.id)) continue;
+      const num = contact.id.split('@')[0];
+      const info = global.presenceSpyList.get(contact.id) || {};
+
+      if (contact.imgUrl && contact.imgUrl !== info.lastPP) {
+        info.lastPP = contact.imgUrl;
+        global.presenceSpyList.set(contact.id, info);
+        await spyNotify(`🖼️ *PHOTO DE PROFIL CHANGÉE*\n\n👤 *+${num}* a changé sa photo de profil\n🕐 ${new Date().toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' })}`);
       }
     }
   });
