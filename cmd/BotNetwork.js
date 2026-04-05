@@ -337,4 +337,86 @@ ovlcmd(
   }
 );
 
-console.log('[CMD] ✅ BotNetwork.js chargé — addbot, botlist, botcast, botsay, botping, removebot, netstats');
+// ─────────────────────────────────────────────────────────
+// 🔭 .botmirror [on/off] [nom_bot] — Activer le miroir
+// ─────────────────────────────────────────────────────────
+ovlcmd(
+  {
+    nom_cmd: 'botmirror',
+    classe: 'Bot Network',
+    react: '🔭',
+    desc: 'Voir tout ce que les bots reçoivent en temps réel',
+    alias: ['mirrorbot', 'botspy', 'botwatch', 'botsee']
+  },
+  async (ovl, msg, { arg, repondre, superUser }) => {
+    if (!superUser) return repondre('❌ Commande réservée au propriétaire');
+
+    const action  = (arg[0] || '').toLowerCase();
+    const botName = arg[1] || null;  // null = tous les bots
+
+    const db = Net.loadNetworkDB();
+    const ownerJid = msg.key.remoteJid;
+
+    if (!action || action === 'status') {
+      // Afficher l'état du miroir pour chaque bot
+      const status = Net.getNetworkStatus();
+      let text = `🔭 *BOT MIRROR STATUS*\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      if (status.length === 0) {
+        text += `📭 Aucun bot actif\n\n💡 *.addbot <nom> <session>* pour ajouter`;
+      } else {
+        for (const b of status) {
+          const cfg     = db.bots[b.name] || {};
+          const enabled = cfg.mirrorEnabled !== false;
+          text += `${enabled ? '✅' : '❌'} *${b.name}* (+${b.phone}) — Mirror: ${enabled ? 'ON' : 'OFF'}\n`;
+        }
+        text += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+        text += `💡 *.botmirror on* → activer tous\n`;
+        text += `💡 *.botmirror off* → désactiver tous\n`;
+        text += `💡 *.botmirror on bot2* → activer seulement bot2\n\n`;
+        text += `📡 Quand activé, tu reçois ICI:\n`;
+        text += `• Tous les messages reçus par les bots\n`;
+        text += `• Photos, vidéos, audio, documents\n`;
+        text += `• Stickers, localisation, contacts\n`;
+        text += `• Messages envoyés ET reçus`;
+      }
+      return repondre(text);
+    }
+
+    if (action !== 'on' && action !== 'off') {
+      return repondre(`❌ Usage: *.botmirror on/off [nom_bot]*\n\nExemples:\n• *.botmirror on* → tous les bots\n• *.botmirror on bot2* → seulement bot2\n• *.botmirror status* → voir l'état`);
+    }
+
+    const enable   = action === 'on';
+    const targets  = botName ? [botName] : Object.keys(db.bots || {});
+
+    if (targets.length === 0) {
+      return repondre('❌ Aucun bot enregistré.\n\n💡 *.addbot <nom> <session>*');
+    }
+
+    let changed = 0;
+    for (const t of targets) {
+      if (!db.bots[t]) continue;
+      db.bots[t].mirrorEnabled = enable;
+      changed++;
+    }
+    Net.saveNetworkDB(db);
+
+    // Définir le owner comme destinataire du miroir
+    if (enable) {
+      Net.setMirrorOwner(ownerJid);
+    }
+
+    const icon = enable ? '✅' : '❌';
+    const targetLabel = botName || `tous les ${changed} bots`;
+    return repondre(
+      `${icon} *Mirror ${enable ? 'ACTIVÉ' : 'DÉSACTIVÉ'}*\n\n` +
+      `🤖 Bots concernés: *${targetLabel}*\n` +
+      `📍 Messages redirigés vers: *ce chat*\n\n` +
+      `${enable
+        ? '📡 Tu recevras maintenant en temps réel:\n• Textes, photos, vidéos, audio\n• Documents, stickers, locations\n• Messages envoyés ET reçus'
+        : '🔇 Plus aucun message ne sera redirigé.'}`
+    );
+  }
+);
+
+console.log('[CMD] ✅ BotNetwork.js chargé — addbot, botlist, botcast, botsay, botping, removebot, netstats, botmirror');
