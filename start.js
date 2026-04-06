@@ -49,6 +49,7 @@ const commandModules = [
   "./cmd/Reaction",
   // ═══ DIVERTISSEMENT ═══
   "./cmd/Fun",
+  "./cmd/Prank",
   "./cmd/Ovl-game",
   // ═══ INTELLIGENCE ARTIFICIELLE ═══
   "./cmd/Ia",
