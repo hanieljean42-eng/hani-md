@@ -12,6 +12,31 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../DataBase/db'); // Firebase-first via proxy db.js
 
+// ─── Persistance de la liste d'espionnage ─────────────────────────────────
+const SPY_LIST_PATH = path.join(__dirname, '../DataBase/spy_list.json');
+
+function saveSpyList() {
+  try {
+    const obj = {};
+    (global.presenceSpyList || new Map()).forEach((v, k) => { obj[k] = v; });
+    fs.writeFileSync(SPY_LIST_PATH, JSON.stringify(obj, null, 2));
+  } catch (e) {}
+}
+
+function loadSpyList() {
+  try {
+    if (!fs.existsSync(SPY_LIST_PATH)) return;
+    const obj = JSON.parse(fs.readFileSync(SPY_LIST_PATH, 'utf8'));
+    global.presenceSpyList = global.presenceSpyList || new Map();
+    for (const [jid, info] of Object.entries(obj || {})) {
+      if (!global.presenceSpyList.has(jid)) global.presenceSpyList.set(jid, info);
+    }
+  } catch (e) {}
+}
+
+// Charger la liste sauvegardée au démarrage
+loadSpyList();
+
 // ═══════════════════════════════════════════════════════════
 // 🔒 SÉCURITÉ AVANCÉE
 // ═══════════════════════════════════════════════════════════
@@ -990,168 +1015,159 @@ ovlcmd({
   nom_cmd: "spy",
   classe: "🕵️ Espionnage",
   react: "🔍",
-  desc: "Active la surveillance d'un utilisateur. Usage: .spy @user",
+  desc: "Surveiller un utilisateur (présence, statut, activité). Usage: .spy @user ou .spy numéro",
   alias: ["espion", "surveiller", "track"]
 }, async (hani, ms, { repondre, superUser, arg }) => {
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  
-  // Récupérer la cible
+
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
-  
+
   if (mentioned && mentioned.length > 0) {
     target = mentioned[0];
   } else if (arg[0]) {
     target = arg[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
   } else {
-    return repondre("❌ Usage: .spy @user ou .spy numéro");
+    return repondre("❌ Usage: `.spy @user` ou `.spy numéro`\n\nEx: `.spy 22501234567`");
   }
-  
-  try {
-    // Ajouter à la liste de surveillance dans MySQL UNIQUEMENT
-    const added = await db.addToSurveillance(target);
-    
-    const num = target.split('@')[0];
-    
-    await repondre(`🕵️ *Surveillance Activée*
 
-👤 Cible: @${num}
-📊 Statut: ${added ? 'Ajouté à MySQL' : 'Déjà en surveillance'}
+  const spyList = global.presenceSpyList || (global.presenceSpyList = new Map());
+  const alreadyTracked = spyList.has(target);
+  const num = target.split('@')[0];
 
-📋 Les messages de cette personne seront:
-• Loggés automatiquement
-• Notifications à chaque activité
-• Statistiques d'activité collectées
-
-⚠️ Commandes associées:
-• .spylist - Voir toutes les cibles
-• .unspy @user - Arrêter la surveillance
-• .spyactivity @user - Voir l'activité
-
-💾 Source: MySQL`, { mentions: [target] });
-  } catch (e) {
-    await repondre(`❌ Erreur: ${e.message}`);
+  if (!alreadyTracked) {
+    spyList.set(target, {
+      addedAt: Date.now(),
+      isOnline: false,
+      lastSeen: null,
+      lastReceipt: null,
+      autoAdded: false
+    });
+    saveSpyList();
+    try { await hani.presenceSubscribe(target); } catch (e) {}
   }
+
+  repondre(
+    `🕵️ *Surveillance ${alreadyTracked ? 'déjà active' : 'activée !'}*\n\n` +
+    `👤 Cible: +${num}\n\n` +
+    `Tu recevras des notifications pour:\n` +
+    `• 🟢 Connexion / 🔴 Déconnexion\n` +
+    `• ✏️ En train d'écrire / 🎤 Enregistre\n` +
+    `• 📊 Vue de ton statut\n` +
+    `• ✅ Lecture de tes messages\n\n` +
+    `Commandes: .spylist | .unspy ${num} | .spyactivity ${num}`,
+    { mentions: [target] }
+  );
 });
 
 ovlcmd({
   nom_cmd: "unspy",
   classe: "🕵️ Espionnage",
   react: "❌",
-  desc: "Arrête la surveillance d'un utilisateur",
+  desc: "Arrêter la surveillance d'un utilisateur",
   alias: ["stopspy", "desurveiller"]
 }, async (hani, ms, { repondre, superUser, arg }) => {
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  
+
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
-  
+
   if (mentioned && mentioned.length > 0) {
     target = mentioned[0];
   } else if (arg[0]) {
     target = arg[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
   } else {
-    return repondre("❌ Usage: .unspy @user");
+    return repondre("❌ Usage: `.unspy @user` ou `.unspy numéro`");
   }
-  
-  try {
-    // Supprimer de MySQL UNIQUEMENT
-    await db.removeFromSurveillance(target);
-    
-    await repondre(`✅ Surveillance arrêtée pour @${target.split('@')[0]}\n💾 Supprimé de MySQL`, { mentions: [target] });
-  } catch (e) {
-    await repondre(`❌ Erreur: ${e.message}`);
+
+  const spyList = global.presenceSpyList || new Map();
+
+  if (!spyList.has(target)) {
+    return repondre(`⚠️ +${target.split('@')[0]} n'est pas sous surveillance.`);
   }
+
+  spyList.delete(target);
+  saveSpyList();
+
+  repondre(`✅ Surveillance arrêtée pour +${target.split('@')[0]}`, { mentions: [target] });
 });
 
 ovlcmd({
   nom_cmd: "spylist",
   classe: "🕵️ Espionnage",
   react: "📋",
-  desc: "Affiche la liste des personnes surveillées",
+  desc: "Afficher la liste des personnes surveillées",
   alias: ["listspy", "surveillancelist"]
 }, async (hani, ms, { repondre, superUser }) => {
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  
-  try {
-    // Récupérer de MySQL UNIQUEMENT
-    const dbList = await db.getSurveillanceList();
-    
-    if (dbList.length === 0) {
-      return repondre("📋 Aucune personne sous surveillance.");
-    }
-    
-    const allJids = dbList.map(r => r.jid);
-    
-    let message = `
-╔══════════════════════════════╗
-║   🕵️ LISTE DE SURVEILLANCE   ║
-╠══════════════════════════════╣
-║ Total: ${dbList.length} cible(s)
-╠══════════════════════════════╣\n`;
-    
-    for (const entry of dbList) {
-      const num = entry.jid.split('@')[0];
-      const msgs = entry.total_messages || 0;
-      const lastActive = entry.last_activity ? new Date(entry.last_activity).toLocaleString('fr-FR') : 'N/A';
-      message += `║ 👤 @${num}\n`;
-      message += `║    📊 Messages: ${msgs}\n`;
-      message += `║    🕐 Dernier: ${lastActive}\n`;
-    }
-    
-    message += `╚══════════════════════════════╝`;
-    message += `\n💾 Source: MySQL`;
-    
-    await repondre(message, { mentions: allJids });
-  } catch (e) {
-    await repondre(`❌ Erreur: ${e.message}`);
+
+  const spyList = global.presenceSpyList || new Map();
+
+  if (spyList.size === 0) {
+    return repondre("📋 Aucune personne sous surveillance.\n\nUtilise `.spy numéro` pour en ajouter une.");
   }
+
+  let message = `╔══════════════════════════════╗\n║   🕵️ LISTE DE SURVEILLANCE   ║\n╠══════════════════════════════╣\n║ Total: ${spyList.size} cible(s)\n╠══════════════════════════════╣\n`;
+  const allJids = [];
+
+  for (const [jid, info] of spyList) {
+    const num = jid.split('@')[0];
+    const status = info.isOnline ? '🟢 En ligne' : '🔴 Hors ligne';
+    const since = info.addedAt ? new Date(info.addedAt).toLocaleDateString('fr-FR') : 'N/A';
+    message += `║ 👤 +${num}\n║    ${status} | Depuis: ${since}\n`;
+    allJids.push(jid);
+  }
+
+  message += `╚══════════════════════════════╝`;
+  repondre(message, { mentions: allJids });
 });
 
 ovlcmd({
   nom_cmd: "spyactivity",
   classe: "🕵️ Espionnage",
   react: "📊",
-  desc: "Voir l'activité récente d'un utilisateur surveillé",
+  desc: "Voir les infos d'une cible surveillée",
   alias: ["activity", "activite"]
 }, async (hani, ms, { repondre, superUser, arg }) => {
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
-  
+
   const mentioned = ms.message?.extendedTextMessage?.contextInfo?.mentionedJid;
   let target;
-  
+
   if (mentioned && mentioned.length > 0) {
     target = mentioned[0];
   } else if (arg[0]) {
     target = arg[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
   } else {
-    return repondre("❌ Usage: .spyactivity @user");
+    return repondre("❌ Usage: `.spyactivity @user` ou `.spyactivity numéro`");
   }
-  
-  try {
-    const activity = await db.getActivity(target, 20);
-    
-    if (activity.length === 0) {
-      return repondre(`📊 Aucune activité enregistrée pour @${target.split('@')[0]}`, { mentions: [target] });
-    }
-    
-    let message = `
-╔══════════════════════════════╗
-║   📊 ACTIVITÉ DE @${target.split('@')[0].slice(0, 12)}
-╠══════════════════════════════╣\n`;
-    
-    for (const act of activity.slice(0, 10)) {
-      const time = new Date(act.timestamp).toLocaleString('fr-FR');
-      message += `║ ${act.action_type}: ${act.details?.slice(0, 30) || 'N/A'}\n`;
-      message += `║ 🕐 ${time}\n║ ──────────────────────\n`;
-    }
-    
-    message += `╚══════════════════════════════╝`;
-    
-    await repondre(message, { mentions: [target] });
-  } catch (e) {
-    await repondre(`❌ Erreur: ${e.message}`);
+
+  const spyList = global.presenceSpyList || new Map();
+  const info = spyList.get(target);
+  const num = target.split('@')[0];
+
+  if (!info) {
+    return repondre(`⚠️ +${num} n'est pas sous surveillance.\n\nUtilise d'abord: .spy ${num}`);
   }
+
+  const status = info.isOnline ? '🟢 En ligne' : '🔴 Hors ligne';
+  const lastSeen = info.lastSeen
+    ? new Date(info.lastSeen * 1000).toLocaleString('fr-FR')
+    : 'Non disponible';
+  const since = info.addedAt ? new Date(info.addedAt).toLocaleString('fr-FR') : 'N/A';
+  const lastActivity = info.lastUpdate ? new Date(info.lastUpdate).toLocaleString('fr-FR') : 'N/A';
+
+  const message =
+    `📊 *PROFIL ESPION — +${num}*\n\n` +
+    `📶 Statut: ${status}\n` +
+    `👁️ Dernière vue: ${lastSeen}\n` +
+    `🕐 Dernière activité: ${lastActivity}\n` +
+    `📅 Surveillance depuis: ${since}\n` +
+    (info.lastAbout ? `📝 Bio: ${info.lastAbout}\n` : '') +
+    (info.lastKnownPresence ? `💬 Présence: ${info.lastKnownPresence}\n` : '') +
+    (info.lastPP ? `🖼️ Photo de profil modifiée\n` : '');
+
+  repondre(message, { mentions: [target] });
 });
 
 // ═══════════════════════════════════════════════════════════
