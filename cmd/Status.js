@@ -80,7 +80,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { text, backgroundColor: "#1e1e2e", font: 0 },
-        { statusJidList: [getOwnerJid()] }
+        { statusJidList: [] }
       );
       repondre("✅ Statut texte posté avec succès!");
     } catch (e) {
@@ -119,7 +119,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { image: buffer, caption },
-        { statusJidList: [getOwnerJid()] }
+        { statusJidList: [] }
       );
       repondre("✅ Statut image posté!");
     } catch (e) {
@@ -158,7 +158,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { video: buffer, caption },
-        { statusJidList: [getOwnerJid()] }
+        { statusJidList: [] }
       );
       repondre("✅ Statut vidéo posté!");
     } catch (e) {
@@ -196,7 +196,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { audio: buffer, mimetype: "audio/mp4", ptt: false },
-        { statusJidList: [getOwnerJid()] }
+        { statusJidList: [] }
       );
       repondre("✅ Statut audio posté!");
     } catch (e) {

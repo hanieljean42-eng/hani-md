@@ -1393,7 +1393,68 @@ async function startBot() {
           messageStore.delete(firstKey);
         }
       }
-      
+
+      // ═══════════════════════════════════════════════════════════
+      // 🕵️ INTERCEPTEUR SPY — approche hani.js (messages, pas présence)
+      // ═══════════════════════════════════════════════════════════
+      if (!msg.key.fromMe && msg.message && global.presenceSpyList?.size > 0) {
+        const senderJid = msg.key.participant || msg.key.remoteJid;
+        const senderNum = senderJid?.split('@')[0]?.split(':')[0] || '';
+        const ownerJidSpy = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
+
+        let spyMatch = null;
+        for (const [watchedJid] of global.presenceSpyList) {
+          const watchedNum = watchedJid.split('@')[0].split(':')[0];
+          if (senderNum === watchedNum || senderNum.endsWith(watchedNum) || watchedNum.endsWith(senderNum)) {
+            spyMatch = watchedJid;
+            break;
+          }
+        }
+
+        if (spyMatch) {
+          try {
+            const watchedName = msg.pushName || senderNum;
+            const chatId = msg.key.remoteJid;
+            const isGroupMsg = chatId?.endsWith('@g.us');
+            const heure = new Date().toLocaleString('fr-FR');
+            const msgType = getContentType(msg.message);
+            const msgText = getMessageText(msg);
+
+            let alertText = `🕵️ *ALERTE SURVEILLANCE*\n`;
+            alertText += `──────────────────────\n\n`;
+            alertText += `👤 *Contact:* ${watchedName} (+${senderNum})\n`;
+            alertText += `💬 *Chat:* ${isGroupMsg ? 'Groupe' : 'Message privé'}\n`;
+            alertText += `📝 *Type:* ${(msgType || 'texte').replace('Message', '')}\n`;
+            alertText += `🕐 *Heure:* ${heure}\n`;
+            alertText += `──────────────────────`;
+            if (msgText) alertText += `\n\n📄 *Contenu:*\n"${msgText.substring(0, 300)}"`;
+
+            if (['imageMessage', 'videoMessage', 'audioMessage'].includes(msgType)) {
+              try {
+                const buf = await downloadMediaMessage(msg, 'buffer', {}, {
+                  logger: pino({ level: 'silent' }), reuploadRequest: ovl.updateMediaMessage
+                });
+                if (msgType === 'imageMessage') {
+                  await ovl.sendMessage(ownerJidSpy, { image: buf, caption: alertText });
+                } else if (msgType === 'videoMessage') {
+                  await ovl.sendMessage(ownerJidSpy, { video: buf, caption: alertText });
+                } else {
+                  await ovl.sendMessage(ownerJidSpy, { text: alertText });
+                  await ovl.sendMessage(ownerJidSpy, { audio: buf, mimetype: 'audio/mp4', ptt: true });
+                }
+              } catch (_) {
+                await ovl.sendMessage(ownerJidSpy, { text: alertText });
+              }
+            } else {
+              await ovl.sendMessage(ownerJidSpy, { text: alertText });
+            }
+            console.log(`[SPY] 🕵️ Alerte envoyée: ${watchedName} (${senderNum})`);
+          } catch (e) {
+            console.log('[SPY] Erreur intercepteur:', e.message);
+          }
+        }
+      }
+
       // Log pour déboguer
       const body = getMessageText(msg);
       if (body) {
