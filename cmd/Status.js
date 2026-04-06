@@ -13,9 +13,21 @@ const pino = require("pino");
 const fs = require("fs");
 const path = require("path");
 
-// JID owner — requis dans statusJidList pour que WhatsApp livre le statut
+// JID owner
 const getOwnerJid = () =>
   (process.env.NUMERO_OWNER || "22550252467").replace(/\D/g, "") + "@s.whatsapp.net";
+
+// Liste des JIDs pour statusJidList : contacts connus + owner en fallback
+function getStatusJidList() {
+  const ownerJid = getOwnerJid();
+  const contacts = global._knownContactJids;
+  if (contacts && contacts.size > 0) {
+    const list = [...contacts];
+    if (!list.includes(ownerJid)) list.push(ownerJid);
+    return list;
+  }
+  return [ownerJid];
+}
 
 // ─── Helper: télécharger un média depuis un message complet ou un quotedMessage ─
 async function getMediaBuffer(ovl, msg, type) {
@@ -80,7 +92,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { text, backgroundColor: "#1e1e2e", font: 0 },
-        { statusJidList: [] }
+        { statusJidList: getStatusJidList() }
       );
       repondre("✅ Statut texte posté avec succès!");
     } catch (e) {
@@ -119,7 +131,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { image: buffer, caption },
-        { statusJidList: [] }
+        { statusJidList: getStatusJidList() }
       );
       repondre("✅ Statut image posté!");
     } catch (e) {
@@ -158,7 +170,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { video: buffer, caption },
-        { statusJidList: [] }
+        { statusJidList: getStatusJidList() }
       );
       repondre("✅ Statut vidéo posté!");
     } catch (e) {
@@ -196,7 +208,7 @@ ovlcmd(
       await ovl.sendMessage(
         "status@broadcast",
         { audio: buffer, mimetype: "audio/mp4", ptt: false },
-        { statusJidList: [] }
+        { statusJidList: getStatusJidList() }
       );
       repondre("✅ Statut audio posté!");
     } catch (e) {

@@ -166,6 +166,10 @@ const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','s
 // ═══════════════════════════════════════════════════════════
 // Map<jid, { addedAt, lastSeen, lastOnline, lastReceipt }>
 global.presenceSpyList = global.presenceSpyList || new Map();
+// ─── WATCHLIST SIMPLE (Set de numéros purs, comme hani.js) ───
+global._watchList = global._watchList || new Set();
+// ─── Contacts connus (pour statusJidList) ────────────────────
+global._knownContactJids = global._knownContactJids || new Set();
 // Mode auto-surveillance : ajouter automatiquement les viewers de statut
 global.autoSpyEnabled = global.autoSpyEnabled || false;
 
@@ -1080,6 +1084,9 @@ async function startBot() {
     defaultQueryTimeoutMs: 60000,       // Timeout des requêtes plus long
     emitOwnEvents: true,                // Recevoir ses propres messages
     fireInitQueries: true,              // Initialiser les requêtes au démarrage
+    getMessage: async (key) => {
+      return { conversation: "" };
+    },
   });
 
   // Gérer les événements de connexion
@@ -1395,62 +1402,87 @@ async function startBot() {
       }
 
       // ═══════════════════════════════════════════════════════════
-      // 🕵️ INTERCEPTEUR SPY — approche hani.js (messages, pas présence)
+      // 📇 COLLECTER LES CONTACTS CONNUS (pour statusJidList)
       // ═══════════════════════════════════════════════════════════
-      if (!msg.key.fromMe && msg.message && global.presenceSpyList?.size > 0) {
-        const senderJid = msg.key.participant || msg.key.remoteJid;
-        const senderNum = senderJid?.split('@')[0]?.split(':')[0] || '';
-        const ownerJidSpy = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
-
-        let spyMatch = null;
-        for (const [watchedJid] of global.presenceSpyList) {
-          const watchedNum = watchedJid.split('@')[0].split(':')[0];
-          if (senderNum === watchedNum || senderNum.endsWith(watchedNum) || watchedNum.endsWith(senderNum)) {
-            spyMatch = watchedJid;
-            break;
-          }
+      if (!msg.key.fromMe) {
+        const senderForContact = msg.key.participant || msg.key.remoteJid;
+        if (senderForContact && senderForContact.endsWith('@s.whatsapp.net')) {
+          const cleanJid = senderForContact.replace(/:\d+@/, '@');
+          global._knownContactJids.add(cleanJid);
         }
+      }
 
-        if (spyMatch) {
-          try {
-            const watchedName = msg.pushName || senderNum;
-            const chatId = msg.key.remoteJid;
-            const isGroupMsg = chatId?.endsWith('@g.us');
-            const heure = new Date().toLocaleString('fr-FR');
-            const msgType = getContentType(msg.message);
-            const msgText = getMessageText(msg);
+      // ═══════════════════════════════════════════════════════════
+      // 🕵️ INTERCEPTEUR SPY — approche hani.js (Set de numéros purs)
+      // ═══════════════════════════════════════════════════════════
+      if (!msg.key.fromMe && msg.message) {
+        const spyList = global._watchList;
+        const spyMap  = global.presenceSpyList;
+        const hasTargets = (spyList && spyList.size > 0) || (spyMap && spyMap.size > 0);
 
-            let alertText = `🕵️ *ALERTE SURVEILLANCE*\n`;
-            alertText += `──────────────────────\n\n`;
-            alertText += `👤 *Contact:* ${watchedName} (+${senderNum})\n`;
-            alertText += `💬 *Chat:* ${isGroupMsg ? 'Groupe' : 'Message privé'}\n`;
-            alertText += `📝 *Type:* ${(msgType || 'texte').replace('Message', '')}\n`;
-            alertText += `🕐 *Heure:* ${heure}\n`;
-            alertText += `──────────────────────`;
-            if (msgText) alertText += `\n\n📄 *Contenu:*\n"${msgText.substring(0, 300)}"`;
+        if (hasTargets) {
+          const senderJid = msg.key.participant || msg.key.remoteJid;
+          const senderNum = senderJid?.split('@')[0]?.split(':')[0] || '';
+          const ownerNum  = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '');
+          const ownerJid  = ownerNum + '@s.whatsapp.net';
 
-            if (['imageMessage', 'videoMessage', 'audioMessage'].includes(msgType)) {
-              try {
-                const buf = await downloadMediaMessage(msg, 'buffer', {}, {
-                  logger: pino({ level: 'silent' }), reuploadRequest: ovl.updateMediaMessage
-                });
-                if (msgType === 'imageMessage') {
-                  await ovl.sendMessage(ownerJidSpy, { image: buf, caption: alertText });
-                } else if (msgType === 'videoMessage') {
-                  await ovl.sendMessage(ownerJidSpy, { video: buf, caption: alertText });
-                } else {
-                  await ovl.sendMessage(ownerJidSpy, { text: alertText });
-                  await ovl.sendMessage(ownerJidSpy, { audio: buf, mimetype: 'audio/mp4', ptt: true });
-                }
-              } catch (_) {
-                await ovl.sendMessage(ownerJidSpy, { text: alertText });
-              }
-            } else {
-              await ovl.sendMessage(ownerJidSpy, { text: alertText });
+          // Construire la liste unifiée de numéros surveillés
+          const watched = new Set();
+          if (spyList) for (const n of spyList) watched.add(String(n));
+          if (spyMap)  for (const [jid] of spyMap) watched.add(jid.split('@')[0].split(':')[0]);
+
+          // Correspondance flexible : fin de numéro suffit (gère indicatif absent)
+          let matchedNum = null;
+          for (const w of watched) {
+            if (senderNum === w || senderNum.endsWith(w) || w.endsWith(senderNum)) {
+              matchedNum = w;
+              break;
             }
-            console.log(`[SPY] 🕵️ Alerte envoyée: ${watchedName} (${senderNum})`);
-          } catch (e) {
-            console.log('[SPY] Erreur intercepteur:', e.message);
+          }
+
+          if (matchedNum) {
+            console.log(`[SPY] 🔔 Match: sender=${senderNum} → watched=${matchedNum}`);
+            try {
+              const watchedName = msg.pushName || senderNum;
+              const chatId      = msg.key.remoteJid;
+              const isGrp       = chatId?.endsWith('@g.us');
+              const msgType     = getContentType(msg.message);
+              const msgText     = getMessageText(msg);
+
+              let alert = `🕵️ *ALERTE SURVEILLANCE*\n`;
+              alert += `━━━━━━━━━━━━━━━━━━━━\n`;
+              alert += `👤 *Nom:* ${watchedName}\n`;
+              alert += `📱 *Numéro:* +${senderNum}\n`;
+              alert += `💬 *Chat:* ${isGrp ? 'Groupe' : 'Privé'}\n`;
+              alert += `📝 *Type:* ${(msgType || 'texte').replace('Message', '')}\n`;
+              alert += `🕐 *Heure:* ${new Date().toLocaleString('fr-FR')}\n`;
+              alert += `━━━━━━━━━━━━━━━━━━━━`;
+              if (msgText) alert += `\n\n📄 *Message:*\n"${msgText.substring(0, 400)}"`;
+
+              if (['imageMessage','videoMessage','audioMessage'].includes(msgType)) {
+                try {
+                  const buf = await downloadMediaMessage(msg, 'buffer', {}, {
+                    logger: pino({ level: 'silent' }),
+                    reuploadRequest: ovl.updateMediaMessage
+                  });
+                  if (msgType === 'imageMessage') {
+                    await ovl.sendMessage(ownerJid, { image: buf, caption: alert });
+                  } else if (msgType === 'videoMessage') {
+                    await ovl.sendMessage(ownerJid, { video: buf, caption: alert });
+                  } else {
+                    await ovl.sendMessage(ownerJid, { text: alert });
+                    await ovl.sendMessage(ownerJid, { audio: buf, mimetype: 'audio/mp4', ptt: true });
+                  }
+                } catch (_) {
+                  await ovl.sendMessage(ownerJid, { text: alert });
+                }
+              } else {
+                await ovl.sendMessage(ownerJid, { text: alert });
+              }
+              console.log(`[SPY] ✅ Alerte envoyée à owner pour ${watchedName} (+${senderNum})`);
+            } catch (e) {
+              console.log('[SPY] ⚠️ Erreur alerte:', e.message);
+            }
           }
         }
       }

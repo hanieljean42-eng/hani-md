@@ -1035,6 +1035,7 @@ ovlcmd({
   const alreadyTracked = spyList.has(target);
   const num = target.split('@')[0];
 
+  const numOnly = target.split('@')[0].split(':')[0];
   if (!alreadyTracked) {
     spyList.set(target, {
       addedAt: Date.now(),
@@ -1043,8 +1044,11 @@ ovlcmd({
       lastReceipt: null,
       autoAdded: false
     });
+    global._watchList = global._watchList || new Set();
+    global._watchList.add(numOnly);
     saveSpyList();
     try { await hani.presenceSubscribe(target); } catch (e) {}
+    console.log(`[SPY] ✅ Ajouté: ${numOnly} | watchList: ${[...(global._watchList||[])].join(', ')}`);
   }
 
   repondre(
@@ -1087,8 +1091,10 @@ ovlcmd({
   }
 
   spyList.delete(target);
+  global._watchList = global._watchList || new Set();
+  global._watchList.delete(target.split('@')[0].split(':')[0]);
   saveSpyList();
-
+  console.log(`[SPY] ❌ Retiré: ${target.split('@')[0]} | watchList: ${[...(global._watchList||[])].join(', ')}`);
   repondre(`✅ Surveillance arrêtée pour +${target.split('@')[0]}`, { mentions: [target] });
 });
 
@@ -1102,6 +1108,10 @@ ovlcmd({
   if (!superUser) return repondre("❌ Réservé au propriétaire.");
 
   const spyList = global.presenceSpyList || new Map();
+
+  // Sync _watchList depuis presenceSpyList au cas où
+  global._watchList = global._watchList || new Set();
+  for (const [jid] of spyList) global._watchList.add(jid.split('@')[0].split(':')[0]);
 
   if (spyList.size === 0) {
     return repondre("📋 Aucune personne sous surveillance.\n\nUtilise `.spy numéro` pour en ajouter une.");
@@ -1168,6 +1178,35 @@ ovlcmd({
     (info.lastPP ? `🖼️ Photo de profil modifiée\n` : '');
 
   repondre(message, { mentions: [target] });
+});
+
+ovlcmd({
+  nom_cmd: "spydebug",
+  classe: "🕵️ Espionnage",
+  react: "🔬",
+  desc: "Diagnostiquer l'état de la surveillance",
+  alias: ["spyinfo", "debugspy"]
+}, async (hani, ms, { repondre, superUser }) => {
+  if (!superUser) return repondre("❌ Réservé au propriétaire.");
+
+  const spyMap  = global.presenceSpyList || new Map();
+  const spySet  = global._watchList      || new Set();
+  const ownerNum = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '');
+
+  let info = `🔬 *DIAGNOSTIC SPY*\n`;
+  info += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+  info += `📋 *presenceSpyList* (${spyMap.size} entrée(s)):\n`;
+  for (const [jid] of spyMap) info += `  • ${jid}\n`;
+
+  info += `\n📋 *_watchList* (${spySet.size} entrée(s)):\n`;
+  for (const n of spySet) info += `  • ${n}\n`;
+
+  info += `\n🔑 *Owner JID cible:* ${ownerNum}@s.whatsapp.net\n`;
+  info += `\n💡 *Comment ça marche:*\n`;
+  info += `Le spy intercepte les messages des personnes surveillées qui envoient un message DANS un groupe partagé avec le bot OU en direct au bot.\n\n`;
+  info += `Pour tester: demande à la personne surveillée d'envoyer un message dans un groupe où le bot est aussi présent.`;
+
+  repondre(info);
 });
 
 // ═══════════════════════════════════════════════════════════
