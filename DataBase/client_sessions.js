@@ -203,6 +203,7 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
   const sessionData = {
     sock,
     qr: null,
+    pairingCode: null,
     status: 'initializing',
     phoneNumber: null,
     plan: clientInfo?.plan || 'OR',
@@ -290,6 +291,45 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
 }
 
 /**
+ * Demande un code d'appairage (pairing code) pour un client.
+ * Alternative au QR code : l'utilisateur entre ce code dans WhatsApp.
+ */
+async function requestPairingCode(clientId, phoneNumber) {
+  const id = clientId.toUpperCase();
+  const session = sessions.get(id);
+  if (!session || !session.sock) {
+    throw new Error('Session non trouvée. Initiez d\'abord la connexion.');
+  }
+  if (session.status === 'connected') {
+    return { alreadyConnected: true, phoneNumber: session.phoneNumber };
+  }
+
+  // Nettoyer le numéro (garder uniquement les chiffres)
+  const cleanPhone = phoneNumber.replace(/\D/g, '');
+  if (cleanPhone.length < 8) {
+    throw new Error('Numéro de téléphone invalide');
+  }
+
+  try {
+    // Attendre un peu que le socket soit initialisé
+    let retries = 0;
+    while (!session.sock.authState && retries < 10) {
+      await new Promise(r => setTimeout(r, 500));
+      retries++;
+    }
+
+    const code = await session.sock.requestPairingCode(cleanPhone);
+    session.pairingCode = code;
+    session.status = 'pairing_code';
+    console.log(`[SESSIONS] 🔢 Pairing code pour ${id}: ${code}`);
+    return { code, phoneNumber: cleanPhone };
+  } catch (e) {
+    console.error(`[SESSIONS] ❌ Erreur pairing code ${id}:`, e.message);
+    throw new Error('Impossible de générer le code. Réessayez: ' + e.message);
+  }
+}
+
+/**
  * Retourne la session en mémoire (sans en créer une).
  */
 function getSession(clientId) {
@@ -342,6 +382,7 @@ module.exports = {
   verifyClient,
   createSession,
   getSession,
+  requestPairingCode,
   listSessions,
   restorePersistedSessions
 };

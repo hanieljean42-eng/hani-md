@@ -187,6 +187,41 @@
       font-size: 0.85rem; color: rgba(255, 255, 255, 0.5);
     }
     .footer-links a { color: var(--accent); text-decoration: none; }
+
+    /* Mode toggle QR / Code */
+    .mode-toggle {
+      display: flex; gap: 0; margin-bottom: 1.5rem;
+      background: rgba(255,255,255,0.05); border-radius: 12px;
+      border: 1px solid var(--glass-border); overflow: hidden;
+    }
+    .mode-btn {
+      flex: 1; padding: 12px; border: none; background: none;
+      color: rgba(255,255,255,0.6); cursor: pointer;
+      font-weight: 600; font-size: 0.9rem; transition: all 0.3s;
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+    .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
+
+    /* Pairing code display */
+    .pairing-code {
+      font-family: 'Courier New', monospace;
+      font-size: 2.5rem; font-weight: 800;
+      letter-spacing: 8px; text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      padding: 1.5rem; margin: 1rem 0;
+      background-clip: text;
+    }
+    .pairing-instructions {
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 12px; padding: 1rem; margin: 1rem 0; text-align: left;
+    }
+    .pairing-instructions ol { margin-left: 1.2rem; font-size: 0.88rem; color: rgba(255,255,255,0.8); }
+    .pairing-instructions li { margin: 0.6rem 0; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -200,17 +235,61 @@
       <div class="state active" id="state-input">
         <div class="form-group">
           <label><i class="fas fa-key"></i> Votre ID Client</label>
-          <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou CLI_XXXX">
+          <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
+        </div>
+
+        <!-- Choix du mode de connexion -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
+            <i class="fas fa-qrcode"></i> QR Code
+          </button>
+          <button class="mode-btn" onclick="setMode('code')" id="mode-code-btn">
+            <i class="fas fa-keyboard"></i> Code d'appairage
+          </button>
+        </div>
+
+        <!-- Champ téléphone (visible seulement en mode code) -->
+        <div class="form-group" id="phone-group" style="display:none;">
+          <label><i class="fas fa-phone"></i> Votre numéro WhatsApp</label>
+          <input type="tel" id="pair-phone" placeholder="Ex: 22550252467 (avec indicatif pays)">
         </div>
 
         <button class="btn btn-primary" id="btn-verify">
-          <i class="fas fa-check-circle"></i> Vérifier & Connecter
+          <i class="fas fa-check-circle"></i> <span id="btn-verify-text">Vérifier & Connecter</span>
         </button>
 
         <div class="footer-links">
           <p>Pas encore inscrit? <a href="subscribe.html">S'inscrire</a></p>
           <p style="margin-top: 0.5rem;"><a href="https://wa.me/22550252467">Besoin d'aide?</a></p>
         </div>
+      </div>
+
+      <!-- État pairing: Code d'appairage -->
+      <div class="state" id="state-pairing">
+        <p style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.8);">
+          <span class="plan-badge" id="pairing-plan-badge">🥇 Or</span>
+        </p>
+
+        <p style="color:rgba(255,255,255,0.8);font-size:1rem;margin-bottom:0.5rem;">Votre code d'appairage :</p>
+        <div class="pairing-code" id="pairing-code-display">--------</div>
+
+        <div class="pairing-instructions">
+          <h3 style="color:var(--accent);font-size:0.95rem;margin-bottom:0.75rem;"><i class="fas fa-mobile-alt"></i> Comment utiliser ce code ?</h3>
+          <ol>
+            <li>Ouvrez <strong>WhatsApp</strong> sur votre téléphone</li>
+            <li>Allez dans <strong>Menu ⋮</strong> → <strong>Appareils connectés</strong></li>
+            <li>Appuyez sur <strong>Connecter un appareil</strong></li>
+            <li>Choisissez <strong>«Connecter avec un numéro de téléphone»</strong></li>
+            <li>Entrez le code ci-dessus : <strong id="pairing-code-text">--------</strong></li>
+          </ol>
+        </div>
+
+        <div class="timer" id="pairing-timer">05:00</div>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Le code expire dans ce délai</p>
+
+        <button class="btn btn-outline" onclick="requestNewPairingCode()" style="margin-top:1rem;">
+          <i class="fas fa-sync"></i> Nouveau code
+        </button>
       </div>
 
       <!-- État 1: Vérification en cours -->
@@ -350,13 +429,17 @@
     let clientId = null;
     let pollInterval = null;
     let timerInterval = null;
+    let pairingTimerInterval = null;
     let timeLeft = 150; // 2:30 minutes
+    let pairingTimeLeft = 300; // 5 minutes
+    let connectionMode = 'qr'; // 'qr' ou 'code'
 
     // Éléments
     const states = {
       input: document.getElementById('state-input'),
       verifying: document.getElementById('state-verifying'),
       qr: document.getElementById('state-qr'),
+      pairing: document.getElementById('state-pairing'),
       connecting: document.getElementById('state-connecting'),
       success: document.getElementById('state-success'),
       error: document.getElementById('state-error'),
@@ -369,10 +452,21 @@
       states[stateName].classList.add('active');
     }
 
+    // Toggle entre mode QR et code d'appairage
+    function setMode(mode) {
+      connectionMode = mode;
+      document.getElementById('mode-qr-btn').classList.toggle('active', mode === 'qr');
+      document.getElementById('mode-code-btn').classList.toggle('active', mode === 'code');
+      document.getElementById('phone-group').style.display = mode === 'code' ? 'block' : 'none';
+      document.getElementById('btn-verify-text').textContent = mode === 'code'
+        ? 'Obtenir le code' : 'Vérifier & Connecter';
+    }
+
     function resetState() {
       clientId = null;
       clearInterval(pollInterval);
       clearInterval(timerInterval);
+      clearInterval(pairingTimerInterval);
       document.getElementById('client-id').value = '';
       showState('input');
     }
@@ -484,6 +578,14 @@
         return alert('Veuillez entrer votre ID client');
       }
 
+      // En mode code, vérifier le numéro
+      if (connectionMode === 'code') {
+        const phone = document.getElementById('pair-phone').value.trim();
+        if (!phone || phone.replace(/\D/g, '').length < 8) {
+          return alert('Veuillez entrer votre numéro WhatsApp (avec indicatif pays)');
+        }
+      }
+
       showState('verifying');
 
       try {
@@ -491,7 +593,6 @@
         const data = await response.json();
 
         if (!data.valid && data.pending) {
-          // Paiement trouvé mais pas encore approuvé
           document.getElementById('pending-name').textContent =
             data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
           return showState('pending');
@@ -500,12 +601,10 @@
           return showError('ID client invalide ou non trouvé. Vérifiez votre référence de paiement.');
         }
 
-        // Vérifier expiration
         if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
           return showState('expired');
         }
 
-        // Si déjà connecté
         if (data.status === 'connected') {
           document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
           document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
@@ -518,12 +617,110 @@
           return showState('success');
         }
 
-        // Initier la connexion
-        await initiateConnection(data.plan);
+        // Mode code d'appairage
+        if (connectionMode === 'code') {
+          await initiatePairing(data.plan);
+        } else {
+          await initiateConnection(data.plan);
+        }
 
       } catch (e) {
         console.error('Erreur:', e);
         showError('Erreur de connexion au serveur. Veuillez réessayer.');
+      }
+    }
+
+    // Initier la connexion par code d'appairage
+    async function initiatePairing(plan) {
+      const phone = document.getElementById('pair-phone').value.trim();
+
+      try {
+        // D'abord créer la session
+        await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
+        // Attendre un peu que le socket s'initialise
+        await new Promise(r => setTimeout(r, 2000));
+
+        // Demander le pairing code
+        const response = await fetch(`/api/clients/pair/${clientId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await response.json();
+
+        if (data.status === 'connected') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          return showState('success');
+        }
+
+        if (data.success && data.code) {
+          // Afficher le code
+          const formattedCode = data.code.replace(/(.{4})/g, '$1 ').trim();
+          document.getElementById('pairing-code-display').textContent = formattedCode;
+          document.getElementById('pairing-code-text').textContent = formattedCode;
+          document.getElementById('pairing-plan-badge').textContent = getPlanBadge(plan);
+          document.getElementById('pairing-plan-badge').className = 'plan-badge ' + getPlanClass(plan);
+          showState('pairing');
+          startPairingTimer();
+          startPolling(); // Poll pour détecter la connexion
+        } else {
+          showError(data.error || 'Erreur lors de la génération du code.');
+        }
+      } catch (e) {
+        console.error('Erreur pairing:', e);
+        showError('Erreur de connexion. Réessayez.');
+      }
+    }
+
+    // Timer pour le pairing code
+    function startPairingTimer() {
+      clearInterval(pairingTimerInterval);
+      pairingTimeLeft = 300;
+      updatePairingTimer();
+      pairingTimerInterval = setInterval(() => {
+        pairingTimeLeft--;
+        updatePairingTimer();
+        if (pairingTimeLeft <= 0) {
+          clearInterval(pairingTimerInterval);
+          showError('Le code a expiré. Demandez un nouveau code.');
+        }
+      }, 1000);
+    }
+
+    function updatePairingTimer() {
+      const m = Math.floor(pairingTimeLeft / 60);
+      const s = pairingTimeLeft % 60;
+      document.getElementById('pairing-timer').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    // Demander un nouveau code d'appairage
+    async function requestNewPairingCode() {
+      clearInterval(pairingTimerInterval);
+      clearInterval(pollInterval);
+      showState('verifying');
+      try {
+        // Recréer une session
+        await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
+        await new Promise(r => setTimeout(r, 2000));
+        const phone = document.getElementById('pair-phone').value.trim();
+        const response = await fetch(`/api/clients/pair/${clientId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await response.json();
+        if (data.success && data.code) {
+          const formattedCode = data.code.replace(/(.{4})/g, '$1 ').trim();
+          document.getElementById('pairing-code-display').textContent = formattedCode;
+          document.getElementById('pairing-code-text').textContent = formattedCode;
+          showState('pairing');
+          startPairingTimer();
+          startPolling();
+        } else {
+          showError(data.error || 'Erreur. Réessayez.');
+        }
+      } catch (e) {
+        showError('Erreur réseau. Réessayez.');
       }
     }
 

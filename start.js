@@ -3009,6 +3009,45 @@ app.post('/api/clients/connect/:id', async (req, res) => {
   }
 });
 
+// Demander un code d'appairage (alternative au QR code)
+app.post('/api/clients/pair/:id', async (req, res) => {
+  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const phone = req.body.phone;
+
+    if (!phone || phone.replace(/\D/g, '').length < 8) {
+      return res.status(400).json({ error: 'Numéro de téléphone invalide' });
+    }
+
+    const info = clientSessions.verifyClient(clientId);
+    if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
+    if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
+
+    // S'assurer qu'une session existe
+    let session = clientSessions.getSession(clientId);
+    if (!session || session.status === 'failed' || session.status === 'not_connected') {
+      await clientSessions.createSession(clientId, info, true);
+      // Attendre que le socket soit prêt
+      await new Promise(r => setTimeout(r, 3000));
+    }
+
+    const result = await clientSessions.requestPairingCode(clientId, phone);
+
+    if (result.alreadyConnected) {
+      return res.json({ status: 'connected', phoneNumber: result.phoneNumber });
+    }
+
+    res.json({
+      success: true,
+      code: result.code,
+      message: `Entrez ce code dans WhatsApp → Appareils connectés → Connecter un appareil → Connecter avec un numéro`
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Récupérer le QR code et le statut de connexion d'un client
 app.get('/api/clients/qr/:id', (req, res) => {
   if (!clientSessions) return res.status(503).json({ status: 'error' });
