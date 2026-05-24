@@ -1133,13 +1133,13 @@ async function startBot() {
     logger: pino({ level: "silent" }),
     version: waVersion,
     browser: Browsers.macOS("Chrome"),  // macOS Chrome - plus accepté par WhatsApp
-    keepAliveIntervalMs: 15000,         // Ping toutes les 15s pour maintenir la connexion active
+    keepAliveIntervalMs: 30000,          // Ping toutes les 30s (moins agressif pour Render)
     markOnlineOnConnect: false,         // Ne pas marquer en ligne (plus discret)
-    generateHighQualityLinkPreview: true,
+    generateHighQualityLinkPreview: false, // Désactivé pour économiser les ressources
     syncFullHistory: false,             // Ne pas synchroniser l'historique (plus stable)
-    retryRequestDelayMs: 2000,          // Délai entre les tentatives
-    connectTimeoutMs: 60000,            // Timeout de connexion plus long (60s)
-    defaultQueryTimeoutMs: 60000,       // Timeout des requêtes plus long
+    retryRequestDelayMs: 3000,          // Délai entre les tentatives
+    connectTimeoutMs: 120000,           // Timeout de connexion 2min (Render est lent)
+    defaultQueryTimeoutMs: 90000,       // Timeout des requêtes plus long
     emitOwnEvents: true,                // Recevoir ses propres messages
     fireInitQueries: true,              // Initialiser les requêtes au démarrage
     getMessage: async (key) => {
@@ -1209,22 +1209,11 @@ async function startBot() {
       console.log("💡 Tape " + config.PREFIXE + "menu sur WhatsApp pour voir toutes les commandes");
       console.log("\n");
 
-      // 🤖 BOT CLONE NETWORK — reconnexion automatique + mirror vers owner
-      setTimeout(async () => {
-        try {
-          const MultiBotManager = require('./lib/MultiBotManager');
-          // JID owner réel pour recevoir les messages miroir
-          const ownerPhone = process.env.NUMERO_OWNER || config.NUMERO_OWNER || config.OWNER_NUMBER || '22550252467';
-          const ownerJid   = ownerPhone.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-          // Définir immédiatement le destinataire des messages miroir
-          MultiBotManager.setMirrorOwner(ownerJid);
-          console.log(`[BOT-NET] 📡 Mirror owner défini: ${ownerJid}`);
-          // Reconnecter les bots sauvegardés
-          await MultiBotManager.autoConnectSavedBots(ownerJid);
-        } catch(e) {
-          console.log('[BOT-NET] Auto-connect ignoré:', e.message);
-        }
-      }, 8000);
+      // 🤖 BOT CLONE NETWORK — désactivé au démarrage (stabilité Render)
+      // Les bots réseau ne sont PAS reconnectés automatiquement pour éviter
+      // de surcharger le serveur et de déconnecter le bot owner.
+      // Utilisez la commande botconnect manuellement si nécessaire.
+      console.log('[BOT-NET] ℹ️ Auto-connect désactivé (stabilité serveur)');
 
       // 👻 MODE FANTÔME — apparaître hors ligne dès la connexion
       setTimeout(async () => {
@@ -1296,6 +1285,7 @@ async function startBot() {
     }
 
     if (connection === "close") {
+      connectionStatus = 'disconnected';
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const reason = lastDisconnect?.error?.message || "Inconnue";
 
