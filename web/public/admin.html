@@ -583,6 +583,53 @@
     /* Page sections */
     .page { display: none; }
     .page.active { display: block; }
+
+    /* Mobile hamburger */
+    .mobile-toggle {
+      display: none;
+      position: fixed;
+      top: 12px; left: 12px;
+      z-index: 200;
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none; color: white; font-size: 1.2rem;
+      cursor: pointer; align-items: center; justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-toggle { display: flex; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+        width: 240px;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 1rem; padding-top: 60px; }
+      .header { flex-direction: column; gap: 0.8rem; align-items: flex-start; }
+      .header h1 { font-size: 1.3rem; }
+      .header-actions { width: 100%; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+      .stat-card { padding: 1rem; }
+      .stat-value { font-size: 1.4rem; }
+      .stat-label { font-size: 0.75rem; }
+      .card-header { padding: 1rem; }
+      .card-body { padding: 1rem; overflow-x: auto; }
+      table { min-width: 600px; }
+      th, td { padding: 0.7rem 0.5rem; font-size: 0.82rem; }
+      .modal { max-width: 95%; margin: 1rem; border-radius: 16px; }
+      .modal-header, .modal-body, .modal-footer { padding: 1rem; }
+      .toast { bottom: 1rem; right: 1rem; left: 1rem; }
+      .login-box { padding: 2rem 1.5rem; margin: 1rem; }
+      .tabs { flex-wrap: wrap; }
+      .tab-btn { padding: 8px 14px; font-size: 0.82rem; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+      .stat-card { padding: 0.8rem; }
+      .stat-value { font-size: 1.2rem; }
+      .btn-sm { padding: 8px 12px; font-size: 0.8rem; }
+    }
   </style>
 </head>
 <body>
@@ -608,6 +655,9 @@
 
   <!-- Dashboard -->
   <div class="dashboard" id="dashboard">
+    <button class="mobile-toggle" id="mobileToggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="fas fa-bars"></i>
+    </button>
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="sidebar-logo-icon">💎</div>
@@ -1030,6 +1080,9 @@
         
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-' + page).classList.add('active');
+
+        // Fermer sidebar sur mobile
+        document.querySelector('.sidebar').classList.remove('open');
         
         if (page === 'users') loadUsers();
         if (page === 'codes') loadCodes();

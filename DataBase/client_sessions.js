@@ -298,7 +298,7 @@ async function requestPairingCode(clientId, phoneNumber) {
   const id = clientId.toUpperCase();
   const session = sessions.get(id);
   if (!session || !session.sock) {
-    throw new Error('Session non trouvée. Initiez d\'abord la connexion.');
+    throw new Error('Session non trouvée. Créez d\'abord la session.');
   }
   if (session.status === 'connected') {
     return { alreadyConnected: true, phoneNumber: session.phoneNumber };
@@ -311,21 +311,35 @@ async function requestPairingCode(clientId, phoneNumber) {
   }
 
   try {
-    // Attendre un peu que le socket soit initialisé
+    // Attendre que le socket soit prêt (initializing → qr_ready ou au moins ws ouvert)
     let retries = 0;
-    while (!session.sock.authState && retries < 10) {
+    const maxRetries = 20; // max 10 secondes
+    while (session.status === 'initializing' && retries < maxRetries) {
       await new Promise(r => setTimeout(r, 500));
       retries++;
+    }
+    console.log(`[SESSIONS] 🔢 [${id}] Requesting pairing code (status=${session.status}, retries=${retries}, phone=${cleanPhone})`);
+
+    if (!session.sock.ws || session.sock.ws.readyState !== 1) {
+      // WebSocket pas encore ouvert, attendre encore
+      let wsRetries = 0;
+      while ((!session.sock.ws || session.sock.ws.readyState !== 1) && wsRetries < 10) {
+        await new Promise(r => setTimeout(r, 1000));
+        wsRetries++;
+      }
+      if (!session.sock.ws || session.sock.ws.readyState !== 1) {
+        throw new Error('WebSocket non connecté. Réessayez dans quelques secondes.');
+      }
     }
 
     const code = await session.sock.requestPairingCode(cleanPhone);
     session.pairingCode = code;
     session.status = 'pairing_code';
-    console.log(`[SESSIONS] 🔢 Pairing code pour ${id}: ${code}`);
+    console.log(`[SESSIONS] ✅ Pairing code pour ${id}: ${code}`);
     return { code, phoneNumber: cleanPhone };
   } catch (e) {
     console.error(`[SESSIONS] ❌ Erreur pairing code ${id}:`, e.message);
-    throw new Error('Impossible de générer le code. Réessayez: ' + e.message);
+    throw new Error('Impossible de générer le code: ' + e.message);
   }
 }
 

@@ -3049,12 +3049,15 @@ app.post('/api/clients/pair/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
-    // S'assurer qu'une session existe
+    // S'assurer qu'une session existe et est fraîche
     let session = clientSessions.getSession(clientId);
-    if (!session || session.status === 'failed' || session.status === 'not_connected') {
+    if (!session || session.status === 'failed' || session.status === 'connected') {
       await clientSessions.createSession(clientId, info, true);
-      // Attendre que le socket soit prêt
-      await new Promise(r => setTimeout(r, 3000));
+    } else if (session.status === 'qr_ready' || session.status === 'pairing_code') {
+      // Session existe déjà avec QR, on peut directement demander le code
+    } else {
+      // Session en cours d'initialisation, on attend
+      await clientSessions.createSession(clientId, info, true);
     }
 
     const result = await clientSessions.requestPairingCode(clientId, phone);

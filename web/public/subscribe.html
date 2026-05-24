@@ -102,10 +102,24 @@
     .spinner { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #25D366; border-radius: 50%; animation: spin 0.9s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .container { padding: 8px; max-width: 100%; }
+      .card { padding: 20px 14px; border-radius: 16px; }
+      .plan-option { padding: 12px 10px; }
+      .plan-option .plan-name { font-size: 0.9rem; }
+      .plan-option .plan-price { font-size: 0.8rem; }
+      .steps-bar { gap: 0; }
+      .step-dot .label { font-size: 0.7rem; }
+      .btn-pay, .btn-wave, .btn-secondary { font-size: 0.9rem; padding: 14px; }
+      .summary-box { font-size: 0.9rem; }
+    }
     @media (max-width: 480px) {
-      .container { padding: 12px; }
-      .card { padding: 22px 16px; }
-      .amount-display .big-amount { font-size: 2.4rem; }
+      .container { padding: 6px; }
+      .card { padding: 18px 12px; }
+      .amount-display .big-amount { font-size: 2rem; }
+      h2 { font-size: 1.2rem; }
+      .step-dot .label { display: none; }
     }
   </style>
 </head>
