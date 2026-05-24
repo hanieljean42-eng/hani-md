@@ -795,13 +795,14 @@
                 <tr>
                   <th>ID Client</th>
                   <th>Plan</th>
-                  <th>Numéro WhatsApp</th>
+                  <th>Nom</th>
+                  <th>WhatsApp</th>
                   <th>Statut</th>
                   <th>Connecté le</th>
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="sessionsTable"><tr><td colspan="6" style="text-align:center;padding:2rem;">Chargement...</td></tr></tbody>
+              <tbody id="sessionsTable"><tr><td colspan="7" style="text-align:center;padding:2rem;">Chargement...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1119,22 +1120,26 @@
           if (s === 'reconnecting') return '<span style="color:#6366f1;">🔄 Reconnexion</span>';
           return '<span style="color:#ef4444;">🔴 Déconnecté</span>';
         };
-        let html = sessions.length ? '' : '<tr><td colspan="6" style="text-align:center;padding:2rem;">Aucune session active</td></tr>';
+        let html = sessions.length ? '' : '<tr><td colspan="7" style="text-align:center;padding:2rem;">Aucune session active</td></tr>';
         sessions.forEach(s => {
           const icon = planIcons[s.plan?.toUpperCase()] || '🤖';
           const connDate = s.connectedAt ? new Date(s.connectedAt).toLocaleString('fr-FR') : '-';
           html += `<tr>
             <td><code style="font-size:0.85rem;">${s.clientId}</code></td>
             <td>${icon} ${s.plan || '-'}</td>
+            <td>${s.name || '-'}</td>
             <td>${s.phoneNumber ? '+' + s.phoneNumber : '-'}</td>
             <td>${statusBadge(s.status)}</td>
             <td>${connDate}</td>
-            <td><button class="btn btn-sm btn-danger" onclick="kickSession('${s.clientId}')"><i class="fas fa-power-off"></i></button></td>
+            <td style="white-space:nowrap;">
+              <button class="btn btn-sm btn-danger" onclick="kickSession('${s.clientId}')" title="Déconnecter" style="padding:6px 10px;"><i class="fas fa-power-off"></i></button>
+              <button class="btn btn-sm" onclick="deleteSession('${s.clientId}')" title="Supprimer définitivement" style="padding:6px 10px;background:#7f1d1d;color:white;margin-left:4px;"><i class="fas fa-trash"></i></button>
+            </td>
           </tr>`;
         });
         document.getElementById('sessionsTable').innerHTML = html;
       } catch (err) {
-        document.getElementById('sessionsTable').innerHTML = '<tr><td colspan="6" style="text-align:center;">Erreur de chargement</td></tr>';
+        document.getElementById('sessionsTable').innerHTML = '<tr><td colspan="7" style="text-align:center;">Erreur de chargement</td></tr>';
       }
     }
 
@@ -1254,6 +1259,17 @@
       if (!confirm('Déconnecter ce client ?')) return;
       await apiCall('/api/clients/kick/' + clientId, 'POST');
       showToast('Session déconnectée');
+      loadSessions();
+    }
+
+    async function deleteSession(clientId) {
+      if (!confirm(`⚠️ SUPPRIMER DÉFINITIVEMENT la session ${clientId} ?\nCette action est irréversible. Le client devra se reconnecter.`)) return;
+      const data = await apiCall('/api/clients/delete/' + clientId, 'POST');
+      if (data.success) {
+        showToast('🗑️ Session supprimée définitivement');
+      } else {
+        showToast(data.error || 'Erreur', true);
+      }
       loadSessions();
     }
 

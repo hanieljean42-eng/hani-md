@@ -361,11 +361,22 @@ function getSession(clientId) {
 }
 
 /**
- * Liste toutes les sessions actives.
+ * Supprime une session de la mémoire.
+ */
+function removeSession(clientId) {
+  sessions.delete(clientId.toUpperCase());
+}
+
+/**
+ * Liste toutes les sessions (actives en RAM + persistées sur disque).
  */
 function listSessions() {
   const result = [];
+  const seen = new Set();
+
+  // 1. Sessions actives en mémoire
   for (const [id, s] of sessions.entries()) {
+    seen.add(id);
     result.push({
       clientId: id,
       status: s.status,
@@ -376,6 +387,33 @@ function listSessions() {
       connectedAt: s.connectedAt
     });
   }
+
+  // 2. Sessions persistées sur disque (pas actives en RAM)
+  try {
+    if (fs.existsSync(SESSIONS_DIR)) {
+      const dirs = fs.readdirSync(SESSIONS_DIR);
+      for (const clientId of dirs) {
+        if (seen.has(clientId.toUpperCase())) continue;
+        const dir = path.join(SESSIONS_DIR, clientId);
+        if (!fs.statSync(dir).isDirectory()) continue;
+        if (!fs.existsSync(path.join(dir, 'creds.json'))) continue;
+        // Chercher les infos dans pending_payments
+        const info = verifyClient(clientId);
+        result.push({
+          clientId: clientId.toUpperCase(),
+          status: 'disconnected',
+          plan: info.plan || 'OR',
+          name: info.name || clientId,
+          phoneNumber: info.phone || null,
+          createdAt: null,
+          connectedAt: null
+        });
+      }
+    }
+  } catch (e) {
+    console.error('[SESSIONS] Erreur lecture disque:', e.message);
+  }
+
   return result;
 }
 
@@ -406,6 +444,7 @@ module.exports = {
   verifyClient,
   createSession,
   getSession,
+  removeSession,
   requestPairingCode,
   listSessions,
   restorePersistedSessions

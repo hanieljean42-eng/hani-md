@@ -3185,12 +3185,39 @@ app.post('/api/clients/kick/:id', requireAdmin, async (req, res) => {
     const clientId = req.params.id.trim().toUpperCase();
     const session = clientSessions.getSession(clientId);
     if (session) {
-      session._closing = true; // Empêcher la boucle de reconnexion
+      session._closing = true;
       if (session.sock) {
         try { await session.sock.logout(); } catch { try { session.sock.end(undefined); } catch {} }
       }
+      clientSessions.removeSession(clientId);
     }
     res.json({ success: true, message: `Session ${clientId} déconnectée` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Supprimer complètement une session client (fichiers inclus)
+app.post('/api/clients/delete/:id', requireAdmin, async (req, res) => {
+  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    // Déconnecter si active
+    const session = clientSessions.getSession(clientId);
+    if (session) {
+      session._closing = true;
+      if (session.sock) {
+        try { await session.sock.logout(); } catch { try { session.sock.end(undefined); } catch {} }
+      }
+      clientSessions.removeSession(clientId);
+    }
+    // Supprimer les fichiers de session
+    const sessionDir = path.join(__dirname, 'DataBase', 'client_sessions', clientId);
+    if (fs.existsSync(sessionDir)) {
+      fs.rmSync(sessionDir, { recursive: true, force: true });
+    }
+    console.log(`[ADMIN] 🗑️ Session ${clientId} supprimée complètement`);
+    res.json({ success: true, message: `Session ${clientId} supprimée définitivement` });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
