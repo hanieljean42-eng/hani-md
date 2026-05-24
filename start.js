@@ -3075,13 +3075,13 @@ app.post('/api/admin/payments/approve/:ref', requireAdmin, async (req, res) => {
       try {
         const siteUrl = process.env.RENDER_EXTERNAL_URL
           || process.env.SITE_URL
-          || 'https://hani-md.onrender.com';
+          || 'https://hani-tp3e.onrender.com';
         const connectLink = `${siteUrl}/connect?id=${encodeURIComponent(p.reference)}`;
         const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
         const icon = planIcons[p.plan?.toUpperCase()] || '💎';
         const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
         await ovl.sendMessage(clientJid, {
-          text: `✅ *HANI-MD — Paiement validé !*\n\nBonjour *${p.name}* 👋\n\nVotre paiement a été confirmé par l'owner !\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n➡️ *Connectez votre bot maintenant :*\n${connectLink}\n\n_Cliquez sur le lien, scannez le QR Code avec WhatsApp → votre bot sera actif ! 🤖_`
+          text: `✅ *HANI-MD — Demande approuvée !*\n\nBonjour *${p.name}* 👋\n\nVotre demande a été validée ! 🎉\n${icon} Plan: *${p.plan}* (GRATUIT)\n🔑 Référence: *${p.reference}*\n\n➡️ *Connectez votre bot maintenant :*\n${connectLink}\n\n📱 _Cliquez sur le lien, scannez le QR Code avec WhatsApp → votre bot sera actif ! 🤖_`
         });
         console.log(`[ADMIN] 📱 Notification envoyée à ${p.phone}`);
       } catch (notifErr) {
