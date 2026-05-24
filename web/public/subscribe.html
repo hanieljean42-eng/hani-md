@@ -139,7 +139,7 @@
         <div class="card-header">
           <div class="icon-circle">👑</div>
           <h1>Choisir mon plan</h1>
-          <p>Paiement instantané via Wave CI</p>
+          <p>🎉 Offre de lancement — Tous les plans sont <strong style="color:#25D366">GRATUITS</strong> !</p>
         </div>
 
         <div id="formAlert" class="alert alert-error hidden">
@@ -165,108 +165,104 @@
               <input type="radio" name="plan" value="BRONZE">
               <span class="plan-emoji">🥉</span>
               <div class="plan-info"><div class="plan-name">Bronze</div><div class="plan-desc">100 cmd/jour • 30 jours</div></div>
-              <div class="plan-price-tag"><div class="amount">500</div><div class="cur">FCFA</div></div>
+              <div class="plan-price-tag"><div class="amount" style="text-decoration:line-through;opacity:0.4;font-size:0.9rem">500</div><div class="cur" style="color:#25D366;font-weight:800;font-size:1rem">GRATUIT</div></div>
             </label>
             <label class="plan-option" data-plan="ARGENT" data-price="1000" onclick="selectPlan(this)">
               <input type="radio" name="plan" value="ARGENT">
               <span class="plan-emoji">🥈</span>
               <div class="plan-info"><div class="plan-name">Argent</div><div class="plan-desc">300 cmd/jour • 30 jours</div></div>
-              <div class="plan-price-tag"><div class="amount">1 000</div><div class="cur">FCFA</div></div>
+              <div class="plan-price-tag"><div class="amount" style="text-decoration:line-through;opacity:0.4;font-size:0.9rem">1 000</div><div class="cur" style="color:#25D366;font-weight:800;font-size:1rem">GRATUIT</div></div>
             </label>
             <label class="plan-option selected" data-plan="OR" data-price="2000" onclick="selectPlan(this)">
               <input type="radio" name="plan" value="OR" checked>
               <span class="plan-emoji">🥇</span>
               <div class="plan-info"><div class="plan-name">Or ⭐ Populaire</div><div class="plan-desc">Illimité • 30 jours</div></div>
-              <div class="plan-price-tag"><div class="amount">2 000</div><div class="cur">FCFA</div></div>
+              <div class="plan-price-tag"><div class="amount" style="text-decoration:line-through;opacity:0.4;font-size:0.9rem">2 000</div><div class="cur" style="color:#25D366;font-weight:800;font-size:1rem">GRATUIT</div></div>
             </label>
             <label class="plan-option" data-plan="DIAMANT" data-price="5000" onclick="selectPlan(this)">
               <input type="radio" name="plan" value="DIAMANT">
               <span class="plan-emoji">💎</span>
               <div class="plan-info"><div class="plan-name">Diamant</div><div class="plan-desc">Tout illimité • 30 jours</div></div>
-              <div class="plan-price-tag"><div class="amount">5 000</div><div class="cur">FCFA</div></div>
+              <div class="plan-price-tag"><div class="amount" style="text-decoration:line-through;opacity:0.4;font-size:0.9rem">5 000</div><div class="cur" style="color:#25D366;font-weight:800;font-size:1rem">GRATUIT</div></div>
             </label>
             <label class="plan-option" data-plan="LIFETIME" data-price="15000" onclick="selectPlan(this)">
               <input type="radio" name="plan" value="LIFETIME">
               <span class="plan-emoji">👑</span>
               <div class="plan-info"><div class="plan-name">Lifetime</div><div class="plan-desc">Accès à vie — tout inclus</div></div>
-              <div class="plan-price-tag"><div class="amount">15 000</div><div class="cur">FCFA</div></div>
+              <div class="plan-price-tag"><div class="amount" style="text-decoration:line-through;opacity:0.4;font-size:0.9rem">15 000</div><div class="cur" style="color:#25D366;font-weight:800;font-size:1rem">GRATUIT</div></div>
             </label>
           </div>
         </div>
 
-        <button class="btn-pay" id="btnProceed" onclick="proceedToPayment()">
-          <i class="fas fa-credit-card"></i>
-          <span id="btnProceedText">Payer 2 000 FCFA</span>
+        <button class="btn-pay" id="btnProceed" onclick="proceedToPayment()" style="background:linear-gradient(135deg,#10b981,#25D366)">
+          <i class="fas fa-gift"></i>
+          <span id="btnProceedText">Activer gratuitement</span>
           <i class="fas fa-arrow-right"></i>
         </button>
       </div>
     </div>
 
     <!-- ═══════════════════════════════════════ -->
-    <!-- ÉCRAN 2 — Paiement via Jeko/Wave        -->
+    <!-- ÉCRAN 2 — Activation gratuite            -->
     <!-- ═══════════════════════════════════════ -->
     <div class="screen" id="screen2">
       <div class="card">
         <div class="card-header">
-          <div class="icon-circle" style="background: linear-gradient(135deg,#1dc2e8,#0ea5e9);">💳</div>
-          <h1>Payer maintenant</h1>
-          <p>Paiement sécurisé via Wave</p>
+          <div class="icon-circle" style="background: linear-gradient(135deg,#10b981,#25D366);">🎉</div>
+          <h1>Activation en cours...</h1>
+          <p>Offre de lancement gratuite</p>
         </div>
 
-        <!-- Récapitulatif -->
         <div class="summary-box">
           <div class="summary-row"><span class="label">Plan</span><span class="value" id="s-plan">OR</span></div>
           <div class="summary-row"><span class="label">Numéro</span><span class="value" id="s-phone">—</span></div>
           <div class="summary-row"><span class="label">Référence</span><span class="value" id="s-ref" style="color:#25D366;font-family:monospace;">—</span></div>
-          <div class="summary-row total"><span class="label">Total</span><span class="value" id="s-amount">2 000 FCFA</span></div>
+          <div class="summary-row total"><span class="label">Prix</span><span class="value" style="color:#25D366">GRATUIT 🎁</span></div>
         </div>
 
-        <!-- Bouton Jeko/Wave -->
-        <a id="jekoBtn" href="#" target="_blank" class="btn-wave" onclick="onJekoClick()">
-          <i class="fas fa-bolt"></i>
-          Payer via Wave
-          <i class="fas fa-external-link-alt" style="font-size:0.8rem;opacity:0.8;"></i>
-        </a>
-
-        <div class="info-box">
-          <p><i class="fas fa-info-circle" style="color:#60a5fa;margin-right:6px;"></i>
-          Le bouton ouvre la page de paiement Wave. Entrez le montant <strong id="s-amount2">2 000 FCFA</strong> et validez. Après paiement, cliquez sur <strong>"J'ai payé"</strong> ci-dessous.</p>
-        </div>
-
-        <div id="afterPayDiv" class="hidden" style="margin-top:4px;">
+        <div id="activationResult" class="hidden">
           <div class="success-box">
-            <p>✅ <strong>Paiement effectué ?</strong> Envoyez votre preuve sur WhatsApp. L'owner valide et active votre accès en moins de 30 min.</p>
+            <p style="font-size:1rem;text-align:center;">✅ <strong>Plan activé avec succès !</strong></p>
+            <p style="text-align:center;margin-top:8px;">Votre code d'activation :</p>
+            <div class="cmd-box" id="activationCode" style="font-size:1.2rem;margin:10px 0;">—</div>
+            <p style="font-size:0.82rem;opacity:0.7;text-align:center;">Gardez ce code précieusement. Envoyez <strong>.upgrade VOTRE_CODE</strong> sur WhatsApp au bot pour activer.</p>
           </div>
-          <a id="waBtn" href="#" target="_blank" class="btn-whatsapp">
-            <i class="fab fa-whatsapp"></i> Envoyer ma preuve de paiement
-          </a>
           <a id="connectBtn" href="/connect" class="btn-wave" style="margin-top:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
             <i class="fas fa-qrcode"></i> Connecter mon bot (QR Code)
             <i class="fas fa-arrow-right" style="font-size:0.8rem;"></i>
           </a>
+          <a id="waBtn" href="#" target="_blank" class="btn-whatsapp">
+            <i class="fab fa-whatsapp"></i> Contacter le support
+          </a>
+        </div>
+
+        <div id="activationError" class="hidden">
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="activationErrorMsg">Erreur lors de l'activation.</span>
+          </div>
         </div>
 
         <button class="btn-secondary" onclick="showScreen(1)">← Modifier mon plan</button>
       </div>
 
-      <!-- Instructions finales -->
       <div class="card">
         <h3 style="font-size:0.95rem;margin-bottom:14px;opacity:0.9;">📋 Comment ça marche ?</h3>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">1</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Payez via Wave → envoyez la preuve sur WhatsApp</p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Choisissez un plan et entrez votre numéro WhatsApp</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">2</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">L'owner valide votre paiement et active votre compte</p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Recevez votre code d'activation <strong>gratuitement</strong></p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">3</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Cliquez <strong>"Connecter mon bot"</strong> → scannez le QR code avec votre WhatsApp → votre bot est actif !</p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Envoyez <strong>.upgrade CODE</strong> au bot ou cliquez <strong>"Connecter mon bot"</strong></p>
           </div>
         </div>
-        <div class="cmd-box" style="margin-top:14px;">🤖 Votre numéro WhatsApp devient le bot</div>
+        <div class="cmd-box" style="margin-top:14px;">🎁 Offre limitée — Profitez-en !</div>
       </div>
     </div>
 
@@ -278,11 +274,8 @@
   </div>
 
   <script>
-    const JEKO_URL = 'https://pay.jeko.africa/pl/2a5354be-710e-454e-8741-1b3d6beb5890';
     const SUPPORT_NUMBER = '22550252467';
-
-    let subData = { name:'', phone:'', plan:'OR', price:2000, reference:'' };
-    let jekoOpened = false;
+    let subData = { name:'', phone:'', plan:'OR', reference:'' };
 
     // Pré-sélectionner le plan depuis l'URL
     (function() {
@@ -296,14 +289,10 @@
       document.querySelectorAll('.plan-option').forEach(o => o.classList.remove('selected'));
       el.classList.add('selected');
       el.querySelector('input').checked = true;
-      const price = parseInt(el.dataset.price);
-      const plan = el.dataset.plan;
-      const formatted = price.toLocaleString('fr-FR');
-      document.getElementById('btnProceedText').textContent = `Payer ${formatted} FCFA`;
     }
 
     function generateRef() {
-      return 'HANI-' + Math.random().toString(36).substring(2,8).toUpperCase();
+      return 'FREE-' + Math.random().toString(36).substring(2,8).toUpperCase();
     }
 
     async function proceedToPayment() {
@@ -320,61 +309,54 @@
       hideAlert();
 
       const plan = selectedOpt.dataset.plan;
-      const price = parseInt(selectedOpt.dataset.price);
       const reference = generateRef();
+      subData = { name, phone, plan, reference };
 
-      showLoading('Enregistrement...');
+      showLoading('Activation de votre plan gratuit...');
+      showScreen(2);
+
+      // Remplir le récap
+      document.getElementById('s-plan').textContent = plan;
+      document.getElementById('s-phone').textContent = phone;
+      document.getElementById('s-ref').textContent = reference;
 
       try {
-        const res = await fetch('/api/wave/subscribe', {
+        // Appel API pour activer le plan gratuitement
+        const res = await fetch('/api/free/activate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, plan, reference })
+          body: JSON.stringify({ name, phone, plan })
         });
         const data = await res.json();
-        subData = { name, phone, plan, price, reference: data.reference || reference };
+
+        if (data.success && data.code) {
+          document.getElementById('activationCode').textContent = data.code;
+          document.getElementById('activationResult').classList.remove('hidden');
+          document.getElementById('activationError').classList.add('hidden');
+          document.querySelector('#screen2 .card-header h1').textContent = 'Plan activé ! 🎉';
+
+          // Lien WhatsApp support
+          const msg = `Bonjour, j'ai activé le plan ${plan} GRATUIT sur HANI-MD.\nMon numéro: ${phone}\nNom: ${name}\nCode: ${data.code}\nRéf: ${reference}`;
+          document.getElementById('waBtn').href = `https://wa.me/${SUPPORT_NUMBER}?text=${encodeURIComponent(msg)}`;
+          document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(reference)}`;
+
+          showScreen(3); // étape finale
+        } else {
+          document.getElementById('activationErrorMsg').textContent = data.error || 'Erreur lors de l\'activation.';
+          document.getElementById('activationError').classList.remove('hidden');
+        }
       } catch(e) {
-        subData = { name, phone, plan, price, reference };
+        document.getElementById('activationErrorMsg').textContent = 'Erreur réseau. Réessayez.';
+        document.getElementById('activationError').classList.remove('hidden');
       }
 
-      localStorage.setItem('haniSub', JSON.stringify(subData));
-      fillPaymentScreen();
-      showScreen(2);
       hideLoading();
-    }
-
-    function fillPaymentScreen() {
-      const formatted = subData.price.toLocaleString('fr-FR');
-      document.getElementById('s-plan').textContent = subData.plan;
-      document.getElementById('s-phone').textContent = subData.phone;
-      document.getElementById('s-ref').textContent = subData.reference;
-      document.getElementById('s-amount').textContent = `${formatted} FCFA`;
-      document.getElementById('s-amount2').textContent = `${formatted} FCFA`;
-
-      // Mettre à jour le lien Jeko
-      document.getElementById('jekoBtn').href = JEKO_URL;
-
-      // Message WhatsApp pré-rempli
-      const msg = `Bonjour, j'ai payé pour HANI-MD Plan ${subData.plan} (${formatted} FCFA).\nMon numéro WhatsApp: ${subData.phone}\nNom: ${subData.name}\nRéférence: ${subData.reference}\nMerci d'activer mon accès 🙏`;
-      document.getElementById('waBtn').href = `https://wa.me/${SUPPORT_NUMBER}?text=${encodeURIComponent(msg)}`;
-
-      // Bouton connexion bot avec référence pré-remplie
-      document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(subData.reference)}`;
-    }
-
-    function onJekoClick() {
-      jekoOpened = true;
-      setTimeout(() => {
-        document.getElementById('afterPayDiv').classList.remove('hidden');
-        // Scroll vers le bouton WhatsApp
-        document.getElementById('afterPayDiv').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 2500);
     }
 
     function showScreen(n) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen' + n).classList.add('active');
-      // Steps indicator
+      const screenId = n >= 3 ? 'screen2' : 'screen' + n;
+      document.getElementById(screenId).classList.add('active');
       [1,2,3].forEach(i => {
         const dot = document.getElementById('dot'+i);
         dot.classList.remove('active','done');

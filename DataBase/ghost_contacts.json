@@ -1,0 +1,16 @@
+{
+  "contacts": {
+    "216965239025712@lid": {
+      "phone": "216965239025712",
+      "addedAt": "2026-04-28T23:06:25.506Z",
+      "pushName": "BAMBI DIALLO",
+      "reason": null,
+      "allJids": [
+        "216965239025712@lid"
+      ]
+    }
+  },
+  "messages": {
+    "216965239025712@lid": []
+  }
+}

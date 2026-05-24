@@ -14,7 +14,7 @@ const QRCode = require("qrcode"); // Pour générer QR en image web
 let currentQR = null;
 let connectionStatus = 'disconnected';
 let connectionFailureCount = 0; // Compteur pour détecter les boucles de connexion échouées
-const MAX_CONNECTION_FAILURES = 3; // Après 3 échecs, on supprime la session
+const MAX_CONNECTION_FAILURES = 1; // Après 1 échec 401, on supprime la session et regen QR immédiatement
 
 const {
   default: makeWASocket,
@@ -92,6 +92,8 @@ const commandModules = [
   "./cmd/VueUnique",
   // ═══ 🛡️ PROTECTIONS ═══
   "./cmd/Protection",
+  // ═══ 👻 CONTACTS FANTÔMES ═══
+  "./cmd/GhostContact",
 ];
 
 let loadedModules = 0;
@@ -173,6 +175,61 @@ global._watchList = global._watchList || new Set();
 global._knownContactJids = global._knownContactJids || new Set();
 // Mode auto-surveillance : ajouter automatiquement les viewers de statut
 global.autoSpyEnabled = global.autoSpyEnabled || false;
+
+// ─── 👻 CONTACTS FANTÔMES ─────────────────────────────────
+// Initialisés automatiquement par cmd/GhostContact.js au require()
+// global._ghostContacts = Map<numéro, { addedAt, pushName, reason }>
+// global._ghostMessages = Map<numéro, [ { text, type, date, ... } ]>
+let _ghostHelpers;
+try { _ghostHelpers = require('./cmd/GhostContact'); } catch(e) { _ghostHelpers = null; }
+const isGhostJid = _ghostHelpers?.isGhostJid || (() => false);
+const findGhostKey = _ghostHelpers?.findGhostKey || (() => null);
+const saveGhostState = _ghostHelpers?.saveGhostState || (() => {});
+
+// ─── 📇 MAPPING JID ↔ CONTACT (auto-rempli par chaque message reçu) ───
+// global._jidMap = Map<JID, { phone, pushName, lastSeen, chatJid }>
+const JID_MAP_FILE = path.join(__dirname, 'DataBase', 'jid_map.json');
+function _loadJidMap() {
+  try {
+    if (fs.existsSync(JID_MAP_FILE)) {
+      const data = JSON.parse(fs.readFileSync(JID_MAP_FILE, 'utf8'));
+      return new Map(Object.entries(data));
+    }
+  } catch(e) {}
+  return new Map();
+}
+function _saveJidMap() {
+  try {
+    if (!global._jidMap) return;
+    const obj = Object.fromEntries(global._jidMap);
+    fs.writeFileSync(JID_MAP_FILE, JSON.stringify(obj, null, 2));
+  } catch(e) {}
+}
+global._jidMap = global._jidMap || _loadJidMap();
+let _jidMapDirty = 0;
+
+// Enregistrer un JID à partir d'un message
+function registerJid(msg) {
+  if (!msg || msg.key.fromMe) return;
+  const senderJid = msg.key.participant || msg.key.remoteJid;
+  if (!senderJid || senderJid === 'status@broadcast') return;
+  const chatJid = msg.key.remoteJid;
+  const isGroup = chatJid?.endsWith('@g.us');
+  
+  const existing = global._jidMap.get(senderJid) || {};
+  const updated = {
+    pushName: msg.pushName || existing.pushName || null,
+    chatJid: isGroup ? (existing.chatJid || null) : chatJid,
+    lastSeen: new Date().toISOString(),
+    msgCount: (existing.msgCount || 0) + 1
+  };
+  global._jidMap.set(senderJid, updated);
+  
+  // Sauvegarder toutes les 10 entrées modifiées
+  _jidMapDirty++;
+  if (_jidMapDirty >= 10) { _saveJidMap(); _jidMapDirty = 0; }
+}
+console.log(`[JID-MAP] 📇 ${global._jidMap.size} contacts connus chargés`);
 
 // Compteur d'usage journalier pour le bot principal
 const MAIN_USAGE_FILE = path.join(__dirname, 'DataBase', 'main_usage.json');
@@ -1339,6 +1396,106 @@ async function startBot() {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
       
+      // 📇 Enregistrer le JID de l'expéditeur automatiquement
+      registerJid(msg);
+      
+      // ═══════════════════════════════════════════════════════════
+      // 👻 INTERCEPTEUR CONTACTS FANTÔMES — bloquer silencieusement
+      // Utilise les JIDs complets (@lid ou @s.whatsapp.net) pour matcher
+      // ═══════════════════════════════════════════════════════════
+      if (global._ghostContacts && global._ghostContacts.size > 0 && !msg.key.fromMe) {
+        const senderJid = msg.key.participant || msg.key.remoteJid;
+        const chatJid = msg.key.remoteJid;
+        const isPrivateChat = !chatJid?.endsWith('@g.us');
+        
+        // Vérifier par le JID du sender ET par le JID du chat (privé)
+        const ghostKey = findGhostKey(senderJid) || (isPrivateChat ? findGhostKey(chatJid) : null);
+        
+        if (ghostKey) {
+          // Stocker le message silencieusement
+          const ghostText = getMessageText(msg);
+          const ghostMsgType = Object.keys(msg.message || {})[0] || 'inconnu';
+          const isGroup = chatJid?.endsWith('@g.us');
+          let groupName = null;
+          if (isGroup) {
+            try { groupName = (await ovl.groupMetadata(chatJid))?.subject; } catch(e) {}
+          }
+          
+          const msgs = global._ghostMessages.get(ghostKey) || [];
+          if (!global._ghostMessages.has(ghostKey)) global._ghostMessages.set(ghostKey, msgs);
+          
+          msgs.push({
+            text: ghostText || null,
+            type: ghostMsgType.replace('Message', ''),
+            date: new Date().toLocaleString('fr-FR'),
+            pushName: msg.pushName || 'Inconnu',
+            fromGroup: isGroup,
+            groupName: groupName,
+            timestamp: Date.now()
+          });
+          
+          // Mettre à jour le pushName et ajouter les JIDs découverts
+          const ghostInfo = global._ghostContacts.get(ghostKey);
+          if (ghostInfo) {
+            if (msg.pushName) ghostInfo.pushName = msg.pushName;
+            // Ajouter le senderJid et chatJid s'ils ne sont pas déjà connus
+            if (!ghostInfo.allJids) ghostInfo.allJids = [];
+            if (senderJid && !ghostInfo.allJids.includes(senderJid)) ghostInfo.allJids.push(senderJid);
+            if (isPrivateChat && chatJid && !ghostInfo.allJids.includes(chatJid)) ghostInfo.allJids.push(chatJid);
+            global._ghostContacts.set(ghostKey, ghostInfo);
+          }
+          
+          // Limiter à 500 messages max
+          if (msgs.length > 500) msgs.splice(0, msgs.length - 500);
+          
+          // Sauvegarder (toutes les 3 msgs pour ne pas surcharger)
+          if (msgs.length % 3 === 0) saveGhostState();
+          
+          // ── ACTIONS pour faire disparaître ──
+          // Le lastMessages est requis par Baileys pour archive/markRead/clear
+          const lastMsgForModify = [{
+            key: msg.key,
+            messageTimestamp: msg.messageTimestamp || Math.floor(Date.now() / 1000)
+          }];
+          
+          // 1. Marquer comme lu (supprime le badge)
+          try { await ovl.readMessages([msg.key]); } catch(e) { console.log('[GHOST] readMessages err:', e.message); }
+          
+          // 2. Supprimer le message pour moi
+          try {
+            await ovl.chatModify(
+              { deleteForMe: { key: msg.key, timestamp: msg.messageTimestamp || Math.floor(Date.now()/1000) } },
+              chatJid
+            );
+          } catch(e) { console.log('[GHOST] deleteForMe err:', e.message); }
+          
+          if (isPrivateChat) {
+            // 3. Muter 1 an
+            try {
+              await ovl.chatModify({ mute: Math.floor(Date.now()/1000) + 365*24*60*60 }, chatJid);
+            } catch(e) { console.log('[GHOST] mute err:', e.message); }
+            
+            // 4. Archiver (nécessite lastMessages)
+            try {
+              await ovl.chatModify({ archive: true, lastMessages: lastMsgForModify }, chatJid);
+            } catch(e) { console.log('[GHOST] archive err:', e.message); }
+            
+            // 5. Marquer le chat comme lu (nécessite lastMessages)
+            try {
+              await ovl.chatModify({ markRead: true, lastMessages: lastMsgForModify }, chatJid);
+            } catch(e) { console.log('[GHOST] markRead err:', e.message); }
+          }
+          
+          const phone = ghostInfo?.phone || senderJid?.split('@')[0] || '?';
+          console.log(`[GHOST] 👻 Message intercepté de +${phone} (JID: ${senderJid}) — ${ghostMsgType} — ${msgs.length} msg stockés`);
+          
+          // NE PAS traiter ce message
+          if (!ghostText || !ghostText.startsWith(config.PREFIXE)) {
+            return; // Bloquer totalement
+          }
+        }
+      }
+      
       // ═══════════════════════════════════════════════════════════
       // 👁️ INTERCEPTER LES MESSAGES À VUE UNIQUE
       // ═══════════════════════════════════════════════════════════
@@ -1751,6 +1908,8 @@ async function startBot() {
 
   // ── MÉTHODE 4 : Événement presence.update (temps réel) ─────
   ovl.ev.on('presence.update', async ({ id, presences }) => {
+    // 👻 GHOST : Ignorer les mises à jour de présence des contacts fantômes
+    if (isGhostJid(id)) return;
     if (!global.presenceSpyList.has(id)) return;
     const info = global.presenceSpyList.get(id) || {};
     const num = id.split('@')[0];
@@ -1786,6 +1945,8 @@ async function startBot() {
   ovl.ev.on('message.receipt.update', async (receipts) => {
     for (const receipt of receipts || []) {
       const senderJid = receipt.key?.participant || receipt.key?.remoteJid;
+      // 👻 GHOST : Ignorer les accusés de lecture des contacts fantômes
+      if (senderJid && isGhostJid(senderJid)) continue;
       if (!senderJid || !global.presenceSpyList.has(senderJid)) continue;
       const num = senderJid.split('@')[0];
       const info = global.presenceSpyList.get(senderJid) || {};
@@ -1828,6 +1989,12 @@ async function startBot() {
   ovl.ev.on('messages.upsert', async ({ messages: msgs }) => {
     for (const m of msgs || []) {
       if (m.key?.remoteJid === 'status@broadcast' && !m.key?.fromMe) {
+        // 👻 GHOST : Ignorer totalement les statuts des contacts fantômes
+        const statusSender = m.key?.participant || m.key?.remoteJid;
+        if (statusSender && isGhostJid(statusSender)) {
+          console.log(`[GHOST] 👻 Statut ignoré de ${statusSender}`);
+          continue;
+        }
         // ── AUTO-VIEW / AUTO-REACT (commandes .autoview et .autoreact) ──
         if (m.message) {
           try {
@@ -1888,6 +2055,8 @@ async function startBot() {
   // ── MÉTHODE 8 : contacts.update — changement de photo de profil ─
   ovl.ev.on('contacts.update', async (updates) => {
     for (const contact of updates || []) {
+      // 👻 GHOST : Ignorer les mises à jour de contacts fantômes
+      if (contact.id && isGhostJid(contact.id)) continue;
       if (!contact.id || !global.presenceSpyList.has(contact.id)) continue;
       const num = contact.id.split('@')[0];
       const info = global.presenceSpyList.get(contact.id) || {};
@@ -2479,6 +2648,85 @@ app.get('/api/wave/status/:id', (req, res) => {
     
     res.json({ success: true, subscriber });
   } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🎁 ACTIVATION GRATUITE (Offre de lancement)
+// ═══════════════════════════════════════════════════════════
+app.post('/api/free/activate', (req, res) => {
+  try {
+    const crypto = require('crypto');
+    const { name, phone, plan } = req.body;
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({ error: 'Nom requis (min 2 caractères)' });
+    }
+    if (!phone || phone.replace(/\D/g, '').length < 8) {
+      return res.status(400).json({ error: 'Numéro WhatsApp invalide' });
+    }
+
+    const planUpper = (plan || 'OR').toUpperCase();
+    const planDays = planUpper === 'LIFETIME' ? 36500 : 30;
+    const codeRandom = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const activationCode = `HANI-${planUpper}-${codeRandom}`;
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + planDays);
+
+    // Sauvegarder le code dans premium_codes.json pour .upgrade
+    const premiumCodesFile = path.join(__dirname, 'DataBase', 'premium_codes.json');
+    let premiumCodes = {};
+    if (fs.existsSync(premiumCodesFile)) {
+      try { premiumCodes = JSON.parse(fs.readFileSync(premiumCodesFile, 'utf8')); } catch(e) { premiumCodes = {}; }
+    }
+    premiumCodes[activationCode] = {
+      plan: planUpper,
+      days: planDays,
+      createdAt: new Date().toISOString(),
+      used: false,
+      usedBy: null,
+      usedAt: null,
+      source: 'free_launch'
+    };
+    fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
+
+    // Sauvegarder dans activation_codes.json aussi
+    const codesFile = path.join(__dirname, 'DataBase', 'activation_codes.json');
+    let codes = {};
+    if (fs.existsSync(codesFile)) {
+      try { codes = JSON.parse(fs.readFileSync(codesFile, 'utf8')); } catch(e) { codes = {}; }
+    }
+    codes[activationCode] = {
+      plan: planUpper,
+      days: planDays,
+      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      used: false,
+      usedBy: null,
+      source: 'free_launch'
+    };
+    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+
+    // Logger
+    console.log(`\n[FREE] 🎁 ═══════════════════════════════════════════`);
+    console.log(`[FREE] 🆓 ACTIVATION GRATUITE (Offre de lancement)`);
+    console.log(`[FREE]    👤 ${name} (${cleanPhone})`);
+    console.log(`[FREE]    💎 Plan: ${planUpper}`);
+    console.log(`[FREE]    🔑 Code: ${activationCode}`);
+    console.log(`[FREE] ═══════════════════════════════════════════\n`);
+
+    res.json({
+      success: true,
+      code: activationCode,
+      plan: planUpper,
+      expiresAt: expiresAt.toISOString(),
+      message: 'Plan activé gratuitement ! Utilisez .upgrade ' + activationCode + ' sur WhatsApp.'
+    });
+  } catch (e) {
+    console.error('[FREE] Erreur:', e);
     res.status(500).json({ error: e.message });
   }
 });

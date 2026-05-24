@@ -25,57 +25,42 @@ const helmet = require("helmet");
 const config = require("./lib/config");
 const { createConnection, connectionState, getQRDataURL } = require("./lib/connection");
 const { db, initDatabase } = require("./lib/database");
-const { processCommand, handleViewOnce, storeMessage, getMessageText } = require("./lib/messageHandler");
+const { processCommand, handleViewOnce, storeMessage, getMessageText, viewOnceMessages, saveViewOnceMessages } = require("./lib/messageHandler");
 const { findCommand, executeCommand, getCommands, getCommandsByCategory } = require("./lib/ovlcmd");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
+
+// Exposer les vues uniques en global pour les commandes (VueUnique.js)
+global._viewOnceMessages = viewOnceMessages;
+global._saveViewOnceMessages = saveViewOnceMessages;
+global._deletedMessages = global._deletedMessages || [];
 
 // ═══════════════════════════════════════════════════════════
 // 📦 CHARGEMENT DES MODULES DE COMMANDES
 // ═══════════════════════════════════════════════════════════
 
-const commandModules = [
-  // ═══ SYSTÈME (toujours chargé en premier) ═══
-  "./cmd/Menu",
-  "./cmd/Owner",
-  // ═══ TÉLÉCHARGEMENT ═══
-  "./cmd/Telechargement",
-  // ═══ OUTILS & UTILITAIRES ═══
-  "./cmd/Outils",
-  "./cmd/Conversion",
-  "./cmd/Reaction",
-  // ═══ DIVERTISSEMENT ═══
-  "./cmd/Fun",
-  "./cmd/Ovl-game",
-  // ═══ INTELLIGENCE ARTIFICIELLE ═══
-  "./cmd/Ia",
-  // ═══ RECHERCHE ═══
-  "./cmd/Search",
-  // ═══ GROUPES ═══
-  "./cmd/Groupe",
-  "./cmd/Confidentialite",
-  // ═══ MÉDIAS ═══
-  "./cmd/Fx_audio",
-  "./cmd/Status",
-  "./cmd/Image_edits",
-  "./cmd/Logo",
-  // ═══ PROFIL & PRO ═══
-  "./cmd/ProFeatures",
-  "./cmd/Contacts",
-  // ═══ CONFIG ═══
-  "./cmd/Config",
-  "./cmd/Autoreply",
-];
+// Charger TOUS les modules de commandes automatiquement depuis cmd/
+const cmdDir = path.join(__dirname, "cmd");
+const commandFiles = fs.readdirSync(cmdDir)
+  .filter(f => f.endsWith(".js") && f !== "index.js")
+  .sort((a, b) => {
+    // Menu et Owner en premier
+    if (a === "Menu.js") return -1;
+    if (b === "Menu.js") return 1;
+    if (a === "Owner.js") return -1;
+    if (b === "Owner.js") return 1;
+    return a.localeCompare(b);
+  });
 
 let loadedModules = 0;
-for (const mod of commandModules) {
+for (const file of commandFiles) {
   try {
-    require(mod);
+    require(path.join(cmdDir, file));
     loadedModules++;
   } catch (e) {
-    // Ignorer silencieusement les modules non disponibles
+    console.log(`[CMD] ⚠️ Échec chargement ${file}: ${e.message}`);
   }
 }
-console.log(`[CMD] ✅ ${loadedModules}/${commandModules.length} modules de commandes chargés`);
+console.log(`[CMD] ✅ ${loadedModules}/${commandFiles.length} modules de commandes chargés`);
 console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles`);
 
 // ═══════════════════════════════════════════════════════════

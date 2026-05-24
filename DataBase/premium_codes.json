@@ -22,5 +22,41 @@
     "used": false,
     "usedBy": null,
     "usedAt": null
+  },
+  "HANI-OR-06625956": {
+    "plan": "OR",
+    "days": 30,
+    "createdAt": "2026-05-24T14:55:32.920Z",
+    "used": false,
+    "usedBy": null,
+    "usedAt": null,
+    "source": "free_launch"
+  },
+  "HANI-DIAMANT-6E86F32F": {
+    "plan": "DIAMANT",
+    "days": 30,
+    "createdAt": "2026-05-24T14:55:53.545Z",
+    "used": false,
+    "usedBy": null,
+    "usedAt": null,
+    "source": "free_launch"
+  },
+  "HANI-LIFETIME-04F2552C": {
+    "plan": "LIFETIME",
+    "days": 36500,
+    "createdAt": "2026-05-24T14:57:10.418Z",
+    "used": false,
+    "usedBy": null,
+    "usedAt": null,
+    "source": "free_launch"
+  },
+  "HANI-LIFETIME-CC4F4461": {
+    "plan": "LIFETIME",
+    "days": 36500,
+    "createdAt": "2026-05-24T14:58:05.584Z",
+    "used": false,
+    "usedBy": null,
+    "usedAt": null,
+    "source": "free_launch"
   }
 }
