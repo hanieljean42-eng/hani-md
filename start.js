@@ -3272,8 +3272,8 @@ app.listen(port, '0.0.0.0', () => {
         req.on('error', () => {});
         req.setTimeout(10000, () => req.destroy());
       } catch(e) {}
-    }, 10 * 60 * 1000); // Toutes les 10 minutes
-    console.log(`[KEEPALIVE] 💓 Self-ping activé → ${selfUrl}/health (toutes les 10 min)`);
+    }, 4 * 60 * 1000); // Toutes les 4 minutes (Render dort après 15 min)
+    console.log(`[KEEPALIVE] 💓 Self-ping activé → ${selfUrl}/health (toutes les 4 min)`);
   }, 30000); // Démarrer 30s après le lancement
 });
 
