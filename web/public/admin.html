@@ -661,6 +661,18 @@
           </div>
         </div>
 
+        <!-- Alerte demandes en attente (visible sur overview) -->
+        <div id="pending-alert" style="display:none;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1));border:2px solid #f59e0b;border-radius:16px;padding:16px 20px;margin-bottom:1.5rem;cursor:pointer;transition:transform 0.2s;" onclick="document.querySelector('[data-page=requests]').click();">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:2rem;">🔔</div>
+            <div style="flex:1;">
+              <p style="font-weight:700;font-size:1rem;color:#f59e0b;"><span id="pending-alert-count">0</span> demande(s) en attente d'approbation</p>
+              <p style="font-size:0.85rem;opacity:0.7;margin-top:2px;">Cliquez ici pour les voir et approuver →</p>
+            </div>
+            <i class="fas fa-arrow-right" style="font-size:1.2rem;color:#f59e0b;"></i>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
             <h3>📈 Répartition par plan</h3>
@@ -884,6 +896,7 @@
       if (authToken) {
         showDashboard();
         loadData();
+        loadPayments();
         startAutoRefresh();
       }
     });
@@ -907,6 +920,7 @@
           localStorage.setItem('adminToken', authToken);
           showDashboard();
           loadData();
+          loadPayments();
           startAutoRefresh();
         } else {
           showLoginError(data.error || 'Erreur de connexion');
@@ -955,6 +969,14 @@
         }
         if (statEl) statEl.textContent = pending;
 
+        // Mettre à jour l'alerte sur la page overview
+        const alertEl = document.getElementById('pending-alert');
+        const alertCount = document.getElementById('pending-alert-count');
+        if (alertEl) {
+          alertEl.style.display = pending > 0 ? 'block' : 'none';
+          if (alertCount) alertCount.textContent = pending;
+        }
+
         // Notification si nouveau paiement détecté
         if (pending > lastPendingCount && lastPendingCount >= 0) {
           const newCount = pending - lastPendingCount;
@@ -980,10 +1002,8 @@
             osc.start();
             osc.stop(ctx.currentTime + 0.4);
           } catch {}
-          // Si on est sur l'onglet Demandes, recharger la liste
-          if (document.getElementById('page-requests')?.classList.contains('active')) {
-            loadPayments();
-          }
+          // Toujours recharger le tableau des demandes
+          loadPayments();
         }
         lastPendingCount = pending;
       } catch (e) {
