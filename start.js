@@ -2516,6 +2516,31 @@ app.post('/api/wave/subscribe', (req, res) => {
   }
 });
 
+// Vérifier le statut d'une demande (polling depuis subscribe.html)
+app.get('/api/subscribe/status/:ref', (req, res) => {
+  try {
+    const ref = req.params.ref.trim().toUpperCase();
+    const requestsFile = path.join(__dirname, 'DataBase', 'pending_payments.json');
+    let requests = [];
+    if (fs.existsSync(requestsFile)) {
+      try { requests = JSON.parse(fs.readFileSync(requestsFile, 'utf8')); } catch(e) { requests = []; }
+    }
+    const request = requests.find(r => r.reference === ref || r.id === ref);
+    if (!request) {
+      return res.json({ found: false, status: 'not_found' });
+    }
+    res.json({
+      found: true,
+      status: request.status,
+      name: request.name,
+      plan: request.plan,
+      reference: request.reference
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Confirmation du paiement - SYSTÈME SÉCURISÉ avec validation owner
 app.post('/api/wave/confirm', async (req, res) => {
   try {

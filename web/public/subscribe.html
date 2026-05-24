@@ -220,28 +220,47 @@
           <div class="summary-row total"><span class="label">Prix</span><span class="value" style="color:#25D366">GRATUIT 🎁</span></div>
         </div>
 
-        <div id="activationResult" class="hidden">
-          <div class="success-box" style="text-align:center;">
-            <p style="font-size:1.1rem;">✅ <strong>Demande envoyée avec succès !</strong></p>
+        <!-- État: en attente de validation -->
+        <div id="waitingState" class="hidden">
+          <div style="text-align:center;padding:10px 0;">
+            <div style="width:60px;height:60px;border:4px solid rgba(245,158,11,0.3);border-top-color:#f59e0b;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div>
+            <p style="margin-top:12px;font-weight:700;font-size:1.05rem;">⏳ En attente de validation...</p>
+            <p style="font-size:0.85rem;opacity:0.7;margin-top:4px;">L'admin va valider votre demande</p>
           </div>
 
-          <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;margin:12px 0;text-align:left;">
-            <p style="font-weight:700;margin-bottom:8px;">⏳ Que se passe-t-il ensuite ?</p>
-            <p style="font-size:0.88rem;opacity:0.85;line-height:1.8;">
-              1. L'administrateur va <strong>valider votre demande</strong> (sous 30 min max)<br>
-              2. Vous recevrez un <strong>message WhatsApp</strong> avec votre lien de connexion<br>
-              3. Cliquez sur le lien → <strong>scannez le QR code</strong> → votre bot est actif ! 🤖
-            </p>
-          </div>
-
-          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px;margin:10px 0;text-align:center;">
-            <p style="font-size:0.85rem;opacity:0.7;">📱 Gardez votre téléphone à portée — vous recevrez une notification WhatsApp !</p>
-            <p style="font-size:0.85rem;margin-top:6px;">Votre référence : <strong id="refDisplay">—</strong></p>
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px;margin:12px 0;text-align:center;">
+            <p style="font-size:0.85rem;">Votre référence : <strong id="refDisplay">—</strong></p>
+            <p style="font-size:0.8rem;opacity:0.6;margin-top:6px;">Restez sur cette page — elle se mettra à jour automatiquement</p>
           </div>
 
           <a id="waBtn" href="#" target="_blank" class="btn-wave" style="margin-top:12px;background:linear-gradient(135deg,#25D366,#128C7E);">
             <i class="fab fa-whatsapp"></i> Contacter le support si besoin
             <i class="fas fa-arrow-right" style="font-size:0.8rem;"></i>
+          </a>
+        </div>
+
+        <!-- État: approuvé ! -->
+        <div id="approvedState" class="hidden">
+          <div style="text-align:center;">
+            <div style="font-size:3.5rem;margin-bottom:8px;">🎉</div>
+            <p style="font-size:1.2rem;font-weight:800;color:#10b981;">Demande approuvée !</p>
+            <p style="font-size:0.9rem;opacity:0.8;margin-top:4px;">Connectez votre bot maintenant</p>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;margin:12px 0;text-align:left;">
+            <p style="font-weight:700;margin-bottom:8px;">📱 Étape suivante :</p>
+            <p style="font-size:0.88rem;opacity:0.85;line-height:1.8;">
+              1. Cliquez sur le bouton ci-dessous<br>
+              2. Entrez votre référence : <strong id="approvedRef">—</strong><br>
+              3. Choisissez <strong>QR Code</strong> ou <strong>Code d'appairage</strong><br>
+              4. Connectez votre WhatsApp → votre bot est actif ! 🤖
+            </p>
+          </div>
+
+          <a id="connectBtn" href="/connect" class="btn-pay" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;">
+            <i class="fas fa-plug"></i>
+            <span>Connecter mon bot maintenant</span>
+            <i class="fas fa-arrow-right"></i>
           </a>
         </div>
 
@@ -264,11 +283,11 @@
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">2</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">L'admin valide votre demande et vous envoie un <strong>lien WhatsApp</strong></p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">L'admin valide votre demande <strong>directement ici</strong></p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">3</div>
-            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Scannez le QR code avec WhatsApp → <strong>votre bot est actif !</strong></p>
+            <p style="font-size:0.88rem;opacity:0.8;line-height:1.5;">Connectez votre bot avec QR code ou code d'appairage → <strong>actif !</strong></p>
           </div>
         </div>
         <div class="cmd-box" style="margin-top:14px;">🎁 Offre de lancement gratuite — Profitez-en !</div>
@@ -339,14 +358,19 @@
         const data = await res.json();
 
         if (data.success) {
-          document.getElementById('activationResult').classList.remove('hidden');
+          const finalRef = data.reference || reference;
+          subData.reference = finalRef;
+          document.getElementById('waitingState').classList.remove('hidden');
           document.getElementById('activationError').classList.add('hidden');
           document.getElementById('screen2Title').textContent = 'Demande envoyée ! ✅';
-          document.getElementById('refDisplay').textContent = data.reference || reference;
+          document.getElementById('refDisplay').textContent = finalRef;
 
           // Lien support
-          const msg = `Bonjour, je viens de faire une demande de plan ${plan} GRATUIT sur HANI-MD.\nMon numéro: ${phone}\nNom: ${name}\nRéférence: ${data.reference || reference}`;
+          const msg = `Bonjour, je viens de faire une demande de plan ${plan} GRATUIT sur HANI-MD.\nMon numéro: ${phone}\nNom: ${name}\nRéférence: ${finalRef}`;
           document.getElementById('waBtn').href = `https://wa.me/${SUPPORT_NUMBER}?text=${encodeURIComponent(msg)}`;
+
+          // Démarrer le polling pour détecter l'approbation
+          startPolling(finalRef);
         } else {
           document.getElementById('activationErrorMsg').textContent = data.error || 'Erreur lors de l\'envoi.';
           document.getElementById('activationError').classList.remove('hidden');
@@ -357,6 +381,27 @@
       }
 
       hideLoading();
+    }
+
+    // Polling: vérifie toutes les 5s si l'admin a approuvé
+    let pollTimer = null;
+    function startPolling(ref) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/subscribe/status/${ref}`);
+          const data = await res.json();
+          if (data.found && data.status === 'approved') {
+            clearInterval(pollTimer);
+            // Afficher l'état approuvé
+            document.getElementById('waitingState').classList.add('hidden');
+            document.getElementById('approvedState').classList.remove('hidden');
+            document.getElementById('screen2Title').textContent = 'Approuvé ! \ud83c\udf89';
+            document.getElementById('approvedRef').textContent = data.reference || ref;
+            document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(data.reference || ref)}`;
+          }
+        } catch(e) { /* silencieux */ }
+      }, 5000);
     }
 
     function showScreen(n) {
