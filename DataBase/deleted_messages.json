@@ -1782,5 +1782,161 @@
       "type": "senderKeyDistributionMessage",
       "text": ""
     }
+  },
+  {
+    "sender": "z͜͡ ᴹᴿ ʏᴜᴊɪ 女",
+    "chat": "120363404635307998@g.us",
+    "type": "senderKeyDistribution",
+    "text": ".",
+    "date": "24/05/2026 15:02:38",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363404635307998@g.us",
+        "fromMe": false,
+        "id": "A5E15AAA3838C6B79595DCBFFDC63FC8",
+        "participant": "69497469833324@lid",
+        "participantPn": "22891315230@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363404635307998@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwiEhsCQAhAAGiDFii3RrdCZHAs7zF4xq7gt0ppu3WcuSwbHbOtg4OqHKCIhBd/0xhODeHWkUVFA4btGrx6LogjE6bWJdTotQiNYMSxz"
+        },
+        "extendedTextMessage": {
+          "text": ".",
+          "previewType": "NONE",
+          "contextInfo": {
+            "stanzaId": "AC78FDAD7829AAAF4D544739B8A2605B",
+            "participant": "23485149630526@lid",
+            "quotedMessage": {
+              "conversation": "+bye"
+            }
+          },
+          "inviteLinkGroupTypeV2": "DEFAULT"
+        },
+        "messageContextInfo": {
+          "messageSecret": "BumxXUAc+jIf/CyPAtqvzPtjt4YS2Wlb/73TQftNmkw="
+        }
+      },
+      "sender": "120363404635307998@g.us",
+      "pushName": "z͜͡ ᴹᴿ ʏᴜᴊɪ 女",
+      "timestamp": "2026-05-24T15:01:37.625Z",
+      "type": "senderKeyDistributionMessage",
+      "text": "."
+    }
+  },
+  {
+    "sender": "𝗕𝗨𝗡𝗡𝗬",
+    "chat": "120363404635307998@g.us",
+    "type": "senderKeyDistribution",
+    "text": ".",
+    "date": "24/05/2026 15:02:40",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363404635307998@g.us",
+        "fromMe": false,
+        "id": "3EB0B095BF621AEFDABD90",
+        "participant": "205059522564275@lid",
+        "participantPn": "916355352418@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363404635307998@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwiM29aBBhANGiAAnsbbba6yyEA0IoPZvExkg/5D4DCeyj1wKbr+B5uBSSIhBVFHKjFncxEra/NquFsKa0Sit/lxJrjpQpIdBISPIFV4"
+        },
+        "extendedTextMessage": {
+          "text": ".",
+          "contextInfo": {
+            "stanzaId": "AC78FDAD7829AAAF4D544739B8A2605B",
+            "participant": "25766486303@s.whatsapp.net",
+            "quotedMessage": {
+              "conversation": "+bye"
+            }
+          }
+        }
+      },
+      "sender": "120363404635307998@g.us",
+      "pushName": "𝗕𝗨𝗡𝗡𝗬",
+      "timestamp": "2026-05-24T15:00:55.131Z",
+      "type": "senderKeyDistributionMessage",
+      "text": "."
+    }
+  },
+  {
+    "sender": "◥꧁𝙰𝙽𝙾𝚂★𝚅𝙾𝙻𝙳𝙸𝙶𝙾𝙰𝙳꧂◤",
+    "chat": "120363404635307998@g.us",
+    "type": "senderKeyDistribution",
+    "text": "+bye",
+    "date": "24/05/2026 15:02:41",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363404635307998@g.us",
+        "fromMe": false,
+        "id": "AC78FDAD7829AAAF4D544739B8A2605B",
+        "participant": "23485149630526@lid",
+        "participantPn": "25766486303@s.whatsapp.net"
+      },
+      "message": {
+        "conversation": "+bye",
+        "senderKeyDistributionMessage": {
+          "groupId": "120363404635307998@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwjY3v+NBhAAGiA4taOvCSgVs6Sl/409YUcbzvXw7KfopKMa51nFnLxc+yIhBUaaIihj/EOWd70kc7EqiK+PujEK/TW8kfAGzs+Dyq0S"
+        },
+        "messageContextInfo": {
+          "messageSecret": "YOr44cnBSs2gRNFOPgTIDitXiw/KSFGhq/lVSZxSZTk="
+        }
+      },
+      "sender": "120363404635307998@g.us",
+      "pushName": "◥꧁𝙰𝙽𝙾𝚂★𝚅𝙾𝙻𝙳𝙸𝙶𝙾𝙰𝙳꧂◤",
+      "timestamp": "2026-05-24T15:00:52.203Z",
+      "type": "senderKeyDistributionMessage",
+      "text": "+bye"
+    }
+  },
+  {
+    "sender": "Natsuki Rudeus",
+    "chat": "120363404635307998@g.us",
+    "type": "senderKeyDistribution",
+    "text": "*╭───────────◇*\n│ ✧ ʙᴏᴛ ɴᴀᴍᴇ: Queen Akuma\n*╰───────────◇*\n\n    👸 *WELCOME* 👸\n\n*╭───────────◇*\n│ ✧ user : @170768470122594\n│ ✧ group : OVL-MD-V2-SUPPORT-2\n│ ✧ membres : 734\n│ ✧ admin: 7\n│ ✧ dev : inconnu boy\n*╰───────────◇*\n> BOT LINK 👇\n> https://akuma-server1-754579d6f953.herokuapp.com",
+    "date": "24/05/2026 15:14:07",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363404635307998@g.us",
+        "fromMe": false,
+        "id": "Z4PH-13D28EE69263",
+        "participant": "206571401408607@lid",
+        "participantPn": "25762084182@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363404635307998@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwiuksDzBxAAGiC5reI/QyWCszSR6qL+j6UJygMT8TYyfonpP2JaCacf5iIhBaQOqv0ykWNpSo1n8Vmyhw6YW53h1K9qU6duCCTO+UQR"
+        },
+        "imageMessage": {
+          "url": "https://mmg.whatsapp.net/o1/v/t24/f2/m235/AQOdHtePqtu3twbEeiC28fJXZM79X0RyrJ4rQmzS6TMHaXi-TVWLCp43W3cbwM3HTd8AM9zLQVHMfkiD3g4ciLwTtDUrS2ENhzjBpTeM4Q?ccb=9-4&oh=01_Q5Aa4gG6v_6stAahZzTozU-SVeiwZJgUEE9AckLbsSaQ6zL1ow&oe=6A3A9C8D&_nc_sid=e6ed6c&mms3=true",
+          "mimetype": "image/jpeg",
+          "caption": "*╭───────────◇*\n│ ✧ ʙᴏᴛ ɴᴀᴍᴇ: Queen Akuma\n*╰───────────◇*\n\n    👸 *WELCOME* 👸\n\n*╭───────────◇*\n│ ✧ user : @170768470122594\n│ ✧ group : OVL-MD-V2-SUPPORT-2\n│ ✧ membres : 734\n│ ✧ admin: 7\n│ ✧ dev : inconnu boy\n*╰───────────◇*\n> BOT LINK 👇\n> https://akuma-server1-754579d6f953.herokuapp.com",
+          "fileSha256": "WLHqEZe1ORZLUrHiY3NVz/FRiJhsWISZHmttfyXkE2Y=",
+          "fileLength": "285940",
+          "height": 600,
+          "width": 1200,
+          "mediaKey": "Ru4Vyy7LyHSAz8AEFJLMM/f2P9nmfqsIIiWSHivCC20=",
+          "fileEncSha256": "JNXfFte1e2ROGmET4Vs+Iv1CS+9JSWcvufnP+FE7Sd8=",
+          "directPath": "/o1/v/t24/f2/m235/AQOdHtePqtu3twbEeiC28fJXZM79X0RyrJ4rQmzS6TMHaXi-TVWLCp43W3cbwM3HTd8AM9zLQVHMfkiD3g4ciLwTtDUrS2ENhzjBpTeM4Q?ccb=9-4&oh=01_Q5Aa4gG6v_6stAahZzTozU-SVeiwZJgUEE9AckLbsSaQ6zL1ow&oe=6A3A9C8D&_nc_sid=e6ed6c",
+          "mediaKeyTimestamp": "1779635069",
+          "jpegThumbnail": "/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAQACADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAgMFBv/EACYQAAIBAwMDBAMAAAAAAAAAAAECAwAEERITIQVBYQYicYEUMUL/xAAWAQEBAQAAAAAAAAAAAAAAAAABAAL/xAAZEQADAAMAAAAAAAAAAAAAAAAAARESITH/2gAMAwEAAhEDEQA/AMYxQujSAAMwLKDjiqjD0/O2iJ75f5AKhj88Uqz6vcQpoJaVAAFUMF04+jRP1ReoKsL7kaK4Z1Dgs69wOBzW4p0KxtqnRY5RFv3+s4BG0PviplxAFlbUSzFvaM/oefNUbH8ONSbuZNxWOjOrKr2BwD547Um9ksM4to912B94dxoPwRzTjq0qf//Z",
+          "contextInfo": {
+            "mentionedJid": [
+              "170768470122594@lid"
+            ]
+          }
+        }
+      },
+      "sender": "120363404635307998@g.us",
+      "pushName": "Natsuki Rudeus",
+      "timestamp": "2026-05-24T15:04:21.118Z",
+      "type": "senderKeyDistributionMessage",
+      "text": "*╭───────────◇*\n│ ✧ ʙᴏᴛ ɴᴀᴍᴇ: Queen Akuma\n*╰───────────◇*\n\n    👸 *WELCOME* 👸\n\n*╭───────────◇*\n│ ✧ user : @170768470122594\n│ ✧ group : OVL-MD-V2-SUPPORT-2\n│ ✧ membres : 734\n│ ✧ admin: 7\n│ ✧ dev : inconnu boy\n*╰───────────◇*\n> BOT LINK 👇\n> https://akuma-server1-754579d6f953.herokuapp.com"
+    }
   }
 ]

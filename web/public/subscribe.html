@@ -224,14 +224,23 @@
           <div class="success-box">
             <p style="font-size:1rem;text-align:center;">✅ <strong>Plan activé avec succès !</strong></p>
             <p style="text-align:center;margin-top:8px;">Votre code d'activation :</p>
-            <div class="cmd-box" id="activationCode" style="font-size:1.2rem;margin:10px 0;">—</div>
-            <p style="font-size:0.82rem;opacity:0.7;text-align:center;">Gardez ce code précieusement. Envoyez <strong>.upgrade VOTRE_CODE</strong> sur WhatsApp au bot pour activer.</p>
+            <div class="cmd-box" id="activationCode" style="font-size:1.1rem;margin:10px 0;word-break:break-all;">—</div>
           </div>
-          <a id="connectBtn" href="/connect" class="btn-wave" style="margin-top:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
-            <i class="fas fa-qrcode"></i> Connecter mon bot (QR Code)
+
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:16px;margin:12px 0;text-align:left;">
+            <p style="font-weight:700;margin-bottom:8px;">📱 Comment activer ?</p>
+            <p style="font-size:0.88rem;opacity:0.85;line-height:1.6;">
+              1. Ajoutez le bot sur WhatsApp : <strong>+225 05 02 52 467</strong><br>
+              2. Envoyez-lui ce message :<br>
+              <span style="display:inline-block;background:rgba(0,0,0,0.3);padding:6px 12px;border-radius:8px;margin-top:4px;font-family:monospace;font-size:0.9rem;">.upgrade <span id="activationCode2">VOTRE_CODE</span></span>
+            </p>
+          </div>
+
+          <a id="waBotBtn" href="https://wa.me/22550252467" target="_blank" class="btn-wave" style="margin-top:10px;background:linear-gradient(135deg,#25D366,#128C7E);">
+            <i class="fab fa-whatsapp"></i> Ouvrir WhatsApp avec le bot
             <i class="fas fa-arrow-right" style="font-size:0.8rem;"></i>
           </a>
-          <a id="waBtn" href="#" target="_blank" class="btn-whatsapp">
+          <a id="waBtn" href="#" target="_blank" class="btn-whatsapp" style="margin-top:8px;">
             <i class="fab fa-whatsapp"></i> Contacter le support
           </a>
         </div>
@@ -331,14 +340,18 @@
 
         if (data.success && data.code) {
           document.getElementById('activationCode').textContent = data.code;
+          document.getElementById('activationCode2').textContent = data.code;
           document.getElementById('activationResult').classList.remove('hidden');
           document.getElementById('activationError').classList.add('hidden');
           document.querySelector('#screen2 .card-header h1').textContent = 'Plan activé ! 🎉';
 
-          // Lien WhatsApp support
-          const msg = `Bonjour, j'ai activé le plan ${plan} GRATUIT sur HANI-MD.\nMon numéro: ${phone}\nNom: ${name}\nCode: ${data.code}\nRéf: ${reference}`;
+          // Lien WhatsApp bot avec commande pré-remplie
+          const upgradeMsg = `.upgrade ${data.code}`;
+          document.getElementById('waBotBtn').href = `https://wa.me/22550252467?text=${encodeURIComponent(upgradeMsg)}`;
+
+          // Lien support
+          const msg = `Bonjour, j'ai activé le plan ${plan} GRATUIT sur HANI-MD.\nMon numéro: ${phone}\nNom: ${name}\nCode: ${data.code}`;
           document.getElementById('waBtn').href = `https://wa.me/${SUPPORT_NUMBER}?text=${encodeURIComponent(msg)}`;
-          document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(reference)}`;
 
           showScreen(3); // étape finale
         } else {
