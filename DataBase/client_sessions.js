@@ -130,8 +130,18 @@ function verifyClient(clientId) {
  * Crée ou récupère une session WhatsApp pour un client.
  * Retourne la sessionData.
  */
+const MAX_CONCURRENT_SESSIONS = 3; // Limite pour ne pas surcharger le serveur
+
 async function createSession(clientId, clientInfo, forceNewQR = false) {
   const id = clientId.toUpperCase();
+
+  // Vérifier la limite de sessions actives (hors celle qu'on recrée)
+  const activeSessions = [...sessions.values()].filter(
+    s => s.status === 'connected' || s.status === 'qr_ready' || s.status === 'initializing'
+  );
+  if (!sessions.has(id) && activeSessions.length >= MAX_CONCURRENT_SESSIONS) {
+    throw new Error(`Limite atteinte (${MAX_CONCURRENT_SESSIONS} sessions max). Réessayez plus tard.`);
+  }
 
   // Si session déjà active en mémoire
   if (sessions.has(id)) {

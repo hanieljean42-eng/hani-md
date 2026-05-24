@@ -3293,11 +3293,11 @@ app.listen(port, '0.0.0.0', () => {
     }
   }
 
-  // Restaurer les sessions clients existantes (Bot-as-a-Service)
+  // NE PAS restaurer les sessions clients au démarrage
+  // (crée trop de connexions WS concurrentes et déconnecte le bot principal)
+  // Les clients se reconnecteront manuellement via /connect
   if (clientSessions) {
-    clientSessions.restorePersistedSessions().catch(e =>
-      console.log('[SESSIONS] Erreur restauration:', e.message)
-    );
+    console.log('[SESSIONS] ℹ️ Sessions clients : pas de restauration auto (stabilité bot owner)');
   }
 
   // Lancer le bot
