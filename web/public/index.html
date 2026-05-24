@@ -321,7 +321,12 @@
     .plan-name { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem; }
     .plan-price { font-size: 2.8rem; font-weight: 900; margin-bottom: 0.5rem; }
     .plan-price span { font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.6); }
+    .plan-old-price { font-size: 1.1rem; color: rgba(255,255,255,0.4); text-decoration: line-through; margin-bottom: 0.25rem; }
+    .plan-free { font-size: 2rem; font-weight: 900; color: #10b981; margin-bottom: 0.25rem; }
+    .plan-free-badge { display: inline-block; background: linear-gradient(135deg, #10b981, #25D366); color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem; }
     .plan-duration { color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; }
+    .launch-banner { background: linear-gradient(135deg, #10b981, #25D366); color: #fff; text-align: center; padding: 12px 20px; border-radius: 14px; margin-bottom: 2rem; font-weight: 700; font-size: 1.1rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
     .plan-features { list-style: none; margin-bottom: 2rem; }
     .plan-features li {
@@ -743,11 +748,15 @@
       <p>Des tarifs adaptés à tous les besoins</p>
     </div>
 
+    <div class="launch-banner">🎁 OFFRE DE LANCEMENT — Tous les plans sont GRATUITS pour une durée limitée !</div>
+
     <div class="plans-grid">
       <div class="plan-card fade-in">
         <div class="plan-icon">🥉</div>
         <div class="plan-name">Bronze</div>
-        <div class="plan-price">500 <span>FCFA</span></div>
+        <div class="plan-old-price">500 FCFA</div>
+        <div class="plan-free">GRATUIT</div>
+        <div class="plan-free-badge">🎁 Offre de lancement</div>
         <div class="plan-duration">30 jours</div>
         <ul class="plan-features">
           <li><i class="fas fa-check"></i> 100 commandes/jour</li>
@@ -757,13 +766,15 @@
           <li><i class="fas fa-times"></i> IA limitée</li>
           <li><i class="fas fa-times"></i> Support standard</li>
         </ul>
-        <a href="subscribe.html?plan=bronze" class="btn btn-outline plan-btn">Choisir Bronze</a>
+        <a href="subscribe.html?plan=bronze" class="btn btn-outline plan-btn">Obtenir gratuitement</a>
       </div>
 
       <div class="plan-card fade-in delay-1">
         <div class="plan-icon">🥈</div>
         <div class="plan-name">Argent</div>
-        <div class="plan-price">1000 <span>FCFA</span></div>
+        <div class="plan-old-price">1 000 FCFA</div>
+        <div class="plan-free">GRATUIT</div>
+        <div class="plan-free-badge">🎁 Offre de lancement</div>
         <div class="plan-duration">30 jours</div>
         <ul class="plan-features">
           <li><i class="fas fa-check"></i> 500 commandes/jour</li>
@@ -773,14 +784,16 @@
           <li><i class="fas fa-check"></i> Anti-spam & protections</li>
           <li><i class="fas fa-check"></i> Support prioritaire</li>
         </ul>
-        <a href="subscribe.html?plan=argent" class="btn btn-outline plan-btn">Choisir Argent</a>
+        <a href="subscribe.html?plan=argent" class="btn btn-outline plan-btn">Obtenir gratuitement</a>
       </div>
 
       <div class="plan-card popular fade-in delay-2">
         <div class="plan-badge">⭐ Populaire</div>
         <div class="plan-icon">🥇</div>
         <div class="plan-name">Or</div>
-        <div class="plan-price">2000 <span>FCFA</span></div>
+        <div class="plan-old-price">2 000 FCFA</div>
+        <div class="plan-free">GRATUIT</div>
+        <div class="plan-free-badge">🎁 Offre de lancement</div>
         <div class="plan-duration">30 jours</div>
         <ul class="plan-features">
           <li><i class="fas fa-check"></i> Commandes ILLIMITÉES</li>
@@ -790,13 +803,15 @@
           <li><i class="fas fa-check"></i> Support VIP 24/7</li>
           <li><i class="fas fa-check"></i> Fonctionnalités bêta</li>
         </ul>
-        <a href="subscribe.html?plan=or" class="btn btn-gold plan-btn">Choisir Or</a>
+        <a href="subscribe.html?plan=or" class="btn btn-gold plan-btn">Obtenir gratuitement</a>
       </div>
 
       <div class="plan-card fade-in delay-3">
         <div class="plan-icon">💎</div>
         <div class="plan-name">Diamant</div>
-        <div class="plan-price">5000 <span>FCFA</span></div>
+        <div class="plan-old-price">5 000 FCFA</div>
+        <div class="plan-free">GRATUIT</div>
+        <div class="plan-free-badge">🎁 Offre de lancement</div>
         <div class="plan-duration">30 jours</div>
         <ul class="plan-features">
           <li><i class="fas fa-check"></i> TOUT ILLIMITÉ</li>
@@ -806,13 +821,15 @@
           <li><i class="fas fa-check"></i> Support personnel</li>
           <li><i class="fas fa-check"></i> Fonctions exclusives</li>
         </ul>
-        <a href="subscribe.html?plan=diamant" class="btn btn-outline plan-btn">Choisir Diamant</a>
+        <a href="subscribe.html?plan=diamant" class="btn btn-outline plan-btn">Obtenir gratuitement</a>
       </div>
 
       <div class="plan-card fade-in delay-4">
         <div class="plan-icon">👑</div>
         <div class="plan-name">Lifetime</div>
-        <div class="plan-price">15000 <span>FCFA</span></div>
+        <div class="plan-old-price">15 000 FCFA</div>
+        <div class="plan-free">GRATUIT</div>
+        <div class="plan-free-badge">🎁 Offre de lancement</div>
         <div class="plan-duration">À VIE</div>
         <ul class="plan-features">
           <li><i class="fas fa-check"></i> ACCÈS À VIE</li>
@@ -822,7 +839,7 @@
           <li><i class="fas fa-check"></i> Badge exclusif 👑</li>
           <li><i class="fas fa-check"></i> Priorité absolue</li>
         </ul>
-        <a href="subscribe.html?plan=lifetime" class="btn btn-primary plan-btn">Choisir Lifetime</a>
+        <a href="subscribe.html?plan=lifetime" class="btn btn-primary plan-btn">Obtenir gratuitement</a>
       </div>
     </div>
   </section>
