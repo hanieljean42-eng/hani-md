@@ -490,22 +490,18 @@ async function handleCommand(ovl, msg) {
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 📩 TOUJOURS RÉPONDRE EN PRIVÉ (à soi-même)
+  // 📩 RÉPONSE INTELLIGENTE : owner → privé, autres → dans le chat
   // ═══════════════════════════════════════════════════════════
-  
-  // Fonction pour répondre en privé (à soi-même) - TOUJOURS utilisée
   const sendPrivate = (text) => ovl.sendMessage(botNumber, { text });
-  
-  // Fonction pour répondre dans le chat actuel (rarement utilisée)
-  const sendHere = (text) => ovl.sendMessage(from, { text });
+  const sendHere = (text) => ovl.sendMessage(from, { text }, { quoted: msg });
 
   const toggle = (key) => {
     protectionState[key] = !protectionState[key];
     return protectionState[key];
   };
 
-  // TOUJOURS envoyer en privé à soi-même
-  const send = sendPrivate;
+  // Si c'est l'owner (fromMe) → répondre en privé ; sinon → répondre dans le chat
+  const send = msg.key.fromMe ? sendPrivate : sendHere;
 
   // Charger le système de menu stylisé
   let MenuSystem, AccessControl;
@@ -680,6 +676,45 @@ async function handleCommand(ovl, msg) {
 • Antidelete: ${protectionState.antidelete ? "✅ Activé" : "❌ Désactivé"}
 `;
       return send(infoText);
+    }
+
+    case "premium":
+    case "subscribe":
+    case "plans":
+    case "offres":
+    case "myplan": {
+      const senderForPlan = msg.key.fromMe ? botNumber : (msg.key.participant || from);
+      const userPlanInfo = await getUserInfo(senderForPlan);
+      const siteUrl = process.env.SITE_URL || 'https://hani-tp3e.onrender.com';
+      
+      let premText = `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n`;
+      premText += `┃   💎 *HANI-MD PREMIUM*      ┃\n`;
+      premText += `┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n`;
+      premText += `👤 *Votre plan actuel:* ${userPlanInfo.plan}\n`;
+      premText += `📊 *Commandes aujourd'hui:* ${userPlanInfo.commandsToday || 0}/${userPlanInfo.dailyLimit === -1 ? '∞' : userPlanInfo.dailyLimit}\n\n`;
+      premText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      premText += `        📋 *NOS OFFRES*\n`;
+      premText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      premText += `🆓 *GRATUIT* — 0 FCFA\n`;
+      premText += `   30 cmd/jour, commandes de base\n\n`;
+      premText += `🥉 *BRONZE* — 500 FCFA/mois\n`;
+      premText += `   50 cmd/jour + téléchargements\n\n`;
+      premText += `🥈 *ARGENT* — 1 000 FCFA/mois\n`;
+      premText += `   200 cmd/jour + IA + groupes\n\n`;
+      premText += `🥇 *OR* — 2 000 FCFA/mois\n`;
+      premText += `   ILLIMITÉ — toutes les fonctions\n\n`;
+      premText += `💎 *DIAMANT* — 5 000 FCFA/mois\n`;
+      premText += `   ILLIMITÉ + API + support VIP\n\n`;
+      premText += `👑 *LIFETIME* — 15 000 FCFA\n`;
+      premText += `   ACCÈS À VIE — paiement unique\n\n`;
+      premText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      premText += `💳 *Pour s'abonner:*\n`;
+      premText += `🌐 ${siteUrl}/subscribe\n\n`;
+      premText += `📱 *Ou contactez:*\n`;
+      premText += `wa.me/22550252467\n`;
+      premText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      
+      return send(premText);
     }
     
     // === COMMANDES MIGRÉES VERS OVLCMD (cmd/VueUnique.js + cmd/Protection.js) ===
@@ -2962,7 +2997,7 @@ app.get('/payment-error', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 👤 API CLIENTS — Bot-as-a-Service (session WhatsApp par client)
+// 👤 API CLIENTS — Mode bot unique (le bot owner sert tous les clients)
 // ═══════════════════════════════════════════════════════════
 
 let clientSessions;
@@ -2985,25 +3020,21 @@ app.get('/api/clients/verify/:id', (req, res) => {
     }
     if (!info.valid) return res.json({ valid: false, error: 'ID client non reconnu. Vérifiez votre référence de paiement.' });
 
-    // Vérifier si une session existe déjà
-    const session = clientSessions.getSession(clientId);
-    const status = session ? session.status : 'not_connected';
-    const phoneNumber = session ? session.phoneNumber : null;
-
     res.json({
       valid: true,
+      mode: 'single_bot',
       plan: info.plan,
       name: info.name,
-      status: info.status === 'expired' ? 'expired' : status,
+      status: info.status === 'expired' ? 'expired' : 'ready',
       expiresAt: info.expiresAt,
-      phoneNumber
+      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, '')
     });
   } catch (e) {
     res.status(500).json({ valid: false, error: 'Erreur serveur: ' + e.message });
   }
 });
 
-// Initier/relancer la connexion WhatsApp pour un client
+// Mode bot unique : plus de session WhatsApp par client
 app.post('/api/clients/connect/:id', async (req, res) => {
   if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
   try {
@@ -3012,74 +3043,52 @@ app.post('/api/clients/connect/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
-    const session = await clientSessions.createSession(clientId, info, true);
-
-    res.json({
-      status: session.status,
-      phoneNumber: session.phoneNumber,
-      plan: session.plan
-    });
-  } catch (e) {
-    res.status(500).json({ error: 'Erreur création session: ' + e.message });
-  }
-});
-
-// Demander un code d'appairage (alternative au QR code)
-app.post('/api/clients/pair/:id', async (req, res) => {
-  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
-  try {
-    const clientId = req.params.id.trim().toUpperCase();
-    const phone = req.body.phone;
-
-    if (!phone || phone.replace(/\D/g, '').length < 8) {
-      return res.status(400).json({ error: 'Numéro de téléphone invalide' });
-    }
-
-    const info = clientSessions.verifyClient(clientId);
-    if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
-    if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
-
-    // S'assurer qu'une session existe et est fraîche
-    let session = clientSessions.getSession(clientId);
-    if (!session || session.status === 'failed' || session.status === 'connected') {
-      await clientSessions.createSession(clientId, info, true);
-    } else if (session.status === 'qr_ready' || session.status === 'pairing_code') {
-      // Session existe déjà avec QR, on peut directement demander le code
-    } else {
-      // Session en cours d'initialisation, on attend
-      await clientSessions.createSession(clientId, info, true);
-    }
-
-    const result = await clientSessions.requestPairingCode(clientId, phone);
-
-    if (result.alreadyConnected) {
-      return res.json({ status: 'connected', phoneNumber: result.phoneNumber });
-    }
-
     res.json({
       success: true,
-      code: result.code,
-      message: `Entrez ce code dans WhatsApp → Appareils connectés → Connecter un appareil → Connecter avec un numéro`
+      mode: 'single_bot',
+      status: 'ready',
+      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
+      plan: info.plan,
+      message: 'Votre abonnement est actif. Envoyez .menu au bot HANI-MD pour utiliser les commandes.'
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// Récupérer le QR code et le statut de connexion d'un client
+// Mode bot unique : pas de code d'appairage client
+app.post('/api/clients/pair/:id', async (req, res) => {
+  if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
+  try {
+    const clientId = req.params.id.trim().toUpperCase();
+    const info = clientSessions.verifyClient(clientId);
+    if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
+    if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
+    res.json({
+      success: true,
+      mode: 'single_bot',
+      status: 'ready',
+      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
+      message: 'Aucun appairage nécessaire. Envoyez .menu au bot HANI-MD.'
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Mode bot unique : pas de QR client
 app.get('/api/clients/qr/:id', (req, res) => {
   if (!clientSessions) return res.status(503).json({ status: 'error' });
   try {
     const clientId = req.params.id.trim().toUpperCase();
-    const session = clientSessions.getSession(clientId);
-
-    if (!session) return res.json({ status: 'not_connected' });
-
+    const info = clientSessions.verifyClient(clientId);
+    if (!info.valid) return res.json({ status: 'invalid' });
     res.json({
-      status: session.status,
-      qr: session.qr || null,
-      phoneNumber: session.phoneNumber,
-      plan: session.plan
+      mode: 'single_bot',
+      status: 'ready',
+      qr: null,
+      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
+      plan: info.plan
     });
   } catch (e) {
     res.status(500).json({ status: 'error', error: e.message });
@@ -3127,18 +3136,27 @@ app.post('/api/admin/payments/approve/:ref', requireAdmin, async (req, res) => {
     const p = payments[idx];
     console.log(`[ADMIN] ✅ Paiement approuvé: ${p.name} - ${p.plan} - Réf: ${p.reference}`);
 
+    try {
+      const premiumDB = require('./DataBase/premium');
+      const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
+      const planDays = p.plan?.toUpperCase() === 'LIFETIME' ? -1 : 30;
+      premiumDB.addPremium(clientJid, p.plan || 'OR', planDays);
+      console.log(`[PREMIUM] ✅ Client activé sur bot unique: ${clientJid} (${p.plan || 'OR'})`);
+    } catch (premiumErr) {
+      console.error('[PREMIUM] Erreur activation client:', premiumErr.message);
+    }
+
     // Notifier le client par WhatsApp si le bot est connecté
     if (ovl && connectionStatus === 'connected' && p.phone) {
       try {
         const siteUrl = process.env.RENDER_EXTERNAL_URL
           || process.env.SITE_URL
           || 'https://hani-tp3e.onrender.com';
-        const connectLink = `${siteUrl}/connect?id=${encodeURIComponent(p.reference)}`;
         const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
         const icon = planIcons[p.plan?.toUpperCase()] || '💎';
         const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
         await ovl.sendMessage(clientJid, {
-          text: `✅ *HANI-MD — Demande approuvée !*\n\nBonjour *${p.name}* 👋\n\nVotre demande a été validée ! 🎉\n${icon} Plan: *${p.plan}* (GRATUIT)\n🔑 Référence: *${p.reference}*\n\n➡️ *Connectez votre bot maintenant :*\n${connectLink}\n\n📱 _Cliquez sur le lien, scannez le QR Code avec WhatsApp → votre bot sera actif ! 🤖_`
+          text: `✅ *HANI-MD — Abonnement activé !*\n\nBonjour *${p.name}* 👋\n\nVotre demande a été validée ! 🎉\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n🤖 *Aucun QR code nécessaire.*\nVous utilisez maintenant le bot HANI-MD directement.\n\n👉 Envoyez *.menu* ici pour voir les commandes.\n👉 Envoyez *.premium* pour voir votre plan.\n\n🌐 Site: ${siteUrl}`
         });
         console.log(`[ADMIN] 📱 Notification envoyée à ${p.phone}`);
       } catch (notifErr) {

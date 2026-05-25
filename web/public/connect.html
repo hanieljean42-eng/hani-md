@@ -255,7 +255,7 @@
     <div class="card">
       <div class="logo">🤖</div>
       <h1>HANI-MD Premium</h1>
-      <p class="subtitle">Connectez votre WhatsApp</p>
+      <p class="subtitle">Activez votre accès au bot HANI-MD</p>
 
       <!-- État 0: Entrer l'ID client -->
       <div class="state active" id="state-input">
@@ -264,8 +264,7 @@
           <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
         </div>
 
-        <!-- Choix du mode de connexion -->
-        <div class="mode-toggle">
+        <div class="mode-toggle" style="display:none;">
           <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
             <i class="fas fa-qrcode"></i> QR Code
           </button>
@@ -281,7 +280,7 @@
         </div>
 
         <button class="btn btn-primary" id="btn-verify">
-          <i class="fas fa-check-circle"></i> <span id="btn-verify-text">Vérifier & Connecter</span>
+          <i class="fas fa-check-circle"></i> <span id="btn-verify-text">Vérifier mon accès</span>
         </button>
 
         <div class="footer-links">
@@ -372,9 +371,9 @@
       <!-- État 4: Connecté avec succès -->
       <div class="state" id="state-success">
         <div class="success-icon">✅</div>
-        <h2 style="margin-bottom: 1rem;">Bot Connecté!</h2>
+        <h2 style="margin-bottom: 1rem;">Accès activé!</h2>
         
-        <p style="color: rgba(255,255,255,0.7);">Votre bot HANI-MD est maintenant actif sur:</p>
+        <p style="color: rgba(255,255,255,0.7);">Envoyez vos commandes à ce numéro:</p>
         <div class="phone-display" id="connected-phone">+225 01 02 03 04 05</div>
         
         <p class="plan-badge" id="success-plan-badge">🥇 Or</p>
@@ -386,6 +385,7 @@
         <div class="info-box" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
           <h3 style="color: var(--success);"><i class="fas fa-check"></i> Que faire maintenant?</h3>
           <ol>
+            <li>Ouvrez WhatsApp et écrivez au bot affiché ci-dessus</li>
             <li>Envoyez <strong>.menu</strong> pour voir les commandes</li>
             <li>Tapez <strong>.help</strong> pour l'aide</li>
             <li>Essayez <strong>.ping</strong> pour tester</li>
@@ -631,8 +631,8 @@
           return showState('expired');
         }
 
-        if (data.status === 'connected') {
-          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+        if (data.status === 'ready' || data.mode === 'single_bot') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
           document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
           document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
           if (data.expiresAt) {
@@ -643,12 +643,7 @@
           return showState('success');
         }
 
-        // Mode code d'appairage
-        if (connectionMode === 'code') {
-          await initiatePairing(data.plan);
-        } else {
-          await initiateConnection(data.plan);
-        }
+        await initiateConnection(data.plan);
 
       } catch (e) {
         console.error('Erreur:', e);
@@ -760,18 +755,14 @@
           return showError(data.error);
         }
 
-        if (data.status === 'connected') {
-          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+        if (data.status === 'ready' || data.mode === 'single_bot') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
           document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
           return showState('success');
         }
 
-        // Afficher le QR et commencer le polling
-        document.getElementById('plan-badge').textContent = getPlanBadge(plan);
-        document.getElementById('plan-badge').className = 'plan-badge ' + getPlanClass(plan);
-        showState('qr');
-        startTimer();
-        startPolling();
+        showError(data.message || 'Votre accès est actif. Envoyez .menu au bot HANI-MD.');
 
       } catch (e) {
         console.error('Erreur:', e);
