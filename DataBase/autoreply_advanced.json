@@ -46,7 +46,7 @@
   "settings": {
     "enabled": true,
     "caseSensitive": false,
-    "partialMatch": true,
+    "partialMatch": false,
     "cooldown": 5,
     "maxRepliesPerMessage": 1
   },

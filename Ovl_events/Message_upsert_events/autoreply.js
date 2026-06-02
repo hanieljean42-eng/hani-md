@@ -60,18 +60,24 @@ async function handle(ovl, msg, options) {
     // Chercher une correspondance
     let reply = null;
     
-    // Priorité aux réponses spécifiques au chat
+    // Priorité aux réponses spécifiques au chat - match exact ou mot entier
     for (const [trigger, response] of Object.entries(chatReplies)) {
-      if (lowerText.includes(trigger.toLowerCase())) {
+      const t = trigger.toLowerCase();
+      const isMatch = lowerText === t || 
+                      new RegExp('(?:^|\\s|[^\\w])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|\\s|[^\\w])', 'i').test(lowerText);
+      if (isMatch) {
         reply = response;
         break;
       }
     }
     
-    // Si pas trouvé, chercher dans les réponses globales
+    // Si pas trouvé, chercher dans les réponses globales - match exact ou mot entier
     if (!reply) {
       for (const [trigger, response] of Object.entries(globalReplies)) {
-        if (lowerText.includes(trigger.toLowerCase())) {
+        const t = trigger.toLowerCase();
+        const isMatch = lowerText === t || 
+                        new RegExp('(?:^|\\s|[^\\w])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|\\s|[^\\w])', 'i').test(lowerText);
+        if (isMatch) {
           reply = response;
           break;
         }

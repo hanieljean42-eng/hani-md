@@ -1697,9 +1697,17 @@ async function startBot() {
 
               for (const [trigger, data] of Object.entries(arDB.replies)) {
                 const t = arDB.settings?.caseSensitive ? trigger : trigger.toLowerCase();
-                const isMatch = arDB.settings?.partialMatch !== false
-                  ? msgLower.includes(t)
-                  : msgLower === t;
+                let isMatch = false;
+                
+                if (arDB.settings?.partialMatch !== false) {
+                  // Mode partial : contient n'importe où
+                  isMatch = msgLower.includes(t);
+                } else {
+                  // Mode exact : match complet OU mot entier (avec espaces/punctuation)
+                  isMatch = msgLower === t || 
+                            new RegExp('(?:^|\\s|[^\\w])' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|\\s|[^\\w])', 'i').test(msgLower);
+                }
+                
                 if (isMatch) { matched = data; break; }
               }
 
