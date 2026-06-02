@@ -97,13 +97,19 @@ const commandModules = [
 ];
 
 let loadedModules = 0;
+const failedModules = [];
 for (const mod of commandModules) {
   try {
     require(mod);
     loadedModules++;
   } catch (e) {
-    // Ignorer silencieusement les modules non chargés
+    failedModules.push({ mod, error: e.message });
+    console.log(`[CMD] ❌ Échec chargement ${mod}: ${e.message}`);
   }
+}
+if (failedModules.length > 0) {
+  console.log(`[CMD] ⚠️ ${failedModules.length} module(s) non chargé(s) :`);
+  failedModules.forEach(f => console.log(`   - ${f.mod}: ${f.error}`));
 }
 console.log(`[CMD] ✅ ${loadedModules}/${commandModules.length} modules de commandes chargés`);
 console.log(`[CMD] 📋 ${getCommands().length} commandes disponibles via ovlcmd`);

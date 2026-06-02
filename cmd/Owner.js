@@ -193,7 +193,7 @@ ovlcmd(
         return repondre("❌ Mentionnez ou répondez à un utilisateur");
       }
 
-      // Ajouter à la liste sudo (à implémenter avec la DB)
+      // Ajouter à la liste sudo
       const { addSudo } = require("../DataBase/sudo");
       await addSudo(targetJid.split("@")[0]);
 
@@ -267,8 +267,8 @@ ovlcmd(
         return repondre("❌ Cette commande est réservée au propriétaire");
       }
 
-      const { getSudoList } = require("../DataBase/sudo");
-      const sudoList = await getSudoList();
+      const { getSudos } = require("../DataBase/sudo");
+      const sudoList = await getSudos();
 
       if (!sudoList || sudoList.length === 0) {
         return repondre("📋 *Liste Sudo*\n\nAucun utilisateur sudo.");
@@ -323,8 +323,8 @@ ovlcmd(
       const reason = arg.slice(1).join(" ") || "Aucune raison spécifiée";
 
       // Ajouter à la liste des bannis
-      const { addBanned } = require("../DataBase/ban");
-      await addBanned(targetJid.split("@")[0], reason);
+      const { banUser } = require("../DataBase/ban");
+      await banUser(targetJid.split("@")[0], reason);
 
       repondre(`🚫 @${targetJid.split("@")[0]} a été banni\n\n📝 Raison: ${reason}`, { mentions: [targetJid] });
 
@@ -366,8 +366,8 @@ ovlcmd(
       }
 
       // Retirer de la liste des bannis
-      const { removeBanned } = require("../DataBase/ban");
-      await removeBanned(targetJid.split("@")[0]);
+      const { unbanUser } = require("../DataBase/ban");
+      await unbanUser(targetJid.split("@")[0]);
 
       repondre(`✅ @${targetJid.split("@")[0]} a été débanni`, { mentions: [targetJid] });
 
