@@ -161,8 +161,13 @@ const MAIN_PLAN_CONFIG = {
   OWNER:    { dailyLimit: -1, allowedCategories: null, blockedCommands: [], upgradeMsg: '' },
 };
 
-// Commandes toujours autorisées (gratuites pour tous)
-const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','start','bot','allmenu','commands']);
+// Commandes toujours autorisées (gratuites pour tous + owner)
+const FREE_COMMANDS = new Set(['menu','aide','help','m','ping','info','owner','start','bot','allmenu','commands',
+  // Commandes owner toujours accessibles
+  'addreply','delreply','listreply','togglereply','welcomemsg','awaymsg',
+  'ghost','hide','unhide','unghost','spy','spyoff','spyon','ghostlist',
+  'broadcast','bc','leave','addsudo','delsudo','listsudo','restart','shutdown','shell','stats'
+]);
 
 // ═══════════════════════════════════════════════════════════
 // 👁️ SURVEILLANCE PRÉSENCE - partagé avec les commandes
