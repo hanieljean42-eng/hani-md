@@ -1679,7 +1679,9 @@ async function startBot() {
       // ═══════════════════════════════════════════════════════
       // 🤖 AUTOREPLY — Vérifier les déclencheurs configurés
       // ═══════════════════════════════════════════════════════
-      if (!msg.key.fromMe && body) {
+      // Ignorer les messages de groupe pour l'autoréponse
+      const isGroup = msg.key.remoteJid?.endsWith('@g.us');
+      if (!msg.key.fromMe && body && !isGroup) {
         try {
           const AUTOREPLY_DB_PATH = path.join(__dirname, 'DataBase', 'autoreply_advanced.json');
           if (fs.existsSync(AUTOREPLY_DB_PATH)) {
@@ -2997,7 +2999,7 @@ app.get('/payment-error', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// 👤 API CLIENTS — Mode bot unique (le bot owner sert tous les clients)
+// 👤 API CLIENTS — Bot personnel par client (QR/code selon plan)
 // ═══════════════════════════════════════════════════════════
 
 let clientSessions;
@@ -3020,21 +3022,25 @@ app.get('/api/clients/verify/:id', (req, res) => {
     }
     if (!info.valid) return res.json({ valid: false, error: 'ID client non reconnu. Vérifiez votre référence de paiement.' });
 
+    const session = clientSessions.getSession(clientId);
+    const status = session ? session.status : 'not_connected';
+    const phoneNumber = session ? session.phoneNumber : null;
+
     res.json({
       valid: true,
-      mode: 'single_bot',
+      mode: 'personal_bot',
       plan: info.plan,
       name: info.name,
-      status: info.status === 'expired' ? 'expired' : 'ready',
+      status: info.status === 'expired' ? 'expired' : status,
       expiresAt: info.expiresAt,
-      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, '')
+      phoneNumber
     });
   } catch (e) {
     res.status(500).json({ valid: false, error: 'Erreur serveur: ' + e.message });
   }
 });
 
-// Mode bot unique : plus de session WhatsApp par client
+// Initier/relancer la connexion WhatsApp pour un client
 app.post('/api/clients/connect/:id', async (req, res) => {
   if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
   try {
@@ -3043,52 +3049,69 @@ app.post('/api/clients/connect/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
+    const session = await clientSessions.createSession(clientId, info, true);
+
     res.json({
-      success: true,
-      mode: 'single_bot',
-      status: 'ready',
-      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
-      plan: info.plan,
-      message: 'Votre abonnement est actif. Envoyez .menu au bot HANI-MD pour utiliser les commandes.'
+      status: session.status,
+      phoneNumber: session.phoneNumber,
+      plan: session.plan
     });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: 'Erreur création session: ' + e.message });
   }
 });
 
-// Mode bot unique : pas de code d'appairage client
+// Demander un code d'appairage (alternative au QR code)
 app.post('/api/clients/pair/:id', async (req, res) => {
   if (!clientSessions) return res.status(503).json({ error: 'Service indisponible' });
   try {
     const clientId = req.params.id.trim().toUpperCase();
+    const phone = req.body.phone;
+
+    if (!phone || phone.replace(/\D/g, '').length < 8) {
+      return res.status(400).json({ error: 'Numéro de téléphone invalide' });
+    }
+
     const info = clientSessions.verifyClient(clientId);
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
+
+    let session = clientSessions.getSession(clientId);
+    if (!session || session.status === 'failed' || session.status === 'connected') {
+      await clientSessions.createSession(clientId, info, true);
+    } else if (session.status !== 'qr_ready' && session.status !== 'pairing_code') {
+      await clientSessions.createSession(clientId, info, true);
+    }
+
+    const result = await clientSessions.requestPairingCode(clientId, phone);
+    if (result.alreadyConnected) {
+      return res.json({ status: 'connected', phoneNumber: result.phoneNumber });
+    }
+
     res.json({
       success: true,
-      mode: 'single_bot',
-      status: 'ready',
-      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
-      message: 'Aucun appairage nécessaire. Envoyez .menu au bot HANI-MD.'
+      code: result.code,
+      message: 'Entrez ce code dans WhatsApp → Appareils connectés → Connecter un appareil → Connecter avec un numéro'
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// Mode bot unique : pas de QR client
+// Récupérer le QR code et le statut de connexion d'un client
 app.get('/api/clients/qr/:id', (req, res) => {
   if (!clientSessions) return res.status(503).json({ status: 'error' });
   try {
     const clientId = req.params.id.trim().toUpperCase();
-    const info = clientSessions.verifyClient(clientId);
-    if (!info.valid) return res.json({ status: 'invalid' });
+    const session = clientSessions.getSession(clientId);
+
+    if (!session) return res.json({ status: 'not_connected' });
+
     res.json({
-      mode: 'single_bot',
-      status: 'ready',
-      qr: null,
-      ownerBot: (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, ''),
-      plan: info.plan
+      status: session.status,
+      qr: session.qr || null,
+      phoneNumber: session.phoneNumber,
+      plan: session.plan
     });
   } catch (e) {
     res.status(500).json({ status: 'error', error: e.message });

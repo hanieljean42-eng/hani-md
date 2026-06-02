@@ -34,6 +34,10 @@ async function handle(ovl, msg, options) {
     // Ne pas répondre à soi-même
     if (msg.key.fromMe) return;
     
+    // Ignorer les messages de groupe
+    const chatId = msg.key.remoteJid;
+    if (chatId?.endsWith('@g.us')) return;
+    
     // Récupérer le texte du message
     let text = "";
     if (msg.message?.conversation) {
@@ -45,7 +49,6 @@ async function handle(ovl, msg, options) {
     if (!text) return;
     
     const lowerText = text.toLowerCase().trim();
-    const chatId = msg.key.remoteJid;
     
     // Charger les auto-réponses
     const autoreplies = loadAutoreplies();

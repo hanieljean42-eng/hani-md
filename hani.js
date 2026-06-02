@@ -8398,10 +8398,11 @@ ${actionDesc}
         const texte = msg.message?.conversation || msg.message?.extendedTextMessage?.text || "";
         if (texte) {
           try {
-            // Utiliser MySQL pour les auto-replies
+            // Utiliser MySQL pour les auto-replies (uniquement en privé, pas en groupe)
             const mysqlDB = require("./DataBase/mysql");
             const isGroup = from?.endsWith("@g.us");
-            const matchedReply = await mysqlDB.checkAutoReply(texte, isGroup);
+            if (isGroup) return; // Ignorer les groupes
+            const matchedReply = await mysqlDB.checkAutoReply(texte, false);
             
             if (matchedReply) {
               await hani.sendMessage(from, { text: matchedReply.response }, { quoted: msg });
