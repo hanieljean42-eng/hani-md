@@ -1,0 +1,65 @@
+{
+  "replies": {
+    "bonjour": {
+      "response": "👋 Bonjour ! Bienvenue sur ResumeCI Bot. Comment puis-je t'aider aujourd'hui ?",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "aide": {
+      "response": "❓ Voici ce que je peux faire pour toi :\n\n📚 *Cours* : Accède aux fiches de révision\n🎮 *Quiz* : Teste tes connaissances\n📝 *Fiches* : Liste des matières disponibles\n\nTape simplement ce que tu cherches !",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "cours": {
+      "response": "📚 Les cours sont disponibles sur https://resumeci.me\n\nMatières disponibles :\n• Mathématiques\n• Physique-Chimie\n• SVT\n• Histoire-Géographie\n• Philosophie",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "quiz": {
+      "response": "🎮 Lance un quiz maintenant :\nhttps://resumeci.me/quiz.html\n\nTypes de quiz disponibles :\n• QCM classique\n• Vrai/Faux\n• Dates historiques\n• Définitions",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "flashcards": {
+      "response": "🧠 Révise avec les flashcards :\nhttps://resumeci.me/flashcards.html\n\nSystème de répétition espacée pour mémoriser efficacement !",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "merci": {
+      "response": "🙏 Je t'en prie ! N'hésite pas si tu as besoin d'autre chose. Bonne révision ! 📚",
+      "createdAt": "2026-06-02T04:30:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    },
+    "bonjour haniel_dev ! je viens de resumeci.": {
+      "response": "👋 *Bienvenue sur ResumeCI !*\n\n🎓 Je suis Haniel_dev, ton assistant pour réviser efficacement.\n\n📚 *Ce que tu peux faire ici :*\n• Accéder aux fiches de cours\n• Jouer aux quiz\n• Utiliser les flashcards\n• Consulter les leçons\n\n🚀 *Commence par ici :*\nhttps://resumeci.me\n\n❓ Tape *aide* pour voir toutes les commandes disponibles",
+      "createdAt": "2026-06-02T04:36:00.000Z",
+      "triggerCount": 0,
+      "type": "text"
+    }
+  },
+  "settings": {
+    "enabled": true,
+    "caseSensitive": false,
+    "partialMatch": true,
+    "cooldown": 5,
+    "maxRepliesPerMessage": 1
+  },
+  "stats": {
+    "totalTriggers": 0,
+    "topTriggers": {}
+  },
+  "welcomeEnabled": true,
+  "welcomeMessage": "👋 Bienvenue {name} !\n\nJe suis le bot ResumeCI, ton assistant pour réviser efficacement.\n\n📚 *Commandes disponibles :*\n• *bonjour* - Salutations\n• *cours* - Accès aux fiches\n• *quiz* - Jouer aux quiz\n• *flashcards* - Mode révision\n• *aide* - Voir toutes les options",
+  "awayEnabled": false,
+  "awayMessage": "🕐 Je suis actuellement absent. Je te répondrai dès que possible !",
+  "awaySchedule": {
+    "start": "22:00",
+    "end": "08:00"
+  }
+}
