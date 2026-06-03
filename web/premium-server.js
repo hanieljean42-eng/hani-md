@@ -43,6 +43,14 @@ if (!process.env.JWT_SECRET) {
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || require('crypto').randomBytes(16).toString('hex');
 const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
 
+// Comparaison timing-safe pour éviter les attaques par analyse temporelle
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 // Sessions admin simples
 const adminSessions = new Map();
 
@@ -91,7 +99,7 @@ app.get('/activate', (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   
-  if (password === ADMIN_PASSWORD) {
+  if (password && safeEqual(password, ADMIN_PASSWORD)) {
     const token = crypto.randomBytes(32).toString('hex');
     adminSessions.set(token, {
       expires: Date.now() + (24 * 60 * 60 * 1000) // 24h

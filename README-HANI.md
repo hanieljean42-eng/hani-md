@@ -141,7 +141,7 @@ npm start
 
 ```
 HANI/
-├── hani.js          # Bot principal
+├── start.js         # Bot principal (point d'entrée unique)
 ├── package.json     # Dépendances
 ├── render.yaml      # Config Render
 ├── .env.example     # Template config
