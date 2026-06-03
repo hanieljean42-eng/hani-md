@@ -170,9 +170,7 @@ node session-generator.js
 
 ```
 HANI-MD/
-├── start.js            # Point d'entrée principal
-├── hani.js             # Core du bot WhatsApp
-├── Ovl.js              # Gestionnaire de connexion
+├── start.js            # Point d'entrée UNIQUE (bot + serveur web)
 ├── session.js          # Gestion des sessions
 ├── set.js              # Configuration
 ├── cmd/                # Modules de commandes
