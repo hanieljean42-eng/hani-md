@@ -27,6 +27,16 @@ try {
   console.error('[WEB] Erreur chargement wave_payments:', e.message);
 }
 
+// Persistance Firebase (survit au disque éphémère de Render)
+let jsonStore = null;
+try { jsonStore = require('../DataBase/jsonStore'); } catch (e) { jsonStore = null; }
+
+// Écrit le fichier sur disque + write-through Firebase (best-effort).
+function persistJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  if (jsonStore) { jsonStore.backupFile(file).catch(() => {}); }
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -320,7 +330,7 @@ app.post('/api/subscribe', (req, res) => {
     };
     
     requests.push(request);
-    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    persistJSON(requestsFile, requests);
     
     // Générer le lien Wave pour compatibilité frontend
     const paymentNumber = process.env.WAVE_NUMBER || '';
@@ -390,7 +400,7 @@ app.post('/api/admin/requests/:id/approve', requireAdmin, (req, res) => {
     request.approvedAt = new Date().toISOString();
     request.code = codeResult.code;
     
-    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    persistJSON(requestsFile, requests);
     
     res.json({
       success: true,
@@ -445,7 +455,7 @@ app.post('/api/wave/subscribe', (req, res) => {
     };
     
     requests.push(request);
-    fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
+    persistJSON(requestsFile, requests);
     
     console.log(`[WAVE] 📝 Nouvelle demande: ${name} - ${plan} - Réf: ${paymentRef}`);
     
@@ -506,7 +516,7 @@ app.post('/api/wave/confirm', (req, res) => {
     };
     
     transactions.push(transaction);
-    fs.writeFileSync(transactionsFile, JSON.stringify(transactions, null, 2));
+    persistJSON(transactionsFile, transactions);
     
     // Sauvegarder le code d'activation
     const codesFile = path.join(__dirname, '..', 'DataBase', 'activation_codes.json');
@@ -526,7 +536,7 @@ app.post('/api/wave/confirm', (req, res) => {
       transactionId: transaction.id
     };
     
-    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+    persistJSON(codesFile, codes);
     
     // Aussi enregistrer dans premium_codes.json pour compatibilité avec .upgrade
     const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
@@ -542,7 +552,7 @@ app.post('/api/wave/confirm', (req, res) => {
       usedBy: null,
       usedAt: null
     };
-    fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
+    persistJSON(premiumCodesFile, premiumCodes);
     
     // Logger le paiement
     console.log(`[WAVE] 💰 PAIEMENT CONFIRMÉ:`);
@@ -569,7 +579,7 @@ app.post('/api/wave/confirm', (req, res) => {
         createdAt: new Date().toISOString(),
         sent: false
       });
-      fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+      persistJSON(notifFile, notifications);
     } catch (e) {
       console.error('[NOTIF] Erreur sauvegarde notification:', e.message);
     }
@@ -784,7 +794,7 @@ app.delete('/api/admin/payments/:id', requireAdmin, (req, res) => {
     let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
     const before = items.length;
     items = items.filter(r => r.id !== req.params.id);
-    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    persistJSON(f, items);
     res.json({ success: true, deleted: before - items.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -796,7 +806,7 @@ app.post('/api/admin/payments/clear', requireAdmin, (req, res) => {
     let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
     const before = items.length;
     items = items.filter(r => r.status === 'pending');
-    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    persistJSON(f, items);
     res.json({ success: true, deleted: before - items.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -808,7 +818,7 @@ app.delete('/api/admin/requests/:id', requireAdmin, (req, res) => {
     let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
     const before = items.length;
     items = items.filter(r => r.id !== req.params.id);
-    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    persistJSON(f, items);
     res.json({ success: true, deleted: before - items.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -820,7 +830,7 @@ app.post('/api/admin/requests/clear', requireAdmin, (req, res) => {
     let items = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : [];
     const before = items.length;
     items = items.filter(r => r.status === 'pending');
-    fs.writeFileSync(f, JSON.stringify(items, null, 2));
+    persistJSON(f, items);
     res.json({ success: true, deleted: before - items.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

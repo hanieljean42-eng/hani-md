@@ -56,9 +56,13 @@ function readJSON(file, defaultValue = {}) {
   }
 }
 
+let _jsonStore = null;
 function writeJSON(file, data) {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    // Write-through Firebase (survit au disque éphémère Render)
+    if (_jsonStore === null) { try { _jsonStore = require('./jsonStore'); } catch (e) { _jsonStore = false; } }
+    if (_jsonStore) _jsonStore.backupFile(file).catch(() => {});
     return true;
   } catch (e) {
     console.error('[WAVE] Erreur écriture:', e.message);

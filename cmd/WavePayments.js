@@ -35,13 +35,22 @@ try {
   console.error('[WAVE CMD] Module premium non disponible');
 }
 
+// Sauvegarde Firebase des fichiers non couverts par premium.writeJSON
+let _jsonStore = null;
+try { _jsonStore = require('../DataBase/jsonStore'); } catch (e) { _jsonStore = null; }
+
 // Fallback si writeJSONPersisted non disponible
 function savePersisted(file, data) {
-  if (writeJSONPersisted) return writeJSONPersisted(file, data);
-  try {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
-    return true;
-  } catch (e) { return false; }
+  let ok;
+  if (writeJSONPersisted) {
+    ok = writeJSONPersisted(file, data);
+  } else {
+    try { fs.writeFileSync(file, JSON.stringify(data, null, 2)); ok = true; }
+    catch (e) { ok = false; }
+  }
+  // Write-through Firebase (codes d'activation & autres non gérés par premium.js)
+  if (ok && _jsonStore) { _jsonStore.backupFile(file).catch(() => {}); }
+  return ok;
 }
 
 // Numéro du owner pour les notifications
@@ -129,7 +138,7 @@ ovlcmd({
     const targetFile = path.join(__dirname, '..', 'DataBase', `${codeSource}.json`);
     const allCodes = JSON.parse(fs.readFileSync(targetFile, 'utf8') || '{}');
     allCodes[code] = codeData;
-    fs.writeFileSync(targetFile, JSON.stringify(allCodes, null, 2));
+    savePersisted(targetFile, allCodes);
 
     // ── 4. Activer le premium dans la base de données (débloque les fonctionnalités) ──
     if (premiumDB) {
@@ -331,7 +340,7 @@ ovlcmd({
       requestId: requestId,
       clientPhone: request.phone
     };
-    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2));
+    savePersisted(codesFile, codes);
     
     // Aussi premium_codes.json
     const premiumCodesFile = path.join(__dirname, '..', 'DataBase', 'premium_codes.json');
@@ -345,13 +354,13 @@ ovlcmd({
       createdAt: new Date().toISOString(),
       used: false
     };
-    fs.writeFileSync(premiumCodesFile, JSON.stringify(premiumCodes, null, 2));
+    savePersisted(premiumCodesFile, premiumCodes);
     
     // Marquer validé
     pending[reqIndex].status = 'validated';
     pending[reqIndex].validatedAt = new Date().toISOString();
     pending[reqIndex].activationCode = activationCode;
-    fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
+    savePersisted(pendingFile, pending);
     
     // Envoyer au client
     const clientPhone = request.phone.replace(/[^0-9]/g, '');
@@ -438,7 +447,7 @@ ovlcmd({
     pending[reqIndex].status = 'rejected';
     pending[reqIndex].rejectedAt = new Date().toISOString();
     pending[reqIndex].rejectReason = reason;
-    fs.writeFileSync(pendingFile, JSON.stringify(pending, null, 2));
+    savePersisted(pendingFile, pending);
     
     // Informer le client
     const clientPhone = request.phone.replace(/[^0-9]/g, '');
