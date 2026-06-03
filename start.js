@@ -125,6 +125,7 @@ const config = {
 
 // Dossier de session
 const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reconnexion)
+const SESSION_FB_PATH = "wa_sessions/principale"; // chemin Realtime DB pour la session WhatsApp persistante
 
 // ═══════════════════════════════════════════════════════════
 // 🔐 CONTRÔLE D'ACCÈS PAR PLAN (BOT PRINCIPAL)
@@ -1155,8 +1156,34 @@ async function startBot() {
     console.log('[SESSION] ✅ Session existante trouvée sur disque');
   }
 
-  // Charger l'état d'authentification
-  const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
+  // ═══════════════════════════════════════════════════════
+  // 🔑 ÉTAT D'AUTHENTIFICATION
+  // Priorité : Firebase (persistant, survit aux redémarrages Render)
+  //            sinon useMultiFileAuthState (disque éphémère + SESSION_ID)
+  // ═══════════════════════════════════════════════════════
+  let firebaseDB = null;
+  try { firebaseDB = require('./DataBase/firebase_db'); } catch (e) { firebaseDB = null; }
+  let sessionBackend = 'disk';
+  let state, saveCreds;
+
+  if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
+    try {
+      const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
+      state = fbAuth.state;
+      saveCreds = fbAuth.saveCreds;
+      sessionBackend = 'firebase';
+      console.log('[SESSION] 🔥 Auth state via Firebase (persistant entre redémarrages)');
+    } catch (e) {
+      console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
+    }
+  }
+
+  if (!state) {
+    const mf = await useMultiFileAuthState(SESSION_FOLDER);
+    state = mf.state;
+    saveCreds = mf.saveCreds;
+    sessionBackend = 'disk';
+  }
 
   // Obtenir la version WhatsApp la plus récente
   let waVersion;
@@ -1220,8 +1247,8 @@ async function startBot() {
       console.log("╚════════════════════════════════════════╝");
       console.log("\n");
 
-      // ── Auto-génération SESSION_ID pour Render ──────────────────
-      try {
+      // ── Auto-génération SESSION_ID pour Render (backend disque uniquement) ──
+      if (sessionBackend === 'disk') try {
         const sessionFiles = fs.readdirSync(SESSION_FOLDER);
         const bundle = {};
         for (const f of sessionFiles) {
@@ -1354,7 +1381,12 @@ async function startBot() {
         
         if (connectionFailureCount >= MAX_CONNECTION_FAILURES) {
           connectionFailureCount = 0;
-          if (process.env.SESSION_ID) {
+          if (sessionBackend === 'firebase' && firebaseDB) {
+            console.log("❌ Trop d'échecs - suppression session Firebase et nouveau QR...");
+            try { await firebaseDB.clearAuthState(SESSION_FB_PATH); } catch (e) {}
+            await delay(3000);
+            startBot();
+          } else if (process.env.SESSION_ID) {
             // Sur Railway/cloud : ne pas supprimer, juste signaler
             console.error('❌ SESSION INVALIDÉE — Regénérez la SESSION_ID:');
             console.error('   1. node session-generator.js  (sur votre PC)');
@@ -1379,7 +1411,12 @@ async function startBot() {
       
       if (isRealLogout) {
         connectionFailureCount = 0;
-        if (process.env.SESSION_ID) {
+        if (sessionBackend === 'firebase' && firebaseDB) {
+          console.log('❌ Déconnexion WhatsApp détectée - suppression session Firebase et nouveau QR...');
+          try { await firebaseDB.clearAuthState(SESSION_FB_PATH); } catch (e) {}
+          await delay(3000);
+          startBot();
+        } else if (process.env.SESSION_ID) {
           // Sur Railway/cloud : signaler sans supprimer
           console.error('❌ DÉCONNEXION WHATSAPP DÉTECTÉE');
           console.error('   → Allez dans WhatsApp > Appareils connectés > Déconnecter TOUT');
