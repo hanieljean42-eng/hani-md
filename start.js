@@ -123,6 +123,9 @@ const config = {
   STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "OVL",
 };
 
+// Backend d'authentification WhatsApp: 'auto' | 'disk' | 'firebase'
+const AUTH_BACKEND = (process.env.WHATSAPP_AUTH_BACKEND || process.env.WA_AUTH_BACKEND || 'auto').toLowerCase();
+
 // Dossier de session
 const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reconnexion)
 const SESSION_FB_PATH = "wa_sessions/principale"; // chemin Realtime DB pour la session WhatsApp persistante
@@ -1166,23 +1169,61 @@ async function startBot() {
   let sessionBackend = 'disk';
   let state, saveCreds;
 
-  if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
-    try {
-      const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
-      state = fbAuth.state;
-      saveCreds = fbAuth.saveCreds;
-      sessionBackend = 'firebase';
-      console.log('[SESSION] 🔥 Auth state via Firebase (persistant entre redémarrages)');
-    } catch (e) {
-      console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
-    }
-  }
-
-  if (!state) {
+  // Sélection du backend d'authentification selon AUTH_BACKEND
+  if (AUTH_BACKEND === 'disk') {
     const mf = await useMultiFileAuthState(SESSION_FOLDER);
     state = mf.state;
     saveCreds = mf.saveCreds;
     sessionBackend = 'disk';
+    console.log('[SESSION] 💾 Auth state via DISK (forcé par WHATSAPP_AUTH_BACKEND=disk)');
+  } else if (AUTH_BACKEND === 'firebase') {
+    // S'assurer que Firebase est connecté si demandé
+    if (firebaseDB && typeof firebaseDB.isConnected === 'function' && !firebaseDB.isConnected() && process.env.FIREBASE_URL) {
+      try { await firebaseDB.connect(); } catch (_) {}
+    }
+    if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
+      try {
+        const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
+        state = fbAuth.state;
+        saveCreds = fbAuth.saveCreds;
+        sessionBackend = 'firebase';
+        console.log('[SESSION] 🔥 Auth state via Firebase (forcé par WHATSAPP_AUTH_BACKEND=firebase)');
+      } catch (e) {
+        console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
+      }
+    }
+    if (!state) {
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+      console.log('[SESSION] 💾 Auth state via DISK (fallback — Firebase non disponible)');
+    }
+  } else { // auto
+    if (process.env.SESSION_ID) {
+      // Priorité au DISK si SESSION_ID est fournie (déploiements Render/Railway)
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+      console.log('[SESSION] 💾 Auth state via DISK (auto — SESSION_ID détectée)');
+    } else if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
+      try {
+        const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
+        state = fbAuth.state;
+        saveCreds = fbAuth.saveCreds;
+        sessionBackend = 'firebase';
+        console.log('[SESSION] 🔥 Auth state via Firebase (persistant entre redémarrages)');
+      } catch (e) {
+        console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
+      }
+    }
+    if (!state) {
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+    }
   }
 
   // Obtenir la version WhatsApp la plus récente
