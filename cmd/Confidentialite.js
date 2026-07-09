@@ -354,17 +354,25 @@ ovlcmd(
 
       } else if (action === "off" || action === "0") {
         process.env.GHOST_MODE = "false";
+        // Restaurer une présence WhatsApp naturelle :
+        // en ligne quand actif, "vu à" (dernière connexion) quand hors ligne.
         try {
           await ovl.sendPresenceUpdate("available");
           if (typeof ovl.updateLastSeenPrivacy === 'function') {
             await ovl.updateLastSeenPrivacy("all");
           }
+          // IMPORTANT : réactiver aussi la visibilité "en ligne", sinon elle
+          // reste sur "match_last_seen" et personne ne voit la présence.
+          if (typeof ovl.updateOnlinePrivacy === 'function') {
+            await ovl.updateOnlinePrivacy("all");
+          }
         } catch(e) {}
         repondre(
           `👁️ *Mode Fantôme DÉSACTIVÉ*\n\n` +
-          `❌ Le bot apparaît maintenant *en ligne*\n` +
-          `❌ "Vu récemment" visible\n\n` +
-          `Pour réactiver: *.ghost on*`
+          `✅ Présence WhatsApp *naturelle* rétablie\n` +
+          `🟢 En ligne quand tu es actif\n` +
+          `🕐 "Vu à" (dernière connexion) quand tu te déconnectes\n\n` +
+          `Pour réactiver l'invisibilité: *.ghost on*`
         );
 
       } else {
