@@ -22,7 +22,7 @@ ovlcmd(
     classe: 'Espionnage',
     react: '👁️',
     desc: 'Récupérer un message à vue unique (réponds au message)',
-    alias: ['viewonce', 'vo', 'wé', 'we', 'haniel'],
+    alias: ['haniel', 'mounira', 'viewonce', 'vo', 'wé', 'we'],
     superUser: true
   },
   async (ovl, msg, { repondre, from }) => {
