@@ -35,6 +35,7 @@ require("dotenv").config({ override: true });
 // ═══════════════════════════════════════════════════════════
 
 const { findCommand, executeCommand, getCommands } = require("./lib/ovlcmd");
+const { makeSelfSock, deleteCommandMessage } = require("./lib/selfRedirect");
 
 // Charger tous les modules de commandes
 const commandModules = [
@@ -494,29 +495,24 @@ async function handleCommand(ovl, msg) {
   // ═══════════════════════════════════════════════════════════
   const isOwnChat = from === botNumber;
   
-  // Supprimer le message de commande si on n'est pas dans notre propre chat
-  if (!isOwnChat && msg.key.fromMe) {
-    try {
-      await ovl.sendMessage(from, { delete: msg.key });
-      console.log(`🗑️ Commande .${command} supprimée du chat ${from}`);
-    } catch (e) {
-      console.log(`⚠️ Impossible de supprimer la commande: ${e.message}`);
-    }
+  // Supprimer le message de commande dans le chat d'origine (hors self-chat)
+  if (!isOwnChat) {
+    await deleteCommandMessage(ovl, msg);
+    console.log(`🗑️ Commande .${command} supprimée du chat ${from}`);
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 📩 RÉPONSE INTELLIGENTE : owner → privé, autres → dans le chat
+  // 📩 RÉPONSE : toujours dans la discussion "avec soi-même"
   // ═══════════════════════════════════════════════════════════
   const sendPrivate = (text) => ovl.sendMessage(botNumber, { text });
-  const sendHere = (text) => ovl.sendMessage(from, { text }, { quoted: msg });
 
   const toggle = (key) => {
     protectionState[key] = !protectionState[key];
     return protectionState[key];
   };
 
-  // Si c'est l'owner (fromMe) → répondre en privé ; sinon → répondre dans le chat
-  const send = msg.key.fromMe ? sendPrivate : sendHere;
+  // Toutes les réponses sont envoyées dans le chat "avec soi-même"
+  const send = sendPrivate;
 
   // Charger le système de menu stylisé
   let MenuSystem, AccessControl;
@@ -993,11 +989,11 @@ async function handleCommand(ovl, msg) {
                            ownerNumber.includes(senderClean)
                          ));
           
-          // Fonction répondre pour les commandes - envoie dans le chat d'origine
+          // Fonction répondre pour les commandes - envoie dans la discussion "avec soi-même"
           const repondre = async (text, opts = {}) => {
             const msgContent = { text: String(text) };
             if (opts?.mentions) msgContent.mentions = opts.mentions;
-            await ovl.sendMessage(from, msgContent, { quoted: msg });
+            await ovl.sendMessage(botNumber, msgContent);
           };
           
           // Préparer le message structuré pour les commandes
@@ -1083,8 +1079,8 @@ async function handleCommand(ovl, msg) {
           }
           // ── Fin vérification plan ──
 
-          // Exécuter la commande
-          await executeCommand(command, ovl, msg, options);
+          // Exécuter la commande (socket redirigé : réponses → discussion avec soi-même)
+          await executeCommand(command, makeSelfSock(ovl, from), msg, options);
           return;
         } catch (e) {
           console.log(`[CMD] ⚠️ Erreur exécution ${command}:`, e.message);
