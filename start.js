@@ -272,9 +272,10 @@ const protectionState = {
   anticall: false,
   antitag: false,
   antidelete: true,  // Activé par défaut pour voir les messages supprimés
-  ghostMode: true,   // Activé par défaut — bot apparaît hors ligne
+  ghostMode: false,  // Désactivé par défaut — présence WhatsApp naturelle (en ligne quand actif, 'vu à' hors ligne)
 };
-process.env.GHOST_MODE = "true"; // Sync avec les modules de commandes
+// Respecte GHOST_MODE défini dans l'environnement, sinon désactivé par défaut
+process.env.GHOST_MODE = process.env.GHOST_MODE === "true" ? "true" : "false";
 global._botProtectionState = protectionState; // Partagé avec cmd/Protection.js
 
 // Stockage des messages pour anti-delete (garde les 500 derniers messages)
@@ -1325,26 +1326,41 @@ async function startBot() {
       // Utilisez la commande botconnect manuellement si nécessaire.
       console.log('[BOT-NET] ℹ️ Auto-connect désactivé (stabilité serveur)');
 
-      // 👻 MODE FANTÔME — apparaître hors ligne dès la connexion
+      // 👻 PRÉSENCE — mode fantôme désactivé par défaut
+      // Par défaut, la présence WhatsApp reste NATURELLE : tu apparais en ligne
+      // quand tu utilises WhatsApp, et "vu à" (dernière connexion) quand tu te
+      // déconnectes — exactement comme WhatsApp normal.
+      // Le mode fantôme (invisible en permanence) ne s'active que si GHOST_MODE="true".
       setTimeout(async () => {
         try {
-          await ovl.sendPresenceUpdate("unavailable");
-          if (typeof ovl.updateLastSeenPrivacy === 'function') {
-            await ovl.updateLastSeenPrivacy("none");
+          if (process.env.GHOST_MODE === "true") {
+            await ovl.sendPresenceUpdate("unavailable");
+            if (typeof ovl.updateLastSeenPrivacy === 'function') {
+              await ovl.updateLastSeenPrivacy("none");
+            }
+            if (typeof ovl.updateOnlinePrivacy === 'function') {
+              await ovl.updateOnlinePrivacy("match_last_seen");
+            }
+            console.log("[GHOST] 👻 Mode fantôme activé — bot apparaît hors ligne");
+          } else {
+            // Restaurer une présence visible/naturelle
+            if (typeof ovl.updateLastSeenPrivacy === 'function') {
+              await ovl.updateLastSeenPrivacy("all");
+            }
+            if (typeof ovl.updateOnlinePrivacy === 'function') {
+              await ovl.updateOnlinePrivacy("all");
+            }
+            console.log("[GHOST] ✅ Présence naturelle — en ligne quand actif, 'vu à' hors ligne");
           }
-          if (typeof ovl.updateOnlinePrivacy === 'function') {
-            await ovl.updateOnlinePrivacy("match_last_seen");
-          }
-          console.log("[GHOST] 👻 Mode fantôme activé — bot apparaît hors ligne");
         } catch(e) {
-          console.log("[GHOST] sendPresenceUpdate:", e.message);
+          console.log("[GHOST] presence:", e.message);
         }
-        // Maintenir le mode fantôme toutes les 3 minutes
-        setInterval(async () => {
-          if (process.env.GHOST_MODE !== "false") {
+        // Ne maintenir "hors ligne" que si le mode fantôme est explicitement activé
+        if (process.env.GHOST_MODE === "true") {
+          setInterval(async () => {
             try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
-          }
-        }, 180000);
+          }, 180000);
+        }
       }, 3000);
       
       // 🔔 Envoyer les notifications de paiement en attente à l'owner
