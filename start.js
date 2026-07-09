@@ -1372,7 +1372,7 @@ async function startBot() {
             const pending = notifications.filter(n => !n.sent);
             
             if (pending.length > 0) {
-              const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+              const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
               const ownerJid = ownerNumber + '@s.whatsapp.net';
               
               for (const notif of pending) {
@@ -2629,7 +2629,7 @@ function notifyOwnerNewRequest(data) {
     const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
     const icon = planIcons[(data.plan || '').toUpperCase()] || '💎';
     const siteUrl = (process.env.RENDER_EXTERNAL_URL || process.env.SITE_URL || 'https://hani-tp3e.onrender.com').replace(/\/$/, '');
-    const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+    const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
     const ownerJid = ownerNumber + '@s.whatsapp.net';
 
     const notifMessage =
@@ -2808,7 +2808,7 @@ app.post('/api/wave/confirm', async (req, res) => {
     
     // 🔔 ENVOYER NOTIFICATION À L'OWNER
     try {
-      const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+      const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
       const ownerJid = ownerNumber + '@s.whatsapp.net';
       
       if (ovl && ovl.user) {
