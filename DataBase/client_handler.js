@@ -172,6 +172,11 @@ function attachMessageHandler(sock, clientId, plan) {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
 
+      // 🔒 Isolation : seul le propriétaire du bot (le compte connecté) peut
+      // lancer les commandes. Les messages entrants d'autres personnes sont
+      // ignorés — le bot ne réagit qu'aux commandes tapées par le client.
+      if (!msg.key.fromMe) return;
+
       const body = getTextFromMessage(msg);
       if (!body) return;
 
