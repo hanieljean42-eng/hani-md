@@ -2645,11 +2645,22 @@ function notifyOwnerNewRequest(data) {
       `✅ *Validez la demande* dans l'espace admin :\n${siteUrl}/admin → onglet *Demandes*\n\n` +
       `Une fois validée, le client pourra connecter son bot.`;
 
+    // Le bot tourne sur le numéro de l'owner : notifier ce même numéro
+    // reviendrait à s'envoyer un message à soi-même (aucune alerte utile).
+    // On n'envoie donc sur WhatsApp QUE si un numéro d'alerte distinct est
+    // configuré (NUMERO_NOTIF). Dans tous les cas la demande reste visible
+    // dans l'espace admin.
+    const botNumber = (ovl?.user?.id || '').split(':')[0].split('@')[0].replace(/[^0-9]/g, '');
+    if (ownerNumber && ownerNumber === botNumber) {
+      console.log(`[NOTIF] ℹ️ Demande "${data.reference}" — pas d'alerte WhatsApp (numéro identique au bot). Visible dans l'espace admin.`);
+      return;
+    }
+
     if (ovl && ovl.user) {
       // Bot connecté → envoi immédiat (temps réel)
       ovl.sendMessage(ownerJid, { text: notifMessage })
-        .then(() => console.log(`[NOTIF] ✅ Demande d'inscription notifiée à l'owner (${ownerNumber})`))
-        .catch(err => console.error('[NOTIF] Erreur envoi owner:', err.message));
+        .then(() => console.log(`[NOTIF] ✅ Demande d'inscription notifiée à ${ownerNumber}`))
+        .catch(err => console.error('[NOTIF] Erreur envoi alerte:', err.message));
     } else {
       // Bot non connecté → file d'attente pour envoi ultérieur
       const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
