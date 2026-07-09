@@ -3283,7 +3283,7 @@ app.post('/api/admin/payments/approve/:ref', requireAdmin, async (req, res) => {
         const icon = planIcons[p.plan?.toUpperCase()] || '💎';
         const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
         await ovl.sendMessage(clientJid, {
-          text: `✅ *HANI-MD — Abonnement activé !*\n\nBonjour *${p.name}* 👋\n\nVotre demande a été validée ! 🎉\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n🤖 *Aucun QR code nécessaire.*\nVous utilisez maintenant le bot HANI-MD directement.\n\n👉 Envoyez *.menu* ici pour voir les commandes.\n👉 Envoyez *.premium* pour voir votre plan.\n\n🌐 Site: ${siteUrl}`
+          text: `✅ *HANI-MD — Abonnement activé !*\n\nBonjour *${p.name}* 👋\n\nVotre paiement a été validé ! 🎉\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n🤖 *Connectez VOTRE bot personnel :*\n1️⃣ Ouvrez : ${siteUrl}/connect\n2️⃣ Entrez votre référence : *${p.reference}*\n3️⃣ Scannez le QR code (ou utilisez le code d'appairage)\n\n📲 Votre WhatsApp devient alors le bot HANI-MD.\nLe bot répond *uniquement dans votre discussion* — envoyez *.menu* pour voir les commandes.\n\n🌐 Site: ${siteUrl}`
         });
         console.log(`[ADMIN] 📱 Notification envoyée à ${p.phone}`);
       } catch (notifErr) {
