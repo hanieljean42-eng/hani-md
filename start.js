@@ -1376,8 +1376,11 @@ async function startBot() {
               const ownerJid = ownerNumber + '@s.whatsapp.net';
               
               for (const notif of pending) {
-                if (notif.type === 'payment') {
-                  const msg = 
+                // Message déjà pré-formaté (ex: demandes d'inscription mises en file)
+                let msg = notif.message || null;
+
+                if (!msg && notif.type === 'payment') {
+                  msg =
                     `💰 *PAIEMENT WAVE REÇU*\n` +
                     `━━━━━━━━━━━━━━━━━━━━━\n\n` +
                     `👤 *Client:* ${notif.name}\n` +
@@ -1388,7 +1391,9 @@ async function startBot() {
                     `🔑 *Code:* \`${notif.activationCode}\`\n\n` +
                     `⏰ *Date:* ${new Date(notif.createdAt).toLocaleString('fr-FR')}\n` +
                     `━━━━━━━━━━━━━━━━━━━━━`;
-                  
+                }
+
+                if (msg) {
                   await ovl.sendMessage(ownerJid, { text: msg });
                   notif.sent = true;
                   await delay(1000);
@@ -1868,7 +1873,10 @@ async function startBot() {
       // Traiter les commandes (même les messages envoyés par soi-même)
       await handleCommand(ovl, msg);
       // 👻 Re-signaler "hors ligne" après chaque commande traitée
-      if (process.env.GHOST_MODE !== "false") {
+      // UNIQUEMENT si le mode fantôme est explicitement activé.
+      // Sinon, on laisse la présence WhatsApp naturelle (en ligne quand actif,
+      // "vu à" quand déconnecté) — c'est ce comportement qui était sur-masqué.
+      if (process.env.GHOST_MODE === "true") {
         try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
       }
     } catch (e) {
@@ -2609,6 +2617,55 @@ app.get('/subscribe', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'public', 'subscribe.html'));
 });
 
+// ═══════════════════════════════════════════════════════════
+// 🔔 NOTIFICATION OWNER EN TEMPS RÉEL (nouvelles demandes/inscriptions)
+// Envoie un message WhatsApp à l'owner dès qu'un client s'inscrit, pour
+// qu'il puisse valider la demande immédiatement dans l'espace admin.
+// Si le bot n'est pas connecté, la notification est mise en file et sera
+// envoyée à la prochaine connexion.
+// ═══════════════════════════════════════════════════════════
+function notifyOwnerNewRequest(data) {
+  try {
+    const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+    const icon = planIcons[(data.plan || '').toUpperCase()] || '💎';
+    const siteUrl = (process.env.RENDER_EXTERNAL_URL || process.env.SITE_URL || 'https://hani-tp3e.onrender.com').replace(/\/$/, '');
+    const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+    const ownerJid = ownerNumber + '@s.whatsapp.net';
+
+    const notifMessage =
+      `🔔 *NOUVELLE DEMANDE D'INSCRIPTION*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `👤 *Client:* ${data.name || 'Non renseigné'}\n` +
+      `📱 *WhatsApp:* +${data.phone || '?'}\n` +
+      `${icon} *Plan:* ${data.plan || '-'}\n` +
+      `💵 *Montant:* ${data.amount || '?'} FCFA\n` +
+      `🔑 *Référence:* \`${data.reference || '-'}\`\n` +
+      `⏰ *Date:* ${new Date(data.createdAt || Date.now()).toLocaleString('fr-FR')}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `✅ *Validez la demande* dans l'espace admin :\n${siteUrl}/admin → onglet *Demandes*\n\n` +
+      `Une fois validée, le client pourra connecter son bot.`;
+
+    if (ovl && ovl.user) {
+      // Bot connecté → envoi immédiat (temps réel)
+      ovl.sendMessage(ownerJid, { text: notifMessage })
+        .then(() => console.log(`[NOTIF] ✅ Demande d'inscription notifiée à l'owner (${ownerNumber})`))
+        .catch(err => console.error('[NOTIF] Erreur envoi owner:', err.message));
+    } else {
+      // Bot non connecté → file d'attente pour envoi ultérieur
+      const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+      let notifications = [];
+      if (fs.existsSync(notifFile)) {
+        try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch (e) { notifications = []; }
+      }
+      notifications.push({ ...data, message: notifMessage, sent: false });
+      fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+      console.log('[NOTIF] ⏳ Bot non connecté — demande mise en file pour l\'owner');
+    }
+  } catch (e) {
+    console.error('[NOTIF] Erreur notifyOwnerNewRequest:', e.message);
+  }
+}
+
 // Créer un nouvel abonné (système manuel sans API Wave)
 app.post('/api/wave/subscribe', (req, res) => {
   try {
@@ -2651,7 +2708,18 @@ app.post('/api/wave/subscribe', (req, res) => {
     fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
     
     console.log(`[WAVE] 📝 Nouvelle demande: ${name} - ${plan} - Réf: ${paymentRef}`);
-    
+
+    // 🔔 NOTIFIER L'OWNER EN TEMPS RÉEL (nouvelle inscription à valider)
+    notifyOwnerNewRequest({
+      type: 'subscribe_request',
+      reference: paymentRef,
+      name: request.name,
+      phone: request.phone,
+      plan: request.plan,
+      amount: request.amount,
+      createdAt: request.createdAt
+    });
+
     res.json({
       success: true,
       requestId: request.id,

@@ -413,7 +413,7 @@
       if (autoRefreshInterval) clearInterval(autoRefreshInterval);
       if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
       checkPendingPayments();
-      autoRefreshInterval = setInterval(checkPendingPayments, 15000);
+      autoRefreshInterval = setInterval(checkPendingPayments, 7000);
     }
 
     async function checkPendingPayments() {
@@ -438,6 +438,9 @@
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('HANI-MD', { body: `${pending} demande(s) en attente`, icon: '/favicon.ico' });
           }
+        }
+        // Garder la table des demandes à jour en temps réel si la page est ouverte
+        if (document.getElementById('page-requests')?.classList.contains('active')) {
           loadPayments();
         }
         lastPendingCount = pending;

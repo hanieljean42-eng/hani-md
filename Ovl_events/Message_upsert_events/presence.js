@@ -20,6 +20,12 @@ async function handle(ovl, msg, options) {
     
     // Ne pas mettre à jour la présence pour les statuts
     if (chatId === "status@broadcast") return;
+
+    // 👻 Mode fantôme : ne rien révéler (rester hors ligne).
+    if (process.env.GHOST_MODE === "true") {
+      try { await ovl.sendPresenceUpdate("unavailable", chatId); } catch (e) {}
+      return;
+    }
     
     // Mettre à jour la présence
     await ovl.sendPresenceUpdate(PRESENCE_MODE, chatId);
