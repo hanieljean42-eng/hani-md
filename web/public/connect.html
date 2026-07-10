@@ -259,15 +259,15 @@
 
       <!-- État 0: Entrer l'ID client -->
       <div class="state active" id="state-input">
-        <div class="form-group">
+        <div class="form-group" id="id-group">
           <label><i class="fas fa-key"></i> Votre ID Client</label>
           <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
         </div>
 
-        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:0.6rem;text-align:left;">
+        <p id="method-intro" style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:0.6rem;text-align:left;">
           Choisissez votre méthode de connexion :
         </p>
-        <div class="mode-toggle">
+        <div class="mode-toggle" id="mode-toggle">
           <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
             <i class="fas fa-qrcode"></i> QR Code
           </button>
@@ -276,10 +276,17 @@
           </button>
         </div>
 
+        <p id="code-confirm-note" style="display:none;color:rgba(255,255,255,0.8);font-size:0.9rem;margin-bottom:0.8rem;text-align:left;">
+          <i class="fas fa-mobile-alt"></i> Confirmez votre numéro WhatsApp <strong>avec l'indicatif pays</strong>, puis obtenez votre code à 8 chiffres.
+        </p>
+
         <!-- Champ téléphone (visible seulement en mode code) -->
         <div class="form-group" id="phone-group" style="display:none;">
           <label><i class="fas fa-phone"></i> Votre numéro WhatsApp</label>
-          <input type="tel" id="pair-phone" placeholder="Ex: 22550252467 (avec indicatif pays)">
+          <input type="tel" id="pair-phone" placeholder="Ex: 2250778901234">
+          <p id="phone-hint" style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:0.4rem;text-align:left;">
+            Format international : indicatif pays + numéro, <strong>sans +</strong> ni 00 (ex : 225 = Côte d'Ivoire).
+          </p>
         </div>
 
         <button class="btn btn-primary" id="btn-verify">
@@ -911,10 +918,46 @@
       if (e.key === 'Enter') verifyClient();
     });
 
+    // Masque l'ID + le sélecteur de méthode quand on arrive depuis l'inscription
+    // (le client a déjà son ID et a déjà choisi sa méthode → pas de re-saisie).
+    function hideInscriptionFields() {
+      document.getElementById('id-group').style.display = 'none';
+      document.getElementById('method-intro').style.display = 'none';
+      document.getElementById('mode-toggle').style.display = 'none';
+    }
+
+    // Mode code depuis l'inscription : vérifier l'accès puis afficher la
+    // confirmation du numéro (avec indicatif pays) AVANT de générer le code.
+    // WhatsApp exige le numéro complet au format international, sinon l'appairage
+    // échoue avec « problème de numéro de téléphone ».
+    async function prepareCodeConnection() {
+      showState('verifying');
+      try {
+        const response = await fetch(`/api/clients/verify/${clientId}`);
+        const data = await response.json();
+        if (!data.valid && data.pending) return showPending(data);
+        if (!data.valid) return showError('ID client invalide ou non trouvé.');
+        if (data.expiresAt && new Date(data.expiresAt) < new Date()) return showState('expired');
+        if (data.status === 'ready' || data.mode === 'single_bot') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          return showState('success');
+        }
+        setMode('code');
+        hideInscriptionFields();
+        document.getElementById('code-confirm-note').style.display = 'block';
+        document.getElementById('btn-verify-text').textContent = 'Obtenir mon code';
+        showState('input');
+        document.getElementById('pair-phone').focus();
+      } catch (e) {
+        showError('Erreur réseau. Réessayez.');
+      }
+    }
+
     // Pré-remplir depuis URL params
     // Le choix "1 ou 2 téléphones" est fait à l'inscription (subscribe.html) puis
-    // transmis ici via ?mode=code|qr (+ ?phone= pour le mode code) → la bonne
-    // méthode de connexion est appliquée automatiquement, sans re-demander.
+    // transmis ici via ?mode=code|qr (+ ?phone= pour le mode code).
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get('mode');
     if (modeParam === 'code' || modeParam === 'qr') {
@@ -922,12 +965,19 @@
     }
     const phoneParam = urlParams.get('phone');
     if (phoneParam) {
-      document.getElementById('pair-phone').value = phoneParam;
+      document.getElementById('pair-phone').value = phoneParam.replace(/\D/g, '');
     }
     const idParam = urlParams.get('id');
     if (idParam) {
+      clientId = idParam.trim().toUpperCase();
       document.getElementById('client-id').value = idParam;
-      verifyClient();
+      if (modeParam === 'code') {
+        // Mode code : on confirme le numéro (indicatif pays) avant de générer
+        prepareCodeConnection();
+      } else {
+        // Mode QR : connexion automatique
+        verifyClient();
+      }
     }
   </script>
 </body>
