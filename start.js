@@ -2733,6 +2733,14 @@ app.post('/api/wave/subscribe', (req, res) => {
       createdAt: request.createdAt
     });
 
+    // 🔔 Notification push vers l'admin (même si l'app est fermée)
+    sendPushToAdmins({
+      title: '🔔 Nouvelle demande',
+      body: `${request.name} — ${request.plan} (${request.amount} FCFA)`,
+      url: '/admin',
+      tag: 'new-request'
+    }).catch(() => {});
+
     res.json({
       success: true,
       requestId: request.id,
@@ -3336,6 +3344,82 @@ app.get('/api/clients/qr/:id', (req, res) => {
 // ═══════════════════════════════════════════════════════════
 // 💳 GESTION DES PAIEMENTS EN ATTENTE (ADMIN)
 // ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+// 🔔 WEB PUSH (notifications admin, même app fermée)
+// ═══════════════════════════════════════════════════════════
+let webpush = null;
+try {
+  webpush = require('web-push');
+  const VAPID_PUBLIC  = process.env.VAPID_PUBLIC_KEY;
+  const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+  const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@hani-md.app';
+  if (VAPID_PUBLIC && VAPID_PRIVATE) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+    console.log('[PUSH] ✅ Web Push configuré');
+  } else {
+    console.warn('[PUSH] ⚠️ VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY manquantes — push désactivé');
+  }
+} catch (e) {
+  console.warn('[PUSH] web-push non disponible:', e.message);
+}
+
+const PUSH_SUBS_FILE = path.join(__dirname, 'DataBase', 'push_subscriptions.json');
+function loadPushSubs() {
+  try { const a = JSON.parse(fs.readFileSync(PUSH_SUBS_FILE, 'utf8')); return Array.isArray(a) ? a : []; }
+  catch { return []; }
+}
+function savePushSubs(arr) {
+  try { fs.writeFileSync(PUSH_SUBS_FILE, JSON.stringify(arr, null, 2)); } catch (e) { console.error('[PUSH] save:', e.message); }
+}
+async function sendPushToAdmins(payload) {
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+  const subs = loadPushSubs();
+  if (!subs.length) return;
+  const data = JSON.stringify(payload);
+  const kept = [];
+  await Promise.all(subs.map(async (s) => {
+    try { await webpush.sendNotification(s, data); kept.push(s); }
+    catch (e) {
+      // 404/410 = abonnement expiré → on le retire ; sinon on garde
+      if (e.statusCode !== 404 && e.statusCode !== 410) kept.push(s);
+    }
+  }));
+  if (kept.length !== subs.length) savePushSubs(kept);
+}
+
+// Clé publique VAPID (pour que le navigateur puisse s'abonner)
+app.get('/api/push/vapid-public-key', (req, res) => {
+  res.json({ key: process.env.VAPID_PUBLIC_KEY || '' });
+});
+
+// Enregistrer un abonnement push (admin uniquement)
+app.post('/api/push/subscribe', requireAdmin, (req, res) => {
+  const sub = req.body;
+  if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Abonnement invalide' });
+  const subs = loadPushSubs();
+  if (!subs.find(s => s.endpoint === sub.endpoint)) {
+    subs.push(sub);
+    savePushSubs(subs);
+  }
+  res.json({ success: true });
+});
+
+// Supprimer un abonnement push (admin uniquement)
+app.post('/api/push/unsubscribe', requireAdmin, (req, res) => {
+  const { endpoint } = req.body || {};
+  let subs = loadPushSubs();
+  const before = subs.length;
+  subs = subs.filter(s => s.endpoint !== endpoint);
+  if (subs.length !== before) savePushSubs(subs);
+  res.json({ success: true });
+});
+
+// Envoyer une notification de test (admin uniquement)
+app.post('/api/push/test', requireAdmin, async (req, res) => {
+  await sendPushToAdmins({ title: 'HANI-MD', body: '🔔 Test de notification reçu !', url: '/admin', tag: 'test' });
+  res.json({ success: true });
+});
 
 const PENDING_FILE = path.join(__dirname, 'DataBase', 'pending_payments.json');
 

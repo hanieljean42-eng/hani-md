@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin - HANI-MD</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#128C7E">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="HANI-MD">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -184,6 +191,8 @@
         <div class="header">
           <h1>📊 Vue d'ensemble</h1>
           <div class="header-actions">
+            <button class="btn btn-sm btn-success" id="enableNotifBtn"><i class="fas fa-bell"></i> Activer notifications</button>
+            <button class="btn btn-sm" id="installBtn" style="display:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;"><i class="fas fa-download"></i> Installer l'app</button>
             <button class="btn btn-sm btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déco</button>
           </div>
         </div>
@@ -370,6 +379,11 @@
       loadSessions();
       startAutoRefresh();
       loadBotStatus();
+      // Réabonner automatiquement au push si la permission est déjà accordée
+      if ('Notification' in window && Notification.permission === 'granted') {
+        subscribeToPush().catch(() => {});
+      }
+      updateNotifBtn();
     }
 
     // ═══ LOGOUT ═══
@@ -435,8 +449,9 @@
         // Notification si nouveau
         if (pending > lastPendingCount && lastPendingCount >= 0) {
           showToast(`🔔 ${pending - lastPendingCount} nouvelle(s) demande(s) !`);
+          playBeep();
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('HANI-MD', { body: `${pending} demande(s) en attente`, icon: '/favicon.ico' });
+            new Notification('HANI-MD', { body: `${pending} demande(s) en attente`, icon: '/icons/icon-192.png' });
           }
         }
         // Garder la table des demandes à jour en temps réel si la page est ouverte
@@ -640,6 +655,118 @@
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🔔 PWA + NOTIFICATIONS PUSH
+    // ═══════════════════════════════════════════════════════════
+    let swRegistration = null;
+    let deferredInstallPrompt = null;
+
+    // Enregistrer le service worker (nécessaire pour PWA + push)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => { swRegistration = reg; })
+        .catch(err => console.warn('[PWA] SW échec:', err));
+    }
+
+    // Bouton "Installer l'app" (Android/Chrome)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    });
+    window.addEventListener('appinstalled', () => {
+      const btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'none';
+      showToast('✅ Application installée !');
+    });
+    document.getElementById('installBtn')?.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) {
+        showToast("Utilisez le menu du navigateur → « Ajouter à l'écran d'accueil »");
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById('installBtn').style.display = 'none';
+    });
+
+    // Petit bip sonore (in-app) — utile quand l'onglet est ouvert
+    let audioCtx = null;
+    function playBeep() {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const beepAt = (t, freq) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine'; osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(t); osc.stop(t + 0.26);
+        };
+        const now = audioCtx.currentTime;
+        beepAt(now, 880); beepAt(now + 0.28, 1175);
+      } catch {}
+    }
+
+    function updateNotifBtn() {
+      const btn = document.getElementById('enableNotifBtn');
+      if (!btn) return;
+      if (!('Notification' in window)) { btn.style.display = 'none'; return; }
+      if (Notification.permission === 'granted') {
+        btn.innerHTML = '<i class="fas fa-bell"></i> Notifications activées';
+        btn.disabled = false;
+      } else if (Notification.permission === 'denied') {
+        btn.innerHTML = '<i class="fas fa-bell-slash"></i> Notifications bloquées';
+      } else {
+        btn.innerHTML = '<i class="fas fa-bell"></i> Activer notifications';
+      }
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const raw = atob(base64);
+      const out = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+
+    async function subscribeToPush() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      const reg = swRegistration || await navigator.serviceWorker.ready;
+      const res = await fetch('/api/push/vapid-public-key');
+      const { key } = await res.json();
+      if (!key) { console.warn('[PUSH] Clé VAPID absente côté serveur'); return; }
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(key)
+        });
+      }
+      await apiCall('/api/push/subscribe', 'POST', sub);
+    }
+
+    document.getElementById('enableNotifBtn')?.addEventListener('click', async () => {
+      if (!('Notification' in window)) { showToast('Notifications non supportées', true); return; }
+      // Débloquer l'audio (nécessite un geste utilisateur)
+      playBeep();
+      const perm = await Notification.requestPermission();
+      updateNotifBtn();
+      if (perm !== 'granted') { showToast('Permission refusée', true); return; }
+      try {
+        await subscribeToPush();
+        await apiCall('/api/push/test', 'POST');
+        showToast('🔔 Notifications activées ! (test envoyé)');
+      } catch (e) {
+        showToast('Erreur activation push', true);
+      }
+    });
   </script>
 </body>
 </html>

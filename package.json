@@ -52,6 +52,7 @@
     "sequelize": "^6.37.8",
     "simple-git": "^3.36.0",
     "wa-sticker-formatter": "^4.4.4",
+    "web-push": "^3.6.7",
     "wikipedia": "^2.1.2"
   },
   "optionalDependencies": {
