@@ -55,6 +55,16 @@
     .plan-price-tag .amount { font-size: 1.2rem; font-weight: 800; color: #25D366; }
     .plan-price-tag .cur { font-size: 0.72rem; opacity: 0.6; display: block; }
 
+    /* DEVICE CHOICE (nombre de téléphones) */
+    .device-options { display: grid; gap: 9px; }
+    .device-option { display: flex; align-items: center; padding: 14px 16px; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 14px; cursor: pointer; transition: all 0.25s; user-select: none; }
+    .device-option:hover { border-color: rgba(37,211,102,0.4); background: rgba(255,255,255,0.07); }
+    .device-option.selected { border-color: #25D366; background: rgba(37,211,102,0.1); }
+    .device-option .plan-emoji { font-size: 1.6rem; margin-right: 13px; flex-shrink: 0; }
+    .device-option .plan-info { flex: 1; min-width: 0; }
+    .dev-check { font-size: 1.2rem; color: #25D366; opacity: 0; transition: opacity 0.25s; flex-shrink: 0; }
+    .device-option.selected .dev-check { opacity: 1; }
+
     /* BUTTONS */
     .btn-pay { width: 100%; padding: 17px; background: linear-gradient(135deg, #1abc54, #25D366); border: none; border-radius: 14px; color: white; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; font-family: inherit; }
     .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(37,211,102,0.35); }
@@ -208,6 +218,23 @@
           </div>
         </div>
 
+        <div class="form-group" style="margin-top:22px;">
+          <label style="margin-bottom:10px;"><i class="fas fa-mobile-alt"></i> Combien de téléphones utilisez-vous ?</label>
+          <div class="device-options">
+            <label class="device-option selected" data-mode="qr" onclick="selectDevice(this)">
+              <span class="plan-emoji">📱📱</span>
+              <div class="plan-info"><div class="plan-name">Deux téléphones</div><div class="plan-desc">Connexion par QR code</div></div>
+              <i class="fas fa-check-circle dev-check"></i>
+            </label>
+            <label class="device-option" data-mode="code" onclick="selectDevice(this)">
+              <span class="plan-emoji">📱</span>
+              <div class="plan-info"><div class="plan-name">Un seul téléphone</div><div class="plan-desc">Connexion par code à 8 chiffres</div></div>
+              <i class="fas fa-check-circle dev-check"></i>
+            </label>
+          </div>
+          <div class="form-hint">Un seul téléphone ? Vous vous connecterez avec un code à 8 chiffres. Deux téléphones ? Vous scannerez un QR code.</div>
+        </div>
+
         <button class="btn-pay" id="btnProceed" onclick="proceedToPayment()" style="background:linear-gradient(135deg,#10b981,#25D366)">
           <i class="fas fa-gift"></i>
           <span id="btnProceedText">Activer gratuitement</span>
@@ -265,9 +292,8 @@
             <p style="font-weight:700;margin-bottom:8px;">📱 Étape suivante :</p>
             <p style="font-size:0.88rem;opacity:0.85;line-height:1.8;">
               1. Cliquez sur le bouton ci-dessous<br>
-              2. Entrez votre référence : <strong id="approvedRef">—</strong><br>
-              3. Choisissez <strong>QR Code</strong> ou <strong>Code d'appairage</strong><br>
-              4. Connectez votre WhatsApp → votre bot est actif ! 🤖
+              2. La connexion s'ouvre automatiquement avec la méthode choisie à l'inscription : <strong id="approvedMethod">QR code</strong><br>
+              3. Connectez votre WhatsApp → votre bot est actif ! 🤖
             </p>
           </div>
 
@@ -317,7 +343,7 @@
 
   <script>
     const SUPPORT_NUMBER = '22550252467';
-    let subData = { name:'', phone:'', plan:'OR', reference:'' };
+    let subData = { name:'', phone:'', plan:'OR', reference:'', connectMode:'qr' };
 
     // Pré-sélectionner le plan depuis l'URL
     (function() {
@@ -331,6 +357,15 @@
       document.querySelectorAll('.plan-option').forEach(o => o.classList.remove('selected'));
       el.classList.add('selected');
       el.querySelector('input').checked = true;
+    }
+
+    // Choix du nombre de téléphones → détermine la méthode de connexion
+    //  • 2 téléphones → QR code (mode 'qr')
+    //  • 1 téléphone  → code à 8 chiffres (mode 'code')
+    function selectDevice(el) {
+      document.querySelectorAll('.device-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      subData.connectMode = el.dataset.mode;
     }
 
     function generateRef() {
@@ -352,7 +387,8 @@
 
       const plan = selectedOpt.dataset.plan;
       const reference = generateRef();
-      subData = { name, phone, plan, reference };
+      const connectMode = (document.querySelector('.device-option.selected') || {}).dataset?.mode || 'qr';
+      subData = { name, phone, plan, reference, connectMode };
 
       showLoading('Envoi de votre demande...');
       showScreen(2);
@@ -367,7 +403,7 @@
         const res = await fetch('/api/wave/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, plan, reference })
+          body: JSON.stringify({ name, phone, plan, reference, connectMode })
         });
         const data = await res.json();
 
@@ -411,8 +447,15 @@
             document.getElementById('waitingState').classList.add('hidden');
             document.getElementById('approvedState').classList.remove('hidden');
             document.getElementById('screen2Title').textContent = 'Approuvé ! \ud83c\udf89';
-            document.getElementById('approvedRef').textContent = data.reference || ref;
-            document.getElementById('connectBtn').href = `/connect?id=${encodeURIComponent(data.reference || ref)}`;
+            document.getElementById('approvedMethod').textContent =
+              subData.connectMode === 'code' ? 'code à 8 chiffres' : 'QR code';
+            // Transmettre le choix fait à l'inscription pour appliquer
+            // automatiquement la bonne méthode de connexion (QR ou code 8 chiffres).
+            let connectUrl = `/connect?id=${encodeURIComponent(data.reference || ref)}&mode=${subData.connectMode}`;
+            if (subData.connectMode === 'code' && subData.phone) {
+              connectUrl += `&phone=${encodeURIComponent(subData.phone.replace(/\D/g,''))}`;
+            }
+            document.getElementById('connectBtn').href = connectUrl;
           }
         } catch(e) { /* silencieux */ }
       }, 5000);
