@@ -413,7 +413,7 @@
       if (autoRefreshInterval) clearInterval(autoRefreshInterval);
       if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
       checkPendingPayments();
-      autoRefreshInterval = setInterval(checkPendingPayments, 7000);
+      autoRefreshInterval = setInterval(checkPendingPayments, 3000);
     }
 
     async function checkPendingPayments() {
@@ -565,7 +565,7 @@
       loadSessions();
     }
 
-    function startSessionsRefresh() { stopSessionsRefresh(); document.getElementById('sessions-live').style.display='inline-flex'; sessionsRefreshInterval=setInterval(loadSessions,10000); }
+    function startSessionsRefresh() { stopSessionsRefresh(); document.getElementById('sessions-live').style.display='inline-flex'; sessionsRefreshInterval=setInterval(loadSessions,4000); }
     function stopSessionsRefresh() { if(sessionsRefreshInterval){clearInterval(sessionsRefreshInterval);sessionsRefreshInterval=null;} const e=document.getElementById('sessions-live');if(e)e.style.display='none'; }
 
     // ═══ DATA (stats) ═══
