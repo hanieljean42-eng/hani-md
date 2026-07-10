@@ -5,8 +5,9 @@
  * ╚══════════════════════════════════════════════════════════╝
  */
 
-const fs   = require('fs');
-const path = require('path');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 const pino = require('pino');
 const QRCode = require('qrcode');
 
@@ -354,7 +355,7 @@ async function requestPairingCode(clientId, phoneNumber) {
 
     // Code à 8 chiffres (WhatsApp : Appareils connectés → Connecter un appareil
     // → Connecter avec un numéro de téléphone → saisir les 8 chiffres).
-    const customCode = String(Math.floor(10000000 + Math.random() * 90000000));
+    const customCode = String(crypto.randomInt(10000000, 100000000));
     const code = await session.sock.requestPairingCode(cleanPhone, customCode);
     session.pairingCode = code;
     session.status = 'pairing_code';
