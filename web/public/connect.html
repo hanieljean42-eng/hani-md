@@ -264,12 +264,15 @@
           <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
         </div>
 
-        <div class="mode-toggle" style="display:none;">
+        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:0.6rem;text-align:left;">
+          Choisissez votre méthode de connexion :
+        </p>
+        <div class="mode-toggle">
           <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
             <i class="fas fa-qrcode"></i> QR Code
           </button>
           <button class="mode-btn" onclick="setMode('code')" id="mode-code-btn">
-            <i class="fas fa-keyboard"></i> Code d'appairage
+            <i class="fas fa-keyboard"></i> Code (1 seul tél)
           </button>
         </div>
 
@@ -456,6 +459,7 @@
     let pollInterval = null;
     let timerInterval = null;
     let pairingTimerInterval = null;
+    let pendingPollInterval = null;
     let timeLeft = 150; // 2:30 minutes
     let pairingTimeLeft = 300; // 5 minutes
     let connectionMode = 'qr'; // 'qr' ou 'code'
@@ -474,8 +478,32 @@
     };
 
     function showState(stateName) {
+      // Arrêter la surveillance "paiement en attente" dès qu'on quitte cet état
+      if (stateName !== 'pending') { clearInterval(pendingPollInterval); pendingPollInterval = null; }
       Object.values(states).forEach(s => s.classList.remove('active'));
       states[stateName].classList.add('active');
+    }
+
+    // Affiche l'écran "paiement en attente" et surveille automatiquement l'approbation
+    // → dès que l'owner valide, le QR (ou le code) s'affiche tout seul, sans action du client.
+    function showPending(data) {
+      document.getElementById('pending-name').textContent =
+        data && data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
+      showState('pending');
+      clearInterval(pendingPollInterval);
+      pendingPollInterval = setInterval(async () => {
+        if (!clientId) return;
+        try {
+          const r = await fetch(`/api/clients/verify/${clientId}`);
+          const d = await r.json();
+          if (d.valid) {
+            clearInterval(pendingPollInterval); pendingPollInterval = null;
+            if (d.expiresAt && new Date(d.expiresAt) < new Date()) return showState('expired');
+            if (connectionMode === 'code') { await initiatePairing(d.plan); }
+            else { await initiateConnection(d.plan); }
+          }
+        } catch (e) { /* réseau : on réessaie au prochain tick */ }
+      }, 3000);
     }
 
     // Toggle entre mode QR et code d'appairage
@@ -493,6 +521,7 @@
       clearInterval(pollInterval);
       clearInterval(timerInterval);
       clearInterval(pairingTimerInterval);
+      clearInterval(pendingPollInterval);
       document.getElementById('client-id').value = '';
       showState('input');
     }
@@ -537,14 +566,16 @@
         const response = await fetch(`/api/clients/verify/${clientId}`);
         const data = await response.json();
         if (!data.valid && data.pending) {
-          document.getElementById('pending-name').textContent =
-            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
-          return showState('pending');
+          return showPending(data);
         }
         if (!data.valid) return showError(data.error || 'ID non valide');
         if (data.expiresAt && new Date(data.expiresAt) < new Date()) return showState('expired');
-        // Paiement approuvé → lancer la connexion
-        await initiateConnection(data.plan);
+        // Paiement approuvé → lancer la connexion (QR ou code selon le mode choisi)
+        if (connectionMode === 'code') {
+          await initiatePairing(data.plan);
+        } else {
+          await initiateConnection(data.plan);
+        }
       } catch (e) {
         showError('Erreur réseau. Réessayez.');
       }
@@ -619,9 +650,7 @@
         const data = await response.json();
 
         if (!data.valid && data.pending) {
-          document.getElementById('pending-name').textContent =
-            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
-          return showState('pending');
+          return showPending(data);
         }
         if (!data.valid) {
           return showError('ID client invalide ou non trouvé. Vérifiez votre référence de paiement.');
@@ -643,7 +672,11 @@
           return showState('success');
         }
 
-        await initiateConnection(data.plan);
+        if (connectionMode === 'code') {
+          await initiatePairing(data.plan);
+        } else {
+          await initiateConnection(data.plan);
+        }
 
       } catch (e) {
         console.error('Erreur:', e);
@@ -658,8 +691,8 @@
       try {
         // D'abord créer la session
         await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
-        // Attendre un peu que le socket s'initialise
-        await new Promise(r => setTimeout(r, 2000));
+        // Court délai pour laisser le socket s'initialiser (le serveur réessaie si besoin)
+        await new Promise(r => setTimeout(r, 1200));
 
         // Demander le pairing code
         const response = await fetch(`/api/clients/pair/${clientId}`, {
@@ -722,7 +755,7 @@
       try {
         // Recréer une session
         await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1200));
         const phone = document.getElementById('pair-phone').value.trim();
         const response = await fetch(`/api/clients/pair/${clientId}`, {
           method: 'POST',
@@ -745,8 +778,19 @@
       }
     }
 
-    // Initier la connexion
+    // Initier la connexion par QR code
     async function initiateConnection(plan) {
+      // Préparer immédiatement l'écran QR (le QR s'affichera dès qu'il est prêt via le polling)
+      document.getElementById('plan-badge').textContent = getPlanBadge(plan);
+      document.getElementById('plan-badge').className = 'plan-badge ' + getPlanClass(plan);
+      document.getElementById('qr-container').innerHTML = `
+        <div class="qr-placeholder">
+          <div class="spinner" style="width: 40px; height: 40px;"></div>
+        </div>`;
+      document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
+      document.getElementById('qr-status-msg').style.display = 'block';
+      showState('qr');
+
       try {
         const response = await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
         const data = await response.json();
@@ -755,14 +799,24 @@
           return showError(data.error);
         }
 
+        // Bot mono-compte déjà prêt (cas rare)
         if (data.status === 'ready' || data.mode === 'single_bot') {
           document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
-          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
-          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan || plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan || plan);
           return showState('success');
         }
 
-        showError(data.message || 'Votre accès est actif. Envoyez .menu au bot HANI-MD.');
+        if (data.status === 'connected') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan || plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan || plan);
+          return showState('success');
+        }
+
+        // Le QR se génère côté serveur → on lance le polling qui l'affichera dès qu'il est prêt
+        startTimer();
+        startPolling();
 
       } catch (e) {
         console.error('Erreur:', e);
@@ -772,7 +826,8 @@
 
     // Polling pour le QR code
     function startPolling() {
-      pollInterval = setInterval(pollQR, 2000);
+      clearInterval(pollInterval);
+      pollInterval = setInterval(pollQR, 1500);
       pollQR(); // Première requête immédiate
     }
 

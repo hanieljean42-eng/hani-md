@@ -193,7 +193,7 @@ function attachMessageHandler(sock, clientId, plan) {
 
       // ── Commande spéciale : .plan ──
       if (cmdName === 'plan' || cmdName === 'abonnement') {
-        await deleteCommandMessage(sock, msg);
+        deleteCommandMessage(sock, msg).catch(() => {});
         const { count } = getClientUsage(clientId);
         const cfg = PLAN_CONFIG[planKey] || PLAN_CONFIG.BRONZE;
         const limitInfo = cfg.dailyLimit < 0 ? 'Illimité' : `${count}/${cfg.dailyLimit} aujourd'hui`;
@@ -209,8 +209,8 @@ function attachMessageHandler(sock, clientId, plan) {
 
       const cmd = cmdData.command;
 
-      // ── Supprimer le message de commande dans le chat d'origine ──
-      await deleteCommandMessage(sock, msg);
+      // ── Supprimer le message de commande (non bloquant → exécution immédiate) ──
+      deleteCommandMessage(sock, msg).catch(() => {});
 
       // ── Vérifier les droits pour ce plan ──
       const isGroup = from.endsWith('@g.us');

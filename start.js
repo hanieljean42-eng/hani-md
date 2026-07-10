@@ -497,9 +497,11 @@ async function handleCommand(ovl, msg) {
   const isOwnChat = from === botNumber;
   
   // Supprimer le message de commande dans le chat d'origine (hors self-chat)
+  // ⚡ Non bloquant : la commande s'exécute immédiatement sans attendre la suppression
   if (!isOwnChat) {
-    await deleteCommandMessage(ovl, msg);
-    console.log(`🗑️ Commande .${command} supprimée du chat ${from}`);
+    deleteCommandMessage(ovl, msg)
+      .then(() => console.log(`🗑️ Commande .${command} supprimée du chat ${from}`))
+      .catch(() => {});
   }
   
   // ═══════════════════════════════════════════════════════════
@@ -3275,14 +3277,28 @@ app.post('/api/clients/pair/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
+    // Un code d'appairage doit être demandé sur un socket "propre" (non enregistré,
+    // WebSocket ouvert). On (re)crée une session dédiée puis on demande le code ; si
+    // le socket n'est pas encore prêt, on réessaie une fois avec une session fraîche.
+    const isPairable = (s) =>
+      s && (s.status === 'initializing' || s.status === 'qr_ready' || s.status === 'pairing_code')
+        && (clientSessions.wsIsOpen(s.sock) || s.status === 'qr_ready' || s.status === 'pairing_code');
+
     let session = clientSessions.getSession(clientId);
-    if (!session || session.status === 'failed' || session.status === 'connected') {
-      await clientSessions.createSession(clientId, info, true);
-    } else if (session.status !== 'qr_ready' && session.status !== 'pairing_code') {
+    if (!isPairable(session)) {
       await clientSessions.createSession(clientId, info, true);
     }
 
-    const result = await clientSessions.requestPairingCode(clientId, phone);
+    let result;
+    try {
+      result = await clientSessions.requestPairingCode(clientId, phone);
+    } catch (firstErr) {
+      // Nouvelle tentative : session fraîche + petit délai pour l'ouverture du WebSocket
+      await clientSessions.createSession(clientId, info, true);
+      await new Promise(r => setTimeout(r, 1500));
+      result = await clientSessions.requestPairingCode(clientId, phone);
+    }
+
     if (result.alreadyConnected) {
       return res.json({ status: 'connected', phoneNumber: result.phoneNumber });
     }
