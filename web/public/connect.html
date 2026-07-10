@@ -205,6 +205,29 @@
     }
     .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.05); }
 
+    /* Choix du nombre de téléphones (étape d'inscription) */
+    .phone-choice { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
+    .choice-card {
+      display: flex; align-items: center; gap: 1rem;
+      width: 100%; text-align: left; cursor: pointer;
+      padding: 1rem 1.1rem; border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid var(--glass-border);
+      color: var(--light); transition: all 0.25s;
+    }
+    .choice-card:hover { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.06); }
+    .choice-card.active {
+      border-color: var(--primary);
+      background: rgba(99,102,241,0.12);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+    .choice-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+    .choice-body { flex: 1; }
+    .choice-title { font-weight: 700; font-size: 1rem; }
+    .choice-desc { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .choice-check { font-size: 1.2rem; color: var(--primary); opacity: 0; transition: opacity 0.25s; }
+    .choice-card.active .choice-check { opacity: 1; }
+
     /* Pairing code display */
     .pairing-code {
       font-family: 'Courier New', monospace;
@@ -264,15 +287,25 @@
           <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
         </div>
 
-        <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:0.6rem;text-align:left;">
-          Choisissez votre méthode de connexion :
+        <p style="color:rgba(255,255,255,0.85);font-size:0.95rem;margin-bottom:0.8rem;text-align:left;font-weight:600;">
+          <i class="fas fa-mobile-alt"></i> Combien de téléphones utilisez-vous ?
         </p>
-        <div class="mode-toggle">
-          <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
-            <i class="fas fa-qrcode"></i> QR Code
+        <div class="phone-choice">
+          <button type="button" class="choice-card" id="choice-one" onclick="setMode('code')">
+            <div class="choice-icon">📱</div>
+            <div class="choice-body">
+              <div class="choice-title">Un seul téléphone</div>
+              <div class="choice-desc">Connexion par <strong>code à 8 chiffres</strong></div>
+            </div>
+            <i class="fas fa-check-circle choice-check"></i>
           </button>
-          <button class="mode-btn" onclick="setMode('code')" id="mode-code-btn">
-            <i class="fas fa-keyboard"></i> Code (1 seul tél)
+          <button type="button" class="choice-card" id="choice-two" onclick="setMode('qr')">
+            <div class="choice-icon">📱📱</div>
+            <div class="choice-body">
+              <div class="choice-title">Deux téléphones</div>
+              <div class="choice-desc">Connexion par <strong>QR code</strong></div>
+            </div>
+            <i class="fas fa-check-circle choice-check"></i>
           </button>
         </div>
 
@@ -506,14 +539,16 @@
       }, 3000);
     }
 
-    // Toggle entre mode QR et code d'appairage
+    // Étape d'inscription : choix du nombre de téléphones
+    //  • 1 téléphone  → connexion par code à 8 chiffres (mode 'code')
+    //  • 2 téléphones → connexion par QR code (mode 'qr')
     function setMode(mode) {
       connectionMode = mode;
-      document.getElementById('mode-qr-btn').classList.toggle('active', mode === 'qr');
-      document.getElementById('mode-code-btn').classList.toggle('active', mode === 'code');
+      document.getElementById('choice-two').classList.toggle('active', mode === 'qr');
+      document.getElementById('choice-one').classList.toggle('active', mode === 'code');
       document.getElementById('phone-group').style.display = mode === 'code' ? 'block' : 'none';
       document.getElementById('btn-verify-text').textContent = mode === 'code'
-        ? 'Obtenir le code' : 'Vérifier & Connecter';
+        ? 'Obtenir mon code' : 'Vérifier & connecter';
     }
 
     function resetState() {
@@ -910,6 +945,9 @@
     document.getElementById('client-id').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') verifyClient();
     });
+
+    // Sélection par défaut : 2 téléphones (QR code)
+    setMode('qr');
 
     // Pré-remplir depuis URL params
     const urlParams = new URLSearchParams(window.location.search);
