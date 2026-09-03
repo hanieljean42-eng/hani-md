@@ -9,6 +9,7 @@ const path = require("path");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
 const QRCode = require("qrcode"); // Pour générer QR en image web
+const zlib = require("zlib");
 
 // Variable globale pour stocker le QR code actuel
 let currentQR = null;
@@ -35,6 +36,16 @@ require("dotenv").config({ override: true });
 // ═══════════════════════════════════════════════════════════
 
 const { findCommand, executeCommand, getCommands } = require("./lib/ovlcmd");
+
+// ═══════════════════════════════════════════════════════════
+// 🔄 VÉRIFICATEURS PÉRIODIQUES (Nouvelles Fonctionnalités)
+// ═══════════════════════════════════════════════════════════
+const { checkRappels } = require("./cmd/Rappels");
+const { processScheduledMessages } = require("./cmd/Planificateur");
+const { checkCalendarReminders } = require("./cmd/Calendar");
+const { trackMessage } = require("./cmd/Analytics");
+const { addToHistory } = require("./cmd/Resume");
+const { isSilenced } = require("./cmd/Silence");
 
 // Charger tous les modules de commandes
 const commandModules = [
@@ -94,6 +105,22 @@ const commandModules = [
   "./cmd/Protection",
   // ═══ 👻 CONTACTS FANTÔMES ═══
   "./cmd/GhostContact",
+  // ═══ 📝 NOUVELLES FONCTIONNALITÉS PRO ═══
+  "./cmd/Notes",
+  "./cmd/Templates",
+  "./cmd/Rappels",
+  "./cmd/Traduction",
+  "./cmd/Planificateur",
+  "./cmd/AudioTranscription",
+  "./cmd/Analytics",
+  "./cmd/Resume",
+  "./cmd/Silence",
+  "./cmd/AutoSave",
+  "./cmd/ExportChat",
+  "./cmd/SearchMessages",
+  "./cmd/Calendar",
+  "./cmd/Antispam",
+  "./cmd/MultiAccount",
 ];
 
 let loadedModules = 0;
@@ -1131,7 +1158,16 @@ async function startBot() {
   const isCloud = !!process.env.SESSION_ID;
   if (sessionId && (isCloud || !hasExistingSession)) {
     try {
-      if (sessionId.startsWith('HANI-MD~')) {
+      if (sessionId.startsWith('HANI-MD-V2~')) {
+        const base64Data = sessionId.replace('HANI-MD-V2~', '');
+        const compressed = Buffer.from(base64Data, 'base64');
+        const jsonStr = zlib.brotliDecompressSync(compressed).toString('utf-8');
+        const bundle = JSON.parse(jsonStr);
+        for (const [filename, b64content] of Object.entries(bundle)) {
+          fs.writeFileSync(path.join(SESSION_FOLDER, filename), Buffer.from(b64content, 'base64'));
+        }
+        console.log(`[SESSION] ✅ Session restaurée depuis SESSION_ID V2 (${Object.keys(bundle).length} fichiers)`);
+      } else if (sessionId.startsWith('HANI-MD~')) {
         const jsonStr = Buffer.from(sessionId.slice(8), 'base64').toString('utf-8');
         const bundle = JSON.parse(jsonStr);
         for (const [filename, b64content] of Object.entries(bundle)) {
@@ -1143,7 +1179,7 @@ async function startBot() {
         fs.writeFileSync(credsPath, decoded);
         console.log('[SESSION] ✅ Session restaurée depuis SESSION_ID (format simple)');
       } else {
-        console.error('[SESSION] ❌ Format SESSION_ID non reconnu (doit commencer par HANI-MD~)');
+        console.error('[SESSION] ❌ Format SESSION_ID non reconnu (doit commencer par HANI-MD-V2~ ou HANI-MD~)');
       }
     } catch (e) {
       console.error('[SESSION] ❌ Impossible de restaurer SESSION_ID:', e.message);
@@ -1683,16 +1719,52 @@ async function startBot() {
 
       // Log pour déboguer
       const body = getMessageText(msg);
+      const senderJid = msg.key.participant || msg.key.remoteJid;
+      const chatJid = msg.key.remoteJid;
+      const isGroup = chatJid?.endsWith('@g.us');
+
       if (body) {
-        console.log(`📩 Message reçu: "${body}" de ${msg.key.remoteJid} (fromMe: ${msg.key.fromMe})`);
+        console.log(`📩 Message reçu: "${body}" de ${chatJid} (fromMe: ${msg.key.fromMe})`);
       }
-      
+
+      // ═══════════════════════════════════════════════════════
+      // 📊 TRACKING ANALYTICS & HISTORIQUE (Nouvelles Fonctionnalités)
+      // ═══════════════════════════════════════════════════════
+      if (!msg.key.fromMe && body) {
+        try {
+          // Tracking pour analytics
+          trackMessage(senderJid, isGroup);
+          // Ajouter à l'historique pour résumé et recherche
+          addToHistory(chatJid, body, senderJid);
+        } catch (e) {
+          // Silencieux si erreur
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // 🔇 VÉRIFICATION MODE SILENCE (Nouvelles Fonctionnalités)
+      // ═══════════════════════════════════════════════════════
+      const ownerNumber = process.env.NUMERO_OWNER || "22550252467";
+      const ownerJid = ownerNumber.replace(/\D/g, "") + "@s.whatsapp.net";
+      const isOwner = msg.key.fromMe || senderJid === ownerJid;
+
+      if (!isOwner && !msg.key.fromMe) {
+        try {
+          if (isSilenced(ownerJid, chatJid)) {
+            console.log(`[SILENCE] 🔇 Message ignoré de ${chatJid} (mode silence actif)`);
+            return; // Bloquer tout traitement si silence actif
+          }
+        } catch (e) {
+          // Continuer si erreur
+        }
+      }
+
       // ═══════════════════════════════════════════════════════
       // 🤖 AUTOREPLY — Vérifier les déclencheurs configurés
       // ═══════════════════════════════════════════════════════
       // Ignorer les messages de groupe pour l'autoréponse
-      const isGroup = msg.key.remoteJid?.endsWith('@g.us');
-      if (!msg.key.fromMe && body && !isGroup) {
+      const isGroupMsg = msg.key.remoteJid?.endsWith('@g.us');
+      if (!msg.key.fromMe && body && !isGroupMsg) {
         try {
           const AUTOREPLY_DB_PATH = path.join(__dirname, 'DataBase', 'autoreply_advanced.json');
           if (fs.existsSync(AUTOREPLY_DB_PATH)) {
@@ -1951,6 +2023,30 @@ async function startBot() {
       } catch(_) {}
     }
   }, 15 * 60 * 1000);
+
+  // ═══════════════════════════════════════════════════════════
+  // 🔄 VÉRIFICATEURS DES NOUVELLES FONCTIONNALITÉS
+  // ═══════════════════════════════════════════════════════════
+
+  // ── Vérifier les rappels toutes les 1 minute ─────
+  if (global._rappelInterval) clearInterval(global._rappelInterval);
+  global._rappelInterval = setInterval(async () => {
+    try { await checkRappels(ovl); } catch(e) {}
+  }, 60 * 1000);
+
+  // ── Vérifier les messages planifiés toutes les 1 minute ─────
+  if (global._scheduledInterval) clearInterval(global._scheduledInterval);
+  global._scheduledInterval = setInterval(async () => {
+    try { await processScheduledMessages(ovl); } catch(e) {}
+  }, 60 * 1000);
+
+  // ── Vérifier les rappels calendrier toutes les 2 minutes ─────
+  if (global._calendarInterval) clearInterval(global._calendarInterval);
+  global._calendarInterval = setInterval(async () => {
+    try { await checkCalendarReminders(ovl); } catch(e) {}
+  }, 2 * 60 * 1000);
+
+  console.log("[SCHEDULER] ✅ Vérificateurs automatiques démarrés");
 
   // ── MÉTHODE 4 : Événement presence.update (temps réel) ─────
   ovl.ev.on('presence.update', async ({ id, presences }) => {

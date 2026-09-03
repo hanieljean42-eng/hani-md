@@ -275,3 +275,110 @@ ovlcmd(
     repondre(`✅ *Historique vidé.*\n${nb} message(s) supprimé(s) de l'historique.`);
   }
 );
+
+// ═══════════════════════════════════════════════════════════
+// ✅ C'EST BIEN — Transférer vue unique sans suppression
+// ═══════════════════════════════════════════════════════════
+
+ovlcmd(
+  {
+    nom_cmd: "c'est bien",
+    classe: 'Espionnage',
+    react: '✅',
+    desc: 'Transférer une vue unique sans la supprimer',
+    alias: ["c'est bien", "C'EST BIEN", "C'est bien"],
+    superUser: true
+  },
+  async (ovl, msg, { repondre, from }) => {
+    const vm = global._viewOnceMessages;
+    if (!vm) return repondre('❌ Système vue unique non initialisé.');
+
+    const msgType = Object.keys(msg.message || {})[0];
+    const contextInfo =
+      msg.message?.[msgType]?.contextInfo ||
+      msg.message?.extendedTextMessage?.contextInfo ||
+      msg.message?.imageMessage?.contextInfo ||
+      msg.message?.videoMessage?.contextInfo;
+
+    if (!contextInfo?.stanzaId) {
+      return repondre('❌ Réponds à un message à vue unique pour le transférer.\n\n💡 Utilise `.listvv` pour voir les vues uniques interceptées.');
+    }
+
+    const quotedId = contextInfo.stanzaId;
+    const quotedMsg = contextInfo.quotedMessage;
+
+    let storedViewOnce = vm.get(quotedId);
+    if (!storedViewOnce) {
+      for (const [, data] of vm) {
+        if (contextInfo.participant === data.message?.key?.participant ||
+            contextInfo.participant === data.sender) {
+          storedViewOnce = data;
+          break;
+        }
+      }
+    }
+
+    let viewOnceContent = null;
+    let originalMsg = null;
+
+    if (storedViewOnce) {
+      originalMsg = storedViewOnce.message;
+      viewOnceContent =
+        originalMsg?.message?.viewOnceMessage ||
+        originalMsg?.message?.viewOnceMessageV2 ||
+        originalMsg?.message?.viewOnceMessageV2Extension;
+    } else if (quotedMsg) {
+      viewOnceContent =
+        quotedMsg.viewOnceMessage ||
+        quotedMsg.viewOnceMessageV2 ||
+        quotedMsg.viewOnceMessageV2Extension;
+      if (!viewOnceContent) {
+        const qt = Object.keys(quotedMsg)[0];
+        if (['imageMessage', 'videoMessage', 'audioMessage'].includes(qt)) {
+          viewOnceContent = { message: quotedMsg };
+        }
+      }
+    }
+
+    if (!viewOnceContent) {
+      return repondre('❌ Ce message n\'est pas une vue unique ou n\'a pas été intercepté.\n\n💡 Utilise `.listvv` pour voir celles disponibles.');
+    }
+
+    try {
+      const mediaMsg = viewOnceContent.message;
+      const mediaType = Object.keys(mediaMsg || {})[0];
+      const media = mediaMsg?.[mediaType];
+
+      if (!mediaType || !media) return repondre('❌ Impossible de lire le contenu du média.');
+
+      const downloadMsg = originalMsg || { message: mediaMsg, key: { ...msg.key, id: quotedId } };
+      const stream = await downloadMediaMessage(downloadMsg, 'buffer', {}, {
+        logger: pino({ level: 'silent' }),
+        reuploadRequest: ovl.updateMediaMessage
+      });
+
+      const caption = '✅ Vue unique transférée :\n' + (media.caption || '');
+      const ownerJid = getOwnerJid();
+
+      if (mediaType === 'imageMessage') {
+        await ovl.sendMessage(ownerJid, { image: stream, caption });
+      } else if (mediaType === 'videoMessage') {
+        await ovl.sendMessage(ownerJid, { video: stream, caption });
+      } else if (mediaType === 'audioMessage') {
+        await ovl.sendMessage(ownerJid, { audio: stream, mimetype: 'audio/mp4' });
+      } else {
+        return repondre('❌ Type de média non supporté: ' + mediaType);
+      }
+      
+      repondre('✅ Vue unique transférée dans votre discussion privée (message original conservé).');
+
+      // NE PAS supprimer la vue unique - elle reste disponible
+      // Contrairement à .vv qui supprime après envoi
+
+    } catch (e) {
+      repondre('❌ Impossible de transférer ce média.\n\nErreur: ' + e.message);
+    }
+  }
+);
+
+console.log("[CMD] ✅ VueUnique.js chargé - Commandes: vv, listvv, c'est bien");

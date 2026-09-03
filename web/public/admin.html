@@ -225,9 +225,30 @@
 
         <!-- Statut bot owner -->
         <div class="card">
-          <div class="card-header"><h3>🤖 Statut Bot Owner</h3></div>
+          <div class="card-header">
+            <h3>🤖 Statut Bot Owner</h3>
+            <button class="btn btn-sm btn-primary" onclick="toggleQRSection()" id="toggleQRBtn"><i class="fas fa-qrcode"></i> Afficher QR</button>
+          </div>
           <div class="card-body" id="botStatus">
             <p style="opacity:0.6;">Chargement...</p>
+          </div>
+          <!-- Section QR Code intégrée -->
+          <div class="card-body" id="qrSection" style="display:none;">
+            <div style="text-align:center;padding:20px;background:rgba(0,0,0,0.1);border-radius:15px;">
+              <div id="qrContainer" style="display:flex;justify-content:center;align-items:center;min-height:250px;">
+                <div style="width:60px;height:60px;border:4px solid rgba(37,211,102,0.2);border-top-color:#25D366;border-radius:50%;animation:spin 1s linear infinite;"></div>
+              </div>
+              <div id="qrStatus" style="margin-top:15px;font-weight:600;color:#ffc107;">Génération du QR code...</div>
+              <div style="margin-top:20px;font-size:0.85rem;opacity:0.8;text-align:left;background:rgba(0,0,0,0.2);padding:15px;border-radius:10px;">
+                <strong style="color:#25D366;">📱 Instructions:</strong>
+                <ol style="margin-left:20px;margin-top:10px;line-height:1.6;">
+                  <li>Ouvrez WhatsApp sur votre téléphone</li>
+                  <li>Allez dans <strong>Paramètres → Appareils liés</strong></li>
+                  <li>Appuyez sur <strong>Lier un appareil</strong></li>
+                  <li>Scannez ce QR code</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -450,15 +471,78 @@
         const res = await fetch('/api/connection-status');
         const data = await res.json();
         const el = document.getElementById('botStatus');
+        const toggleBtn = document.getElementById('toggleQRBtn');
+        
         if (data.status === 'connected') {
           el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#10b981;font-size:1.5rem;">🟢</span><div><p style="font-weight:600;">Connecté</p><p style="font-size:0.82rem;opacity:0.6;">Le bot owner est actif</p></div></div>`;
+          if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-qrcode"></i> Afficher QR';
         } else if (data.status === 'waiting_qr') {
-          el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.5rem;">🟡</span><div><p style="font-weight:600;color:#f59e0b;">En attente de QR</p><p style="font-size:0.82rem;opacity:0.6;"><a href="/qr" target="_blank" style="color:var(--primary);">Scanner le QR →</a></p></div></div>`;
+          el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.5rem;">🟡</span><div><p style="font-weight:600;color:#f59e0b;">En attente de QR</p><p style="font-size:0.82rem;opacity:0.6;">Cliquez sur "Afficher QR" pour scanner</p></div></div>`;
+          if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-qrcode"></i> Scanner QR';
+          // Auto-afficher la section QR si en attente
+          if (document.getElementById('qrSection').style.display === 'none') {
+            toggleQRSection();
+          }
         } else {
           el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.5rem;">🔴</span><div><p style="font-weight:600;color:#ef4444;">Déconnecté</p><p style="font-size:0.82rem;opacity:0.6;">Le bot tente de se reconnecter...</p></div></div>`;
+          if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-qrcode"></i> Afficher QR';
         }
       } catch {
         document.getElementById('botStatus').innerHTML = '<p style="opacity:0.5;">Impossible de vérifier</p>';
+      }
+    }
+
+    // ═══ QR SECTION TOGGLE ═══
+    let qrPollingInterval = null;
+    
+    function toggleQRSection() {
+      const qrSection = document.getElementById('qrSection');
+      const toggleBtn = document.getElementById('toggleQRBtn');
+      
+      if (qrSection.style.display === 'none') {
+        qrSection.style.display = 'block';
+        toggleBtn.innerHTML = '<i class="fas fa-times"></i> Masquer QR';
+        loadQRCode();
+        if (qrPollingInterval) clearInterval(qrPollingInterval);
+        qrPollingInterval = setInterval(loadQRCode, 5000);
+      } else {
+        qrSection.style.display = 'none';
+        toggleBtn.innerHTML = '<i class="fas fa-qrcode"></i> Afficher QR';
+        if (qrPollingInterval) {
+          clearInterval(qrPollingInterval);
+          qrPollingInterval = null;
+        }
+      }
+    }
+
+    async function loadQRCode() {
+      try {
+        const res = await fetch('/qr');
+        const data = await res.json();
+        const qrContainer = document.getElementById('qrContainer');
+        const qrStatus = document.getElementById('qrStatus');
+        
+        if (data.connected) {
+          qrContainer.innerHTML = `<div style="text-align:center;"><div style="font-size:4rem;color:#10b981;">✅</div><p style="color:#10b981;font-weight:600;margin-top:10px;">Connecté !</p><p style="font-size:0.85rem;opacity:0.7;">${data.user || 'Bot actif'}</p></div>`;
+          qrStatus.textContent = 'Bot connecté et opérationnel';
+          qrStatus.style.color = '#10b981';
+          if (qrPollingInterval) {
+            clearInterval(qrPollingInterval);
+            qrPollingInterval = null;
+          }
+        } else if (data.qr) {
+          qrContainer.innerHTML = `<img src="${data.qr}" alt="QR Code" style="max-width:250px;border-radius:10px;" />`;
+          qrStatus.textContent = 'En attente du scan...';
+          qrStatus.style.color = '#ffc107';
+        } else {
+          qrContainer.innerHTML = `<div style="width:60px;height:60px;border:4px solid rgba(37,211,102,0.2);border-top-color:#25D366;border-radius:50%;animation:spin 1s linear infinite;"></div>`;
+          qrStatus.textContent = data.message || 'Génération du QR code...';
+          qrStatus.style.color = '#ffc107';
+        }
+      } catch (error) {
+        console.error('Erreur QR:', error);
+        document.getElementById('qrStatus').textContent = 'Erreur de connexion au serveur';
+        document.getElementById('qrStatus').style.color = '#ef4444';
       }
     }
 
