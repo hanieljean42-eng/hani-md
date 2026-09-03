@@ -44,7 +44,7 @@
     }
   },
   "settings": {
-    "enabled": true,
+    "enabled": false,
     "caseSensitive": false,
     "partialMatch": false,
     "cooldown": 5,

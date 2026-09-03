@@ -14,6 +14,7 @@ const path = require("path");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
 const readline = require("readline");
+const zlib = require("zlib");
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -26,6 +27,7 @@ const {
 
 const SESSION_FOLDER = "./DataBase/session/principale";
 const SESSION_OUTPUT = "./session_id.txt";
+const SESSION_OUTPUT_LEGACY = "./session_id_legacy.txt";
 
 console.log(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -98,10 +100,14 @@ async function generateSession(isRetry = false) {
       
       // Lire les fichiers de session et les encoder en base64
       const sessionData = await encodeSession();
+      const sessionLegacy = await encodeSessionLegacy();
       
       if (sessionData) {
         // Sauvegarder dans un fichier
         fs.writeFileSync(SESSION_OUTPUT, sessionData);
+        if (sessionLegacy) {
+          try { fs.writeFileSync(SESSION_OUTPUT_LEGACY, sessionLegacy); } catch (e) {}
+        }
         
         console.log(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -113,6 +119,7 @@ async function generateSession(isRetry = false) {
 ║                                                           ║
 ║  📋 Ta SESSION_ID a été sauvegardée dans:                 ║
 ║     → session_id.txt                                      ║
+║     → session_id_legacy.txt (compatibilité)               ║
 ║                                                           ║
 ║  🚀 Pour déployer sur Render:                             ║
 ║     1. Ajoute une variable d'environnement                ║
@@ -125,7 +132,12 @@ async function generateSession(isRetry = false) {
         // Afficher la SESSION_ID (les premiers 100 caractères)
         console.log("\n🔑 SESSION_ID (début):");
         console.log(sessionData.substring(0, 100) + "...\n");
-        console.log(`📏 Longueur totale: ${sessionData.length} caractères\n`);
+        console.log(`📏 Longueur totale (V2): ${sessionData.length} caractères`);
+        if (sessionLegacy) {
+          console.log(`📏 Longueur totale (V1 legacy): ${sessionLegacy.length} caractères\n`);
+        } else {
+          console.log("\n");
+        }
         
         // Copier dans le presse-papier si possible
         try {
@@ -186,13 +198,35 @@ async function encodeSession() {
       }
     }
     
-    // Encoder tout le bundle en base64
+    // Encoder tout le bundle en base64 (Brotli-compressé pour réduire la longueur)
     const jsonString = JSON.stringify(sessionBundle);
-    const base64Session = Buffer.from(jsonString).toString("base64");
+    const compressed = zlib.brotliCompressSync(Buffer.from(jsonString));
+    const base64Session = compressed.toString("base64");
     
-    return "HANI-MD~" + base64Session;
+    return "HANI-MD-V2~" + base64Session;
   } catch (e) {
     console.error("❌ Erreur encodage session:", e.message);
+    return null;
+  }
+}
+
+// Encodage legacy (V1, sans compression) pour compatibilité si nécessaire
+async function encodeSessionLegacy() {
+  try {
+    const files = fs.readdirSync(SESSION_FOLDER);
+    const sessionBundle = {};
+    for (const file of files) {
+      const filePath = path.join(SESSION_FOLDER, file);
+      const stat = fs.statSync(filePath);
+      if (stat.isFile()) {
+        const content = fs.readFileSync(filePath);
+        sessionBundle[file] = content.toString("base64");
+      }
+    }
+    const jsonString = JSON.stringify(sessionBundle);
+    const base64Session = Buffer.from(jsonString).toString("base64");
+    return "HANI-MD~" + base64Session;
+  } catch (e) {
     return null;
   }
 }

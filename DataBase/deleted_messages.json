@@ -1938,5 +1938,75 @@
       "type": "senderKeyDistributionMessage",
       "text": "*╭───────────◇*\n│ ✧ ʙᴏᴛ ɴᴀᴍᴇ: Queen Akuma\n*╰───────────◇*\n\n    👸 *WELCOME* 👸\n\n*╭───────────◇*\n│ ✧ user : @170768470122594\n│ ✧ group : OVL-MD-V2-SUPPORT-2\n│ ✧ membres : 734\n│ ✧ admin: 7\n│ ✧ dev : inconnu boy\n*╰───────────◇*\n> BOT LINK 👇\n> https://akuma-server1-754579d6f953.herokuapp.com"
     }
+  },
+  {
+    "sender": "Haniel",
+    "chat": "120363404891543686@g.us",
+    "type": "conversation",
+    "text": ".getmembers",
+    "date": "24/08/2026 18:12:21",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363404891543686@g.us",
+        "fromMe": false,
+        "id": "ACFDFC9E5C24E24F0BA555F01CE67954",
+        "participant": "66791824998402@lid"
+      },
+      "message": {
+        "conversation": ".getmembers",
+        "senderKeyDistributionMessage": {
+          "groupId": "120363404891543686@g.us",
+          "axolotlSenderKeyDistributionMessage": "Mwi8y7nWAxABGiA0pPJyd+gmSEyox7XLRJHsciNLnC6tHQVob8T8XCU3rSIhBXbW2qj9wP3TpaUsN6ij2G96pE8rwYA4/Xi7cdo8TTIG"
+        }
+      },
+      "sender": "120363404891543686@g.us",
+      "pushName": "Haniel",
+      "timestamp": "2026-08-24T18:11:32.844Z",
+      "type": "conversation",
+      "text": ".getmembers"
+    }
+  },
+  {
+    "sender": ".",
+    "chat": "120363425825035725@g.us",
+    "type": "senderKeyDistribution",
+    "text": "",
+    "date": "24/08/2026 18:59:49",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363425825035725@g.us",
+        "fromMe": false,
+        "id": "AC96AAE15C19AB246FB536F31A5A22B6",
+        "participant": "17468051435652@lid",
+        "participantPn": "237658430035@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363425825035725@g.us",
+          "axolotlSenderKeyDistributionMessage": "Mwjw5tjJBBAAGiCVLEOeUz8Qc1hOWs7YW9aF5wOtOgHj7HnmyWfy5BDGqCIhBVeUqWt3/NPLFqK42vCo17Nf7+4wHuQ+y5JgxeWp25go"
+        },
+        "messageContextInfo": {
+          "messageSecret": "r8UeSF1KpZrRXWEf2JgYNIsBS/tGxK7hOVNw9aFAwNM="
+        },
+        "groupStatusMentionMessage": {
+          "message": {
+            "protocolMessage": {
+              "key": {
+                "remoteJid": "status@broadcast",
+                "fromMe": true,
+                "id": "AC4125DE4E511737224652BC8CE9C740",
+                "participant": "status_me"
+              },
+              "type": "STATUS_MENTION_MESSAGE"
+            }
+          }
+        }
+      },
+      "sender": "120363425825035725@g.us",
+      "pushName": ".",
+      "timestamp": "2026-08-24T18:57:24.612Z",
+      "type": "senderKeyDistributionMessage",
+      "text": ""
+    }
   }
 ]

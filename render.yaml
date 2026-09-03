@@ -15,12 +15,12 @@ services:
         value: --max-old-space-size=512
       - key: BOT_NAME
         value: "HANI-MD"
-      - key: PREFIX
+      - key: PREFIXE
         value: "."
       - key: NUMERO_OWNER
         value: "22550252467"
       - key: PORT
-        value: "3000"
+        value: "10000"
       - key: FIREBASE_URL
         value: "https://hani-83025-default-rtdb.firebaseio.com"
       - key: BOT_URL
@@ -38,3 +38,9 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      # VARIABLES SENSIBLES - À CONFIGURER DANS LE DASHBOARD RENDER
+      # SESSION_ID: Votre session WhatsApp (HANI-MD~...)
+      # FIREBASE_CREDENTIALS: JSON complet de la clé service account Firebase
+      # ADMIN_PASSWORD: Mot de passe admin sécurisé
+      # HANI_AUTH_SECRET: Secret pour auth (32+ caractères)
+      # HANI_SESSION_SECRET: Secret pour sessions (32+ caractères)
