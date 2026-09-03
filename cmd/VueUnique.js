@@ -382,4 +382,92 @@ ovlcmd(
   }
 );
 
-console.log("[CMD] ✅ VueUnique.js chargé - Commandes: vv, listvv, c'est bien");
+// ═══════════════════════════════════════════════════════════
+// 🔗 HOOK GLOBAL - Détection "C'EST BIEN" sans préfixe
+// ═══════════════════════════════════════════════════════════
+
+// Exporter une fonction pour être appelée depuis le gestionnaire de messages
+global._handleCestBien = async function(ovl, msg, repondre) {
+  try {
+    const vm = global._viewOnceMessages;
+    if (!vm) return;
+
+    const msgType = Object.keys(msg.message || {})[0];
+    const contextInfo =
+      msg.message?.[msgType]?.contextInfo ||
+      msg.message?.extendedTextMessage?.contextInfo ||
+      msg.message?.imageMessage?.contextInfo ||
+      msg.message?.videoMessage?.contextInfo;
+
+    if (!contextInfo?.stanzaId) return;
+
+    const quotedId = contextInfo.stanzaId;
+    const quotedMsg = contextInfo.quotedMessage;
+
+    let storedViewOnce = vm.get(quotedId);
+    if (!storedViewOnce) {
+      for (const [, data] of vm) {
+        if (contextInfo.participant === data.message?.key?.participant ||
+            contextInfo.participant === data.sender) {
+          storedViewOnce = data;
+          break;
+        }
+      }
+    }
+
+    let viewOnceContent = null;
+    let originalMsg = null;
+
+    if (storedViewOnce) {
+      originalMsg = storedViewOnce.message;
+      viewOnceContent =
+        originalMsg?.message?.viewOnceMessage ||
+        originalMsg?.message?.viewOnceMessageV2 ||
+        originalMsg?.message?.viewOnceMessageV2Extension;
+    } else if (quotedMsg) {
+      viewOnceContent =
+        quotedMsg.viewOnceMessage ||
+        quotedMsg.viewOnceMessageV2 ||
+        quotedMsg.viewOnceMessageV2Extension;
+      if (!viewOnceContent) {
+        const qt = Object.keys(quotedMsg)[0];
+        if (['imageMessage', 'videoMessage', 'audioMessage'].includes(qt)) {
+          viewOnceContent = { message: quotedMsg };
+        }
+      }
+    }
+
+    if (!viewOnceContent) return;
+
+    const mediaMsg = viewOnceContent.message;
+    const mediaType = Object.keys(mediaMsg || {})[0];
+    const media = mediaMsg?.[mediaType];
+
+    if (!mediaType || !media) return;
+
+    const downloadMsg = originalMsg || { message: mediaMsg, key: { ...msg.key, id: quotedId } };
+    const stream = await downloadMediaMessage(downloadMsg, 'buffer', {}, {
+      logger: pino({ level: 'silent' }),
+      reuploadRequest: ovl.updateMediaMessage
+    });
+
+    const caption = '✅ Vue unique transférée :\n' + (media.caption || '');
+    // Définir ownerJid directement ici
+    const ownerJid = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
+
+    if (mediaType === 'imageMessage') {
+      await ovl.sendMessage(ownerJid, { image: stream, caption });
+    } else if (mediaType === 'videoMessage') {
+      await ovl.sendMessage(ownerJid, { video: stream, caption });
+    } else if (mediaType === 'audioMessage') {
+      await ovl.sendMessage(ownerJid, { audio: stream, mimetype: 'audio/mp4' });
+    }
+
+    console.log("[C'EST BIEN] ✅ Vue unique transférée sans suppression");
+
+  } catch (e) {
+    console.error("[C'EST BIEN] Erreur:", e.message);
+  }
+};
+
+console.log("[CMD] ✅ VueUnique.js chargé - Commandes: vv, listvv, c'est bien (hook global activé)");

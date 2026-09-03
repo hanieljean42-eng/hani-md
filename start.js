@@ -1944,6 +1944,31 @@ async function startBot() {
         }
       }
 
+      // ═══════════════════════════════════════════════════════
+      // ✅ DÉTECTION SPÉCIALE "C'EST BIEN" (sans préfixe)
+      // ═══════════════════════════════════════════════════════
+      const msgBodyForCestBien = getMessageText(msg);
+      const cestBienOwnerNumber = process.env.NUMERO_OWNER || "22550252467";
+      const cestBienOwnerJid = cestBienOwnerNumber.replace(/\D/g, "") + "@s.whatsapp.net";
+      const cestBienSenderJid = msg.key.participant || msg.key.remoteJid;
+      const cestBienIsOwner = msg.key.fromMe || cestBienSenderJid === cestBienOwnerJid;
+
+      if (cestBienIsOwner && msgBodyForCestBien) {
+        const normalizedBody = msgBodyForCestBien.trim().toLowerCase();
+        if (normalizedBody === "c'est bien" || normalizedBody === "c'est bien" || normalizedBody === "cest bien") {
+          console.log("[C'EST BIEN] ✅ Détection sans préfixe");
+          if (global._handleCestBien) {
+            try {
+              await global._handleCestBien(ovl, msg, async (text) => {
+                await ovl.sendMessage(msg.key.remoteJid, { text });
+              });
+            } catch (e) {
+              console.error("[C'EST BIEN] Erreur:", e.message);
+            }
+          }
+        }
+      }
+
       // Traiter les commandes (même les messages envoyés par soi-même)
       await handleCommand(ovl, msg);
       // 👻 Re-signaler "hors ligne" après chaque commande traitée
