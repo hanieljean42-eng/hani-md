@@ -7,6 +7,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { getSelfJid, makeSelfSock, deleteCommandMessage } = require('../lib/selfRedirect');
 
 // Numéro du propriétaire du bot (accès illimité total)
 const OWNER_NUMBER = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/\D/g, '');
@@ -171,6 +172,11 @@ function attachMessageHandler(sock, clientId, plan) {
       const msg = m.messages?.[0];
       if (!msg || !msg.message) return;
 
+      // 🔒 Isolation : seul le propriétaire du bot (le compte connecté) peut
+      // lancer les commandes. Les messages entrants d'autres personnes sont
+      // ignorés — le bot ne réagit qu'aux commandes tapées par le client.
+      if (!msg.key.fromMe) return;
+
       const body = getTextFromMessage(msg);
       if (!body) return;
 
@@ -181,15 +187,17 @@ function attachMessageHandler(sock, clientId, plan) {
       const cmdName = (rawCmd || '').toLowerCase();
       const from = msg.key.remoteJid;
       const argsText = args.join(' ');
+      const selfJid = getSelfJid(sock);
 
       if (!cmdName) return;
 
       // ── Commande spéciale : .plan ──
       if (cmdName === 'plan' || cmdName === 'abonnement') {
+        deleteCommandMessage(sock, msg).catch(() => {});
         const { count } = getClientUsage(clientId);
         const cfg = PLAN_CONFIG[planKey] || PLAN_CONFIG.BRONZE;
         const limitInfo = cfg.dailyLimit < 0 ? 'Illimité' : `${count}/${cfg.dailyLimit} aujourd'hui`;
-        await sock.sendMessage(from, {
+        await sock.sendMessage(selfJid, {
           text: `╭━━━━ 💎 MON PLAN HANI-MD ━━━━╮\n┃\n┃ Plan      : ${planLabel}\n┃ Commandes : ${limitInfo}\n┃ Accès     : ${cfg.dailyLimit < 0 ? 'Toutes les commandes' : 'Commandes de base'}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
         });
         return;
@@ -201,6 +209,9 @@ function attachMessageHandler(sock, clientId, plan) {
 
       const cmd = cmdData.command;
 
+      // ── Supprimer le message de commande (non bloquant → exécution immédiate) ──
+      deleteCommandMessage(sock, msg).catch(() => {});
+
       // ── Vérifier les droits pour ce plan ──
       const isGroup = from.endsWith('@g.us');
       const senderJid = isGroup ? (msg.key.participant || msg.key.remoteJid) : msg.key.remoteJid;
@@ -208,7 +219,7 @@ function attachMessageHandler(sock, clientId, plan) {
 
       const check = checkCommandAllowed(clientId, planKey, cmdName, cmd.category, senderNum);
       if (!check.allowed) {
-        await sock.sendMessage(from, { text: `❌ *Commande non disponible*\n\n${check.msg}` });
+        await sock.sendMessage(selfJid, { text: `❌ *Commande non disponible*\n\n${check.msg}` });
         return;
       }
 
@@ -236,7 +247,7 @@ function attachMessageHandler(sock, clientId, plan) {
         } catch {}
       }
 
-      const repondre = (text) => sock.sendMessage(from, { text: String(text) }, { quoted: msg });
+      const repondre = (text) => sock.sendMessage(selfJid, { text: String(text) });
 
       const options = {
         repondre,
@@ -271,8 +282,8 @@ function attachMessageHandler(sock, clientId, plan) {
         clientMode: true,
       };
 
-      // ── Exécuter la commande (même signature que start.js) ──
-      await cmdData.handler(sock, msg, options);
+      // ── Exécuter la commande (socket redirigé : réponses → discussion avec soi-même) ──
+      await cmdData.handler(makeSelfSock(sock, from), msg, options);
 
     } catch (e) {
       console.error(`[CLIENT_HANDLER] Erreur client ${clientId}:`, e.message);

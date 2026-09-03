@@ -36,6 +36,7 @@ require("dotenv").config({ override: true });
 // ═══════════════════════════════════════════════════════════
 
 const { findCommand, executeCommand, getCommands } = require("./lib/ovlcmd");
+const { makeSelfSock, deleteCommandMessage } = require("./lib/selfRedirect");
 
 // ═══════════════════════════════════════════════════════════
 // 🔄 VÉRIFICATEURS PÉRIODIQUES (Nouvelles Fonctionnalités)
@@ -150,8 +151,12 @@ const config = {
   STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "OVL",
 };
 
+// Backend d'authentification WhatsApp: 'auto' | 'disk' | 'firebase'
+const AUTH_BACKEND = (process.env.WHATSAPP_AUTH_BACKEND || process.env.WA_AUTH_BACKEND || 'auto').toLowerCase();
+
 // Dossier de session
 const SESSION_FOLDER = "./DataBase/session/principale"; // (sera vidé pour reconnexion)
+const SESSION_FB_PATH = "wa_sessions/principale"; // chemin Realtime DB pour la session WhatsApp persistante
 
 // ═══════════════════════════════════════════════════════════
 // 🔐 CONTRÔLE D'ACCÈS PAR PLAN (BOT PRINCIPAL)
@@ -294,9 +299,10 @@ const protectionState = {
   anticall: false,
   antitag: false,
   antidelete: true,  // Activé par défaut pour voir les messages supprimés
-  ghostMode: true,   // Activé par défaut — bot apparaît hors ligne
+  ghostMode: false,  // Désactivé par défaut — présence WhatsApp naturelle (en ligne quand actif, 'vu à' hors ligne)
 };
-process.env.GHOST_MODE = "true"; // Sync avec les modules de commandes
+// Respecte GHOST_MODE défini dans l'environnement, sinon désactivé par défaut
+process.env.GHOST_MODE = process.env.GHOST_MODE === "true" ? "true" : "false";
 global._botProtectionState = protectionState; // Partagé avec cmd/Protection.js
 
 // Stockage des messages pour anti-delete (garde les 500 derniers messages)
@@ -517,29 +523,26 @@ async function handleCommand(ovl, msg) {
   // ═══════════════════════════════════════════════════════════
   const isOwnChat = from === botNumber;
   
-  // Supprimer le message de commande si on n'est pas dans notre propre chat
-  if (!isOwnChat && msg.key.fromMe) {
-    try {
-      await ovl.sendMessage(from, { delete: msg.key });
-      console.log(`🗑️ Commande .${command} supprimée du chat ${from}`);
-    } catch (e) {
-      console.log(`⚠️ Impossible de supprimer la commande: ${e.message}`);
-    }
+  // Supprimer le message de commande dans le chat d'origine (hors self-chat)
+  // ⚡ Non bloquant : la commande s'exécute immédiatement sans attendre la suppression
+  if (!isOwnChat) {
+    deleteCommandMessage(ovl, msg)
+      .then(() => console.log(`🗑️ Commande .${command} supprimée du chat ${from}`))
+      .catch(() => {});
   }
   
   // ═══════════════════════════════════════════════════════════
-  // 📩 RÉPONSE INTELLIGENTE : owner → privé, autres → dans le chat
+  // 📩 RÉPONSE : toujours dans la discussion "avec soi-même"
   // ═══════════════════════════════════════════════════════════
   const sendPrivate = (text) => ovl.sendMessage(botNumber, { text });
-  const sendHere = (text) => ovl.sendMessage(from, { text }, { quoted: msg });
 
   const toggle = (key) => {
     protectionState[key] = !protectionState[key];
     return protectionState[key];
   };
 
-  // Si c'est l'owner (fromMe) → répondre en privé ; sinon → répondre dans le chat
-  const send = msg.key.fromMe ? sendPrivate : sendHere;
+  // Toutes les réponses sont envoyées dans le chat "avec soi-même"
+  const send = sendPrivate;
 
   // Charger le système de menu stylisé
   let MenuSystem, AccessControl;
@@ -1016,11 +1019,11 @@ async function handleCommand(ovl, msg) {
                            ownerNumber.includes(senderClean)
                          ));
           
-          // Fonction répondre pour les commandes - envoie dans le chat d'origine
+          // Fonction répondre pour les commandes - envoie dans la discussion "avec soi-même"
           const repondre = async (text, opts = {}) => {
             const msgContent = { text: String(text) };
             if (opts?.mentions) msgContent.mentions = opts.mentions;
-            await ovl.sendMessage(from, msgContent, { quoted: msg });
+            await ovl.sendMessage(botNumber, msgContent);
           };
           
           // Préparer le message structuré pour les commandes
@@ -1106,8 +1109,8 @@ async function handleCommand(ovl, msg) {
           }
           // ── Fin vérification plan ──
 
-          // Exécuter la commande
-          await executeCommand(command, ovl, msg, options);
+          // Exécuter la commande (socket redirigé : réponses → discussion avec soi-même)
+          await executeCommand(command, makeSelfSock(ovl, from), msg, options);
           return;
         } catch (e) {
           console.log(`[CMD] ⚠️ Erreur exécution ${command}:`, e.message);
@@ -1191,8 +1194,72 @@ async function startBot() {
     console.log('[SESSION] ✅ Session existante trouvée sur disque');
   }
 
-  // Charger l'état d'authentification
-  const { state, saveCreds } = await useMultiFileAuthState(SESSION_FOLDER);
+  // ═══════════════════════════════════════════════════════
+  // 🔑 ÉTAT D'AUTHENTIFICATION
+  // Priorité : Firebase (persistant, survit aux redémarrages Render)
+  //            sinon useMultiFileAuthState (disque éphémère + SESSION_ID)
+  // ═══════════════════════════════════════════════════════
+  let firebaseDB = null;
+  try { firebaseDB = require('./DataBase/firebase_db'); } catch (e) { firebaseDB = null; }
+  let sessionBackend = 'disk';
+  let state, saveCreds;
+
+  // Sélection du backend d'authentification selon AUTH_BACKEND
+  if (AUTH_BACKEND === 'disk') {
+    const mf = await useMultiFileAuthState(SESSION_FOLDER);
+    state = mf.state;
+    saveCreds = mf.saveCreds;
+    sessionBackend = 'disk';
+    console.log('[SESSION] 💾 Auth state via DISK (forcé par WHATSAPP_AUTH_BACKEND=disk)');
+  } else if (AUTH_BACKEND === 'firebase') {
+    // S'assurer que Firebase est connecté si demandé
+    if (firebaseDB && typeof firebaseDB.isConnected === 'function' && !firebaseDB.isConnected() && process.env.FIREBASE_URL) {
+      try { await firebaseDB.connect(); } catch (_) {}
+    }
+    if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
+      try {
+        const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
+        state = fbAuth.state;
+        saveCreds = fbAuth.saveCreds;
+        sessionBackend = 'firebase';
+        console.log('[SESSION] 🔥 Auth state via Firebase (forcé par WHATSAPP_AUTH_BACKEND=firebase)');
+      } catch (e) {
+        console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
+      }
+    }
+    if (!state) {
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+      console.log('[SESSION] 💾 Auth state via DISK (fallback — Firebase non disponible)');
+    }
+  } else { // auto
+    if (process.env.SESSION_ID) {
+      // Priorité au DISK si SESSION_ID est fournie (déploiements Render/Railway)
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+      console.log('[SESSION] 💾 Auth state via DISK (auto — SESSION_ID détectée)');
+    } else if (firebaseDB && typeof firebaseDB.isConnected === 'function' && firebaseDB.isConnected()) {
+      try {
+        const fbAuth = await firebaseDB.useFirebaseAuthState(SESSION_FB_PATH);
+        state = fbAuth.state;
+        saveCreds = fbAuth.saveCreds;
+        sessionBackend = 'firebase';
+        console.log('[SESSION] 🔥 Auth state via Firebase (persistant entre redémarrages)');
+      } catch (e) {
+        console.error('[SESSION] ⚠️ Firebase auth state indisponible, fallback disque:', e.message);
+      }
+    }
+    if (!state) {
+      const mf = await useMultiFileAuthState(SESSION_FOLDER);
+      state = mf.state;
+      saveCreds = mf.saveCreds;
+      sessionBackend = 'disk';
+    }
+  }
 
   // Obtenir la version WhatsApp la plus récente
   let waVersion;
@@ -1256,8 +1323,8 @@ async function startBot() {
       console.log("╚════════════════════════════════════════╝");
       console.log("\n");
 
-      // ── Auto-génération SESSION_ID pour Render ──────────────────
-      try {
+      // ── Auto-génération SESSION_ID pour Render (backend disque uniquement) ──
+      if (sessionBackend === 'disk') try {
         const sessionFiles = fs.readdirSync(SESSION_FOLDER);
         const bundle = {};
         for (const f of sessionFiles) {
@@ -1297,26 +1364,41 @@ async function startBot() {
       // Utilisez la commande botconnect manuellement si nécessaire.
       console.log('[BOT-NET] ℹ️ Auto-connect désactivé (stabilité serveur)');
 
-      // 👻 MODE FANTÔME — apparaître hors ligne dès la connexion
+      // 👻 PRÉSENCE — mode fantôme désactivé par défaut
+      // Par défaut, la présence WhatsApp reste NATURELLE : tu apparais en ligne
+      // quand tu utilises WhatsApp, et "vu à" (dernière connexion) quand tu te
+      // déconnectes — exactement comme WhatsApp normal.
+      // Le mode fantôme (invisible en permanence) ne s'active que si GHOST_MODE="true".
       setTimeout(async () => {
         try {
-          await ovl.sendPresenceUpdate("unavailable");
-          if (typeof ovl.updateLastSeenPrivacy === 'function') {
-            await ovl.updateLastSeenPrivacy("none");
+          if (process.env.GHOST_MODE === "true") {
+            await ovl.sendPresenceUpdate("unavailable");
+            if (typeof ovl.updateLastSeenPrivacy === 'function') {
+              await ovl.updateLastSeenPrivacy("none");
+            }
+            if (typeof ovl.updateOnlinePrivacy === 'function') {
+              await ovl.updateOnlinePrivacy("match_last_seen");
+            }
+            console.log("[GHOST] 👻 Mode fantôme activé — bot apparaît hors ligne");
+          } else {
+            // Restaurer une présence visible/naturelle
+            if (typeof ovl.updateLastSeenPrivacy === 'function') {
+              await ovl.updateLastSeenPrivacy("all");
+            }
+            if (typeof ovl.updateOnlinePrivacy === 'function') {
+              await ovl.updateOnlinePrivacy("all");
+            }
+            console.log("[GHOST] ✅ Présence naturelle — en ligne quand actif, 'vu à' hors ligne");
           }
-          if (typeof ovl.updateOnlinePrivacy === 'function') {
-            await ovl.updateOnlinePrivacy("match_last_seen");
-          }
-          console.log("[GHOST] 👻 Mode fantôme activé — bot apparaît hors ligne");
         } catch(e) {
-          console.log("[GHOST] sendPresenceUpdate:", e.message);
+          console.log("[GHOST] presence:", e.message);
         }
-        // Maintenir le mode fantôme toutes les 3 minutes
-        setInterval(async () => {
-          if (process.env.GHOST_MODE !== "false") {
+        // Ne maintenir "hors ligne" que si le mode fantôme est explicitement activé
+        if (process.env.GHOST_MODE === "true") {
+          setInterval(async () => {
             try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
-          }
-        }, 180000);
+          }, 180000);
+        }
       }, 3000);
       
       // 🔔 Envoyer les notifications de paiement en attente à l'owner
@@ -1328,12 +1410,15 @@ async function startBot() {
             const pending = notifications.filter(n => !n.sent);
             
             if (pending.length > 0) {
-              const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+              const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
               const ownerJid = ownerNumber + '@s.whatsapp.net';
               
               for (const notif of pending) {
-                if (notif.type === 'payment') {
-                  const msg = 
+                // Message déjà pré-formaté (ex: demandes d'inscription mises en file)
+                let msg = notif.message || null;
+
+                if (!msg && notif.type === 'payment') {
+                  msg =
                     `💰 *PAIEMENT WAVE REÇU*\n` +
                     `━━━━━━━━━━━━━━━━━━━━━\n\n` +
                     `👤 *Client:* ${notif.name}\n` +
@@ -1344,7 +1429,9 @@ async function startBot() {
                     `🔑 *Code:* \`${notif.activationCode}\`\n\n` +
                     `⏰ *Date:* ${new Date(notif.createdAt).toLocaleString('fr-FR')}\n` +
                     `━━━━━━━━━━━━━━━━━━━━━`;
-                  
+                }
+
+                if (msg) {
                   await ovl.sendMessage(ownerJid, { text: msg });
                   notif.sent = true;
                   await delay(1000);
@@ -1390,7 +1477,12 @@ async function startBot() {
         
         if (connectionFailureCount >= MAX_CONNECTION_FAILURES) {
           connectionFailureCount = 0;
-          if (process.env.SESSION_ID) {
+          if (sessionBackend === 'firebase' && firebaseDB) {
+            console.log("❌ Trop d'échecs - suppression session Firebase et nouveau QR...");
+            try { await firebaseDB.clearAuthState(SESSION_FB_PATH); } catch (e) {}
+            await delay(3000);
+            startBot();
+          } else if (process.env.SESSION_ID) {
             // Sur Railway/cloud : ne pas supprimer, juste signaler
             console.error('❌ SESSION INVALIDÉE — Regénérez la SESSION_ID:');
             console.error('   1. node session-generator.js  (sur votre PC)');
@@ -1415,7 +1507,12 @@ async function startBot() {
       
       if (isRealLogout) {
         connectionFailureCount = 0;
-        if (process.env.SESSION_ID) {
+        if (sessionBackend === 'firebase' && firebaseDB) {
+          console.log('❌ Déconnexion WhatsApp détectée - suppression session Firebase et nouveau QR...');
+          try { await firebaseDB.clearAuthState(SESSION_FB_PATH); } catch (e) {}
+          await delay(3000);
+          startBot();
+        } else if (process.env.SESSION_ID) {
           // Sur Railway/cloud : signaler sans supprimer
           console.error('❌ DÉCONNEXION WHATSAPP DÉTECTÉE');
           console.error('   → Allez dans WhatsApp > Appareils connectés > Déconnecter TOUT');
@@ -1850,7 +1947,10 @@ async function startBot() {
       // Traiter les commandes (même les messages envoyés par soi-même)
       await handleCommand(ovl, msg);
       // 👻 Re-signaler "hors ligne" après chaque commande traitée
-      if (process.env.GHOST_MODE !== "false") {
+      // UNIQUEMENT si le mode fantôme est explicitement activé.
+      // Sinon, on laisse la présence WhatsApp naturelle (en ligne quand actif,
+      // "vu à" quand déconnecté) — c'est ce comportement qui était sur-masqué.
+      if (process.env.GHOST_MODE === "true") {
         try { await ovl.sendPresenceUpdate("unavailable"); } catch(e) {}
       }
     } catch (e) {
@@ -2224,9 +2324,20 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS - Autoriser les requêtes cross-origin pour les paiements
+// CORS - configurable via ALLOWED_ORIGINS (liste séparée par des virgules).
+// Par défaut '*' pour ne rien casser ; définissez ALLOWED_ORIGINS en prod pour restreindre.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes('*')) {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   if (req.method === 'OPTIONS') {
@@ -2604,6 +2715,66 @@ app.get('/subscribe', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'public', 'subscribe.html'));
 });
 
+// ═══════════════════════════════════════════════════════════
+// 🔔 NOTIFICATION OWNER EN TEMPS RÉEL (nouvelles demandes/inscriptions)
+// Envoie un message WhatsApp à l'owner dès qu'un client s'inscrit, pour
+// qu'il puisse valider la demande immédiatement dans l'espace admin.
+// Si le bot n'est pas connecté, la notification est mise en file et sera
+// envoyée à la prochaine connexion.
+// ═══════════════════════════════════════════════════════════
+function notifyOwnerNewRequest(data) {
+  try {
+    const planIcons = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
+    const icon = planIcons[(data.plan || '').toUpperCase()] || '💎';
+    const siteUrl = (process.env.RENDER_EXTERNAL_URL || process.env.SITE_URL || 'https://hani-tp3e.onrender.com').replace(/\/$/, '');
+    const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+    const ownerJid = ownerNumber + '@s.whatsapp.net';
+
+    const notifMessage =
+      `🔔 *NOUVELLE DEMANDE D'INSCRIPTION*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `👤 *Client:* ${data.name || 'Non renseigné'}\n` +
+      `📱 *WhatsApp:* +${data.phone || '?'}\n` +
+      `${icon} *Plan:* ${data.plan || '-'}\n` +
+      `💵 *Montant:* ${data.amount || '?'} FCFA\n` +
+      `🔑 *Référence:* \`${data.reference || '-'}\`\n` +
+      `⏰ *Date:* ${new Date(data.createdAt || Date.now()).toLocaleString('fr-FR')}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `✅ *Validez la demande* dans l'espace admin :\n${siteUrl}/admin → onglet *Demandes*\n\n` +
+      `Une fois validée, le client pourra connecter son bot.`;
+
+    // Le bot tourne sur le numéro de l'owner : notifier ce même numéro
+    // reviendrait à s'envoyer un message à soi-même (aucune alerte utile).
+    // On n'envoie donc sur WhatsApp QUE si un numéro d'alerte distinct est
+    // configuré (NUMERO_NOTIF). Dans tous les cas la demande reste visible
+    // dans l'espace admin.
+    const botNumber = (ovl?.user?.id || '').split(':')[0].split('@')[0].replace(/[^0-9]/g, '');
+    if (ownerNumber && ownerNumber === botNumber) {
+      console.log(`[NOTIF] ℹ️ Demande "${data.reference}" — pas d'alerte WhatsApp (numéro identique au bot). Visible dans l'espace admin.`);
+      return;
+    }
+
+    if (ovl && ovl.user) {
+      // Bot connecté → envoi immédiat (temps réel)
+      ovl.sendMessage(ownerJid, { text: notifMessage })
+        .then(() => console.log(`[NOTIF] ✅ Demande d'inscription notifiée à ${ownerNumber}`))
+        .catch(err => console.error('[NOTIF] Erreur envoi alerte:', err.message));
+    } else {
+      // Bot non connecté → file d'attente pour envoi ultérieur
+      const notifFile = path.join(__dirname, 'DataBase', 'pending_owner_notifications.json');
+      let notifications = [];
+      if (fs.existsSync(notifFile)) {
+        try { notifications = JSON.parse(fs.readFileSync(notifFile, 'utf8')); } catch (e) { notifications = []; }
+      }
+      notifications.push({ ...data, message: notifMessage, sent: false });
+      fs.writeFileSync(notifFile, JSON.stringify(notifications, null, 2));
+      console.log('[NOTIF] ⏳ Bot non connecté — demande mise en file pour l\'owner');
+    }
+  } catch (e) {
+    console.error('[NOTIF] Erreur notifyOwnerNewRequest:', e.message);
+  }
+}
+
 // Créer un nouvel abonné (système manuel sans API Wave)
 app.post('/api/wave/subscribe', (req, res) => {
   try {
@@ -2646,7 +2817,26 @@ app.post('/api/wave/subscribe', (req, res) => {
     fs.writeFileSync(requestsFile, JSON.stringify(requests, null, 2));
     
     console.log(`[WAVE] 📝 Nouvelle demande: ${name} - ${plan} - Réf: ${paymentRef}`);
-    
+
+    // 🔔 NOTIFIER L'OWNER EN TEMPS RÉEL (nouvelle inscription à valider)
+    notifyOwnerNewRequest({
+      type: 'subscribe_request',
+      reference: paymentRef,
+      name: request.name,
+      phone: request.phone,
+      plan: request.plan,
+      amount: request.amount,
+      createdAt: request.createdAt
+    });
+
+    // 🔔 Notification push vers l'admin (même si l'app est fermée)
+    sendPushToAdmins({
+      title: '🔔 Nouvelle demande',
+      body: `${request.name} — ${request.plan} (${request.amount} FCFA)`,
+      url: '/admin',
+      tag: 'new-request'
+    }).catch(() => {});
+
     res.json({
       success: true,
       requestId: request.id,
@@ -2735,7 +2925,7 @@ app.post('/api/wave/confirm', async (req, res) => {
     
     // 🔔 ENVOYER NOTIFICATION À L'OWNER
     try {
-      const ownerNumber = (process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
+      const ownerNumber = (process.env.NUMERO_NOTIF || process.env.OWNER_NOTIF_NUMBER || process.env.NUMERO_OWNER || process.env.OWNER_NUMBER || '22550252467').replace(/[^0-9]/g, '');
       const ownerJid = ownerNumber + '@s.whatsapp.net';
       
       if (ovl && ovl.user) {
@@ -3191,14 +3381,28 @@ app.post('/api/clients/pair/:id', async (req, res) => {
     if (!info.valid) return res.status(403).json({ error: 'ID client invalide' });
     if (info.status === 'expired') return res.status(403).json({ error: 'Abonnement expiré' });
 
+    // Un code d'appairage doit être demandé sur un socket "propre" (non enregistré,
+    // WebSocket ouvert). On (re)crée une session dédiée puis on demande le code ; si
+    // le socket n'est pas encore prêt, on réessaie une fois avec une session fraîche.
+    const isPairable = (s) =>
+      s && (s.status === 'initializing' || s.status === 'qr_ready' || s.status === 'pairing_code')
+        && (clientSessions.wsIsOpen(s.sock) || s.status === 'qr_ready' || s.status === 'pairing_code');
+
     let session = clientSessions.getSession(clientId);
-    if (!session || session.status === 'failed' || session.status === 'connected') {
-      await clientSessions.createSession(clientId, info, true);
-    } else if (session.status !== 'qr_ready' && session.status !== 'pairing_code') {
+    if (!isPairable(session)) {
       await clientSessions.createSession(clientId, info, true);
     }
 
-    const result = await clientSessions.requestPairingCode(clientId, phone);
+    let result;
+    try {
+      result = await clientSessions.requestPairingCode(clientId, phone);
+    } catch (firstErr) {
+      // Nouvelle tentative : session fraîche + petit délai pour l'ouverture du WebSocket
+      await clientSessions.createSession(clientId, info, true);
+      await new Promise(r => setTimeout(r, 1500));
+      result = await clientSessions.requestPairingCode(clientId, phone);
+    }
+
     if (result.alreadyConnected) {
       return res.json({ status: 'connected', phoneNumber: result.phoneNumber });
     }
@@ -3236,6 +3440,82 @@ app.get('/api/clients/qr/:id', (req, res) => {
 // ═══════════════════════════════════════════════════════════
 // 💳 GESTION DES PAIEMENTS EN ATTENTE (ADMIN)
 // ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+// 🔔 WEB PUSH (notifications admin, même app fermée)
+// ═══════════════════════════════════════════════════════════
+let webpush = null;
+try {
+  webpush = require('web-push');
+  const VAPID_PUBLIC  = process.env.VAPID_PUBLIC_KEY;
+  const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+  const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@hani-md.app';
+  if (VAPID_PUBLIC && VAPID_PRIVATE) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+    console.log('[PUSH] ✅ Web Push configuré');
+  } else {
+    console.warn('[PUSH] ⚠️ VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY manquantes — push désactivé');
+  }
+} catch (e) {
+  console.warn('[PUSH] web-push non disponible:', e.message);
+}
+
+const PUSH_SUBS_FILE = path.join(__dirname, 'DataBase', 'push_subscriptions.json');
+function loadPushSubs() {
+  try { const a = JSON.parse(fs.readFileSync(PUSH_SUBS_FILE, 'utf8')); return Array.isArray(a) ? a : []; }
+  catch { return []; }
+}
+function savePushSubs(arr) {
+  try { fs.writeFileSync(PUSH_SUBS_FILE, JSON.stringify(arr, null, 2)); } catch (e) { console.error('[PUSH] save:', e.message); }
+}
+async function sendPushToAdmins(payload) {
+  if (!webpush || !process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+  const subs = loadPushSubs();
+  if (!subs.length) return;
+  const data = JSON.stringify(payload);
+  const kept = [];
+  await Promise.all(subs.map(async (s) => {
+    try { await webpush.sendNotification(s, data); kept.push(s); }
+    catch (e) {
+      // 404/410 = abonnement expiré → on le retire ; sinon on garde
+      if (e.statusCode !== 404 && e.statusCode !== 410) kept.push(s);
+    }
+  }));
+  if (kept.length !== subs.length) savePushSubs(kept);
+}
+
+// Clé publique VAPID (pour que le navigateur puisse s'abonner)
+app.get('/api/push/vapid-public-key', (req, res) => {
+  res.json({ key: process.env.VAPID_PUBLIC_KEY || '' });
+});
+
+// Enregistrer un abonnement push (admin uniquement)
+app.post('/api/push/subscribe', requireAdmin, (req, res) => {
+  const sub = req.body;
+  if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Abonnement invalide' });
+  const subs = loadPushSubs();
+  if (!subs.find(s => s.endpoint === sub.endpoint)) {
+    subs.push(sub);
+    savePushSubs(subs);
+  }
+  res.json({ success: true });
+});
+
+// Supprimer un abonnement push (admin uniquement)
+app.post('/api/push/unsubscribe', requireAdmin, (req, res) => {
+  const { endpoint } = req.body || {};
+  let subs = loadPushSubs();
+  const before = subs.length;
+  subs = subs.filter(s => s.endpoint !== endpoint);
+  if (subs.length !== before) savePushSubs(subs);
+  res.json({ success: true });
+});
+
+// Envoyer une notification de test (admin uniquement)
+app.post('/api/push/test', requireAdmin, async (req, res) => {
+  await sendPushToAdmins({ title: 'HANI-MD', body: '🔔 Test de notification reçu !', url: '/admin', tag: 'test' });
+  res.json({ success: true });
+});
 
 const PENDING_FILE = path.join(__dirname, 'DataBase', 'pending_payments.json');
 
@@ -3294,7 +3574,7 @@ app.post('/api/admin/payments/approve/:ref', requireAdmin, async (req, res) => {
         const icon = planIcons[p.plan?.toUpperCase()] || '💎';
         const clientJid = p.phone.replace(/\D/g, '') + '@s.whatsapp.net';
         await ovl.sendMessage(clientJid, {
-          text: `✅ *HANI-MD — Abonnement activé !*\n\nBonjour *${p.name}* 👋\n\nVotre demande a été validée ! 🎉\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n🤖 *Aucun QR code nécessaire.*\nVous utilisez maintenant le bot HANI-MD directement.\n\n👉 Envoyez *.menu* ici pour voir les commandes.\n👉 Envoyez *.premium* pour voir votre plan.\n\n🌐 Site: ${siteUrl}`
+          text: `✅ *HANI-MD — Abonnement activé !*\n\nBonjour *${p.name}* 👋\n\nVotre paiement a été validé ! 🎉\n${icon} Plan: *${p.plan}*\n🔑 Référence: *${p.reference}*\n\n🤖 *Connectez VOTRE bot personnel :*\n1️⃣ Ouvrez : ${siteUrl}/connect\n2️⃣ Entrez votre référence : *${p.reference}*\n3️⃣ Scannez le QR code (ou utilisez le code d'appairage)\n\n📲 Votre WhatsApp devient alors le bot HANI-MD.\nLe bot répond *uniquement dans votre discussion* — envoyez *.menu* pour voir les commandes.\n\n🌐 Site: ${siteUrl}`
         });
         console.log(`[ADMIN] 📱 Notification envoyée à ${p.phone}`);
       } catch (notifErr) {

@@ -203,8 +203,8 @@ const GROUPS = {
   },
   espionnage: {
     emoji: '🕵️', name: 'Espionnage & Surveillance',
-    desc: 'ViewBlocked, AutoSpy, Présence, Spy, PresenceList...',
-    classes: ['🕵️ Espionnage'],
+    desc: 'ViewBlocked, AutoSpy, VueUnique (.haniel/.mounira), Spy...',
+    classes: ['🕵️ Espionnage', 'Espionnage'],
     minPlan: 'OWNER'
   },
   systeme: {

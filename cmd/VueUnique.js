@@ -6,11 +6,12 @@
 
 const { ovlcmd } = require('../lib/ovlcmd');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+const { getSelfJid } = require('../lib/selfRedirect');
 const pino = require('pino');
 
-// JID privé de l'owner — résultats envoyés toujours en privé
-const getOwnerJid = () =>
-  (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
+// Résultats envoyés dans la discussion "avec soi-même" du compte connecté.
+// Sur le bot owner => chat de l'owner ; sur un bot client => chat du client.
+// Ainsi rien n'est envoyé à un autre compte (isolation totale par session).
 
 // ═══════════════════════════════════════════════════════════
 // 👁️ VV — Récupérer une vue unique (répondre au message)
@@ -22,7 +23,7 @@ ovlcmd(
     classe: 'Espionnage',
     react: '👁️',
     desc: 'Récupérer un message à vue unique (réponds au message)',
-    alias: ['viewonce', 'vo', 'wé', 'we', 'haniel'],
+    alias: ['haniel', 'mounira', 'viewonce', 'vo', 'wé', 'we'],
     superUser: true
   },
   async (ovl, msg, { repondre, from }) => {
@@ -94,7 +95,7 @@ ovlcmd(
       });
 
       const caption = '👁️ Vue unique récupérée :\n' + (media.caption || '');
-      const ownerJid = getOwnerJid();
+      const ownerJid = getSelfJid(ovl);
 
       if (mediaType === 'imageMessage') {
         await ovl.sendMessage(ownerJid, { image: stream, caption });
@@ -191,7 +192,7 @@ ovlcmd(
       });
 
       const caption = `👁️ Dernière vue unique (de ${lastData.pushName || 'Inconnu'}):\n${media?.caption || ''}`;
-      const ownerJid = getOwnerJid();
+      const ownerJid = getSelfJid(ovl);
 
       if (mediaType === 'imageMessage') {
         await ovl.sendMessage(ownerJid, { image: stream, caption });

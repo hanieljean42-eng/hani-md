@@ -259,24 +259,34 @@
 
       <!-- État 0: Entrer l'ID client -->
       <div class="state active" id="state-input">
-        <div class="form-group">
+        <div class="form-group" id="id-group">
           <label><i class="fas fa-key"></i> Votre ID Client</label>
           <input type="text" id="client-id" placeholder="HANI-XXXX-XXXX ou FREE-XXXXXX">
         </div>
 
-        <div class="mode-toggle" style="display:none;">
+        <p id="method-intro" style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:0.6rem;text-align:left;">
+          Choisissez votre méthode de connexion :
+        </p>
+        <div class="mode-toggle" id="mode-toggle">
           <button class="mode-btn active" onclick="setMode('qr')" id="mode-qr-btn">
             <i class="fas fa-qrcode"></i> QR Code
           </button>
           <button class="mode-btn" onclick="setMode('code')" id="mode-code-btn">
-            <i class="fas fa-keyboard"></i> Code d'appairage
+            <i class="fas fa-keyboard"></i> Code (1 seul tél)
           </button>
         </div>
+
+        <p id="code-confirm-note" style="display:none;color:rgba(255,255,255,0.8);font-size:0.9rem;margin-bottom:0.8rem;text-align:left;">
+          <i class="fas fa-mobile-alt"></i> Confirmez votre numéro WhatsApp <strong>avec l'indicatif pays</strong>, puis obtenez votre code à 8 chiffres.
+        </p>
 
         <!-- Champ téléphone (visible seulement en mode code) -->
         <div class="form-group" id="phone-group" style="display:none;">
           <label><i class="fas fa-phone"></i> Votre numéro WhatsApp</label>
-          <input type="tel" id="pair-phone" placeholder="Ex: 22550252467 (avec indicatif pays)">
+          <input type="tel" id="pair-phone" placeholder="Ex: 2250778901234">
+          <p id="phone-hint" style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:0.4rem;text-align:left;">
+            Format international : indicatif pays + numéro, <strong>sans +</strong> ni 00 (ex : 225 = Côte d'Ivoire).
+          </p>
         </div>
 
         <button class="btn btn-primary" id="btn-verify">
@@ -456,6 +466,7 @@
     let pollInterval = null;
     let timerInterval = null;
     let pairingTimerInterval = null;
+    let pendingPollInterval = null;
     let timeLeft = 150; // 2:30 minutes
     let pairingTimeLeft = 300; // 5 minutes
     let connectionMode = 'qr'; // 'qr' ou 'code'
@@ -474,8 +485,32 @@
     };
 
     function showState(stateName) {
+      // Arrêter la surveillance "paiement en attente" dès qu'on quitte cet état
+      if (stateName !== 'pending') { clearInterval(pendingPollInterval); pendingPollInterval = null; }
       Object.values(states).forEach(s => s.classList.remove('active'));
       states[stateName].classList.add('active');
+    }
+
+    // Affiche l'écran "paiement en attente" et surveille automatiquement l'approbation
+    // → dès que l'owner valide, le QR (ou le code) s'affiche tout seul, sans action du client.
+    function showPending(data) {
+      document.getElementById('pending-name').textContent =
+        data && data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
+      showState('pending');
+      clearInterval(pendingPollInterval);
+      pendingPollInterval = setInterval(async () => {
+        if (!clientId) return;
+        try {
+          const r = await fetch(`/api/clients/verify/${clientId}`);
+          const d = await r.json();
+          if (d.valid) {
+            clearInterval(pendingPollInterval); pendingPollInterval = null;
+            if (d.expiresAt && new Date(d.expiresAt) < new Date()) return showState('expired');
+            if (connectionMode === 'code') { await initiatePairing(d.plan); }
+            else { await initiateConnection(d.plan); }
+          }
+        } catch (e) { /* réseau : on réessaie au prochain tick */ }
+      }, 3000);
     }
 
     // Toggle entre mode QR et code d'appairage
@@ -493,6 +528,7 @@
       clearInterval(pollInterval);
       clearInterval(timerInterval);
       clearInterval(pairingTimerInterval);
+      clearInterval(pendingPollInterval);
       document.getElementById('client-id').value = '';
       showState('input');
     }
@@ -537,14 +573,16 @@
         const response = await fetch(`/api/clients/verify/${clientId}`);
         const data = await response.json();
         if (!data.valid && data.pending) {
-          document.getElementById('pending-name').textContent =
-            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
-          return showState('pending');
+          return showPending(data);
         }
         if (!data.valid) return showError(data.error || 'ID non valide');
         if (data.expiresAt && new Date(data.expiresAt) < new Date()) return showState('expired');
-        // Paiement approuvé → lancer la connexion
-        await initiateConnection(data.plan);
+        // Paiement approuvé → lancer la connexion (QR ou code selon le mode choisi)
+        if (connectionMode === 'code') {
+          await initiatePairing(data.plan);
+        } else {
+          await initiateConnection(data.plan);
+        }
       } catch (e) {
         showError('Erreur réseau. Réessayez.');
       }
@@ -619,9 +657,7 @@
         const data = await response.json();
 
         if (!data.valid && data.pending) {
-          document.getElementById('pending-name').textContent =
-            data.name ? `Bonjour ${data.name} — Plan ${data.plan}` : '';
-          return showState('pending');
+          return showPending(data);
         }
         if (!data.valid) {
           return showError('ID client invalide ou non trouvé. Vérifiez votre référence de paiement.');
@@ -643,7 +679,11 @@
           return showState('success');
         }
 
-        await initiateConnection(data.plan);
+        if (connectionMode === 'code') {
+          await initiatePairing(data.plan);
+        } else {
+          await initiateConnection(data.plan);
+        }
 
       } catch (e) {
         console.error('Erreur:', e);
@@ -658,8 +698,8 @@
       try {
         // D'abord créer la session
         await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
-        // Attendre un peu que le socket s'initialise
-        await new Promise(r => setTimeout(r, 2000));
+        // Court délai pour laisser le socket s'initialiser (le serveur réessaie si besoin)
+        await new Promise(r => setTimeout(r, 1200));
 
         // Demander le pairing code
         const response = await fetch(`/api/clients/pair/${clientId}`, {
@@ -722,7 +762,7 @@
       try {
         // Recréer une session
         await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1200));
         const phone = document.getElementById('pair-phone').value.trim();
         const response = await fetch(`/api/clients/pair/${clientId}`, {
           method: 'POST',
@@ -745,8 +785,19 @@
       }
     }
 
-    // Initier la connexion
+    // Initier la connexion par QR code
     async function initiateConnection(plan) {
+      // Préparer immédiatement l'écran QR (le QR s'affichera dès qu'il est prêt via le polling)
+      document.getElementById('plan-badge').textContent = getPlanBadge(plan);
+      document.getElementById('plan-badge').className = 'plan-badge ' + getPlanClass(plan);
+      document.getElementById('qr-container').innerHTML = `
+        <div class="qr-placeholder">
+          <div class="spinner" style="width: 40px; height: 40px;"></div>
+        </div>`;
+      document.getElementById('qr-status-msg').textContent = '⏳ Connexion aux serveurs WhatsApp…';
+      document.getElementById('qr-status-msg').style.display = 'block';
+      showState('qr');
+
       try {
         const response = await fetch(`/api/clients/connect/${clientId}`, { method: 'POST' });
         const data = await response.json();
@@ -755,14 +806,24 @@
           return showError(data.error);
         }
 
+        // Bot mono-compte déjà prêt (cas rare)
         if (data.status === 'ready' || data.mode === 'single_bot') {
           document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
-          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
-          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan || plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan || plan);
           return showState('success');
         }
 
-        showError(data.message || 'Votre accès est actif. Envoyez .menu au bot HANI-MD.');
+        if (data.status === 'connected') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.phoneNumber);
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan || plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan || plan);
+          return showState('success');
+        }
+
+        // Le QR se génère côté serveur → on lance le polling qui l'affichera dès qu'il est prêt
+        startTimer();
+        startPolling();
 
       } catch (e) {
         console.error('Erreur:', e);
@@ -772,7 +833,8 @@
 
     // Polling pour le QR code
     function startPolling() {
-      pollInterval = setInterval(pollQR, 2000);
+      clearInterval(pollInterval);
+      pollInterval = setInterval(pollQR, 1500);
       pollQR(); // Première requête immédiate
     }
 
@@ -856,12 +918,66 @@
       if (e.key === 'Enter') verifyClient();
     });
 
+    // Masque l'ID + le sélecteur de méthode quand on arrive depuis l'inscription
+    // (le client a déjà son ID et a déjà choisi sa méthode → pas de re-saisie).
+    function hideInscriptionFields() {
+      document.getElementById('id-group').style.display = 'none';
+      document.getElementById('method-intro').style.display = 'none';
+      document.getElementById('mode-toggle').style.display = 'none';
+    }
+
+    // Mode code depuis l'inscription : vérifier l'accès puis afficher la
+    // confirmation du numéro (avec indicatif pays) AVANT de générer le code.
+    // WhatsApp exige le numéro complet au format international, sinon l'appairage
+    // échoue avec « problème de numéro de téléphone ».
+    async function prepareCodeConnection() {
+      showState('verifying');
+      try {
+        const response = await fetch(`/api/clients/verify/${clientId}`);
+        const data = await response.json();
+        if (!data.valid && data.pending) return showPending(data);
+        if (!data.valid) return showError('ID client invalide ou non trouvé.');
+        if (data.expiresAt && new Date(data.expiresAt) < new Date()) return showState('expired');
+        if (data.status === 'ready' || data.mode === 'single_bot') {
+          document.getElementById('connected-phone').textContent = formatPhone(data.ownerBot || '22550252467');
+          document.getElementById('success-plan-badge').textContent = getPlanBadge(data.plan);
+          document.getElementById('success-plan-badge').className = 'plan-badge ' + getPlanClass(data.plan);
+          return showState('success');
+        }
+        setMode('code');
+        hideInscriptionFields();
+        document.getElementById('code-confirm-note').style.display = 'block';
+        document.getElementById('btn-verify-text').textContent = 'Obtenir mon code';
+        showState('input');
+        document.getElementById('pair-phone').focus();
+      } catch (e) {
+        showError('Erreur réseau. Réessayez.');
+      }
+    }
+
     // Pré-remplir depuis URL params
+    // Le choix "1 ou 2 téléphones" est fait à l'inscription (subscribe.html) puis
+    // transmis ici via ?mode=code|qr (+ ?phone= pour le mode code).
     const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get('mode');
+    if (modeParam === 'code' || modeParam === 'qr') {
+      setMode(modeParam);
+    }
+    const phoneParam = urlParams.get('phone');
+    if (phoneParam) {
+      document.getElementById('pair-phone').value = phoneParam.replace(/\D/g, '');
+    }
     const idParam = urlParams.get('id');
     if (idParam) {
+      clientId = idParam.trim().toUpperCase();
       document.getElementById('client-id').value = idParam;
-      verifyClient();
+      if (modeParam === 'code') {
+        // Mode code : on confirme le numéro (indicatif pays) avant de générer
+        prepareCodeConnection();
+      } else {
+        // Mode QR : connexion automatique
+        verifyClient();
+      }
     }
   </script>
 </body>

@@ -5,8 +5,9 @@
  * ╚══════════════════════════════════════════════════════════╝
  */
 
-const fs   = require('fs');
-const path = require('path');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 const pino = require('pino');
 const QRCode = require('qrcode');
 
@@ -120,6 +121,20 @@ function verifyClient(clientId) {
   }
 
   return { valid: false };
+}
+
+/**
+ * Vérifie si le WebSocket d'un socket Baileys est ouvert.
+ * Compatible avec les différentes variantes (ws brut avec `readyState`,
+ * wrapper `WebSocketClient` avec `isOpen`, ou socket imbriqué `ws.socket`).
+ */
+function wsIsOpen(sock) {
+  const ws = sock && sock.ws;
+  if (!ws) return false;
+  if (typeof ws.isOpen === 'boolean') return ws.isOpen;
+  if (typeof ws.readyState === 'number') return ws.readyState === 1;
+  if (ws.socket && typeof ws.socket.readyState === 'number') return ws.socket.readyState === 1;
+  return false;
 }
 
 // ═══════════════════════════════════════════════════
@@ -291,7 +306,7 @@ async function createSession(clientId, clientInfo, forceNewQR = false) {
       // → reconnect avec les credentials existants (le scan a créé les creds)
       sessionData.status = 'reconnecting';
       console.log(`[SESSIONS] 🔄 Reconnexion après close (code=${statusCode}): ${id}`);
-      setTimeout(() => createSession(id, clientInfo), 3000);
+      setTimeout(() => createSession(id, clientInfo), 1500);
     }
   });
 
@@ -321,28 +336,27 @@ async function requestPairingCode(clientId, phoneNumber) {
   }
 
   try {
-    // Attendre que le socket soit prêt (initializing → qr_ready ou au moins ws ouvert)
+    // La connexion est prête soit quand le WebSocket est ouvert, soit quand un QR
+    // a été émis (status 'qr_ready') — les deux garantissent une socket exploitable.
+    const isReady = () => wsIsOpen(session.sock) || session.status === 'qr_ready' || session.status === 'pairing_code';
+
+    // Attendre que le socket soit prêt (max ~15 s)
     let retries = 0;
-    const maxRetries = 20; // max 10 secondes
-    while (session.status === 'initializing' && retries < maxRetries) {
+    const maxRetries = 30;
+    while (!isReady() && retries < maxRetries) {
       await new Promise(r => setTimeout(r, 500));
       retries++;
     }
-    console.log(`[SESSIONS] 🔢 [${id}] Requesting pairing code (status=${session.status}, retries=${retries}, phone=${cleanPhone})`);
+    console.log(`[SESSIONS] 🔢 [${id}] Requesting pairing code (status=${session.status}, wsOpen=${wsIsOpen(session.sock)}, retries=${retries}, phone=${cleanPhone})`);
 
-    if (!session.sock.ws || session.sock.ws.readyState !== 1) {
-      // WebSocket pas encore ouvert, attendre encore
-      let wsRetries = 0;
-      while ((!session.sock.ws || session.sock.ws.readyState !== 1) && wsRetries < 10) {
-        await new Promise(r => setTimeout(r, 1000));
-        wsRetries++;
-      }
-      if (!session.sock.ws || session.sock.ws.readyState !== 1) {
-        throw new Error('WebSocket non connecté. Réessayez dans quelques secondes.');
-      }
+    if (!isReady()) {
+      throw new Error('WebSocket non connecté. Réessayez dans quelques secondes.');
     }
 
-    const code = await session.sock.requestPairingCode(cleanPhone);
+    // Code à 8 chiffres (WhatsApp : Appareils connectés → Connecter un appareil
+    // → Connecter avec un numéro de téléphone → saisir les 8 chiffres).
+    const customCode = String(crypto.randomInt(10000000, 100000000));
+    const code = await session.sock.requestPairingCode(cleanPhone, customCode);
     session.pairingCode = code;
     session.status = 'pairing_code';
     console.log(`[SESSIONS] ✅ Pairing code pour ${id}: ${code}`);
@@ -447,5 +461,6 @@ module.exports = {
   removeSession,
   requestPairingCode,
   listSessions,
-  restorePersistedSessions
+  restorePersistedSessions,
+  wsIsOpen
 };

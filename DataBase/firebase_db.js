@@ -543,6 +543,85 @@ async function cleanOldData(daysToKeep = 30) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// 🔑 PERSISTANCE DE LA SESSION WHATSAPP (auth state Baileys)
+// Stocke creds + clés dans la Realtime DB → survit aux redémarrages
+// (disque Render éphémère). Modèle identique à useMultiFileAuthState.
+// ═══════════════════════════════════════════════════════════
+
+// Encodage sûr d'un nom de "fichier" Baileys en clé Firebase
+// (interdits dans une clé RTDB: . # $ [ ] /). base64url = déterministe.
+function _authKey(file) {
+  return Buffer.from(String(file)).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function useFirebaseAuthState(basePath = 'wa_sessions/principale') {
+  if (!db) throw new Error('Firebase non connecté');
+  const { initAuthCreds, BufferJSON, proto } = require('@whiskeysockets/baileys');
+  const root = db.ref(basePath);
+
+  const writeData = async (data, file) => {
+    await root.child(_authKey(file)).set(JSON.parse(JSON.stringify(data, BufferJSON.replacer)));
+  };
+  const readData = async (file) => {
+    const snap = await root.child(_authKey(file)).once('value');
+    const val = snap.val();
+    if (val === null || val === undefined) return null;
+    return JSON.parse(JSON.stringify(val), BufferJSON.reviver);
+  };
+  const removeData = async (file) => { await root.child(_authKey(file)).remove(); };
+
+  const creds = (await readData('creds')) || initAuthCreds();
+
+  return {
+    state: {
+      creds,
+      keys: {
+        get: async (type, ids) => {
+          const data = {};
+          await Promise.all(ids.map(async (id) => {
+            let value = await readData(`${type}-${id}`);
+            if (type === 'app-state-sync-key' && value) {
+              value = proto.Message.AppStateSyncKeyData.fromObject(value);
+            }
+            data[id] = value;
+          }));
+          return data;
+        },
+        set: async (data) => {
+          const tasks = [];
+          for (const type in data) {
+            for (const id in data[type]) {
+              const value = data[type][id];
+              const file = `${type}-${id}`;
+              tasks.push(value ? writeData(value, file) : removeData(file));
+            }
+          }
+          await Promise.all(tasks);
+        }
+      }
+    },
+    saveCreds: () => writeData(creds, 'creds')
+  };
+}
+
+// Effacer la session stockée (déconnexion/logout WhatsApp)
+async function clearAuthState(basePath = 'wa_sessions/principale') {
+  if (!db) return false;
+  try { await db.ref(basePath).remove(); return true; }
+  catch (e) { console.error('[FIREBASE] clearAuthState:', e.message); return false; }
+}
+
+// Vrai si une session WhatsApp existe déjà dans Firebase
+async function hasAuthState(basePath = 'wa_sessions/principale') {
+  if (!db) return false;
+  try {
+    const snap = await db.ref(basePath).child(_authKey('creds')).once('value');
+    return snap.exists();
+  } catch (e) { return false; }
+}
+
+// ═══════════════════════════════════════════════════════════
 // 📤 EXPORTS (interface identique à mysql.js)
 // ═══════════════════════════════════════════════════════════
 
@@ -550,6 +629,10 @@ module.exports = {
   connect,
   disconnect,
   isConnected,
+  // Session WhatsApp (auth state)
+  useFirebaseAuthState,
+  clearAuthState,
+  hasAuthState,
   // Settings
   getSetting,
   setSetting,
