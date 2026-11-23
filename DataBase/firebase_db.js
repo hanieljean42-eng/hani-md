@@ -629,6 +629,11 @@ module.exports = {
   connect,
   disconnect,
   isConnected,
+  // Accès générique RTDB (session_backup, coffre, etc.)
+  _get,
+  _set,
+  _update,
+  _remove,
   // Session WhatsApp (auth state)
   useFirebaseAuthState,
   clearAuthState,
