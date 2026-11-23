@@ -12,10 +12,7 @@
     "dev": "nodemon start.js",
     "build": "npm install --legacy-peer-deps --no-optional --omit=dev --ignore-scripts",
     "pm2": "pm2 start start.js --attach --name hani",
-    "stop": "pm2 stop all",
-    "init-db": "node scripts/init-mysql.js",
-    "deploy": "node scripts/deploy-railway.js",
-    "railway": "railway up"
+    "stop": "pm2 stop all"
   },
   "keywords": [
     "HANI-MD",
@@ -60,18 +57,8 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@babel/generator": "^7.28.5",
-    "@babel/parser": "^7.28.5",
-    "@babel/traverse": "^7.28.5",
-    "@babel/types": "^7.28.5",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.0.3",
-    "escodegen": "^2.1.0",
-    "esprima": "^4.0.1",
-    "estraverse": "^5.3.0",
     "nodemon": "^3.1.11",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3"
+    "prettier": "^3.7.4"
   },
   "directories": {
     "lib": "lib"
