@@ -69,3 +69,4 @@ lib/store_msg.json
 .vscode/
 .idea/
 *.sublime-*
+DataBase/viewonce_media/
