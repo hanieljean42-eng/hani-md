@@ -25,7 +25,12 @@
  * MYSQL_SSL=true (optionnel)
  */
 
-const mysql = require('mysql2/promise');
+// mysql2 chargé en lazy — évite le coût au démarrage quand MySQL n'est pas configuré
+let _mysql = null;
+function mysql() {
+  if (!_mysql) _mysql = require('mysql2/promise');
+  return _mysql;
+}
 const localDB = require('./local_storage'); // Fallback JSON local
 
 let pool = null;
@@ -64,12 +69,12 @@ async function connect() {
     const mysqlDatabase = process.env.MYSQL_DATABASE || process.env.MYSQL_ADDON_DB;
 
     if (mysqlUrl) {
-      pool = mysql.createPool({
+      pool = mysql().createPool({
         uri: mysqlUrl,
         ...config
       });
     } else if (mysqlHost) {
-      pool = mysql.createPool({
+      pool = mysql().createPool({
         host: mysqlHost,
         port: parseInt(mysqlPort) || 3306,
         user: mysqlUser,

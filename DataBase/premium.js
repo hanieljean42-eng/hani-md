@@ -10,13 +10,14 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-// Fichiers de stockage
-const PREMIUM_FILE = path.join(__dirname, 'premium_users.json');
-const CODES_FILE = path.join(__dirname, 'premium_codes.json');
-const TRANSACTIONS_FILE = path.join(__dirname, 'transactions.json');
+// Fichiers de stockage — HANI_DATA_DIR permet d'isoler les données (tests)
+const DATA_DIR = process.env.HANI_DATA_DIR || __dirname;
+const PREMIUM_FILE = path.join(DATA_DIR, 'premium_users.json');
+const CODES_FILE = path.join(DATA_DIR, 'premium_codes.json');
+const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
 
-const PENDING_FILE = path.join(__dirname, 'pending_validations.json');
-const SUBSCRIBERS_FILE = path.join(__dirname, 'subscribers.json');
+const PENDING_FILE = path.join(DATA_DIR, 'pending_validations.json');
+const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
 
 // ── Clés MySQL settings pour chaque fichier ──
 const MYSQL_KEYS = {
@@ -413,19 +414,20 @@ function getPremiumStatus(userJid) {
     };
   }
   
-  // Lifetime (pas d'expiration)
+  // Pas d'expiration — lifetime (ou compte gratuit/révoqué sans expiresAt)
   const planKey = user.plan?.toLowerCase() || 'lifetime';
   const planData = PLANS[planKey] || PLANS.lifetime;
-  
+  const isFree = planKey === 'gratuit';
+
   return {
-    isPremium: true,
+    isPremium: !isFree,
     plan: user.plan?.toUpperCase() || 'LIFETIME',
     planInfo: planData,
     daysLeft: -1, // À vie
     expiresAt: null,
     dailyCommands: user.dailyUsage || 0,
     dailyUsage: user.dailyUsage || 0,
-    dailyLimit: Infinity,
+    dailyLimit: planData.dailyLimit === -1 ? Infinity : (planData.dailyLimit || 20),
     badges: user.badges || [],
     totalCommands: user.totalCommands || 0
   };
@@ -463,9 +465,9 @@ function canExecuteCommand(userJid, commandName) {
     }
   }
   
-  // Hiérarchie des plans
+  // Hiérarchie des plans (status.plan est en MAJUSCULES → normaliser)
   const planHierarchy = ['gratuit', 'bronze', 'argent', 'or', 'diamant', 'lifetime'];
-  const userPlanIndex = planHierarchy.indexOf(status.plan);
+  const userPlanIndex = planHierarchy.indexOf((status.plan || 'gratuit').toLowerCase());
   const requiredPlanIndex = planHierarchy.indexOf(requiredPlan);
   
   if (userPlanIndex < requiredPlanIndex) {

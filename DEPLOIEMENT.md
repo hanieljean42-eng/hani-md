@@ -1,166 +1,76 @@
-# 🚀 GUIDE DE DÉPLOIEMENT HANI-MD — 100% GRATUIT
+# 🚀 DÉPLOIEMENT HANI-MD — RENDER
 
-## 🎯 SOLUTION CHOISIE — 100% GRATUITE ET TOUJOURS ACTIVE
+## 🎯 ARCHITECTURE CHOISIE
 
 | Service | Rôle | Coût |
 |---------|------|------|
-| **Fly.io** | Hébergement 24/7 du bot (runtime WhatsApp) | **GRATUIT** (3 VMs nano) |
-| **Firebase** | **TOUTE** la base de données (users, groupes, bans, warns, premium, paiements…) | **GRATUIT** (1GB, Google) |
-| **GitHub** | Stockage du code | **GRATUIT** |
+| **Render** | Hébergement 24/7 du bot (web service Node) | **GRATUIT** (avec self-ping anti-veille) |
+| **Firebase** | Base de données (users, premium, paiements, session WA) | **GRATUIT** |
+| **GitHub** | Stockage du code + auto-deploy | **GRATUIT** |
 | **SESSION_ID** | Connexion WhatsApp persistante | **GRATUIT** |
 
-> ✅ Ton projet Firebase `hani-md` est déjà créé
-> 🔗 URL : `https://hani-md-default-rtdb.firebaseio.com`
-> ⚠️ Fly.io est uniquement pour faire **tourner** le bot — Firebase gère **toutes les données**
+> La config Render est dans `render.yaml` (blueprint) : build `npm install`, start `node start.js`, health check `/health`.
+> Le bot fait un self-ping toutes les 4 min sur `/health` pour empêcher la mise en veille du plan gratuit.
 
 ---
 
 ## ÉTAPE 1 — OBTENIR LA CLÉ FIREBASE (service account)
 
-Ton projet Firebase est déjà créé. Il faut juste générer la clé d'accès serveur :
-
-1. Va sur **https://console.firebase.google.com/project/hani-md/settings/serviceaccounts/adminsdk**
+1. Va sur **https://console.firebase.google.com** → ton projet → ⚙️ Paramètres → Comptes de service
 2. Clique **"Générer une nouvelle clé privée"**
-3. Un fichier JSON est téléchargé — **ouvre-le avec un éditeur de texte**
-4. **Copie tout le contenu** (commence par `{` et finit par `}`) → garde-le pour l'Étape 5
+3. Ouvre le JSON téléchargé et **copie tout le contenu** → garde-le pour l'étape 3
 
 ---
 
 ## ÉTAPE 2 — GÉNÉRER LA SESSION WHATSAPP (sur ton PC)
 
-Tu fais ceci **UNE SEULE FOIS** avec le numéro dédié au bot.
-
 ```bash
 node session-generator.js
 ```
 
-1. QR code s'affiche → ouvre **WhatsApp → Appareils connectés → Connecter un appareil**
-2. Scanne avec le numéro du bot
-3. Attends `✅ SESSION GÉNÉRÉE AVEC SUCCÈS`
-4. Fichier `session_id.txt` créé → **copie son contenu** (commence par `HANI-MD~`)
-
-> ⚠️ Ne partage JAMAIS `session_id.txt` — il donne accès complet à ton WhatsApp
+- Scanne le QR avec WhatsApp → **Appareils connectés**
+- Le fichier `session_id.txt` est généré (format `HANI-MD~...` ou `HANI-MD-V2~...`)
+- ⚠️ **Ne commit JAMAIS ce fichier** — il contient tes credentials WhatsApp
 
 ---
 
-## ÉTAPE 3 — POUSSER LE CODE SUR GITHUB
+## ÉTAPE 3 — CRÉER LE SERVICE RENDER
 
-```bash
-git init
-git add .
-git commit -m "HANI-MD - déploiement Fly.io"
-git branch -M main
-git remote add origin https://github.com/TON_USERNAME/hani-md.git
-git push -u origin main
-```
+1. **render.com** → New → **Web Service** → connecte le repo GitHub
+2. Render détecte `render.yaml` automatiquement
+3. Configure les variables sensibles dans **Environment** :
 
----
+| Variable | Contenu |
+|---|---|
+| `SESSION_ID` | Contenu de `session_id.txt` |
+| `FIREBASE_CREDENTIALS` | JSON complet de la clé service account |
+| `FIREBASE_URL` | `https://<projet>-default-rtdb.firebaseio.com` |
+| `ADMIN_PASSWORD` | Mot de passe du panel admin |
+| `JWT_SECRET` | Secret 32+ caractères |
+| `HANI_AUTH_SECRET` | Secret 32+ caractères |
+| `HANI_SESSION_SECRET` | Secret 32+ caractères |
+| `GEMINI_API_KEY` | Clé Google AI (commandes IA) |
+| `SITE_URL` / `BOT_URL` | `https://<service>.onrender.com` |
 
-## ÉTAPE 4 — DÉPLOYER SUR FLY.IO
-
-### 4a. Installer flyctl (outil CLI Fly.io)
-
-**Windows (PowerShell) :**
-```powershell
-iwr https://fly.io/install.ps1 -useb | iex
-```
-
-### 4b. Créer un compte et se connecter
-
-```bash
-fly auth signup
-# ou si tu as déjà un compte:
-fly auth login
-```
-
-### 4c. Lancer le déploiement
-
-```bash
-fly launch --name hani-md --region cdg --no-deploy
-```
-Réponds aux questions :
-- `Would you like to set up a Postgresql database?` → **No**
-- `Would you like to set up an Upstash Redis database?` → **No**
-
-### 4d. Définir les variables d'environnement (secrets)
-
-Copie ces commandes **une par une** dans ton terminal :
-
-```bash
-fly secrets set SESSION_ID="HANI-MD~COLLE_TON_CONTENU_ICI"
-fly secrets set NUMERO_OWNER="22550252467"
-fly secrets set NODE_ENV="production"
-fly secrets set BOT_NAME="HANI-MD"
-fly secrets set FIREBASE_URL="https://hani-md-default-rtdb.firebaseio.com"
-fly secrets set JEKO_PAYMENT_LINK="https://pay.jeko.africa/pl/2a5354be-710e-454e-8741-1b3d6beb5890"
-fly secrets set ADMIN_PASSWORD="MotDePasseAdmin2025!"
-fly secrets set JWT_SECRET="uneChaineAleatoireLongue2025"
-```
-
-Pour `FIREBASE_CREDENTIALS` (le JSON complet sur une seule ligne) :
-```bash
-fly secrets set FIREBASE_CREDENTIALS='{"type":"service_account","project_id":"hani-md",...}'
-```
-
-> ⚠️ Remplace `...` par le contenu réel du fichier JSON téléchargé à l'Étape 1
-
-### 4e. Déployer
-
-```bash
-fly deploy
-```
+4. Déploie — le bot restaure la session depuis `SESSION_ID` et se connecte sans QR
 
 ---
 
-## ÉTAPE 5 — VÉRIFIER QUE ÇA MARCHE
+## VÉRIFICATION
 
-Dans les logs Fly.io (`fly logs`), tu dois voir :
+- `https://<service>.onrender.com/health` → `{ "status": "ok", "connection": "connected" }`
+- `https://<service>.onrender.com/qr` → page de connexion si pas de session
+- `https://<service>.onrender.com/admin` → panel admin
 
-```
-[DB] 🔥 Firebase connecté — données premium sauvegardées sur Firebase
-[PREMIUM] ✅ Restauré depuis DB: premium_users.json
-[SESSION] ✅ Session restaurée depuis SESSION_ID (X fichiers)
-✅ Bot HANI-MD connecté: +225XXXXXXXXX
-```
+## EN CAS DE DÉCONNEXION (401 / logged out)
 
-Envoie `.ping` au bot → réponse `🏓 Pong !` = tout fonctionne ✅
+1. Regénère : `node session-generator.js` sur ton PC
+2. Mets à jour `SESSION_ID` dans Render → Environment
+3. Redémarre le service (Manual Deploy → Clear build cache & deploy)
 
----
-
-## 🔄 METTRE À JOUR LE BOT
+## TESTS LOCAUX
 
 ```bash
-git add .
-git commit -m "ma modification"
-fly deploy
-```
-Les données Firebase survivent automatiquement à chaque redéploiement.
-
----
-
-## ❓ PROBLÈMES FRÉQUENTS
-
-| Problème | Solution |
-|----------|----------|
-| `SESSION_ID invalide` | Refaire `node session-generator.js` → `fly secrets set SESSION_ID="..."` |
-| `Firebase non connecté` | Vérifier `FIREBASE_URL` et `FIREBASE_CREDENTIALS` avec `fly secrets list` |
-| `Bot ne répond pas` | Vérifier les logs : `fly logs` |
-| Session expire | Refaire session-generator → `fly secrets set SESSION_ID="..."` → `fly deploy` |
-| `[PREMIUM] ✅ Restauré depuis DB` | ✅ Normal — données chargées depuis Firebase |
-
----
-
-## 📱 FLUX COMMERCIAL COMPLET
-
-```
-Client → .abonnement           (voit les offres)
-Client → .payer or             (reçoit lien Jeko avec 2000 FCFA)
-Client paie sur Wave/Jeko      (montant exact)
-Client → .confirmer REF 2000   (bot vérifie montant automatiquement)
-  ✅ Bon montant → owner notifié pour validation
-  ❌ Mauvais montant → REJETÉ AUTOMATIQUEMENT
-
-Owner → .validatepay REF       (envoie le code d'activation au client)
-Client → .activer CODE         (premium activé immédiatement)
-  → Données sauvées dans Firebase ✅ (survivent aux redémarrages)
+npm test          # tests unitaires (codes, premium, paiements Wave)
+npm run dev       # nodemon start.js
 ```

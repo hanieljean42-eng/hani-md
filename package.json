@@ -12,7 +12,8 @@
     "dev": "nodemon start.js",
     "build": "npm install --legacy-peer-deps --no-optional --omit=dev --ignore-scripts",
     "pm2": "pm2 start start.js --attach --name hani",
-    "stop": "pm2 stop all"
+    "stop": "pm2 stop all",
+    "test": "node --test test/*.test.js"
   },
   "keywords": [
     "HANI-MD",
@@ -46,7 +47,6 @@
     "play-dl": "^1.9.7",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
-    "sequelize": "^6.37.8",
     "simple-git": "^3.36.0",
     "wa-sticker-formatter": "^4.4.4",
     "web-push": "^3.6.7",

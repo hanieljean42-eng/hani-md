@@ -10,10 +10,11 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-// Fichiers de stockage
-const PAYMENTS_FILE = path.join(__dirname, 'wave_transactions.json');
-const SUBSCRIBERS_FILE = path.join(__dirname, 'subscribers.json');
-const ACTIVATION_CODES_FILE = path.join(__dirname, 'activation_codes.json');
+// Fichiers de stockage — HANI_DATA_DIR permet d'isoler les données (tests)
+const DATA_DIR = process.env.HANI_DATA_DIR || __dirname;
+const PAYMENTS_FILE = path.join(DATA_DIR, 'wave_transactions.json');
+const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
+const ACTIVATION_CODES_FILE = path.join(DATA_DIR, 'activation_codes.json');
 
 // Configuration Wave API Business
 const WAVE_CONFIG = {
@@ -331,7 +332,7 @@ function activateWithCode(code, whatsappJid) {
   // Vérifier aussi dans le système premium standard
   if (!codeData) {
     try {
-      const premiumCodesFile = path.join(__dirname, 'premium_codes.json');
+      const premiumCodesFile = path.join(DATA_DIR, 'premium_codes.json');
       const premiumCodes = readJSON(premiumCodesFile, {});
       if (premiumCodes[codeUpper]) {
         codeData = premiumCodes[codeUpper];
@@ -372,7 +373,7 @@ function activateWithCode(code, whatsappJid) {
     writeJSON(ACTIVATION_CODES_FILE, activationCodes);
   } else if (codeData._fromPremium) {
     try {
-      const premiumCodesFile = path.join(__dirname, 'premium_codes.json');
+      const premiumCodesFile = path.join(DATA_DIR, 'premium_codes.json');
       const premiumCodes = readJSON(premiumCodesFile, {});
       premiumCodes[codeUpper].used = true;
       premiumCodes[codeUpper].usedBy = whatsappJid;
@@ -474,12 +475,14 @@ function findSubscriber(query) {
   const subscribers = readJSON(SUBSCRIBERS_FILE, { subscribers: [] });
   const cleanQuery = query.replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
   
-  return subscribers.subscribers.filter(s => 
-    s.id.toLowerCase().includes(cleanQuery) ||
-    s.phone.includes(cleanQuery) ||
-    s.name.toLowerCase().includes(cleanQuery) ||
-    s.paymentRef.toLowerCase().includes(cleanQuery) ||
-    (s.activationCode && s.activationCode.toLowerCase().includes(cleanQuery))
+  const norm = (v) => String(v || '').toLowerCase().replace(/[^0-9a-z]/g, '');
+
+  return subscribers.subscribers.filter(s =>
+    norm(s.id).includes(cleanQuery) ||
+    norm(s.phone).includes(cleanQuery) ||
+    norm(s.name).includes(cleanQuery) ||
+    norm(s.paymentRef).includes(cleanQuery) ||
+    norm(s.activationCode).includes(cleanQuery)
   );
 }
 
