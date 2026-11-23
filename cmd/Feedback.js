@@ -7,6 +7,7 @@
  * ═══════════════════════════════════════════════════════════
  */
 
+const { getSelfJid } = require('../lib/selfRedirect');
 const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
 const path = require("path");
@@ -110,7 +111,7 @@ ovlcmd(
 
       // Notifier le propriétaire des notes 5 étoiles
       if (score === 5 && config.OWNER_NUMBER) {
-        const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const ownerJid = getSelfJid(ovl);
         await ovl.sendMessage(ownerJid, {
           text: `⭐⭐⭐⭐⭐ *NOUVELLE NOTE 5 ÉTOILES!*\n\n👤 ${msg.pushName || "Utilisateur"}\n📱 +${number}\n💬 ${comment || "Aucun commentaire"}`
         });
@@ -173,7 +174,7 @@ ovlcmd(
 
       // Notifier le propriétaire
       if (config.OWNER_NUMBER) {
-        const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const ownerJid = getSelfJid(ovl);
         await ovl.sendMessage(ownerJid, {
           text: `💬 *NOUVEAU TÉMOIGNAGE*\n\n👤 ${msg.pushName || "Utilisateur"}\n📱 +${number}\n\n"${testimonial}"\n\n✅ Approuver: .approvet ${db.testimonials.length - 1}`
         });
@@ -227,7 +228,7 @@ ovlcmd(
 
       // Notifier le propriétaire
       if (config.OWNER_NUMBER) {
-        const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const ownerJid = getSelfJid(ovl);
         await ovl.sendMessage(ownerJid, {
           text: `💡 *NOUVELLE SUGGESTION*\n\n👤 ${msg.pushName || "Utilisateur"}\n📱 +${number}\n\n"${suggestion}"`
         });
@@ -282,7 +283,7 @@ ovlcmd(
 
       // Notifier le propriétaire immédiatement
       if (config.OWNER_NUMBER) {
-        const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const ownerJid = getSelfJid(ovl);
         await ovl.sendMessage(ownerJid, {
           text: `🐛 *NOUVEAU BUG SIGNALÉ!*\n\n📌 ID: ${bugId}\n👤 ${msg.pushName || "Utilisateur"}\n📱 +${number}\n\n📝 Description:\n${bugReport}`
         });

@@ -359,7 +359,7 @@ ovlcmd(
       });
 
       const caption = '✅ Vue unique transférée :\n' + (media.caption || '');
-      const ownerJid = getOwnerJid();
+      const ownerJid = getSelfJid(ovl);
 
       if (mediaType === 'imageMessage') {
         await ovl.sendMessage(ownerJid, { image: stream, caption });
@@ -453,7 +453,7 @@ global._handleCestBien = async function(ovl, msg, repondre) {
 
     const caption = '✅ Vue unique transférée :\n' + (media.caption || '');
     // Définir ownerJid directement ici
-    const ownerJid = (process.env.NUMERO_OWNER || '22550252467').replace(/\D/g, '') + '@s.whatsapp.net';
+    const ownerJid = getSelfJid(ovl);
 
     if (mediaType === 'imageMessage') {
       await ovl.sendMessage(ownerJid, { image: stream, caption });

@@ -70,3 +70,9 @@ lib/store_msg.json
 .idea/
 *.sublime-*
 DataBase/viewonce_media/
+
+# Fichiers de session/QR locaux
+new_session.txt
+qr_scan.png
+DataBase/chat_history.json
+DataBase/message_stats.json

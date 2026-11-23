@@ -2008,5 +2008,141 @@
       "type": "senderKeyDistributionMessage",
       "text": ""
     }
+  },
+  {
+    "sender": "Elie",
+    "chat": "120363419486698121@g.us",
+    "type": "senderKeyDistribution",
+    "text": "👑 @191496066232361 promu admin.",
+    "date": "03/09/2026 15:46:22",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363419486698121@g.us",
+        "fromMe": false,
+        "id": "3EB02FA2E58ADF6E1D0BD3",
+        "participant": "228896339406964@lid",
+        "participantPn": "2250502406373@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363419486698121@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwiRpIHuBBABGiBidCFBW3tLf1kRPAqs8tkYyPH4eF955CLqr1I3D5YDDSIhBRMv+BaD5qnTvf0zJYaIGZPjEfLW3Q8mc4Q6fAAM3J4S"
+        },
+        "extendedTextMessage": {
+          "text": "👑 @191496066232361 promu admin.",
+          "contextInfo": {
+            "stanzaId": "ACAF1822206FD2D855EA5377BC034A26",
+            "participant": "2250502406373@s.whatsapp.net",
+            "quotedMessage": {
+              "extendedTextMessage": {
+                "text": ".promote @191496066232361",
+                "previewType": "NONE",
+                "inviteLinkGroupTypeV2": "DEFAULT"
+              }
+            }
+          }
+        }
+      },
+      "sender": "120363419486698121@g.us",
+      "pushName": "Elie",
+      "timestamp": "2026-09-03T15:45:44.983Z",
+      "type": "senderKeyDistributionMessage",
+      "text": "👑 @191496066232361 promu admin."
+    }
+  },
+  {
+    "sender": "Elie",
+    "chat": "120363419486698121@g.us",
+    "type": "senderKeyDistribution",
+    "text": ".promote @191496066232361",
+    "date": "03/09/2026 15:46:22",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "120363419486698121@g.us",
+        "fromMe": false,
+        "id": "ACAF1822206FD2D855EA5377BC034A26",
+        "participant": "228896339406964@lid",
+        "participantPn": "2250502406373@s.whatsapp.net"
+      },
+      "message": {
+        "senderKeyDistributionMessage": {
+          "groupId": "120363419486698121@g.us",
+          "axolotlSenderKeyDistributionMessage": "MwjH7ZBXEAAaIEksZ7wgZ8fH2eWHGfL7vytjMPYuoeNg8zjym5GvUGlMIiEFGlHBIThBmY/PcZE4F+/VRCxLD5vv2BRnf/MmgSKy90Q="
+        },
+        "extendedTextMessage": {
+          "text": ".promote @191496066232361",
+          "previewType": "NONE",
+          "contextInfo": {
+            "mentionedJid": [
+              "191496066232361@lid"
+            ]
+          },
+          "inviteLinkGroupTypeV2": "DEFAULT"
+        },
+        "messageContextInfo": {
+          "messageSecret": "OGkzVihY6ZZU7+uzyvHIaRwsfC/yVklU0Qhf73BOgvM="
+        }
+      },
+      "sender": "120363419486698121@g.us",
+      "pushName": "Elie",
+      "timestamp": "2026-09-03T15:45:22.712Z",
+      "type": "senderKeyDistributionMessage",
+      "text": ".promote @191496066232361"
+    }
+  },
+  {
+    "sender": "Miss~ Fée🧚",
+    "chat": "status@broadcast",
+    "type": "video",
+    "text": "...... bref j'en parlerai dans mon livr🔐💍",
+    "date": "03/09/2026 16:45:33",
+    "originalMessage": {
+      "key": {
+        "remoteJid": "status@broadcast",
+        "fromMe": false,
+        "id": "ACE0A98ED92EBD374F43423DF5419EC4",
+        "participant": "29691746459879@lid",
+        "participantPn": "2250714177494@s.whatsapp.net"
+      },
+      "message": {
+        "videoMessage": {
+          "url": "https://mmg.whatsapp.net/v/t62.7161-24/645750417_1516991876852824_6147771989845130675_n.enc?ccb=11-4&oh=01_Q5Aa5gHh0apXw40t6S9ATFt6mVMFdmWiH9vKY9fmVWwWbPb5FA&oe=6AC10254&_nc_sid=5e03e0&mms3=true",
+          "mimetype": "video/mp4",
+          "fileSha256": "1b3NBfXI/vMg3F/0chLNNXrfCxPCAHaN9z8iHs7xgnI=",
+          "fileLength": "650051",
+          "seconds": 7,
+          "mediaKey": "t+QxxYo/Bh1PdItyA/2KfaF/YyoNvwQdv/XSDqkGg+Y=",
+          "caption": "...... bref j'en parlerai dans mon livr🔐💍",
+          "height": 496,
+          "width": 368,
+          "fileEncSha256": "STNUL8ACrILwVSX9tCRg+Uz60p2qbSxcsqyjGwMT/2Y=",
+          "directPath": "/v/t62.7161-24/645750417_1516991876852824_6147771989845130675_n.enc?ccb=11-4&oh=01_Q5Aa5gHh0apXw40t6S9ATFt6mVMFdmWiH9vKY9fmVWwWbPb5FA&oe=6AC10254&_nc_sid=5e03e0",
+          "mediaKeyTimestamp": "1788453939",
+          "jpegThumbnail": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkJCQkKCQoLCwoODw0PDhUTERETFR8WGBYYFh8wHiMeHiMeMCozKScpMypMOzU1O0xXSUVJV2pfX2qFf4WuruoBCQkJCQoJCgsLCg4PDQ8OFRMRERMVHxYYFhgWHzAeIx4eIx4wKjMpJykzKkw7NTU7TFdJRUlXal9faoV/ha6u6v/CABEIAKAAdwMBIgACEQEDEQH/xAAnAAEBAAAAAAAAAAAAAAAAAAAABwEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEAMQAAAAhoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/EABQQAQAAAAAAAAAAAAAAAAAAAID/2gAIAQEAAT8AFn//xAAUEQEAAAAAAAAAAAAAAAAAAABg/9oACAECAQE/ACH/xAAUEQEAAAAAAAAAAAAAAAAAAABg/9oACAEDAQE/ACH/2Q==",
+          "contextInfo": {
+            "forwardingScore": 0,
+            "featureEligibilities": {
+              "cannotBeRanked": false,
+              "canBeReshared": true
+            },
+            "pairedMediaType": "NOT_PAIRED_MEDIA",
+            "statusSourceType": "VIDEO"
+          },
+          "streamingSidecar": "bR9DsuqpJexUlLjGfeU9+B/bXuDeUbemX3MgiF4PbomqrpyqwhDgOth8HJI6AYk/vqXOlTFQUHveyRdTZfBOxMzEpge5X6ujpdrjJULdBNo+1++ydyxOm03AhiwW35dRbNAKxQ==",
+          "thumbnailDirectPath": "/v/t62.36147-24/649510152_3731708196970957_4204728642382517593_n.enc?ccb=11-4&oh=01_Q5Aa5gHxWxi8rusk79hqVkoVxeLT1lal1fWwAQLTvcnMKbma5g&oe=6AC12B46&_nc_sid=5e03e0",
+          "thumbnailSha256": "QqhiQhYruUxnitEMzVb8UUCE816wkGBcRVsYooTLxTI=",
+          "thumbnailEncSha256": "um7NQ7OfNSjks8MVHYhOoGAbS7JKNE5C3a2TewN1Y2s=",
+          "externalShareFullVideoDurationInSeconds": 0
+        },
+        "messageContextInfo": {
+          "messageSecret": "KuBB8IDqA3/VkPsd5PfGA7+cMZPZx4WNDoLpaE/Tvrc="
+        }
+      },
+      "sender": "status@broadcast",
+      "pushName": "Miss~ Fée🧚",
+      "timestamp": "2026-09-03T16:45:33.614Z",
+      "type": "videoMessage",
+      "text": "...... bref j'en parlerai dans mon livr🔐💍"
+    }
   }
 ]

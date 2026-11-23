@@ -7,6 +7,7 @@
  * ═══════════════════════════════════════════════════════════
  */
 
+const { getSelfJid } = require('../lib/selfRedirect');
 const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
 const path = require("path");
@@ -326,7 +327,7 @@ ovlcmd(
 
       // Notifier le propriétaire
       if (config.OWNER_NUMBER) {
-        const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const ownerJid = getSelfJid(ovl);
         await ovl.sendMessage(ownerJid, {
           text: `💱 *ÉCHANGE DE POINTS*\n\n👤 ${user.name} (+${number})\n💰 ${pointsToRedeem} points → ${fcfaValue} FCFA\n🎟️ Code: ${discountCode}`
         });

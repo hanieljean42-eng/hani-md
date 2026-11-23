@@ -7,6 +7,7 @@
  * ═══════════════════════════════════════════════════════════
  */
 
+const { getSelfJid } = require('../lib/selfRedirect');
 const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
 const path = require("path");
@@ -128,7 +129,7 @@ ovlcmd(
 
         // Notifier le propriétaire
         if (db.settings.notifyOwner && config.OWNER_NUMBER) {
-          const ownerJid = config.OWNER_NUMBER.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+          const ownerJid = getSelfJid(ovl);
           await ovl.sendMessage(ownerJid, {
             text: `🎫 *NOUVEAU TICKET*\n━━━━━━━━━━━━━━━━━\n\n📌 ID: ${ticketId}\n👤 De: ${msg.pushName || "Utilisateur"}\n📱 Numéro: +${number}\n\n📝 Problème:\n${issue}\n\n💡 Répondez avec:\n.treply ${ticketId} [message]`
           });

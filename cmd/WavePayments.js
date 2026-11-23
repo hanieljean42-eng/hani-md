@@ -12,6 +12,7 @@
  */
 
 const { ovlcmd } = require('../lib/ovlcmd');
+const { getSelfJid } = require('../lib/selfRedirect');
 const path = require('path');
 const fs = require('fs');
 const config = require('../set');
@@ -167,7 +168,7 @@ ovlcmd({
     // ── 6. Notifier l'owner ──
     const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
     try {
-      await ovl.sendMessage(OWNER_JID, {
+      await ovl.sendMessage(getSelfJid(ovl), {
         text: `🎉 *NOUVEAU ABONNÉ ACTIVÉ*\n\n` +
           `👤 ${msg.pushName || userJid.replace('@s.whatsapp.net','')}\n` +
           `📱 ${userJid.replace('@s.whatsapp.net','')}\n` +
@@ -752,7 +753,7 @@ ovlcmd({
 
     // Notifier l'owner du rejet automatique
     try {
-      await ovl.sendMessage(OWNER_JID, {
+      await ovl.sendMessage(getSelfJid(ovl), {
         text: `⚠️ *REJET AUTOMATIQUE*\n\n` +
           `👤 ${userPhone}\n` +
           `🆔 Réf: ${reference}\n` +
@@ -788,7 +789,7 @@ ovlcmd({
   // Notifier l'owner pour validation finale
   const planEmoji = { BRONZE: '🥉', ARGENT: '🥈', OR: '🥇', DIAMANT: '💎', LIFETIME: '👑' };
   try {
-    await ovl.sendMessage(OWNER_JID, {
+    await ovl.sendMessage(getSelfJid(ovl), {
       text: `💰 *NOUVEAU PAIEMENT À VALIDER*\n` +
         `━━━━━━━━━━━━━━━━━━━━━\n\n` +
         `👤 *Nom:* ${msg.pushName || userPhone}\n` +
