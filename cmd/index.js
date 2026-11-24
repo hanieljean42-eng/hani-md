@@ -47,7 +47,9 @@ const modules = [
   // Vue unique & messages supprimés
   "VueUnique",
   // Protections du bot
-  "Protection"
+  "Protection",
+  // Panneau owner + accueil débutant
+  "Panel"
 ];
 
 // Charger tous les modules
